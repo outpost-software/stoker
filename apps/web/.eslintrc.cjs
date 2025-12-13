@@ -1,0 +1,53 @@
+module.exports = {
+    env: {
+        es6: true,
+    },
+    extends: [
+        "eslint:recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:import/typescript",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:security/recommended-legacy",
+        "prettier",
+        "turbo",
+        "plugin:jsx-a11y/recommended",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended-latest",
+    ],
+    parser: "@typescript-eslint/parser",
+    parserOptions: {
+        project: ["tsconfig.json"],
+        sourceType: "module",
+    },
+    ignorePatterns: ["/lib/**/*", "/dist/**/*", "/src/assets/system-custom/**/*"],
+    plugins: ["@typescript-eslint", "import"],
+    rules: {
+        "import/no-unresolved": 0,
+        "react/react-in-jsx-scope": "off",
+        "@typescript-eslint/no-non-null-assertion": "error",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "off",
+
+        "react-hooks/config": "off",
+        "react-hooks/error-boundaries": "off",
+        "react-hooks/component-hook-factories": "off",
+        "react-hooks/gating": "off",
+        "react-hooks/globals": "off",
+        "react-hooks/immutability": "off",
+        "react-hooks/preserve-manual-memoization": "off",
+        "react-hooks/purity": "off",
+        "react-hooks/refs": "off",
+        "react-hooks/set-state-in-effect": "off",
+        "react-hooks/set-state-in-render": "off",
+        "react-hooks/static-components": "off",
+        "react-hooks/unsupported-syntax": "off",
+        "react-hooks/use-memo": "off",
+        "react-hooks/incompatible-library": "off",
+    },
+    settings: {
+        react: {
+            version: "detect",
+        },
+    },
+}

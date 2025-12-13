@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+    --ifm-color-primary: #3b82f6;
+    --ifm-color-primary-dark: #2f6bcc;
+    --ifm-color-primary-darker: #22529d;
+    --ifm-color-primary-darkest: #16366b;
+    --ifm-color-primary-light: #6ea4f9;
+    --ifm-color-primary-lighter: #8eb7f9;
+    --ifm-color-primary-lightest: #b0ceff;
+    --ifm-code-font-size: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme="dark"] {
+    --ifm-color-primary: #3b82f6;
+    --ifm-color-primary-dark: #2f6bcc;
+    --ifm-color-primary-darker: #22529d;
+    --ifm-color-primary-darkest: #16366b;
+    --ifm-color-primary-light: #6ea4f9;
+    --ifm-color-primary-lighter: #8eb7f9;
+    --ifm-color-primary-lightest: #b0ceff;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+.navbar {
+    --ifm-navbar-background-color: #000000;
+}
+.navbar__logo {
+    height: 24px;
+}
+
+.alpha-button {
+    background-color: #fff;
+    color: #000;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    font-weight: bold;
+}

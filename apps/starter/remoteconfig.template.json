@@ -1,0 +1,10 @@
+{
+    "parameters": {
+        "delay_update": {
+            "defaultValue": {
+                "value": "true"
+            },
+            "valueType": "BOOLEAN"
+        }
+    }
+}

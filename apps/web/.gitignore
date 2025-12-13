@@ -1,0 +1,10 @@
+.firebase
+.firebaserc
+firebase.json
+remoteconfig.template.json
+src/assets/system-custom
+.env
+dist
+!lib
+.turbo
+*.log

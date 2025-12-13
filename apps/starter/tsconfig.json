@@ -1,0 +1,11 @@
+{
+    "extends": "../../packages/tsconfig/base.json",
+    "compilerOptions": {
+        "outDir": "lib",
+        "lib": ["DOM", "ESNext"],
+        "jsx": "react-jsx"
+    },
+    "include": ["src"],
+    "files": ["src/vite-env.d.ts"],
+    "exclude": ["test", "vitest.config.ts"]
+}

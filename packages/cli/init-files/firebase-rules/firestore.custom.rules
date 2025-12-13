@@ -1,0 +1,11 @@
+// MAIL
+
+match /system_mail/{mail} {
+    allow create: if false
+}
+
+// SMS
+
+match /system_messages/{message} {
+    allow create: if false
+}
