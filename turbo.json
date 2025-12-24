@@ -1,0 +1,28 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "globalEnv": ["NODE_ENV", "MODE", "DEV", "PROD", "BASE_URL", "SSR", "STOKER_*", "GCP_*", "FB_*"],
+    "globalPassThroughEnv": [
+        "ADMIN_*",
+        "MAIL_*",
+        "FIREBASE_*",
+        "FIRESTORE_*",
+        "SENTRY_*",
+        "ALGOLIA_*",
+        "TWILIO_*",
+        "FULLCALENDAR_*",
+        "EXTERNAL_SECRETS",
+        "URL_*"
+    ],
+    "tasks": {
+        "dev": {
+            "cache": false,
+            "persistent": true
+        },
+        "//#format": {},
+        "lint": {},
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["dist/**", "lib/**", "build/**"]
+        }
+    }
+}

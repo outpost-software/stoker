@@ -1,0 +1,53 @@
+{
+    "name": "stoker",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "license": "UNLICENSED",
+    "scripts": {
+        "clean:lib": "rm -rf lib",
+        "clean:functions": "rm -rf functions/lib",
+        "dev": "concurrently \"nodemon --quiet --watch src --ext ts,tsx,js,json --exec 'npm run clean:lib && tsc && cp -r src/. web-app/src/assets/system-custom && cp lib/main.js web-app/src/assets/system-custom/main.js'\" \"npm --prefix functions run build:watch\"",
+        "web:dev": "cd web-app && npm run dev",
+        "prestart": "npm run build && npx stoker build-web-app && rm -rf web-app && mkdir web-app && cp -r node_modules/@stoker-platform/web-app/. web-app/ && stoker apply",
+        "start": "concurrently \"npm run dev\" \"npm run web:dev\" \"stoker start\"",
+        "format": "prettier . --write",
+        "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",
+        "prebuild": "npm run clean:lib && npm run clean:functions",
+        "build": "tsc && node bin/build.js && grep -h '^FB_FUNCTIONS_\\|^FB_AI_REGION\\|^STOKER_\\|^ADMIN_' .env/.env .env/.env.$GCP_PROJECT > functions/.env && rm -r -f functions/src/system-custom && cp -r src/. functions/src/system-custom && node bin/shim.js && npm --prefix functions run build",
+        "test": "vitest --run",
+        "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
+    },
+    "dependencies": {
+        "@stoker-platform/cli": "latest",
+        "@stoker-platform/node-client": "latest",
+        "@stoker-platform/types": "latest",
+        "@stoker-platform/utils": "latest",
+        "@stoker-platform/web-app": "latest",
+        "@stoker-platform/web-client": "latest",
+        "firebase-admin": "latest"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "latest",
+        "@typescript-eslint/parser": "latest",
+        "@vite-pwa/assets-generator": "latest",
+        "@vitest/browser": "latest",
+        "@vitest/ui": "latest",
+        "autoprefixer": "latest",
+        "concurrently": "latest",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "latest",
+        "eslint-plugin-import": "latest",
+        "eslint-plugin-security": "latest",
+        "postcss": "latest",
+        "prettier": "3.7.4",
+        "tailwindcss": "^3.4.17",
+        "typescript": "latest",
+        "vite-plugin-pwa": "latest",
+        "vitest": "latest"
+    },
+    "engines": {
+        "node": ">=22",
+        "npm": "11"
+    }
+}

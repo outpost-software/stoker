@@ -1,0 +1,9 @@
+.env
+.env.*
+.secret.local
+ops.js
+firebase-emulator-data/*
+test-init
+.genkit
+.migration
+project-data.json

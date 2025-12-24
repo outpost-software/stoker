@@ -1,0 +1,68 @@
+{
+    "overrides": {
+        "dotprompt": "1.1.1",
+        "@types/react": "18.3.13",
+        "@types/react-dom": "18.3.1"
+    },
+    "name": "stoker",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "license": "UNLICENSED",
+    "workspaces": [
+        "apps/starter",
+        "apps/web",
+        "apps/docs",
+        "packages/cli",
+        "packages/node-client",
+        "packages/web-client",
+        "packages/utils",
+        "packages/system-functions",
+        "packages/types",
+        "packages/tsconfig",
+        "packages/eslint-config-custom"
+    ],
+    "scripts": {
+        "dev": "turbo run dev --concurrency 12",
+        "format": "prettier . --write",
+        "lint": "turbo run format && turbo run lint",
+        "build": "turbo run build --filter=!./apps/starter",
+        "publish-packages": "turbo run format && turbo run lint && turbo run build --filter=!./apps/starter && changeset version && changeset publish"
+    },
+    "dependencies": {
+        "@changesets/cli": "^2.29.8",
+        "qrcode.react": "^4.2.0"
+    },
+    "devDependencies": {
+        "@vitest/browser": "^4.0.15",
+        "@vitest/ui": "^4.0.8",
+        "concurrently": "9.2.1",
+        "dotenv": "^17.2.3",
+        "eslint": "^8.57.1",
+        "prettier": "3.7.4",
+        "turbo": "^2.6.3",
+        "typescript": "^5.9.3",
+        "vite": "^7.2.6",
+        "vitest": "^4.0.8"
+    },
+    "engines": {
+        "node": ">=22",
+        "npm": "11"
+    },
+    "packageManager": "npm@11.6.2",
+    "description": "Build realtime internal tools.",
+    "homepage": "https://stoker-platform.web.app",
+    "repository": {
+        "repository": {
+            "type": "git",
+            "url": "git+https://github.com/outpost-software/stoker.git"
+        }
+    },
+    "bugs": "https://github.com/outpost-software/stoker/issues",
+    "keywords": [
+        "internal tools",
+        "headless CMS",
+        "application framework",
+        "firestore"
+    ]
+}

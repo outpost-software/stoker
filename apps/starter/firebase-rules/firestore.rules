@@ -1,0 +1,693 @@
+rules_version = '2'
+
+service cloud.firestore {
+    match /databases/(default)/documents {
+
+        // DEPLOYMENT
+
+        match /system_deployment {
+            match /maintenance_mode {
+                allow read: if true
+            }
+            match /latest_deploy {
+                allow read: if true
+                match /deploy_history {
+                    allow read: if false
+                }
+            }
+        }
+
+        match /tenants/{tenantId} {
+
+            // FUNCTIONS
+
+            function isLoggedIn() {
+                let t = request.auth.token;
+                return t.tenant == tenantId && t.collection != null && t.role != null && t.doc != null && exists(/databases/(default)/documents/tenants/$(tenantId)/$(t.collection)/$(t.doc))
+            }
+            function isValidId(id) {
+                return id.size() == 20 && id.matches("^[a-zA-Z0-9]+$")
+            }
+            function isLocked(id) {
+                return exists(/databases/(default)/documents/tenants/$(tenantId)/system_locks/$(id))
+            }
+            function getLatestDeploy() {
+                return get(/databases/(default)/documents/system_deployment/latest_deploy).data
+            }
+            function maintenanceMode() {
+                return get(/databases/(default)/documents/system_deployment/maintenance_mode).data.active
+            }
+            function verifyVersion() {
+                let r = request.resource.data;
+                let l = getLatestDeploy();
+                return l.force == false || !("Last_Write_At" in r.keys()) || r.Last_Write_At > l.time
+            }
+
+            function getUserPermissions() {
+                return get(/databases/(default)/documents/tenants/$(tenantId)/system_user_permissions/$(request.auth.uid)).data
+            }
+            function restrictionInactive(permissions, restriction) {
+                let p = permissions;
+                return !(restriction in p) || !("active" in p[restriction]) || p[restriction].active == false
+            }
+            function restrictEntityInactive(permissions, assignable) {
+                let p = permissions;
+                return assignable && (!("restrictEntities" in p) || p.restrictEntities == false)
+            }
+
+            function existsDocument(path) {
+                return exists(/databases/(default)/documents/tenants/$(tenantId)/$(path))
+            }
+            function existsAfterDocument(path) {
+                return existsAfter(/databases/(default)/documents/tenants/$(tenantId)/$(path))
+            }
+            function getDocument(path) {
+                return get(/databases/(default)/documents/tenants/$(tenantId)/$(path)).data
+            }
+            function getAfterDocument(path) {
+                return getAfter(/databases/(default)/documents/tenants/$(tenantId)/$(path)).data
+            }
+
+            function readAllowed(collectionPermissions) {
+                let mainPermissions = getUserPermissions();
+                return isLoggedIn() && mainPermissions.Role == request.auth.token.role && mainPermissions.Enabled == true && "Read" in collectionPermissions.operations
+            }
+            function createAllowed(collectionPermissions) {
+                let mainPermissions = getUserPermissions();
+                return isLoggedIn() && mainPermissions.Role == request.auth.token.role && mainPermissions.Enabled == true && verifyVersion() && !maintenanceMode() && "Create" in collectionPermissions.operations
+            }
+            function updateAllowed(collectionPermissions) {
+                let mainPermissions = getUserPermissions();
+                return isLoggedIn() && mainPermissions.Role == request.auth.token.role && mainPermissions.Enabled == true && verifyVersion() && !maintenanceMode() && "Update" in collectionPermissions.operations
+            }
+            function deleteAllowed(collectionPermissions) {
+                let mainPermissions = getUserPermissions();
+                return isLoggedIn() && mainPermissions.Role == request.auth.token.role && mainPermissions.Enabled == true && !maintenanceMode() && "Delete" in collectionPermissions.operations
+            }
+            function authAllowed(collectionPermissions) {
+                let mainPermissions = getUserPermissions();
+                return isLoggedIn() && mainPermissions.Role == request.auth.token.role && mainPermissions.Enabled == true && "auth" in collectionPermissions && collectionPermissions.auth == true
+            }
+
+            function recordOwnerFilter(permissions, createdById, assignable) {
+                return isLoggedIn() && ((assignable && restrictionInactive(permissions, "recordOwner")) || request.auth.uid == createdById)
+            }
+            function recordUserFilter(permissions, userIds1, userIds2, assignable) {
+                return isLoggedIn() && ((assignable && restrictionInactive(permissions, "recordUser")) || (request.auth.token.doc in userIds1 && (request.method != "update" || request.auth.token.doc in userIds2)))
+            }
+            function recordPropertyFilter(permissions, recordValues1, recordValues2, allowedValues, assignable) {
+                return isLoggedIn() && ((assignable && restrictionInactive(permissions, "recordProperty")) || (recordValues1.hasAny(allowedValues) && (request.method != "update" || recordValues2.hasAny(allowedValues))))
+            }
+            function individualEntityRestriction(permissions, entityIds1, entityIds2) {
+                let p = permissions;
+                return isLoggedIn() && "individualEntities" in p && entityIds1.hasAny(p.individualEntities) && (request.method != "update" || entityIds2.hasAny(p.individualEntities))
+            }
+            function parentEntityRestriction(permissions, entityIds1, entityIds2) {
+                let p = permissions;
+                return isLoggedIn() && "parentEntities" in p && entityIds1.hasAny(p.parentEntities) && (request.method != "update" || entityIds2.hasAny(p.parentEntities))
+            }
+            function parentPropertyEntityRestriction(permissions, property1, property2, entityIds1, entityIds2) {
+                let p = permissions;
+                return isLoggedIn() && "parentPropertyEntities" in p && property1 in p.parentPropertyEntities && entityIds1.hasAny(p.parentPropertyEntities[property1]) && (request.method != "update" || (property2 in p.parentPropertyEntities && entityIds2.hasAny(p.parentPropertyEntities[property2])))
+            }
+
+            function getDocumentAffectedKeys() {
+                return request.resource.data.diff(resource.data).affectedKeys()
+            }
+            function getDocumentAddedKeys() {
+                return request.resource.data.diff(resource.data).addedKeys()
+            }
+            function getDocumentChangedKeys() {
+                return request.resource.data.diff(resource.data).changedKeys()
+            }
+            function getDocumentRemovedKeys() {
+                return request.resource.data.diff(resource.data).removedKeys()
+            }
+            function systemFieldsValidation() {
+                let r = request.resource.data;
+                return r.keys().hasAll(["id","Collection_Path","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) && (request.method == "create" || (!getDocumentAffectedKeys().hasAny(["Collection_Path","Created_At","Saved_At","Created_By"]) && getDocumentChangedKeys().hasAll(["Last_Write_At","Last_Save_At"]))) && r.Collection_Path is list && r.Collection_Path.size() > 0 && r.Collection_Path[0] is string && r.Last_Write_At is timestamp && r.Last_Write_At <= request.time && r.Last_Save_At is timestamp && r.Last_Save_At == request.time && r.Last_Write_By is string && r.Last_Write_By == request.auth.uid && r.Last_Write_App is string && r.Last_Write_Connection_Status is string && r.Last_Write_Connection_Status in ["Offline","Online"] && r.Last_Write_Version is int && r.Created_At is timestamp && r.Created_At <= request.time && r.Saved_At is timestamp && (request.method != "create" || r.Saved_At == request.time) && r.Created_By is string && (request.method != "create" || r.Created_By == request.auth.uid)
+            }
+            function denySchemalessFields(fields) {
+                let r = request.resource.data;
+                let systemFields = ["id","Collection_Path","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"];
+                return r.keys().toSet().hasOnly(fields.toSet().union(systemFields.toSet()))
+            }
+            function allowedFields(fields) {
+                let r = request.resource.data;
+                return r.keys().hasOnly(fields)
+            }
+            function validatePrivateFields(m, fields) {
+                let r = request.resource.data;
+                return r.diff(m).changedKeys().size() == 0 && r.diff(m).addedKeys().hasOnly(["Collection_Path_String"]) && r.diff(m).removedKeys().hasOnly(fields)
+            }
+            function validate(fieldName, m, r, relation) {
+                return (!(fieldName in m.keys()) && !(fieldName in r.keys())) || (relation && !(fieldName in m.keys()) && fieldName in r.keys() && r[fieldName].size() == 0) || m[fieldName] == r[fieldName]
+            }
+
+            // USER PERMISSIONS
+
+            function ContactsPermissionsRead(userId) { let p = getUserPermissions(); let d = resource.data; return d.Collection == "Contacts" && ((isLoggedIn() && request.auth.token.collection == "Contacts" && request.auth.uid == userId && p != null) || (readAllowed(p.collections.Contacts) && authAllowed(p.collections.Contacts))) }
+            match /system_user_permissions/{userId} {
+                allow read: if ContactsPermissionsRead(userId)
+            }
+
+            function UsersPermissionsRead(userId) { let p = getUserPermissions(); let d = resource.data; return d.Collection == "Users" && ((isLoggedIn() && request.auth.token.collection == "Users" && request.auth.uid == userId && p != null) || (readAllowed(p.collections.Users) && authAllowed(p.collections.Users) && (request.auth.token.role != "Area Manager" || d.Role in ["Area Manager"]) && (request.auth.token.role != "Subcontractor" || d.Role in ["Cleaner"]))) }
+            match /system_user_permissions/{userId} {
+                allow read: if UsersPermissionsRead(userId)
+            }    
+
+            // COLLECTIONS
+            
+
+            // Buildings Collection Denormalized Fields
+
+            
+            
+            match /system_fields/Buildings/Buildings-1/{documentId} {
+                function Buildings1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Buildings1Read() { let p = getUserPermissions(); let c = p.collections.Buildings; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Area Manager") && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Buildings1Create() { let p = getUserPermissions(); let c = p.collections.Buildings; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(r.Collection_Path[1])/$(r.Collection_Path[2])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Buildings1Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["Description"])) && !r.keys().hasAny(f.removeAll(["Description"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Buildings1Update() { let p = getUserPermissions(); let c = p.collections.Buildings; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(r.Collection_Path[1])/$(r.Collection_Path[2])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Buildings1Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["Description"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Description"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Buildings1Delete() { let p = getUserPermissions(); let c = p.collections.Buildings; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Buildings1Read() allow create: if Buildings1Create() allow update: if Buildings1Update() allow delete: if Buildings1Delete()
+                
+            }
+            match /system_fields/Buildings/Buildings-2/{documentId} {
+                function Buildings2Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Buildings2Read() { let p = getUserPermissions(); let c = p.collections.Buildings; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Subcontractor" || t == "Cleaner" || t == "Client") && !d.keys().hasAny(["Description","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Buildings2Create() { let p = getUserPermissions(); let c = p.collections.Buildings; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(r.Collection_Path[1])/$(r.Collection_Path[2])/$(documentId)); let f = ["Description","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Buildings2Validation() && ((validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Buildings2Update() { let p = getUserPermissions(); let c = p.collections.Buildings; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(r.Collection_Path[1])/$(r.Collection_Path[2])/$(documentId)); let f = ["Description","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Buildings2Validation() && ((validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Buildings2Delete() { let p = getUserPermissions(); let c = p.collections.Buildings; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Buildings2Read() allow create: if Buildings2Create() allow update: if Buildings2Update() allow delete: if Buildings2Delete()
+                
+            }
+            
+            // Companies
+
+            match /Companies/{CompanyId} {
+                function CompaniesValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Companies"] && r.keys().hasAll(["Name","Number","Start"]) && (r.get("Name", "") is string) && r.get("Name", "X").size() <= 255 && (r.get("Archived", true) is bool) && (r.get("Archived_At", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Address", "") is string) && (r.get("Active", true) is bool) && (r.get("ABN", "") is string) && (!("ABN" in r.keys()) || r.ABN.matches("^[0-9]{11}$")) && (r.get("Revenue", 1.0) is number) && r.get("Revenue", 1000) >= 1000 && r.get("Revenue", 1000000) <= 1000000 && (r.get("Established", timestamp.date(1970, 1, 1)) is timestamp) && r.get("Established", timestamp.date(2500, 1, 1)).toMillis() >= 1712015657000 && r.get("Established", timestamp.date(1970, 1, 1)).toMillis() <= 1820147957000 && r.get("Contacts", {}) is map && r.get("Contacts", {}).keys().toSet().difference(r.get("Contacts_Array", []).toSet()).size() == 0 && r.get("Sites", {}) is map && r.get("Sites", {}).keys().toSet().difference(r.get("Sites_Array", []).toSet()).size() == 0 && r.get("Work_Orders", {}) is map && r.get("Work_Orders", {}).keys().toSet().difference(r.get("Work_Orders_Array", []).toSet()).size() == 0 && (r.get("Start", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Location", []) is list || r.get("Location", null) == null) && r.Name.lower() == r.Name_Lowercase && denySchemalessFields(["Name","Archived","Archived_At","Address","Number","Active","ABN","Revenue","Established","Contacts","Sites","Work_Orders","Start","Location","Name_Lowercase","Contacts_Array","Sites_Array","Work_Orders_Array"]) }
+                
+                function CompaniesCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; let f = ["ABN","Revenue"]; return createAllowed(c) && isValidId(CompanyId) && CompaniesValidation() && ((t in ["Office","Area Manager"] && !r.keys().hasAny(f.removeAll(["ABN","Revenue"]))) || (t in ["Cleaner"] && !r.keys().hasAny(f.removeAll(["Revenue"]))) || !r.keys().hasAny(f)) && (!("Address" in r.keys()) || (!existsDocument(/system_unique/Companies/Unique-Companies-Address/$(string(r.Address).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Companies/Unique-Companies-Address/$(string(r.Address).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && (!("ABN" in r.keys()) || (!existsDocument(/system_unique/Companies/Unique-Companies-ABN/$(string(r.ABN).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Companies/Unique-Companies-ABN/$(string(r.ABN).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && (!("Revenue" in r.keys()) || (!existsDocument(/system_unique/Companies/Unique-Companies-Revenue/$(string(r.Revenue).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Companies/Unique-Companies-Revenue/$(string(r.Revenue).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && !r.keys().hasAny(["Contacts"]) && (r.Archived == false || r.Archived_At == request.time) && r.Number == "Pending" }
+                function CompaniesUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let f = ["ABN","Revenue"]; return updateAllowed(c) && CompaniesValidation() && ((t in ["Office","Area Manager"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["ABN","Revenue"]))) || (t in ["Cleaner"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Revenue"]))) || !r.diff(d).affectedKeys().hasAny(f)) && ((!("Address" in getDocumentAddedKeys()) && !("Address" in getDocumentChangedKeys())) || (!existsDocument(/system_unique/Companies/Unique-Companies-Address/$(string(r.Address).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Companies/Unique-Companies-Address/$(string(r.Address).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && ((!("ABN" in getDocumentAddedKeys()) && !("ABN" in getDocumentChangedKeys())) || (!existsDocument(/system_unique/Companies/Unique-Companies-ABN/$(string(r.ABN).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Companies/Unique-Companies-ABN/$(string(r.ABN).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && ((!("Revenue" in getDocumentAddedKeys()) && !("Revenue" in getDocumentChangedKeys())) || (!existsDocument(/system_unique/Companies/Unique-Companies-Revenue/$(string(r.Revenue).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Companies/Unique-Companies-Revenue/$(string(r.Revenue).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && !r.diff(d).affectedKeys().hasAny(["Name","Established"]) && (r.Archived == false || !("Archived_At" in getDocumentAffectedKeys()) || r.Archived_At == request.time) && !("Number" in getDocumentAffectedKeys()) }
+                function CompaniesDelete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if CompaniesCreate() allow update: if CompaniesUpdate() allow delete: if CompaniesDelete()
+                
+            match /system_write_log/{logId} {
+                  
+                
+                function CompaniesWriteLogCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let n = request.resource.data; return createAllowed(c) && (n.status == "started" || n.status == "written" || n.status == "success" || n.status == "failed") }
+                function CompaniesWriteLogUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let n = request.resource.data; let l = resource.data; return updateAllowed(c) && (n.status == "written" || n.status == "success" || n.status == "failed") && (l.status == "started" || l.status == "written") }
+                function CompaniesWriteLogDelete() { let p = getUserPermissions(); let c = p.collections.Companies; let l = resource.data; let d = getAfterDocument(/$(l.Collection_Path.join("/"))/$(CompanyId)); let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if CompaniesWriteLogCreate() allow update: if CompaniesWriteLogUpdate() allow delete: if CompaniesWriteLogDelete()
+                
+            }
+
+            
+            }
+        
+            // Companies Collection Denormalized Fields
+
+            match /system_unique/Companies/Unique-Companies-Address/{fieldValue} {
+                function CompaniesAddressValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path.join("/"))/$(r.id)); return allowedFields(["id","Collection_Path"]) && string(m.Address).lower().replace(" ", "---").replace("/", "|||") == fieldValue && m.Collection_Path == r.Collection_Path }
+                function CompaniesAddressRead() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) } 
+                function CompaniesAddressCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && CompaniesAddressValidation() }
+                function CompaniesAddressUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && CompaniesAddressValidation() }
+                
+                allow read: if CompaniesAddressRead() allow create: if CompaniesAddressCreate() allow update: if CompaniesAddressUpdate() allow delete: if false
+                
+            }
+            match /system_unique/Companies/Unique-Companies-ABN/{fieldValue} {
+                function CompaniesABNValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path.join("/"))/$(r.id)); return allowedFields(["id","Collection_Path"]) && string(m.ABN).lower().replace(" ", "---").replace("/", "|||") == fieldValue && m.Collection_Path == r.Collection_Path }
+                function CompaniesABNRead() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t in ["Office","Area Manager"]) } 
+                function CompaniesABNCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && CompaniesABNValidation() && (t in ["Office","Area Manager"]) }
+                function CompaniesABNUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && CompaniesABNValidation() && (t in ["Office","Area Manager"]) }
+                
+                allow read: if CompaniesABNRead() allow create: if CompaniesABNCreate() allow update: if CompaniesABNUpdate() allow delete: if false
+                
+            }
+            match /system_unique/Companies/Unique-Companies-Revenue/{fieldValue} {
+                function CompaniesRevenueValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path.join("/"))/$(r.id)); return allowedFields(["id","Collection_Path"]) && string(m.Revenue).lower().replace(" ", "---").replace("/", "|||") == fieldValue && m.Collection_Path == r.Collection_Path }
+                function CompaniesRevenueRead() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t in ["Office","Area Manager","Cleaner"]) } 
+                function CompaniesRevenueCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && CompaniesRevenueValidation() && (t in ["Office","Area Manager","Cleaner"]) }
+                function CompaniesRevenueUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && CompaniesRevenueValidation() && (t in ["Office","Area Manager","Cleaner"]) }
+                
+                allow read: if CompaniesRevenueRead() allow create: if CompaniesRevenueCreate() allow update: if CompaniesRevenueUpdate() allow delete: if false
+                
+            }
+            match /system_fields/Companies/Companies-Active/{documentId} {
+                function CompaniesActiveValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); return allowedFields(["Collection_Path_String","Collection_Path","id","Archived","Active"]) && validate("Collection_Path", m, r, false) && validate("id", m, r, false) && validate("Archived", m, r, false) && validate("Active", m, r, false) && r.Collection_Path_String == r.Collection_Path.join("/") }
+                function CompaniesActiveRead() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Contacts) && t in ["Area Manager"])) } 
+                function CompaniesActiveCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && CompaniesActiveValidation() }
+                function CompaniesActiveUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && CompaniesActiveValidation() }
+                function CompaniesActiveDelete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if CompaniesActiveRead() allow create: if CompaniesActiveCreate() allow update: if CompaniesActiveUpdate() allow delete: if CompaniesActiveDelete()
+                
+            }
+            match /system_fields/Companies/Companies-Name/{documentId} {
+                function CompaniesNameValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); return allowedFields(["Collection_Path_String","Collection_Path","id","Active","Archived","Name"]) && validate("Collection_Path", m, r, false) && validate("id", m, r, false) && validate("Active", m, r, false) && validate("Archived", m, r, false) && validate("Name", m, r, false) && r.Collection_Path_String == r.Collection_Path.join("/") }
+                function CompaniesNameRead() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Contacts) && t in ["Area Manager","Subcontractor"]) || (readAllowed(p.collections.Invoices) && t in ["Office"]) || (readAllowed(p.collections.Sites) && t in ["Area Manager"]) || (readAllowed(p.collections.Work_Orders) && t in ["Office"])) } 
+                function CompaniesNameCreate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && CompaniesNameValidation() }
+                function CompaniesNameUpdate() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && CompaniesNameValidation() }
+                function CompaniesNameDelete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if CompaniesNameRead() allow create: if CompaniesNameCreate() allow update: if CompaniesNameUpdate() allow delete: if CompaniesNameDelete()
+                
+            }
+            match /system_fields/Companies/Companies-1/{documentId} {
+                function Companies1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Companies1Read() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office") && !d.keys().hasAny(["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Companies1Create() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Companies1Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["ABN","Revenue"])) && !r.keys().hasAny(f.removeAll(["ABN","Revenue"]))) || (t in ["Cleaner"] && validatePrivateFields(m, f.removeAll(["Revenue"])) && !r.keys().hasAny(f.removeAll(["Revenue"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Companies1Update() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Companies1Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["ABN","Revenue"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["ABN","Revenue"]))) || (t in ["Cleaner"] && validatePrivateFields(m, f.removeAll(["Revenue"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Revenue"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Companies1Delete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Companies1Read() allow create: if Companies1Create() allow update: if Companies1Update() allow delete: if Companies1Delete()
+                
+            }
+            match /system_fields/Companies/Companies-2/{documentId} {
+                function Companies2Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Companies2Read() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Area Manager") && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Companies2Create() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Companies2Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["ABN","Revenue"])) && !r.keys().hasAny(f.removeAll(["ABN","Revenue"]))) || (t in ["Cleaner"] && validatePrivateFields(m, f.removeAll(["Revenue"])) && !r.keys().hasAny(f.removeAll(["Revenue"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Companies2Update() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Companies2Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["ABN","Revenue"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["ABN","Revenue"]))) || (t in ["Cleaner"] && validatePrivateFields(m, f.removeAll(["Revenue"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Revenue"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Companies2Delete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Companies2Read() allow create: if Companies2Create() allow update: if Companies2Update() allow delete: if Companies2Delete()
+                
+            }
+            match /system_fields/Companies/Companies-3/{documentId} {
+                function Companies3Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Companies3Read() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Subcontractor" || t == "Client") && !d.keys().hasAny(["ABN","Revenue","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Companies3Create() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["ABN","Revenue","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Companies3Validation() && ((validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Companies3Update() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["ABN","Revenue","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Companies3Validation() && ((validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Companies3Delete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Companies3Read() allow create: if Companies3Create() allow update: if Companies3Update() allow delete: if Companies3Delete()
+                
+            }
+            match /system_fields/Companies/Companies-4/{documentId} {
+                function Companies4Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Companies4Read() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Cleaner") && !d.keys().hasAny(["ABN","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Companies4Create() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["ABN","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Companies4Validation() && ((t in ["Office","Area Manager","Cleaner"] && validatePrivateFields(m, f.removeAll(["Revenue"])) && !r.keys().hasAny(f.removeAll(["Revenue"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Companies4Update() { let p = getUserPermissions(); let c = p.collections.Companies; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["ABN","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Companies4Validation() && ((t in ["Office","Area Manager","Cleaner"] && validatePrivateFields(m, f.removeAll(["Revenue"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Revenue"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Companies4Delete() { let p = getUserPermissions(); let c = p.collections.Companies; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Companies4Read() allow create: if Companies4Create() allow update: if Companies4Update() allow delete: if Companies4Delete()
+                
+            }
+            
+            // Contacts
+
+            match /Contacts/{ContactId} {
+                  
+                
+                
+                
+                
+                
+                
+
+            // Buildings
+        
+            match /Buildings/{BuildingId} {
+                function BuildingsValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Contacts",ContactId,"Buildings"] && r.keys().hasAll(["Name","Description"]) && (r.get("Name", "") is string) && r.get("Name", "X").size() <= 255 && (r.get("Description", "") is string) && r.Name.lower() == r.Name_Lowercase && denySchemalessFields(["Name","Description","Name_Lowercase"]) }
+                
+                function BuildingsCreate() { let p = getUserPermissions(); let c = p.collections.Buildings; let r = request.resource.data; let t = request.auth.token.role; let f = ["Description"]; return createAllowed(c) && isValidId(BuildingId) && BuildingsValidation() && ((t in ["Office","Area Manager"] && !r.keys().hasAny(f.removeAll(["Description"]))) || !r.keys().hasAny(f)) }
+                function BuildingsUpdate() { let p = getUserPermissions(); let c = p.collections.Buildings; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let f = ["Description"]; return updateAllowed(c) && BuildingsValidation() && ((t in ["Office","Area Manager"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Description"]))) || !r.diff(d).affectedKeys().hasAny(f)) }
+                function BuildingsDelete() { let p = getUserPermissions(); let c = p.collections.Buildings; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if BuildingsCreate() allow update: if BuildingsUpdate() allow delete: if BuildingsDelete()
+                
+            
+            
+            }
+                
+            
+            }
+        
+            // Contacts Collection Denormalized Fields
+
+            
+            match /system_fields/Contacts/Contacts-Name/{documentId} {
+                  
+                function ContactsNameRead() { let p = getUserPermissions(); let c = p.collections.Contacts; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Invoices) && t in ["Office","Area Manager"])) } 
+                
+                
+                
+                allow read: if ContactsNameRead() 
+                
+            }
+            match /system_fields/Contacts/Contacts-1/{documentId} {
+                  
+                function Contacts1Read() { let p = getUserPermissions(); let c = p.collections.Contacts; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Area Manager" || t == "Subcontractor" || t == "Cleaner" || t == "Client") && !d.keys().hasAny(["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]) } 
+                
+                
+                
+                allow read: if Contacts1Read() 
+                
+            }
+            
+            // Inbox
+
+            match /Inbox/{Inbox_MessageId} {
+                function InboxValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Inbox"] && r.keys().hasAll(["Sender","Recipient","Recipients","Subject","Status","Message"]) && r.get("Sender", {}) is map && r.get("Sender", {}).keys().toSet().difference(r.get("Sender_Array", []).toSet()).size() == 0 && r.get("Sender", {"key": ""}).size() == 1 && r.Sender.values()[0] == r.Sender_Single && r.get("Recipient", {}) is map && r.get("Recipient", {}).keys().toSet().difference(r.get("Recipient_Array", []).toSet()).size() == 0 && r.get("Recipient", {"key": ""}).size() == 1 && r.get("Recipients", {}) is map && r.get("Recipients", {}).keys().toSet().difference(r.get("Recipients_Array", []).toSet()).size() == 0 && r.get("Recipients", {"key": ""}).size() >= 1 && (r.get("Subject", "") is string) && (r.get("Archived", true) is bool) && (r.get("Archived_At", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Status", "") is string) && r.get("Status", "Unread") in ["Unread","Read","Archived"] && (r.get("Message", {}) is map) && r.get("Message", {"key": ""}).size() >= 1 && r.get("Work_Order", {}) is map && r.get("Work_Order", {}).keys().toSet().difference(r.get("Work_Order_Array", []).toSet()).size() == 0 && r.get("Work_Order", {}).size() <= 1 && (r.get("Work_Order", {}).values().size() == 0 || (r.get("Work_Order", {}).values()[0] == r.Work_Order_Single)) && (r.get("Outbox_Message", "") is string) && r.Subject.lower() == r.Subject_Lowercase && denySchemalessFields(["Sender","Recipient","Recipients","Subject","Archived","Archived_At","Status","Message","Work_Order","Outbox_Message","Subject_Lowercase","Sender_Single","Work_Order_Single","Sender_Array","Recipient_Array","Recipients_Array","Work_Order_Array"]) }
+                
+                function InboxCreate() { let p = getUserPermissions(); let c = p.collections.Inbox; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && isValidId(Inbox_MessageId) && InboxValidation() && (r.Archived == false || r.Archived_At == request.time) }
+                function InboxUpdate() { let p = getUserPermissions(); let c = p.collections.Inbox; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && InboxValidation() && !r.diff(d).affectedKeys().hasAny(["Sender","Recipient","Recipients","Subject","Message","Outbox_Message"]) && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || (recordUserFilter(c, d.Recipient_Array, r.Recipient_Array, false))) && (r.Archived == false || !("Archived_At" in getDocumentAffectedKeys()) || r.Archived_At == request.time) }
+                function InboxDelete() { let p = getUserPermissions(); let c = p.collections.Inbox; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if InboxCreate() allow update: if InboxUpdate() allow delete: if InboxDelete()
+                
+
+            
+            }
+        
+            // Inbox Collection Denormalized Fields
+
+            
+            
+            match /system_fields/Inbox/Inbox-1/{documentId} {
+                function Inbox1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Inbox1Read() { let p = getUserPermissions(); let c = p.collections.Inbox; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Area Manager" || t == "Subcontractor" || t == "Cleaner" || t == "Client") && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordUserFilter(c, d.Recipient_Array, [], false)) && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Created_By"]) } 
+                function Inbox1Create() { let p = getUserPermissions(); let c = p.collections.Inbox; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Created_By"]; return createAllowed(c) && Inbox1Validation() && validatePrivateFields(m, f) }
+                function Inbox1Update() { let p = getUserPermissions(); let c = p.collections.Inbox; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Created_By"]; return updateAllowed(c) && Inbox1Validation() && validatePrivateFields(m, f) }
+                function Inbox1Delete() { let p = getUserPermissions(); let c = p.collections.Inbox; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Inbox1Read() allow create: if Inbox1Create() allow update: if Inbox1Update() allow delete: if Inbox1Delete()
+                
+            }
+            
+            // Invoices
+
+            match /Invoices/{InvoiceId} {
+                function InvoicesValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Invoices"] && r.keys().hasAll(["Number","Ref","Company","Site","Status","Issued_Date","Due_Date"]) && (r.get("Ref", "") is string) && (r.get("Archived", true) is bool) && (r.get("Archived_At", timestamp.date(1970, 1, 1)) is timestamp) && r.get("Company", {}) is map && r.get("Company", {}).keys().toSet().difference(r.get("Company_Array", []).toSet()).size() == 0 && r.get("Company", {"key": ""}).size() == 1 && r.get("Site", {}) is map && r.get("Site", {}).keys().toSet().difference(r.get("Site_Array", []).toSet()).size() == 0 && r.get("Site", {"key": ""}).size() == 1 && (r.get("Status", "") is string) && r.get("Status", "Draft") in ["Draft","Sent","Paid","Archived"] && (r.get("Issued_Date", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Due_Date", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Message", "") is string) && r.get("To", {}) is map && r.get("To", {}).keys().toSet().difference(r.get("To_Array", []).toSet()).size() == 0 && r.get("CC", {}) is map && r.get("CC", {}).keys().toSet().difference(r.get("CC_Array", []).toSet()).size() == 0 && (r.get("Billing_Heading", "") is string) && (r.get("Billing_Att", "") is string) && (r.get("Billing_Address", "") is string) && (r.get("Billing_Site", "") is string) && (r.get("Billing_Sections", []) is list) && (r.get("Billing_Line_Items", []) is list) && (r.get("Billing_Show_Totals", true) is bool) && (r.get("Billing_Footnotes", "") is string) && r.Ref.lower() == r.Ref_Lowercase && denySchemalessFields(["Number","Ref","Archived","Archived_At","Company","Site","Status","Issued_Date","Due_Date","Message","To","CC","Billing_Heading","Billing_Att","Billing_Address","Billing_Site","Billing_Sections","Billing_Line_Items","Billing_Show_Totals","Billing_Footnotes","Ref_Lowercase","Company_Array","Site_Array","To_Array","CC_Array"]) }
+                
+                function InvoicesCreate() { let p = getUserPermissions(); let c = p.collections.Invoices; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && isValidId(InvoiceId) && InvoicesValidation() && (r.Archived == false || r.Archived_At == request.time) && r.Number == "Pending" }
+                function InvoicesUpdate() { let p = getUserPermissions(); let c = p.collections.Invoices; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && InvoicesValidation() && (t == "Office" || !r.diff(d).affectedKeys().hasAny(["Status"])) && (r.Archived == false || !("Archived_At" in getDocumentAffectedKeys()) || r.Archived_At == request.time) && !("Number" in getDocumentAffectedKeys()) }
+                function InvoicesDelete() { let p = getUserPermissions(); let c = p.collections.Invoices; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if InvoicesCreate() allow update: if InvoicesUpdate() allow delete: if InvoicesDelete()
+                
+            match /system_write_log/{logId} {
+                  
+                
+                function InvoicesWriteLogCreate() { let p = getUserPermissions(); let c = p.collections.Invoices; let n = request.resource.data; return createAllowed(c) && (n.status == "started" || n.status == "written" || n.status == "success" || n.status == "failed") }
+                function InvoicesWriteLogUpdate() { let p = getUserPermissions(); let c = p.collections.Invoices; let n = request.resource.data; let l = resource.data; return updateAllowed(c) && (n.status == "written" || n.status == "success" || n.status == "failed") && (l.status == "started" || l.status == "written") }
+                function InvoicesWriteLogDelete() { let p = getUserPermissions(); let c = p.collections.Invoices; let l = resource.data; let d = getAfterDocument(/$(l.Collection_Path.join("/"))/$(InvoiceId)); let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if InvoicesWriteLogCreate() allow update: if InvoicesWriteLogUpdate() allow delete: if InvoicesWriteLogDelete()
+                
+            }
+
+            
+            }
+        
+            // Invoices Collection Denormalized Fields
+
+            
+            
+            match /system_fields/Invoices/Invoices-1/{documentId} {
+                function Invoices1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Invoices1Read() { let p = getUserPermissions(); let c = p.collections.Invoices; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Area Manager" || t == "Subcontractor" || t == "Cleaner" || t == "Client") && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]) } 
+                function Invoices1Create() { let p = getUserPermissions(); let c = p.collections.Invoices; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]; return createAllowed(c) && Invoices1Validation() && validatePrivateFields(m, f) }
+                function Invoices1Update() { let p = getUserPermissions(); let c = p.collections.Invoices; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]; return updateAllowed(c) && Invoices1Validation() && validatePrivateFields(m, f) }
+                function Invoices1Delete() { let p = getUserPermissions(); let c = p.collections.Invoices; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Invoices1Read() allow create: if Invoices1Create() allow update: if Invoices1Update() allow delete: if Invoices1Delete()
+                
+            }
+            
+            // Outbox
+
+            match /Outbox/{Outbox_MessageId} {
+                function OutboxValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Outbox"] && r.keys().hasAll(["Recipients","Subject","Status","Message"]) && r.get("Recipients", {}) is map && r.get("Recipients", {}).keys().toSet().difference(r.get("Recipients_Array", []).toSet()).size() == 0 && r.get("Recipients", {"key": ""}).size() >= 1 && (r.get("Subject", "") is string) && (r.get("Archived", true) is bool) && (r.get("Archived_At", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Status", "") is string) && r.get("Status", "Sending") in ["Sending","Success","Failed"] && (r.get("Message", {}) is map) && r.get("Message", {"key": ""}).size() >= 1 && r.get("Work_Order", {}) is map && r.get("Work_Order", {}).keys().toSet().difference(r.get("Work_Order_Array", []).toSet()).size() == 0 && r.get("Work_Order", {}).size() <= 1 && r.Subject.lower() == r.Subject_Lowercase && denySchemalessFields(["Recipients","Subject","Archived","Archived_At","Status","Message","Work_Order","Subject_Lowercase","Recipients_Array","Work_Order_Array"]) }
+                
+                function OutboxCreate() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && isValidId(Outbox_MessageId) && OutboxValidation() && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, r.Created_By, false)) && (r.Archived == false || r.Archived_At == request.time) }
+                function OutboxUpdate() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && OutboxValidation() && !r.diff(d).affectedKeys().hasAny(["Recipients","Subject","Message"]) && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && (r.Archived == false || !("Archived_At" in getDocumentAffectedKeys()) || r.Archived_At == request.time) }
+                function OutboxDelete() { let p = getUserPermissions(); let c = p.collections.Outbox; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) }
+                allow create: if OutboxCreate() allow update: if OutboxUpdate() allow delete: if OutboxDelete()
+                
+
+            
+            }
+        
+            // Outbox Collection Denormalized Fields
+
+            
+            
+            match /system_fields/Outbox/Outbox-1/{documentId} {
+                function Outbox1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Outbox1Read() { let p = getUserPermissions(); let c = p.collections.Outbox; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Area Manager" || t == "Subcontractor" || t == "Cleaner" || t == "Client") && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At"]) } 
+                function Outbox1Create() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At"]; return createAllowed(c) && Outbox1Validation() && validatePrivateFields(m, f) }
+                function Outbox1Update() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At"]; return updateAllowed(c) && Outbox1Validation() && validatePrivateFields(m, f) }
+                function Outbox1Delete() { let p = getUserPermissions(); let c = p.collections.Outbox; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Outbox1Read() allow create: if Outbox1Create() allow update: if Outbox1Update() allow delete: if Outbox1Delete()
+                
+            }
+            
+            
+            // Settings
+
+            match /Settings/{SettingsId} {
+                function SettingsValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Settings"] && r.keys().hasAll(["Company_Name"]) && (r.get("Company_Name", "") is string) && r.get("Company_Name", "X").size() <= 255 && (r.get("Company_Logo", "") is string) && (!("Company_Logo" in r.keys()) || r.Company_Logo.matches("^https://firebasestorage\\.googleapis\\.com/.*$")) && r.Company_Name.lower() == r.Company_Name_Lowercase && denySchemalessFields(["Company_Name","Company_Logo","Company_Name_Lowercase"]) }
+                
+                function SettingsCreate() { let p = getUserPermissions(); let c = p.collections.Settings; let r = request.resource.data; let t = request.auth.token.role; let f = ["Company_Logo"]; return createAllowed(c) && isValidId(SettingsId) && SettingsValidation() && ((t in ["Office"] && !r.keys().hasAny(f.removeAll(["Company_Logo"])))) }
+                function SettingsUpdate() { let p = getUserPermissions(); let c = p.collections.Settings; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let f = ["Company_Logo"]; return updateAllowed(c) && SettingsValidation() && ((t in ["Office"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Company_Logo"])))) }
+                function SettingsDelete() { let p = getUserPermissions(); let c = p.collections.Settings; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if SettingsCreate() allow update: if SettingsUpdate() allow delete: if SettingsDelete()
+                
+
+            
+            }
+        
+            // Settings Collection Denormalized Fields
+
+            
+            
+            match /system_fields/Settings/Settings-1/{documentId} {
+                function Settings1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Settings1Read() { let p = getUserPermissions(); let c = p.collections.Settings; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office") && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Settings1Create() { let p = getUserPermissions(); let c = p.collections.Settings; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Settings1Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["Company_Logo"])) && !r.keys().hasAny(f.removeAll(["Company_Logo"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Settings1Update() { let p = getUserPermissions(); let c = p.collections.Settings; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Settings1Validation() && ((t in ["Office","Area Manager"] && validatePrivateFields(m, f.removeAll(["Company_Logo"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Company_Logo"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Settings1Delete() { let p = getUserPermissions(); let c = p.collections.Settings; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Settings1Read() allow create: if Settings1Create() allow update: if Settings1Update() allow delete: if Settings1Delete()
+                
+            }
+            match /system_fields/Settings/Settings-2/{documentId} {
+                function Settings2Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Settings2Read() { let p = getUserPermissions(); let c = p.collections.Settings; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Client") && !d.keys().hasAny(["Company_Logo","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Settings2Create() { let p = getUserPermissions(); let c = p.collections.Settings; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Company_Logo","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Settings2Validation() && ((validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Settings2Update() { let p = getUserPermissions(); let c = p.collections.Settings; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Company_Logo","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Settings2Validation() && ((validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Settings2Delete() { let p = getUserPermissions(); let c = p.collections.Settings; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Settings2Read() allow create: if Settings2Create() allow update: if Settings2Update() allow delete: if Settings2Delete()
+                
+            }
+            
+            
+        
+            // Sites Collection Denormalized Fields
+
+            
+            match /system_fields/Sites/Sites-Name/{documentId} {
+                  
+                function SitesNameRead() { let p = getUserPermissions(); let c = p.collections.Sites; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Invoices) && t in ["Office"]) || (readAllowed(p.collections.Work_Orders) && t in ["Office","Area Manager","Cleaner"])) && (t != "Area Manager" || (restrictEntityInactive(c, t in ["Area Manager"]) || (individualEntityRestriction(c, [d.id], []) || parentPropertyEntityRestriction(c, d.State, "", d.Company_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(c, t in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array, []))) && t != "Subcontractor" } 
+                
+                
+                
+                allow read: if SitesNameRead() 
+                
+            }
+            match /system_fields/Sites/Sites-Company/{documentId} {
+                  
+                function SitesCompanyRead() { let p = getUserPermissions(); let c = p.collections.Sites; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Work_Orders) && t in ["Office"])) && (t != "Area Manager" || (restrictEntityInactive(c, t in ["Area Manager"]) || (individualEntityRestriction(c, [d.id], []) || parentPropertyEntityRestriction(c, d.State, "", d.Company_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(c, t in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array, []))) && t != "Subcontractor" } 
+                
+                
+                
+                allow read: if SitesCompanyRead() 
+                
+            }
+            match /system_fields/Sites/Sites-Active/{documentId} {
+                  
+                function SitesActiveRead() { let p = getUserPermissions(); let c = p.collections.Sites; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Work_Orders) && t in ["Office"])) && (t != "Area Manager" || (restrictEntityInactive(c, t in ["Area Manager"]) || (individualEntityRestriction(c, [d.id], []) || parentPropertyEntityRestriction(c, d.State, "", d.Company_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(c, t in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array, []))) && t != "Subcontractor" } 
+                
+                
+                
+                allow read: if SitesActiveRead() 
+                
+            }
+            match /system_fields/Sites/Sites-1/{documentId} {
+                  
+                function Sites1Read() { let p = getUserPermissions(); let c = p.collections.Sites; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Client") && !d.keys().hasAny(["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                
+                
+                
+                allow read: if Sites1Read() 
+                
+            }
+            match /system_fields/Sites/Sites-2/{documentId} {
+                  
+                function Sites2Read() { let p = getUserPermissions(); let c = p.collections.Sites; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Area Manager") && (t != "Area Manager" || (restrictEntityInactive(c, t in ["Area Manager"]) || (individualEntityRestriction(c, [d.id], []) || parentPropertyEntityRestriction(c, d.State, "", d.Company_Array, [])))) && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                
+                
+                
+                allow read: if Sites2Read() 
+                
+            }
+            match /system_fields/Sites/Sites-4/{documentId} {
+                  
+                function Sites4Read() { let p = getUserPermissions(); let c = p.collections.Sites; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Cleaner") && (t != "Cleaner" || (restrictEntityInactive(c, t in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array, []))) && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                
+                
+                
+                allow read: if Sites4Read() 
+                
+            }
+            
+            // Users
+
+            match /Users/{UserId} {
+                function UsersValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Users"] && r.keys().hasAll(["Name","Enabled","Role","Email","Number","Start"]) && (r.get("Name", "") is string) && r.get("Name", "X").size() <= 255 && (r.get("Enabled", true) is bool) && (r.get("User_ID", "") is string) && (r.get("Role", "") is string) && r.get("Role", "Office") in ["Office","Area Manager","Subcontractor","Cleaner"] && (r.get("Email", "") is string) && (r.get("Photo_URL", "") is string) && (!("Photo_URL" in r.keys()) || r.Photo_URL.matches("^https://firebasestorage\\.googleapis\\.com/.*$")) && (r.get("Address", "") is string) && r.get("Address", "XXXXXXXXXX").size() >= 10 && (r.get("ID", "") is string) && (r.get("Profile_Avatar", "") is string) && (r.get("IP_Address", "") is string) && r.get("Vehicles", {}) is map && r.get("Vehicles", {}).keys().toSet().difference(r.get("Vehicles_Array", []).toSet()).size() == 0 && r.get("Contact", {}) is map && r.get("Contact", {}).keys().toSet().difference(r.get("Contact_Array", []).toSet()).size() == 0 && r.get("Contact", {}).size() <= 1 && r.get("Work_Orders", {}) is map && r.get("Work_Orders", {}).keys().toSet().difference(r.get("Work_Orders_Array", []).toSet()).size() == 0 && r.get("Users", {}) is map && r.get("Users", {}).keys().toSet().difference(r.get("Users_Array", []).toSet()).size() == 0 && (r.get("Start", timestamp.date(1970, 1, 1)) is timestamp) && r.Name.lower() == r.Name_Lowercase && r.Role.lower() == r.Role_Lowercase && r.Email.lower() == r.Email_Lowercase && (!("Address" in r.keys()) || (r.Address.lower() == r.Address_Lowercase)) && denySchemalessFields(["Name","Enabled","User_ID","Role","Email","Photo_URL","Address","ID","Profile_Avatar","IP_Address","Number","Vehicles","Contact","Work_Orders","Users","Start","Name_Lowercase","Role_Lowercase","Email_Lowercase","Address_Lowercase","Vehicles_Array","Contact_Array","Work_Orders_Array","Users_Array"]) }
+                
+                function UsersCreate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let t = request.auth.token.role; let f = ["Address","Vehicles","Address_Lowercase","Vehicles_Array"]; return createAllowed(c) && isValidId(UserId) && UsersValidation() && ((t in ["Office"] && !r.keys().hasAny(f.removeAll(["Address","Vehicles","Address_Lowercase","Vehicles_Array"]))) || !r.keys().hasAny(f)) && !existsDocument(/system_unique/Users/Unique-Users-Email/$(string(r.Email).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Users/Unique-Users-Email/$(string(r.Email).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id && (!("ID" in r.keys()) || (!existsDocument(/system_unique/Users/Unique-Users-ID/$(string(r.ID).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Users/Unique-Users-ID/$(string(r.ID).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && (t == "Office" || !r.keys().hasAny(["IP_Address"])) && !("User_ID" in r.keys()) && r.Number == "Pending" }
+                function UsersUpdate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let f = ["Address","Vehicles","Address_Lowercase","Vehicles_Array"]; return updateAllowed(c) && UsersValidation() && !isLocked(UserId) && ((t in ["Office"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Address","Vehicles","Address_Lowercase","Vehicles_Array"]))) || !r.diff(d).affectedKeys().hasAny(f)) && ((!("Email" in getDocumentAddedKeys()) && !("Email" in getDocumentChangedKeys())) || (!existsDocument(/system_unique/Users/Unique-Users-Email/$(string(r.Email).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Users/Unique-Users-Email/$(string(r.Email).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && ((!("ID" in getDocumentAddedKeys()) && !("ID" in getDocumentChangedKeys())) || (!existsDocument(/system_unique/Users/Unique-Users-ID/$(string(r.ID).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Users/Unique-Users-ID/$(string(r.ID).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && !("Number" in getDocumentAffectedKeys()) && (!("User_ID" in d.keys()) || !getDocumentAffectedKeys().hasAny(["User_ID", "Enabled", "Role"])) }
+                function UsersDelete() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) && (!("User_ID" in d.keys()) || d.User_ID != request.auth.uid) }
+                allow create: if UsersCreate() allow update: if UsersUpdate() allow delete: if UsersDelete()
+                
+            match /system_write_log/{logId} {
+                  
+                
+                function UsersWriteLogCreate() { let p = getUserPermissions(); let c = p.collections.Users; let n = request.resource.data; return createAllowed(c) && (n.status == "started" || n.status == "written" || n.status == "success" || n.status == "failed") }
+                function UsersWriteLogUpdate() { let p = getUserPermissions(); let c = p.collections.Users; let n = request.resource.data; let l = resource.data; return updateAllowed(c) && (n.status == "written" || n.status == "success" || n.status == "failed") && (l.status == "started" || l.status == "written") }
+                function UsersWriteLogDelete() { let p = getUserPermissions(); let c = p.collections.Users; let l = resource.data; let d = getAfterDocument(/$(l.Collection_Path.join("/"))/$(UserId)); let t = request.auth.token.role; return deleteAllowed(c) }
+                allow create: if UsersWriteLogCreate() allow update: if UsersWriteLogUpdate() allow delete: if UsersWriteLogDelete()
+                
+            }
+
+            
+            }
+        
+            // Users Collection Denormalized Fields
+
+            match /system_unique/Users/Unique-Users-Email/{fieldValue} {
+                function UsersEmailValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path.join("/"))/$(r.id)); return allowedFields(["id","Collection_Path"]) && string(m.Email).lower().replace(" ", "---").replace("/", "|||") == fieldValue && m.Collection_Path == r.Collection_Path }
+                function UsersEmailRead() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) } 
+                function UsersEmailCreate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && UsersEmailValidation() }
+                function UsersEmailUpdate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && UsersEmailValidation() }
+                
+                allow read: if UsersEmailRead() allow create: if UsersEmailCreate() allow update: if UsersEmailUpdate() allow delete: if false
+                
+            }
+            match /system_unique/Users/Unique-Users-ID/{fieldValue} {
+                function UsersIDValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path.join("/"))/$(r.id)); return allowedFields(["id","Collection_Path"]) && string(m.ID).lower().replace(" ", "---").replace("/", "|||") == fieldValue && m.Collection_Path == r.Collection_Path }
+                function UsersIDRead() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) } 
+                function UsersIDCreate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && UsersIDValidation() }
+                function UsersIDUpdate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && UsersIDValidation() }
+                
+                allow read: if UsersIDRead() allow create: if UsersIDCreate() allow update: if UsersIDUpdate() allow delete: if false
+                
+            }
+            match /system_fields/Users/Users-Name/{documentId} {
+                function UsersNameValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); return allowedFields(["Collection_Path_String","Collection_Path","id","Name"]) && validate("Collection_Path", m, r, false) && validate("id", m, r, false) && validate("Name", m, r, false) && r.Collection_Path_String == r.Collection_Path.join("/") }
+                function UsersNameRead() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Outbox) && t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || (readAllowed(p.collections.Vehicles) && t in ["Office","Area Manager"])) } 
+                function UsersNameCreate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && UsersNameValidation() }
+                function UsersNameUpdate() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && UsersNameValidation() }
+                function UsersNameDelete() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if UsersNameRead() allow create: if UsersNameCreate() allow update: if UsersNameUpdate() allow delete: if UsersNameDelete()
+                
+            }
+            match /system_fields/Users/Users-1/{documentId} {
+                function Users1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Users1Read() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office") && !d.keys().hasAny(["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]) } 
+                function Users1Create() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return createAllowed(c) && Users1Validation() && ((t in ["Office"] && validatePrivateFields(m, f.removeAll(["Address","Vehicles","Address_Lowercase","Vehicles_Array"])) && !r.keys().hasAny(f.removeAll(["Address","Vehicles","Address_Lowercase","Vehicles_Array"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Users1Update() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By"]; return updateAllowed(c) && Users1Validation() && ((t in ["Office"] && validatePrivateFields(m, f.removeAll(["Address","Vehicles","Address_Lowercase","Vehicles_Array"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Address","Vehicles","Address_Lowercase","Vehicles_Array"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Users1Delete() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Users1Read() allow create: if Users1Create() allow update: if Users1Update() allow delete: if Users1Delete()
+                
+            }
+            match /system_fields/Users/Users-2/{documentId} {
+                function Users2Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Users2Read() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Area Manager") && !d.keys().hasAny(["Address","Vehicles","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By","Address_Lowercase","Vehicles_Array"]) } 
+                function Users2Create() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Address","Vehicles","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By","Address_Lowercase","Vehicles_Array"]; return createAllowed(c) && Users2Validation() && ((validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Users2Update() { let p = getUserPermissions(); let c = p.collections.Users; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Address","Vehicles","Last_Write_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At","Saved_At","Created_By","Address_Lowercase","Vehicles_Array"]; return updateAllowed(c) && Users2Validation() && ((validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Users2Delete() { let p = getUserPermissions(); let c = p.collections.Users; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Users2Read() allow create: if Users2Create() allow update: if Users2Update() allow delete: if Users2Delete()
+                
+            }
+            
+            
+            // Work_Orders
+
+            match /Work_Orders/{Work_OrderId} {
+                function Work_OrdersValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Work_Orders"] && r.keys().hasAll(["Name","Establishment","Site","State","Status","Start","Month","Expire_At"]) && r.Name.lower() == r.Name_Lowercase && denySchemalessFields(["Name","Archived","Archived_At","Establishment","Users","User","Site","Contact","State","Status","Start","End","Price","Area","Month","Signatures","Expire_At","Photo_URL","Description","Location","Name_Lowercase","Establishment_Single","User_Single","Site_Single","Establishment_Array","Users_Array","User_Array","Site_Array","Contact_Array"]) }
+                
+                function Work_OrdersCreate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let t = request.auth.token.role; let f = ["Price","Area"]; return createAllowed(c) && isValidId(Work_OrderId) && Work_OrdersValidation() && ((t in ["Office"] && !r.keys().hasAny(f.removeAll(["Price"]))) || (t in ["Area Manager"] && !r.keys().hasAny(f.removeAll(["Price","Area"])))) && !existsDocument(/system_unique/Work_Orders/Unique-Work_Orders-Name/$(string(r.Name).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Work_Orders/Unique-Work_Orders-Name/$(string(r.Name).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id && (!(t in ["Subcontractor"]) || recordUserFilter(c, r.Users_Array, [], false)) && (!(t in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, r.Created_By, t in ["Area Manager","Subcontractor"])) && (t != "Area Manager" || recordPropertyFilter(c, [r.Status], [], ["Not Started","In Progress","Completed"], false)) && (t != "Cleaner" || recordPropertyFilter(c, [r.Status], [], ["Not Started","In Progress"], false)) && (t != "Client" || recordPropertyFilter(c, r.Month, [], ["January"], false)) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, r.Site_Array, []) || parentPropertyEntityRestriction(p.collections.Sites, r.State, "", r.Establishment_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, r.Establishment_Array, []))) && (r.Archived == false || r.Archived_At == request.time) }
+                function Work_OrdersUpdate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let f = ["Price","Area"]; return updateAllowed(c) && Work_OrdersValidation() && ((t in ["Office"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Price"]))) || (t in ["Area Manager"] && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Price","Area"])))) && ((!("Name" in getDocumentAddedKeys()) && !("Name" in getDocumentChangedKeys())) || (!existsDocument(/system_unique/Work_Orders/Unique-Work_Orders-Name/$(string(r.Name).lower().replace(" ", "---").replace("/", "|||"))) && getAfterDocument(/system_unique/Work_Orders/Unique-Work_Orders-Name/$(string(r.Name).lower().replace(" ", "---").replace("/", "|||"))).id == request.resource.id)) && (t == "Office" || !r.diff(d).affectedKeys().hasAny(["Establishment","Users","User","Site","Status","Price","Month"])) && (t == "Area Manager" || !r.diff(d).affectedKeys().hasAny(["Price"])) && !r.diff(d).affectedKeys().hasAny(["State"]) && (!(t in ["Subcontractor"]) || (recordUserFilter(c, d.Users_Array, r.Users_Array, false))) && (!(t in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, t in ["Area Manager","Subcontractor"])) && (t != "Area Manager" || (recordPropertyFilter(c, [d.Status], [r.Status], ["Not Started","In Progress","Completed"], false))) && (t != "Cleaner" || (recordPropertyFilter(c, [d.Status], [r.Status], ["Not Started","In Progress"], false))) && (t != "Client" || (recordPropertyFilter(c, d.Month, r.Month, ["January"], false))) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array, r.Site_Array) || parentPropertyEntityRestriction(p.collections.Sites, d.State, r.State, d.Establishment_Array, r.Establishment_Array)))) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array, r.Establishment_Array))) && (r.Archived == false || !("Archived_At" in getDocumentAffectedKeys()) || r.Archived_At == request.time) }
+                function Work_OrdersDelete() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) && (!(t in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, [], false)) && (!(t in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, t in ["Area Manager","Subcontractor"])) && (t != "Area Manager" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress","Completed"], false)) && (t != "Cleaner" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress"], false)) && (t != "Client" || recordPropertyFilter(c, d.Month, [], ["January"], false)) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array, []) || parentPropertyEntityRestriction(p.collections.Sites, d.State, "", d.Establishment_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array, []))) }
+                allow create: if Work_OrdersCreate() allow update: if Work_OrdersUpdate() allow delete: if Work_OrdersDelete()
+                
+            match /system_write_log/{logId} {
+                  
+                
+                function Work_OrdersWriteLogCreate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let n = request.resource.data; return createAllowed(c) && (n.status == "started" || n.status == "written" || n.status == "success" || n.status == "failed") }
+                function Work_OrdersWriteLogUpdate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let n = request.resource.data; let l = resource.data; return updateAllowed(c) && (n.status == "written" || n.status == "success" || n.status == "failed") && (l.status == "started" || l.status == "written") }
+                function Work_OrdersWriteLogDelete() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let l = resource.data; let d = getAfterDocument(/$(l.Collection_Path.join("/"))/$(Work_OrderId)); let t = request.auth.token.role; return deleteAllowed(c) && (!(t in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, [], false)) && (!(t in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, t in ["Area Manager","Subcontractor"])) && (t != "Area Manager" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress","Completed"], false)) && (t != "Cleaner" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress"], false)) && (t != "Client" || recordPropertyFilter(c, d.Month, [], ["January"], false)) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array, []) || parentPropertyEntityRestriction(p.collections.Sites, d.State, "", d.Establishment_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array, []))) }
+                allow create: if Work_OrdersWriteLogCreate() allow update: if Work_OrdersWriteLogUpdate() allow delete: if Work_OrdersWriteLogDelete()
+                
+            }
+
+            
+            }
+        
+            // Work_Orders Collection Denormalized Fields
+
+            match /system_unique/Work_Orders/Unique-Work_Orders-Name/{fieldValue} {
+                function Work_OrdersNameValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path.join("/"))/$(r.id)); return allowedFields(["id","Collection_Path"]) && string(m.Name).lower().replace(" ", "---").replace("/", "|||") == fieldValue && m.Collection_Path == r.Collection_Path }
+                function Work_OrdersNameRead() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t != "Area Manager" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress","Completed"], false)) && (t != "Cleaner" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress"], false)) && (t != "Client" || recordPropertyFilter(c, d.Month, [], ["January"], false)) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array, []) || parentPropertyEntityRestriction(p.collections.Sites, d.State, "", d.Establishment_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array, []))) } 
+                function Work_OrdersNameCreate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && Work_OrdersNameValidation() }
+                function Work_OrdersNameUpdate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && Work_OrdersNameValidation() }
+                
+                allow read: if Work_OrdersNameRead() allow create: if Work_OrdersNameCreate() allow update: if Work_OrdersNameUpdate() allow delete: if false
+                
+            }
+            match /system_fields/Work_Orders/Work_Orders-Start/{documentId} {
+                function Work_OrdersStartValidation() { let r = request.resource.data; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); return allowedFields(["Collection_Path_String","Collection_Path","id","Archived","Created_At","End","Created_By","Status","Site_Array","Establishment_Array","State","Start"]) && validate("Collection_Path", m, r, false) && validate("id", m, r, false) && validate("Archived", m, r, false) && validate("Created_At", m, r, false) && validate("End", m, r, false) && validate("Created_By", m, r, false) && validate("Status", m, r, false) && validate("Site_Array", m, r, true) && validate("Establishment_Array", m, r, true) && validate("State", m, r, false) && validate("Start", m, r, false) && r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Work_OrdersStartRead() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; let t = request.auth.token.role; return ((readAllowed(p.collections.Contacts) && t in ["Area Manager"])) && (!(t in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, [], false)) && (!(t in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, t in ["Area Manager","Subcontractor"])) && (t != "Area Manager" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress","Completed"], false)) && (t != "Cleaner" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress"], false)) && (t != "Client" || recordPropertyFilter(c, d.Month, [], ["January"], false)) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array, []) || parentPropertyEntityRestriction(p.collections.Sites, d.State, "", d.Establishment_Array, [])))) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array, []))) } 
+                function Work_OrdersStartCreate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && Work_OrdersStartValidation() }
+                function Work_OrdersStartUpdate() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && Work_OrdersStartValidation() }
+                function Work_OrdersStartDelete() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Work_OrdersStartRead() allow create: if Work_OrdersStartCreate() allow update: if Work_OrdersStartUpdate() allow delete: if Work_OrdersStartDelete()
+                
+            }
+            match /system_fields/Work_Orders/Work_Orders-1/{documentId} {
+                function Work_Orders1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Work_Orders1Read() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Subcontractor") && (t != "Subcontractor" || recordUserFilter(c, d.Users_Array, [], false)) && (t != "Subcontractor" || recordOwnerFilter(c, d.Created_By, t in ["Area Manager","Subcontractor"])) && !d.keys().hasAny(["Area","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At"]) } 
+                function Work_Orders1Create() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Area","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At"]; return createAllowed(c) && Work_Orders1Validation() && ((t in ["Office","Area Manager","Subcontractor"] && validatePrivateFields(m, f.removeAll(["Price"])) && !r.keys().hasAny(f.removeAll(["Price"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Work_Orders1Update() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Area","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At"]; return updateAllowed(c) && Work_Orders1Validation() && ((t in ["Office","Area Manager","Subcontractor"] && validatePrivateFields(m, f.removeAll(["Price"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Price"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Work_Orders1Delete() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Work_Orders1Read() allow create: if Work_Orders1Create() allow update: if Work_Orders1Update() allow delete: if Work_Orders1Delete()
+                
+            }
+            match /system_fields/Work_Orders/Work_Orders-2/{documentId} {
+                function Work_Orders2Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Work_Orders2Read() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Area Manager") && (t != "Area Manager" || recordOwnerFilter(c, d.Created_By, t in ["Area Manager","Subcontractor"])) && (t != "Area Manager" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress","Completed"], false)) && (t != "Area Manager" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array, []) || parentPropertyEntityRestriction(p.collections.Sites, d.State, "", d.Establishment_Array, [])))) && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At"]) } 
+                function Work_Orders2Create() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At"]; return createAllowed(c) && Work_Orders2Validation() && ((t in ["Office","Subcontractor"] && validatePrivateFields(m, f.removeAll(["Price"])) && !r.keys().hasAny(f.removeAll(["Price"]))) || (t in ["Area Manager"] && validatePrivateFields(m, f.removeAll(["Price","Area"])) && !r.keys().hasAny(f.removeAll(["Price","Area"]))) || (t in ["Subcontractor"] && validatePrivateFields(m, f.removeAll(["Price"])) && !r.keys().hasAny(f.removeAll(["Price"]))) || (validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Work_Orders2Update() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At"]; return updateAllowed(c) && Work_Orders2Validation() && ((t in ["Office","Subcontractor"] && validatePrivateFields(m, f.removeAll(["Price"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Price"]))) || (t in ["Area Manager"] && validatePrivateFields(m, f.removeAll(["Price","Area"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Price","Area"]))) || (t in ["Subcontractor"] && validatePrivateFields(m, f.removeAll(["Price"])) && !r.diff(d).affectedKeys().hasAny(f.removeAll(["Price"]))) || (validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Work_Orders2Delete() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Work_Orders2Read() allow create: if Work_Orders2Create() allow update: if Work_Orders2Update() allow delete: if Work_Orders2Delete()
+                
+            }
+            match /system_fields/Work_Orders/Work_Orders-3/{documentId} {
+                function Work_Orders3Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                function Work_Orders3Read() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Cleaner" || t == "Client") && (t != "Cleaner" || recordPropertyFilter(c, [d.Status], [], ["Not Started","In Progress"], false)) && (t != "Cleaner" || (restrictEntityInactive(p.collections.Sites, t in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array, []))) && (t != "Client" || recordPropertyFilter(c, d.Month, [], ["January"], false)) && !d.keys().hasAny(["Price","Area","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]) } 
+                function Work_Orders3Create() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Price","Area","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]; return createAllowed(c) && Work_Orders3Validation() && ((validatePrivateFields(m, f) && !r.keys().hasAny(f))) }
+                function Work_Orders3Update() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Price","Area","Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Saved_At","Created_By"]; return updateAllowed(c) && Work_Orders3Validation() && ((validatePrivateFields(m, f) && !r.diff(d).affectedKeys().hasAny(f))) }
+                function Work_Orders3Delete() { let p = getUserPermissions(); let c = p.collections.Work_Orders; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
+                allow read: if Work_Orders3Read() allow create: if Work_Orders3Create() allow update: if Work_Orders3Update() allow delete: if Work_Orders3Delete()
+                
+            }
+            
+
+        }
+
+        // CUSTOM SECURITY RULES
+
+        // MAIL
+        
+        match /system_mail/{mail} {
+            allow create: if false
+        }
+        
+        // SMS
+        
+        match /system_messages/{message} {
+            allow create: if false
+        }
+    }
+}

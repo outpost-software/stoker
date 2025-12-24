@@ -1,0 +1,8 @@
+{
+    "web": {
+        "moment-timezone": "latest"
+    },
+    "server": {
+        "xero-node": "latest"
+    }
+}

@@ -1,0 +1,43 @@
+{
+    "name": "@stoker-platform/cli",
+    "version": "0.5.1",
+    "type": "module",
+    "license": "SEE LICENSE IN LICENSE.md",
+    "main": "./lib/src/main.js",
+    "files": [
+        "lib",
+        "init-files",
+        "LICENSE.md"
+    ],
+    "scripts": {
+        "dev": "tsc --watch --preserveWatchOutput",
+        "lint": "tsc && eslint .",
+        "build": "tsc --build",
+        "test": "echo \"Error: no test specified\""
+    },
+    "bin": {
+        "stoker": "./lib/src/main.js"
+    },
+    "dependencies": {
+        "@faker-js/faker": "^10.1.0",
+        "@google-cloud/bigquery": "^8.1.1",
+        "@google-cloud/secret-manager": "^6.1.1",
+        "@google-cloud/storage": "^7.18.0",
+        "@inquirer/prompts": "^8.0.2",
+        "@stoker-platform/node-client": "0.5.1",
+        "@stoker-platform/types": "0.5.1",
+        "@stoker-platform/utils": "0.5.1",
+        "algoliasearch": "^5.46.0",
+        "commander": "^14.0.0",
+        "dotenv": "^17.2.3",
+        "firebase-admin": "^13.6.0"
+    },
+    "devDependencies": {
+        "eslint-config-custom": "*",
+        "tsconfig": "*"
+    },
+    "engines": {
+        "node": ">=22",
+        "npm": "11"
+    }
+}

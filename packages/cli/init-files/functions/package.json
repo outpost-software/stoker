@@ -1,0 +1,46 @@
+{
+    "overrides": {
+        "dotprompt": "1.1.1"
+    },
+    "name": "functions",
+    "type": "module",
+    "scripts": {
+        "lint": "eslint --ext .js,.ts .",
+        "build": "tsc",
+        "build:watch": "tsc --watch --preserveWatchOutput",
+        "serve": "npm run build && firebase emulators:start --only functions",
+        "shell": "npm run build && firebase functions:shell",
+        "start": "npm run shell",
+        "deploy": "firebase deploy --only functions",
+        "logs": "firebase functions:log"
+    },
+    "engines": {
+        "node": "22"
+    },
+    "main": "lib/index.js",
+    "dependencies": {
+        "@genkit-ai/firebase": "latest",
+        "@genkit-ai/vertexai": "latest",
+        "@google-cloud/storage": "latest",
+        "@stoker-platform/node-client": "latest",
+        "@stoker-platform/system-functions": "latest",
+        "@stoker-platform/types": "latest",
+        "algoliasearch": "latest",
+        "dotenv": "latest",
+        "firebase-admin": "latest",
+        "firebase-functions": "6.6.0",
+        "genkit": "latest",
+        "lodash": "latest",
+        "lucide-react": "latest"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "latest",
+        "@typescript-eslint/parser": "latest",
+        "eslint": "^8.57.1",
+        "eslint-config-google": "latest",
+        "eslint-plugin-import": "latest",
+        "eslint-plugin-security": "latest",
+        "typescript": "latest"
+    },
+    "private": true
+}

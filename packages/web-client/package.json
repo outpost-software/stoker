@@ -1,0 +1,44 @@
+{
+    "name": "@stoker-platform/web-client",
+    "version": "0.5.1",
+    "type": "module",
+    "license": "SEE LICENSE IN LICENSE.md",
+    "files": [
+        "dist",
+        "LICENSE.md"
+    ],
+    "main": "./dist/bundle.js",
+    "module": "./dist/bundle.js",
+    "browser": "./dist/bundle.js",
+    "exports": {
+        ".": {
+            "import": "./dist/bundle.js"
+        }
+    },
+    "types": "./dist/types/main.d.ts",
+    "scripts": {
+        "dev": "vite build --watch",
+        "lint": "tsc",
+        "build": "vite build",
+        "test": "echo \"Error: no test specified\""
+    },
+    "dependencies": {
+        "@stoker-platform/types": "0.5.1",
+        "@stoker-platform/utils": "0.5.1",
+        "@types/lodash": "^4.17.21",
+        "@types/luxon": "^3.7.1",
+        "firebase": "^12.6.0",
+        "lodash": "^4.17.21",
+        "luxon": "^3.7.2"
+    },
+    "devDependencies": {
+        "@rollup/plugin-typescript": "^12.3.0",
+        "eslint-config-custom": "*",
+        "tsconfig": "*",
+        "vite-plugin-eslint": "^1.8.1"
+    },
+    "engines": {
+        "node": ">=22",
+        "npm": "11"
+    }
+}

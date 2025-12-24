@@ -1,0 +1,20 @@
+{
+  "projects": {},
+  "targets": {
+    "platform-project-test-1368": {
+      "storage": {
+        "default": [
+          "platform-project-test-1368"
+        ]
+      }
+    }
+  },
+  "etags": {
+    "platform-project-test-1368": {
+      "extensionInstances": {
+        "firestore-send-email": "2a48a8a50c5dd2fdcde3ebe535d2c1cd0d90335de4b0b1c36310fcd23e3f4d4a"
+      }
+    }
+  },
+  "dataconnectEmulatorConfig": {}
+}

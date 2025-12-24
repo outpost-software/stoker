@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "outDir": "lib",
+        "sourceMap": true,
+        "strict": true,
+        "target": "ESNext",
+        "moduleResolution": "Node",
+
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react-jsx"
+    },
+    "compileOnSave": true,
+    "include": ["src"]
+}

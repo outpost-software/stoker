@@ -1,0 +1,55 @@
+{
+    "database": {
+        "rules": "firebase-rules/database.rules.json"
+    },
+    "firestore": {
+        "rules": "firebase-rules/firestore.rules",
+        "indexes": "firebase-rules/firestore.indexes.json"
+    },
+    "storage": [
+        {
+            "target": "default",
+            "rules": "firebase-rules/storage.rules"
+        }
+    ],
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log", "*.local"]
+        }
+    ],
+    "remoteconfig": {
+        "template": "remoteconfig.template.json"
+    },
+    "emulators": {
+        "auth": {
+            "port": 9099
+        },
+        "functions": {
+            "port": 5001
+        },
+        "firestore": {
+            "port": 8080
+        },
+        "database": {
+            "port": 9000
+        },
+        "pubsub": {
+            "port": 8085
+        },
+        "storage": {
+            "port": 9199
+        },
+        "eventarc": {
+            "port": 9299
+        },
+        "ui": {
+            "enabled": true
+        },
+        "singleProjectMode": true
+    },
+    "extensions": {
+        "firestore-send-email": "firebase/firestore-send-email@0.2.4"
+    }
+}

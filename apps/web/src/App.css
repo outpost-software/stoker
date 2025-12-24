@@ -1,0 +1,110 @@
+@media (min-width: 1280px) {
+    html,
+    body {
+        overflow-y: hidden;
+    }
+}
+@media screen and (max-width: 1023px) {
+    .fc-toolbar.fc-header-toolbar {
+        font-size: 85%;
+    }
+}
+@media screen and (max-width: 767px) {
+    .fc-toolbar.fc-header-toolbar {
+        flex-direction: column;
+        font-size: 70%;
+    }
+    .fc-toolbar-chunk {
+        display: table-row;
+        text-align: center;
+        padding: 3px 0;
+    }
+}
+
+@media screen and (min-width: 1536px) and (max-width: 1669px) {
+    .date-range-arrow {
+        display: none;
+    }
+}
+
+@media screen and (min-width: 1670px) {
+    .date-range-arrow {
+        display: block;
+    }
+}
+
+@media print {
+    body {
+        background-color: white !important;
+        background-image: none !important;
+    }
+    .list-table th:first-child,
+    .list-table td:first-child {
+        display: none;
+    }
+}
+
+.ql-container.ql-snow {
+    border-radius: 0 0 var(--radius) var(--radius) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-top: none !important;
+}
+.ql-container.ql-snow.disabled {
+    border: none !important;
+}
+.ql-toolbar.ql-snow {
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+    border: 1px solid hsl(var(--border)) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-stroke {
+    stroke: hsl(var(--foreground)) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-fill {
+    fill: hsl(var(--foreground)) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker {
+    color: hsl(var(--foreground)) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-label {
+    color: hsl(var(--foreground)) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-options {
+    background-color: hsl(var(--popover)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-item {
+    color: hsl(var(--popover-foreground)) !important;
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-stroke {
+    stroke: hsl(240 4.9% 83.9%) !important;
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-fill {
+    fill: hsl(240 4.9% 83.9%) !important;
+}
+
+.dark .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+    stroke: hsl(240 4.9% 83.9%) !important;
+}
+
+.dark .ql-toolbar.ql-snow button.ql-active .ql-fill {
+    fill: hsl(240 4.9% 83.9%) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-item:hover {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(240 4.9% 83.9%) !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-item.ql-selected {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(240 4.9% 83.9%) !important;
+}

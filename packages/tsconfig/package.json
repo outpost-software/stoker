@@ -1,0 +1,11 @@
+{
+    "name": "tsconfig",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "license": "UNLICENSED",
+    "engines": {
+        "node": ">=22",
+        "npm": "11"
+    }
+}

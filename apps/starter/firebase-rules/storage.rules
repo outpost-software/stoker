@@ -1,0 +1,490 @@
+rules_version = '2';
+
+service firebase.storage {
+    match /b/{bucket}/o {
+
+        match /{tenantId} {
+
+            // FUNCTIONS
+
+            function isLoggedIn() {
+                let t = request.auth.token;
+                return t.tenant == tenantId && t.collection != null && t.role != null && t.doc != null
+            }
+
+            function getUserPermissions() {
+                return firestore.get(/databases/(default)/documents/tenants/$(tenantId)/system_user_permissions/$(request.auth.uid)).data
+            }
+            function restrictionInactive(permissions, restriction) {
+                let p = permissions;
+                return !(restriction in p) || !("active" in p[restriction]) || p[restriction].active == false
+            }
+            function restrictEntityInactive(permissions, assignable) {
+                let p = permissions;
+                return assignable && (!("restrictEntities" in p) || p.restrictEntities == false)
+            }
+
+            function existsDocument(path) {
+                return firestore.exists(/databases/(default)/documents/tenants/$(tenantId)/$(path))
+            }
+            function getDocument(path) {
+                return firestore.get(/databases/(default)/documents/tenants/$(tenantId)/$(path)).data
+            }
+
+            function readAllowed(collectionPermissions) {
+                let mainPermissions = getUserPermissions();
+                return isLoggedIn() && mainPermissions.Role == request.auth.token.role && mainPermissions.Enabled == true && "Read" in collectionPermissions.operations
+            }
+
+            function recordOwnerFilter(permissions, createdById, assignable) {
+                return isLoggedIn() && ((assignable && restrictionInactive(permissions, "recordOwner")) || request.auth.uid == createdById)
+            }
+            function recordUserFilter(permissions, userIds, assignable) {
+                return isLoggedIn() && ((assignable && restrictionInactive(permissions, "recordUser")) || (request.auth.token.doc in userIds))
+            }
+            function recordPropertyFilter(permissions, recordValues, allowedValues, assignable) {
+                return isLoggedIn() && ((assignable && restrictionInactive(permissions, "recordProperty")) || recordValues.hasAny(allowedValues))
+            }
+            function individualEntityRestriction(permissions, entityIds) {
+                return isLoggedIn() && "individualEntities" in permissions && entityIds.hasAny(permissions.individualEntities)
+            }
+            function parentEntityRestriction(permissions, entityIds) {
+                return isLoggedIn() && "parentEntities" in permissions && entityIds.hasAny(permissions.parentEntities)
+            }
+            function parentPropertyEntityRestriction(permissions, property, entityIds) {
+                return isLoggedIn() && "parentPropertyEntities" in permissions && property in permissions.parentPropertyEntities && entityIds.hasAny(permissions.parentPropertyEntities[property])
+            }
+
+            
+            // CUSTOM SECURITY RULES
+
+
+
+
+            // COLLECTIONS
+        
+            // Buildings
+
+            match /Buildings/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Buildings; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Buildings; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Buildings; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Buildings;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Companies
+
+            match /Companies/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Companies; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Companies; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Companies; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Companies;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Contacts
+
+            match /Contacts/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Contacts; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Contacts; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Contacts; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Contacts;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Inbox
+
+            match /Inbox/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Inbox; 
+                    let d = getDocument(/Inbox/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordUserFilter(c, d.Recipient_Array, false)) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Inbox; 
+                    let d = getDocument(/Inbox/$(documentId));
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordUserFilter(c, d.Recipient_Array, false)) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Inbox; 
+                    let d = getDocument(/Inbox/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordUserFilter(c, d.Recipient_Array, false)) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Inbox;
+                    let d = getDocument(/Inbox/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordUserFilter(c, d.Recipient_Array, false)) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Invoices
+
+            match /Invoices/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Invoices; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Invoices; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Invoices; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Invoices;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Outbox
+
+            match /Outbox/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Outbox; 
+                    let d = getDocument(/Outbox/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Outbox; 
+                    let d = getDocument(/Outbox/$(documentId));
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Outbox; 
+                    let d = getDocument(/Outbox/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Outbox;
+                    let d = getDocument(/Outbox/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (!(r in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Services
+
+            match /Services/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Services; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Services; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Services; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Services;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Settings
+
+            match /Settings/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Settings; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Settings; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Settings; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Settings;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Sites
+
+            match /Sites/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Sites; 
+                    let d = getDocument(/Sites/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (r != "Area Manager" || (restrictEntityInactive(c, r in ["Area Manager"]) || (individualEntityRestriction(c, [d.id]) || parentPropertyEntityRestriction(c, d.State, d.Company_Array)))) && (r != "Cleaner" || (restrictEntityInactive(c, r in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array))) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Sites; 
+                    let d = getDocument(/Sites/$(documentId));
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && (r != "Area Manager" || (restrictEntityInactive(c, r in ["Area Manager"]) || (individualEntityRestriction(c, [d.id]) || parentPropertyEntityRestriction(c, d.State, d.Company_Array)))) && (r != "Cleaner" || (restrictEntityInactive(c, r in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array))) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Sites; 
+                    let d = getDocument(/Sites/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (r != "Area Manager" || (restrictEntityInactive(c, r in ["Area Manager"]) || (individualEntityRestriction(c, [d.id]) || parentPropertyEntityRestriction(c, d.State, d.Company_Array)))) && (r != "Cleaner" || (restrictEntityInactive(c, r in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array))) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Sites;
+                    let d = getDocument(/Sites/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (r != "Area Manager" || (restrictEntityInactive(c, r in ["Area Manager"]) || (individualEntityRestriction(c, [d.id]) || parentPropertyEntityRestriction(c, d.State, d.Company_Array)))) && (r != "Cleaner" || (restrictEntityInactive(c, r in ["Area Manager"]) || parentEntityRestriction(c, d.Company_Array))) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Users
+
+            match /Users/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Users; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Users; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Users; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Users;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Vehicles
+
+            match /Vehicles/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Vehicles; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Vehicles; 
+                    
+                    let r = request.auth.token.role;
+                    
+                    return readAllowed(c) && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Vehicles; 
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Vehicles;
+                    
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+            // Work_Orders
+
+            match /Work_Orders/{documentId}/{path=**} {
+                function read() {
+                    let p = getUserPermissions(); let c = p.collections.Work_Orders; 
+                    let d = getDocument(/Work_Orders/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (!(r in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, false)) && (!(r in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, r in ["Area Manager","Subcontractor"])) && (r != "Area Manager" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress","Completed"], false)) && (r != "Cleaner" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress"], false)) && (r != "Client" || recordPropertyFilter(c, d.Month, ["January"], false)) && (r != "Area Manager" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array) || parentPropertyEntityRestriction(p.collections.Sites, d.State, d.Establishment_Array)))) && (r != "Cleaner" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array))) && (request.auth.uid == creatorId || r in resource.metadata.read.split(","));
+                }
+                function create() {
+                    let p = getUserPermissions(); let c = p.collections.Work_Orders; 
+                    let d = getDocument(/Work_Orders/$(documentId));
+                    let r = request.auth.token.role;
+                    let m = request.resource.metadata;
+                    return readAllowed(c) && (!(r in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, false)) && (!(r in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, r in ["Area Manager","Subcontractor"])) && (r != "Area Manager" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress","Completed"], false)) && (r != "Cleaner" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress"], false)) && (r != "Client" || recordPropertyFilter(c, d.Month, ["January"], false)) && (r != "Area Manager" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array) || parentPropertyEntityRestriction(p.collections.Sites, d.State, d.Establishment_Array)))) && (r != "Cleaner" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array))) && (r != "Office" || (m.read.split(",").hasOnly(["Subcontractor","Cleaner","Client","Office","Area Manager"]) && m.read.split(",").hasAll(["Office","Area Manager"]) && m.update.split(",").hasOnly(["Area Manager","Subcontractor","Cleaner","Office"]) && m.update.split(",").hasAll(["Office"]) && m.delete.split(",").hasOnly(["Office"]) && m.delete.split(",").hasAll(["Office"]))) && (request.resource.size <= (5 * 1024 * 1024) && request.resource.contentType in ["application/octet-stream"]) && (request.resource.metadata.collection == "Work_Orders") && resource == null && request.resource.metadata.createdBy == request.auth.uid;
+                }
+                function update() {
+                    let p = getUserPermissions(); let c = p.collections.Work_Orders; 
+                    let d = getDocument(/Work_Orders/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    let m = request.resource.metadata;
+                    return readAllowed(c) && (!(r in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, false)) && (!(r in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, r in ["Area Manager","Subcontractor"])) && (r != "Area Manager" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress","Completed"], false)) && (r != "Cleaner" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress"], false)) && (r != "Client" || recordPropertyFilter(c, d.Month, ["January"], false)) && (r != "Area Manager" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array) || parentPropertyEntityRestriction(p.collections.Sites, d.State, d.Establishment_Array)))) && (r != "Cleaner" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array))) && (r != "Office" || (m.read.split(",").hasOnly(["Subcontractor","Cleaner","Client","Office","Area Manager"]) && m.read.split(",").hasAll(["Office","Area Manager"]) && m.update.split(",").hasOnly(["Area Manager","Subcontractor","Cleaner","Office"]) && m.update.split(",").hasAll(["Office"]) && m.delete.split(",").hasOnly(["Office"]) && m.delete.split(",").hasAll(["Office"]))) && (request.resource.size <= (5 * 1024 * 1024) && request.resource.contentType in ["application/octet-stream"]) && (request.resource.metadata.collection == "Work_Orders") && (request.auth.uid == creatorId || r in resource.metadata.update.split(",")) && resource.metadata.createdBy == request.resource.metadata.createdBy;
+                }
+                function delete() {
+                    let p = getUserPermissions(); let c = p.collections.Work_Orders;
+                    let d = getDocument(/Work_Orders/$(documentId));
+                    let r = request.auth.token.role;
+                    let creatorId = resource.metadata.createdBy;
+                    return readAllowed(c) && (!(r in ["Subcontractor"]) || recordUserFilter(c, d.Users_Array, false)) && (!(r in ["Area Manager","Subcontractor"]) || recordOwnerFilter(c, d.Created_By, r in ["Area Manager","Subcontractor"])) && (r != "Area Manager" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress","Completed"], false)) && (r != "Cleaner" || recordPropertyFilter(c, [d.Status], ["Not Started","In Progress"], false)) && (r != "Client" || recordPropertyFilter(c, d.Month, ["January"], false)) && (r != "Area Manager" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || (individualEntityRestriction(p.collections.Sites, d.Site_Array) || parentPropertyEntityRestriction(p.collections.Sites, d.State, d.Establishment_Array)))) && (r != "Cleaner" || (restrictEntityInactive(p.collections.Sites, r in ["Area Manager"]) || parentEntityRestriction(p.collections.Sites, d.Establishment_Array))) && (request.auth.uid == creatorId || r in resource.metadata.delete.split(","));
+                }
+                allow read: if read() allow create: if create() allow update: if update() allow delete: if delete();
+            }
+            
+
+        }
+
+    }
+}

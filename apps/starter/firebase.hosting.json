@@ -1,0 +1,122 @@
+{
+    "hosting": {
+        "public": "dist",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**",
+            "src/**",
+            "bin/**",
+            "vite.config.ts",
+            "tsconfig.json",
+            "tsconfig.app.json",
+            "tsconfig.node.json",
+            "remoteconfig.template.json",
+            "tailwind.config.js",
+            "postcss.config.js",
+            "components.json"
+        ],
+        "rewrites": [
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ],
+        "headers": [
+            {
+                "source": "/index.html",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-cache"
+                    }
+                ]
+            },
+            {
+                "source": "**/*.@(js|css|png|svg|ico|txt)",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "public,max-age=31536000,immutable"
+                    }
+                ]
+            },
+            {
+                "source": "/sw.js",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-cache"
+                    }
+                ]
+            },
+            {
+                "source": "**",
+                "headers": [
+                    {
+                        "key": "Cross-Origin-Opener-Policy",
+                        "value": "same-origin"
+                    },
+                    {
+                        "key": "Cross-Origin-Resource-Policy",
+                        "value": "same-site"
+                    },
+                    {
+                        "key": "X-Permitted-Cross-Domain-Policies",
+                        "value": "none"
+                    },
+                    {
+                        "key": "Referrer-Policy",
+                        "value": "no-referrer"
+                    },
+                    {
+                        "key": "Origin-Agent-Cluster",
+                        "value": "?1"
+                    },
+                    {
+                        "key": "X-Content-Type-Options",
+                        "value": "nosniff"
+                    },
+                    {
+                        "key": "X-DNS-Prefetch-Control",
+                        "value": "off"
+                    },
+                    {
+                        "key": "X-Download-Options",
+                        "value": "noopen"
+                    },
+                    {
+                        "key": "X-Frame-Options",
+                        "value": "DENY"
+                    },
+                    {
+                        "key": "X-XSS-Protection",
+                        "value": "0"
+                    },
+                    {
+                        "key": "Strict-Transport-Security",
+                        "value": "max-age=31536000; includeSubDomains; preload"
+                    },
+                    {
+                        "key": "Permissions-Policy",
+                        "value": "accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), hid=(), idle-detection=(), interest-cohort=(), serial=()"
+                    },
+                    {
+                        "key": "Content-Security-Policy",
+                        "value": "default-src 'self'; base-uri 'none'; frame-src 'self' https://*.firebasedatabase.app https://www.google.com; object-src 'none'; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; form-action 'self'; script-src 'self' https://www.google.com https://www.gstatic.com https://www.google-analytics.com https://www.googletagmanager.com https://*.firebasedatabase.app https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://maps.googleapis.com https://maps.gstatic.com https://developers.google.com https://www.googletagmanager.com https://picsum.photos https://*.picsum.photos https://loremflickr.com; connect-src 'self' https://www.google.com https://*.googleapis.com https://www.google-analytics.com wss://*.firebasedatabase.app https://*.cloudfunctions.net https://*.algolianet.com https://*.algolia.net; media-src 'self'; manifest-src 'self'; frame-ancestors 'none'"
+                    }
+                ]
+            }
+        ]
+    },
+    "emulators": {
+        "hosting": {
+            "port": 5500,
+            "host": "0.0.0.0"
+        },
+        "ui": {
+            "enabled": true
+        },
+        "singleProjectMode": true
+    }
+}
