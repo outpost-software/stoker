@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.2
+
+### Patch Changes
+
+- fix: remove relations for dependent fields
+
 ## 0.5.1
 
 ### Patch Changes

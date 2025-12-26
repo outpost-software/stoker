@@ -280,12 +280,13 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         });
     }
 
-    const hasNonTwoWayRelations = collectionSchema.fields
-        .some((field) => "collection" in field &&
-            field.collection &&
-                !("twoWay" in field && field.twoWay));
+    const hasDependentNonTwoWayRelations = Object.values(schema.collections)
+        .some((collection) => collection.fields
+            .some((field) => "collection" in field &&
+                field.collection === labels.collection &&
+                !("twoWay" in field && field.twoWay)));
 
-    if (hasNonTwoWayRelations) {
+    if (hasDependentNonTwoWayRelations) {
         stoker[`removerelations${
             collectionNameLower
         }`] =
