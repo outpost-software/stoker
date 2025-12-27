@@ -750,7 +750,7 @@ export const addProject = async (options: any) => {
         const recaptchaKeyId = recaptchaKey.split("/").pop()
 
         const recaptchaEnterpriseConfig = await fetch(
-            `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/apps/${appId}/recaptchaEnterpriseConfig?updateMask=siteKey,tokenTtl`,
+            `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/apps/${appId}/recaptchaEnterpriseConfig?updateMask=siteKey,tokenTtl,riskAnalysis`,
             {
                 method: "PATCH",
                 headers: {
@@ -761,6 +761,11 @@ export const addProject = async (options: any) => {
                 body: JSON.stringify({
                     siteKey: recaptchaKeyId,
                     tokenTtl: process.env.FB_APP_CHECK_TOKEN_TTL || "3600s",
+                    riskAnalysis: {
+                        minValidScore: process.env.FB_APP_CHECK_MIN_VALID_SCORE
+                            ? parseFloat(process.env.FB_APP_CHECK_MIN_VALID_SCORE)
+                            : 0.5,
+                    },
                 }),
             },
         )
