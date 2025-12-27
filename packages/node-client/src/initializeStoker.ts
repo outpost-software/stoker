@@ -21,7 +21,8 @@ let app: App,
     customizationFiles: { [key: string]: CollectionCustomization },
     versionInfo: VersionInfo | undefined,
     maintenanceInfo: { active: boolean } | undefined,
-    numberOfUpdates = 0
+    numberOfUpdates = 0,
+    initialized = false
 
 const utilities: NodeUtilities = {
     getTenant() {
@@ -61,6 +62,8 @@ export const initializeStoker = async (
     customizationFilesPath: string,
     gcp?: boolean,
 ) => {
+    const alreadyInitialized = !!initialized
+    initialized = true
     if (tenantId) {
         tenant = tenantId
     }
@@ -87,11 +90,8 @@ export const initializeStoker = async (
         process.env.FIREBASE_STORAGE_EMULATOR_HOST = "127.0.0.1:9199"
     }
 
-    let alreadyInitialized = false
-
     try {
         app = getApp()
-        alreadyInitialized = true
     } catch {
         app = initializeApp({
             credential: applicationDefault(),

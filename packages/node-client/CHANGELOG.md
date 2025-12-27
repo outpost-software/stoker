@@ -1,5 +1,17 @@
 # @stoker-platform/node-client
 
+## 0.5.4
+
+### Patch Changes
+
+- fix: fix initialisation issue
+
+## 0.5.3
+
+### Patch Changes
+
+- fix: fix initialisation issue
+
 ## 0.5.2
 
 ### Patch Changes
