@@ -27,7 +27,7 @@
         "@stoker-platform/utils": "0.5.2",
         "@types/lodash": "^4.17.21",
         "@types/luxon": "^3.7.1",
-        "firebase": "^12.6.0",
+        "firebase": "^12.7.0",
         "lodash": "^4.17.21",
         "luxon": "^3.7.2"
     },

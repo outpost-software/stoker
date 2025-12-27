@@ -22,9 +22,9 @@
         "npm": "11"
     },
     "dependencies": {
-        "@fullcalendar/core": "^6.1.19",
+        "@fullcalendar/core": "^6.1.20",
         "@google-cloud/storage": "^7.18.0",
-        "firebase": "^12.6.0",
+        "firebase": "^12.7.0",
         "firebase-admin": "^13.6.0"
     }
 }
