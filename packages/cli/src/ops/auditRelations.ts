@@ -23,11 +23,17 @@ export const auditRelations = async (options: any) => {
         const collectionSnapshot = await db.collectionGroup(collectionName).get()
         console.log(`Auditing ${collectionName}...`)
         collectionSnapshot.forEach((doc) => {
+            if (!doc.ref.path.includes(`tenants/${options.tenant}`)) {
+                return
+            }
             collectionData[doc.id] = doc.data()
         })
         const singleFieldRelations = getSingleFieldRelations(collectionSchema, collectionSchema.fields)
         const singleFieldRelationNames = Array.from(singleFieldRelations).map((field) => field.name)
         for (const doc of collectionSnapshot.docs) {
+            if (!doc.ref.path.includes(`tenants/${options.tenant}`)) {
+                continue
+            }
             const record = doc.data() as StokerRecord
             for (const field of collectionSchema.fields) {
                 if ("collection" in field) {

@@ -30,6 +30,9 @@ export const auditDenormalized = async (options: any) => {
         const collectionSnapshot = await db.collectionGroup(collectionName).get()
         console.log(`Auditing ${collectionName}...`)
         collectionSnapshot.forEach((doc) => {
+            if (!doc.ref.path.includes(`tenants/${options.tenant}`)) {
+                return
+            }
             collectionData[doc.id] = doc.data()
         })
         const singleFieldRelations = getSingleFieldRelations(collectionSchema, collectionSchema.fields)
@@ -37,6 +40,8 @@ export const auditDenormalized = async (options: any) => {
         for (const field of collectionSchema.fields) {
             if (isDependencyField(field, collectionSchema, schema)) {
                 const dependencySnapshot = await db
+                    .collection("tenants")
+                    .doc(options.tenant)
                     .collection("system_fields")
                     .doc(collectionName)
                     .collection(`${collectionName}-${field.name}`)
@@ -83,6 +88,8 @@ export const auditDenormalized = async (options: any) => {
         const roleGroups = getRoleGroups(collectionSchema, schema)
         for (const roleGroup of roleGroups) {
             const dependencySnapshot = await db
+                .collection("tenants")
+                .doc(options.tenant)
                 .collection("system_fields")
                 .doc(collectionName)
                 .collection(`${collectionName}-${roleGroup.key}`)

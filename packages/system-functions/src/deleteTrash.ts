@@ -10,6 +10,7 @@ import {error as errorLogger} from "firebase-functions/logger";
 import {
     deleteRecord,
     initializeStoker,
+    setTenant,
 } from "@stoker-platform/node-client";
 import {join} from "node:path";
 
@@ -24,18 +25,19 @@ export const deleteTrash = (
         let lastVisible = null;
         const pageSize = 1000;
 
+        await initializeStoker(
+            "production",
+            undefined,
+            join(process.cwd(), "lib", "system-custom", "main.js"),
+            join(process.cwd(), "lib", "system-custom", "collections"),
+            true,
+        );
+
         const tenants = await db.collection("tenants").listDocuments();
 
         for (const tenant of tenants) {
             const tenantId = tenant.id;
-
-            await initializeStoker(
-                "production",
-                tenantId,
-                join(process.cwd(), "lib", "system-custom", "main.js"),
-                join(process.cwd(), "lib", "system-custom", "collections"),
-                true,
-            );
+            setTenant(tenantId);
 
             do {
                 let query = db.collectionGroup(collection.labels.collection)
