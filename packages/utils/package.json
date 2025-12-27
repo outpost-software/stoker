@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/utils",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "lib/src/main.js",
@@ -16,7 +16,7 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
-        "@stoker-platform/types": "0.5.1",
+        "@stoker-platform/types": "0.5.2",
         "@types/luxon": "^3.7.1",
         "lodash": "^4.17.21",
         "luxon": "^3.7.2",
