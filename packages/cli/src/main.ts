@@ -31,7 +31,17 @@ if (
     dotenv.config({ path: join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`), quiet: true })
 }
 
-dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
+if (process.env.GCP_PROJECT) {
+    const projectEnvFile = join(process.cwd(), ".env", `.env.project.${process.env.GCP_PROJECT}`)
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (existsSync(projectEnvFile)) {
+        dotenv.config({ path: projectEnvFile, quiet: true })
+    } else {
+        dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
+    }
+} else {
+    dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
+}
 
 import { initProject } from "./project/initProject.js"
 import { buildWebApp } from "./project/buildWebApp.js"

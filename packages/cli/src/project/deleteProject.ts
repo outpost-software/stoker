@@ -24,6 +24,12 @@ export const deleteProject = async (options: { testMode?: boolean }) => {
     if (existsSync(join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`))) {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         await unlink(join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`))
+        console.log("System environment file deleted.")
+    }
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (existsSync(join(process.cwd(), ".env", `.env.project.${process.env.GCP_PROJECT}`))) {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        await unlink(join(process.cwd(), ".env", `.env.project.${process.env.GCP_PROJECT}`))
         console.log("Project environment file deleted.")
     }
 

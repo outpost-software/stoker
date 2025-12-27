@@ -7,7 +7,13 @@ import { existsSync } from "fs"
 import dotenv from "dotenv"
 import { runChildProcess } from "@stoker-platform/node-client"
 
-dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
+const projectEnvFile = join(process.cwd(), ".env", `.env.project.${process.env.GCP_PROJECT}`)
+// eslint-disable-next-line security/detect-non-literal-fs-filename
+if (existsSync(projectEnvFile)) {
+    dotenv.config({ path: projectEnvFile, quiet: true })
+} else {
+    dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
+}
 
 try {
     const __filename = fileURLToPath(import.meta.url)
@@ -74,7 +80,12 @@ try {
 
     // Set up Firebase Extension files
 
-    const envFile = await readFile(join(__dirname, "..", ".env", ".env"), "utf8")
+    let envFile
+    if (existsSync(projectEnvFile)) {
+        envFile = await readFile(projectEnvFile, "utf8")
+    } else {
+        envFile = await readFile(join(__dirname, "..", ".env", ".env"), "utf8")
+    }
     const envFileLines = envFile.split("\n")
     const databaseRegion = envFileLines.find((line) => line.startsWith("FB_FIRESTORE_REGION="))
 

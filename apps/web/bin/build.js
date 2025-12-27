@@ -14,10 +14,6 @@ try {
         rmSync(join(__dirname, "..", "src", "assets", "system-custom"), { recursive: true })
     }
 
-    if (!process.env.ADMIN_CSP) {
-        dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
-    }
-
     if (existsSync(join(__dirname, "..", "firebase.json"))) {
         rmSync(join(__dirname, "..", "firebase.json"))
     }

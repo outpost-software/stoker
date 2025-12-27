@@ -1,7 +1,7 @@
 {
     "name": "stoker",
     "private": true,
-    "version": "0.4.7",
+    "version": "0.4.8",
     "type": "module",
     "license": "UNLICENSED",
     "scripts": {
@@ -11,17 +11,17 @@
         "format": "",
         "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",
         "prebuild": "npm run clean:lib && npm run clean:functions",
-        "build": "tsc && node ../web/bin/build.js && node bin/build.js && grep -h '^FB_FUNCTIONS_\\|^FB_AI_REGION\\|^STOKER_\\|^ADMIN_' .env/.env .env/.env.$GCP_PROJECT > functions/.env && rm -r -f functions/src/system-custom && cp -r src/. functions/src/system-custom && node bin/shim.js && npm --prefix functions run build",
+        "build": "tsc && node ../web/bin/build.js && node bin/build.js && if [ -f .env/.env.project.$GCP_PROJECT ]; then grep -h '^FB_FUNCTIONS_\\|^FB_AI_REGION\\|^STOKER_\\|^ADMIN_' .env/.env.project.$GCP_PROJECT .env/.env.$GCP_PROJECT > functions/.env; else grep -h '^FB_FUNCTIONS_\\|^FB_AI_REGION\\|^STOKER_\\|^ADMIN_' .env/.env .env/.env.$GCP_PROJECT > functions/.env; fi && rm -r -f functions/src/system-custom && cp -r src/. functions/src/system-custom && node bin/shim.js && npm --prefix functions run build",
         "test": "echo 'Run `npm run test:run` to run tests'",
         "test:run": "vitest --run",
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
     },
     "dependencies": {
-        "@stoker-platform/cli": "0.5.5",
+        "@stoker-platform/cli": "0.5.6",
         "@stoker-platform/node-client": "0.5.4",
         "@stoker-platform/types": "0.5.2",
         "@stoker-platform/utils": "0.5.2",
-        "@stoker-platform/web-app": "0.5.4",
+        "@stoker-platform/web-app": "0.5.5",
         "@stoker-platform/web-client": "0.5.2",
         "algoliasearch": "^5.46.0",
         "firebase-admin": "^13.6.0",

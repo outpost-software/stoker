@@ -5,6 +5,7 @@ import dotenv from "dotenv"
 import { retryOperation } from "@stoker-platform/utils"
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager"
 import { addTenant } from "./addTenant.js"
+import { existsSync } from "fs"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addProject = async (options: any) => {
@@ -36,6 +37,11 @@ export const addProject = async (options: any) => {
         throw new Error("GCP_PROJECT should not be set for project creation.")
     }
 
+    const projectEnvFile = join(process.cwd(), ".env", `.env.project.${options.name}`)
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (existsSync(projectEnvFile)) {
+        dotenv.config({ path: projectEnvFile, override: true, quiet: true })
+    }
     if (options.development) {
         dotenv.config({ path: join(process.cwd(), ".env", ".env.dev"), override: true, quiet: true })
     }

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.5
+
+### Patch Changes
+
+- feat: add support for project-level env files
+
 ## 0.5.4
 
 ### Patch Changes

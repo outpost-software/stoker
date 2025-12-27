@@ -50,9 +50,9 @@ import {genkit} from "genkit";
 import {vertexAI} from "@genkit-ai/vertexai";
 import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
 import {sendMail, sendMessage} from "@stoker-platform/node-client";
+import {onSchedule} from "firebase-functions/v2/scheduler";
 
 import * as dotenv from "dotenv";
-import {onSchedule} from "firebase-functions/v2/scheduler";
 
 import {billingPDF} from "./billingPDF.js";
 
@@ -372,6 +372,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
 
     if (softDelete) {
         stoker[`deletetrash${collectionNameLower}`] = onSchedule({
+            region: "australia-southeast1",
             schedule: "every day 00:00",
             timeZone,
             retryCount: 3,

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.6
+
+### Patch Changes
+
+- feat: add support for project-level env files
+
 ## 0.5.5
 
 ### Patch Changes

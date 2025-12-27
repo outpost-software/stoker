@@ -6,16 +6,19 @@ The env files in your project describe your back end infrastructure preferences.
 
 ## File Types
 
-There are 3 file types:
+There are 4 file types:
 
 ### `.env/.env`
-This is your main preferences file.
+This is your default preferences file.
+
+### Project env files
+A project env file overrides the default preferences above for a specified project. Create an env file for a project using the naming format `.env/.env.project.<PROJECT_NAME>`. Do this **before** creating the project.
 
 ### `.env/.env.dev`
 
 This file describes preferences for your development environment (development projects). Env vars in this file will override preferences in your main env file, but only for development. This file is not included by default- you have to create it yourself.
 
-### Project env files
+### System env files
 
 Each project gets its own automatically generated env file with the format `.env.<PROJECT_NAME>`. These files are for system use and don't need to be modified.
 
