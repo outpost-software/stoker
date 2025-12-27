@@ -1,6 +1,6 @@
+export * from "./initializeStoker.js"
 export { runChildProcess } from "./utils/runChildProcess.js"
 export { initializeFirebase } from "./utils/initializeFirebase.js"
-export { initializeStoker } from "./initializeStoker.js"
 export { fetchCurrentSchema, fetchLastSchema } from "./utils/fetchSchema.js"
 export { getCollectionRefs } from "./read/getCollectionRefs.js"
 export { getDocumentRefs } from "./read/getDocumentRefs.js"

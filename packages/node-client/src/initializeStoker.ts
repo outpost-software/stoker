@@ -25,7 +25,11 @@ let app: App,
 
 const utilities: NodeUtilities = {
     getTenant() {
+        if (!tenant) throw new Error("Tenant not provided")
         return tenant
+    },
+    setTenant(tenantId: string) {
+        tenant = tenantId
     },
     getMode() {
         return mode
@@ -52,11 +56,16 @@ const utilities: NodeUtilities = {
 
 export const initializeStoker = async (
     modeEnv: "development" | "production",
-    tenantId: string,
+    tenantId: string | undefined,
     configFilePath: string,
     customizationFilesPath: string,
     gcp?: boolean,
 ) => {
+    if (tenantId) {
+        tenant = tenantId
+    }
+    mode = modeEnv
+
     if (app && !gcp) {
         return utilities
     }
@@ -66,9 +75,6 @@ export const initializeStoker = async (
 
     const firebaseConfigString = process.env.STOKER_FB_WEB_APP_CONFIG
     const firebaseConfig = JSON.parse(firebaseConfigString)
-
-    tenant = tenantId
-    mode = modeEnv
 
     const globalConfigFile = await import(/* @vite-ignore */ configFilePath)
     const config: GenerateGlobalConfig = globalConfigFile.default
@@ -81,8 +87,11 @@ export const initializeStoker = async (
         process.env.FIREBASE_STORAGE_EMULATOR_HOST = "127.0.0.1:9199"
     }
 
+    let alreadyInitialized = false
+
     try {
         app = getApp()
+        alreadyInitialized = true
     } catch {
         app = initializeApp({
             credential: applicationDefault(),
@@ -96,42 +105,45 @@ export const initializeStoker = async (
     customizationFiles = await getCustomizationFiles(customizationFilesPath, Object.keys(schema.collections))
     timezone = await tryPromise(globalConfig.timezone)
 
-    getFirestore()
-        .collection("system_deployment")
-        .doc("maintenance_mode")
-        .onSnapshot(
-            (doc: DocumentSnapshot) => {
-                if (doc.exists) {
-                    maintenanceInfo = doc.data() as { active: boolean }
-                    tryPromise(globalConfig.onMaintenanceUpdate, ["node", maintenanceInfo.active ? "on" : "off"])
-                } else {
-                    console.error("Maintenance status not found")
-                }
-            },
-            (error) => {
-                console.error(error.message)
-            },
-        )
-
-    getFirestore()
-        .collection("system_deployment")
-        .doc("latest_deploy")
-        .onSnapshot(
-            (doc: DocumentSnapshot) => {
-                if (doc.exists) {
-                    versionInfo = doc.data() as VersionInfo
-                    numberOfUpdates++
-                    if (numberOfUpdates > 1) {
-                        tryPromise(globalConfig.onVersionUpdate, ["node", versionInfo, numberOfUpdates])
+    if (!alreadyInitialized) {
+        getFirestore()
+            .collection("system_deployment")
+            .doc("maintenance_mode")
+            .onSnapshot(
+                (doc: DocumentSnapshot) => {
+                    if (doc.exists) {
+                        maintenanceInfo = doc.data() as { active: boolean }
+                        tryPromise(globalConfig.onMaintenanceUpdate, ["node", maintenanceInfo.active ? "on" : "off"])
+                    } else {
+                        console.error("Maintenance status not found")
                     }
-                } else {
-                    console.error("Version info not found")
-                }
-            },
-            (error) => {
-                console.error(error.message)
-            },
-        )
+                },
+                (error) => {
+                    console.error(error.message)
+                },
+            )
+    }
+    if (!alreadyInitialized) {
+        getFirestore()
+            .collection("system_deployment")
+            .doc("latest_deploy")
+            .onSnapshot(
+                (doc: DocumentSnapshot) => {
+                    if (doc.exists) {
+                        versionInfo = doc.data() as VersionInfo
+                        numberOfUpdates++
+                        if (numberOfUpdates > 1) {
+                            tryPromise(globalConfig.onVersionUpdate, ["node", versionInfo, numberOfUpdates])
+                        }
+                    } else {
+                        console.error("Version info not found")
+                    }
+                },
+                (error) => {
+                    console.error(error.message)
+                },
+            )
+    }
 
     await new Promise((resolve) => {
         const checkValues = () => {
@@ -149,6 +161,7 @@ export const initializeStoker = async (
 
 export const {
     getTenant,
+    setTenant,
     getMode,
     getTimezone,
     getGlobalConfigModule,

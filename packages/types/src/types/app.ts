@@ -345,6 +345,7 @@ export interface WebUtilities {
 export interface NodeUtilities {
     getMode: () => "development" | "production"
     getTenant: () => string
+    setTenant: (tenantId: string) => void
     getTimezone: () => string
     getGlobalConfigModule: () => GlobalConfig
     getCustomizationFile: (collection: string, schema: CollectionsSchema) => CollectionCustomization

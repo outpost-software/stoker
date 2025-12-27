@@ -162,6 +162,12 @@ Return the environment that the app is currently running in.
 
 Returns the tenant ID for the currently active tenant.
 
+### setTenant
+
+`(tenantId: string) => void`
+
+Sets the currently active tenant.
+
 ### getTimezone
 
 `() => string`
