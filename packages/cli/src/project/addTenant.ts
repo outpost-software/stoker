@@ -76,5 +76,6 @@ export const addTenant = async () => {
             }
         }
     }
+    console.log(`Tenant ${tenantId} created successfully.`)
     return
 }
