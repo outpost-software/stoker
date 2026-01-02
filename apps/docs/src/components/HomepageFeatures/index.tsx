@@ -46,7 +46,7 @@ const FeatureList: FeatureItem[] = [
     {
         title: "AI Ready",
         Svg: require("@site/static/img/undraw_mcp-server.svg").default,
-        description: <>Store embeddings and optionally enable RAG-powered chatbots.</>,
+        description: <>Store embeddings and optionally enable agents that use your app's data as context.</>,
     },
     {
         title: "Access Control Presets",
@@ -70,7 +70,7 @@ const FeatureList: FeatureItem[] = [
     {
         title: "Built Over Years",
         Svg: require("@site/static/img/undraw_app-dark-mode.svg").default,
-        description: <>12+ years of experience building internal tools. 2,000+ commits. 55,000+ lines of code.</>,
+        description: <>12+ years of experience building internal tools. 2,000+ commits. Built on Google Cloud and React.</>,
     },
 ]
 
