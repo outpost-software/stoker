@@ -58,6 +58,7 @@ export const addTenant = async () => {
                             [],
                             (error: unknown) => console.log(error),
                             0,
+                            100,
                         )
                         collectionRecordCreated.push(field.collection)
                     }
@@ -71,6 +72,7 @@ export const addTenant = async () => {
                     [],
                     (error: unknown) => console.log(error),
                     0,
+                    100,
                 )
                 collectionRecordCreated.push(collectionName)
             }
