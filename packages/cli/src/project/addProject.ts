@@ -49,15 +49,72 @@ export const addProject = async (options: any) => {
     const projectId = options.name
     process.env.GCP_PROJECT = projectId
 
+    type ProjectData = { projects: { [key: string]: { setup_progress: number; setup_date?: string } } }
+
+    let projectData: ProjectData | { projects: string[] } = JSON.parse(
+        await readFile(join(process.cwd(), "project-data.json"), "utf8"),
+    )
+
+    if (Array.isArray(projectData.projects)) {
+        const currentProjects: ProjectData["projects"] = {}
+        for (const project of projectData.projects) {
+            // eslint-disable-next-line security/detect-object-injection
+            currentProjects[project] = {
+                setup_progress: 1000,
+            }
+        }
+        projectData.projects = currentProjects
+    }
+
+    // eslint-disable-next-line security/detect-object-injection
+    if (!projectData.projects[projectId]) {
+        // eslint-disable-next-line security/detect-object-injection
+        projectData.projects[projectId] = {
+            setup_progress: 0,
+            setup_date: new Date().toISOString(),
+        }
+        if (!options.testMode) {
+            await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectData, null, 4))
+        }
+    } else {
+        // eslint-disable-next-line security/detect-object-injection
+        const currentProjectData = await readFile(join(process.cwd(), "project-data.json"), "utf8")
+        projectData = JSON.parse(currentProjectData) as ProjectData
+        // eslint-disable-next-line security/detect-object-injection
+        if (projectData.projects[projectId].setup_progress === 1000) {
+            console.log("Project already set up.")
+            process.exit()
+        }
+    }
+
+    const projectDataObject = projectData as ProjectData
+
+    const updateProjectData = async (progress: number) => {
+        // eslint-disable-next-line security/detect-object-injection
+        projectDataObject.projects[projectId].setup_progress = progress
+        await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectData, null, 4))
+    }
+
+    const getProgress = () => {
+        // eslint-disable-next-line security/detect-object-injection
+        return projectDataObject.projects[projectId].setup_progress
+    }
+
     const projectArgs = ["projects:create", projectId]
     if (process.env.GCP_ORGANIZATION) projectArgs.push("--organization", process.env.GCP_ORGANIZATION)
     if (process.env.GCP_FOLDER) projectArgs.push("--folder", process.env.GCP_FOLDER)
 
-    await runChildProcess("firebase", projectArgs).catch(() => {
-        throw new Error("Error creating Google Cloud Project.")
-    })
+    if (getProgress() < 1) {
+        await runChildProcess("firebase", projectArgs).catch(async () => {
+            // eslint-disable-next-line security/detect-object-injection
+            delete projectDataObject.projects[projectId]
+            await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectDataObject, null, 4))
+            throw new Error("Error creating Google Cloud Project.")
+        })
+        await updateProjectData(1)
+    }
 
-    try {
+    if (getProgress() < 2) {
         await runChildProcess("gcloud", [
             "billing",
             "projects",
@@ -68,7 +125,10 @@ export const addProject = async (options: any) => {
         ]).catch(() => {
             throw new Error("Error enabling billing on project.")
         })
+        await updateProjectData(2)
+    }
 
+    if (getProgress() < 3) {
         await runChildProcess("gcloud", [
             "services",
             "enable",
@@ -96,7 +156,10 @@ export const addProject = async (options: any) => {
         ]).catch(() => {
             throw new Error("Error enabling Google Cloud APIs.")
         })
+        await updateProjectData(3)
+    }
 
+    if (getProgress() < 4) {
         await runChildProcess("gcloud", [
             "services",
             "enable",
@@ -109,30 +172,36 @@ export const addProject = async (options: any) => {
         ]).catch(() => {
             throw new Error("Error enabling Google Cloud APIs.")
         })
+        await updateProjectData(4)
+    }
 
+    if (getProgress() < 5) {
         await runChildProcess("firebase", ["apps:create", "WEB", projectId, "--project", projectId]).catch(() => {
             throw new Error("Error creating Firebase web app.")
         })
+        await updateProjectData(5)
+    }
 
-        const webAppResult = await runChildProcess("firebase", [
-            "apps:sdkconfig",
-            "WEB",
-            "--project",
-            projectId,
-            "--json",
-        ]).catch(() => {
-            throw new Error("Error getting Firebase web app config.")
-        })
+    const webAppResult = await runChildProcess("firebase", [
+        "apps:sdkconfig",
+        "WEB",
+        "--project",
+        projectId,
+        "--json",
+    ]).catch(() => {
+        throw new Error("Error getting Firebase web app config.")
+    })
 
-        const webAppResultJson = JSON.parse(webAppResult)
-        const webAppConfig = webAppResultJson.result.sdkConfig
-        const appId = webAppConfig.appId
-        const projectNumber = webAppConfig.messagingSenderId
+    const webAppResultJson = JSON.parse(webAppResult)
+    const webAppConfig = webAppResultJson.result.sdkConfig
+    const appId = webAppConfig.appId
+    const projectNumber = webAppConfig.messagingSenderId
 
-        const token = await runChildProcess("gcloud", ["auth", "print-access-token"]).catch(() => {
-            throw new Error("Error getting Google Cloud identity token.")
-        })
+    const token = await runChildProcess("gcloud", ["auth", "print-access-token"]).catch(() => {
+        throw new Error("Error getting Google Cloud identity token.")
+    })
 
+    if (getProgress() < 6) {
         if (process.env.FB_GOOGLE_ANALYTICS_ACCOUNT_ID && !options.development) {
             const analyticsResponse = await fetch(
                 `https://firebase.googleapis.com/v1beta1/projects/${projectId}:addGoogleAnalytics`,
@@ -154,7 +223,10 @@ export const addProject = async (options: any) => {
                 throw new Error("Error adding Google Analytics to Firebase project.")
             }
         }
+        await updateProjectData(6)
+    }
 
+    if (getProgress() < 7) {
         const hostingResponse = await fetch(
             `https://firebasehosting.googleapis.com/v1beta1/projects/${projectId}/sites/${projectId}?updateMask=appId`,
             {
@@ -174,7 +246,10 @@ export const addProject = async (options: any) => {
         if (!hostingResponse.ok) {
             throw new Error("Error updating Firebase Hosting site web app association.")
         }
+        await updateProjectData(7)
+    }
 
+    if (getProgress() < 8) {
         const hostingConfig: {
             cloudLoggingEnabled?: boolean
             maxVersions?: string
@@ -204,9 +279,11 @@ export const addProject = async (options: any) => {
                 throw new Error("Error updating Firebase Hosting site web app config.")
             }
         }
+        await updateProjectData(8)
+    }
 
+    if (getProgress() < 9) {
         await new Promise((resolve) => setTimeout(resolve, 10000))
-
         await retryOperation(
             async () => {
                 const rtdb = await fetch(
@@ -238,9 +315,11 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(9)
+    }
 
+    if (getProgress() < 10) {
         await new Promise((resolve) => setTimeout(resolve, 10000))
-
         await retryOperation(
             async () => {
                 await runChildProcess("gcloud", [
@@ -263,9 +342,11 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(10)
+    }
 
+    if (getProgress() < 11) {
         await new Promise((resolve) => setTimeout(resolve, 10000))
-
         const backupArguments = [
             "firestore",
             "backups",
@@ -298,7 +379,10 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(11)
+    }
 
+    if (getProgress() < 12) {
         await runChildProcess("gcloud", [
             "storage",
             "buckets",
@@ -317,6 +401,10 @@ export const addProject = async (options: any) => {
         ]).catch(() => {
             throw new Error("Error creating Cloud Storage Bucket.")
         })
+        await updateProjectData(12)
+    }
+
+    if (getProgress() < 13) {
         if (options.versioning && process.env.FB_STORAGE_ENABLE_VERSIONING !== "false") {
             await runChildProcess("gcloud", [
                 "storage",
@@ -330,6 +418,10 @@ export const addProject = async (options: any) => {
                 throw new Error("Error enabling Cloud Storage versioning.")
             })
         }
+        await updateProjectData(13)
+    }
+
+    if (getProgress() < 14) {
         await writeFile(
             "cors.json",
             process.env.FB_STORAGE_CORS
@@ -355,7 +447,10 @@ export const addProject = async (options: any) => {
             throw new Error("Error enabling Cloud Storage CORS.")
         })
         await unlink(join(process.cwd(), "cors.json"))
+        await updateProjectData(14)
+    }
 
+    if (getProgress() < 15) {
         await runChildProcess("gcloud", [
             "storage",
             "buckets",
@@ -374,7 +469,10 @@ export const addProject = async (options: any) => {
         ]).catch(() => {
             throw new Error("Error creating Cloud Storage export Bucket.")
         })
+        await updateProjectData(15)
+    }
 
+    if (getProgress() < 16) {
         const storageResponse = await fetch(
             `https://firebasestorage.googleapis.com/v1beta/projects/${projectId}/buckets/${projectId}:addFirebase`,
             {
@@ -392,9 +490,15 @@ export const addProject = async (options: any) => {
         if (!storageResponse.ok) {
             throw new Error("Error adding Firebase to Cloud Storage.")
         }
+        await updateProjectData(16)
+    }
 
+    if (getProgress() < 17) {
         await runChildProcess("firebase", ["target:apply", "storage", "default", projectId, "--project", projectId])
+        await updateProjectData(17)
+    }
 
+    if (getProgress() < 18) {
         await retryOperation(
             async () => {
                 await runChildProcess("gcloud", [
@@ -414,7 +518,9 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
-
+        await updateProjectData(18)
+    }
+    if (getProgress() < 19) {
         await retryOperation(
             async () => {
                 await runChildProcess("gcloud", [
@@ -434,6 +540,9 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(19)
+    }
+    if (getProgress() < 20) {
         await retryOperation(
             async () => {
                 await runChildProcess("gcloud", [
@@ -453,6 +562,9 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(20)
+    }
+    if (getProgress() < 21) {
         await retryOperation(
             async () => {
                 await runChildProcess("gcloud", [
@@ -472,6 +584,9 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(21)
+    }
+    if (getProgress() < 22) {
         await retryOperation(
             async () => {
                 await runChildProcess("gcloud", [
@@ -491,9 +606,11 @@ export const addProject = async (options: any) => {
             undefined,
             5000,
         )
+        await updateProjectData(22)
+    }
+    webAppConfig.storageBucket = `gs://${projectId}`
 
-        webAppConfig.storageBucket = `gs://${projectId}`
-
+    if (getProgress() < 23) {
         const identity = await fetch(
             `https://identitytoolkit.googleapis.com/v2/projects/${projectId}/identityPlatform:initializeAuth`,
             {
@@ -511,7 +628,10 @@ export const addProject = async (options: any) => {
         if (!identity.ok) {
             throw new Error("Error setting up Firebase Auth.")
         }
+        await updateProjectData(23)
+    }
 
+    if (getProgress() < 24) {
         const auth = await fetch(`https://identitytoolkit.googleapis.com/admin/v2/projects/${projectId}/config`, {
             method: "PATCH",
             headers: {
@@ -570,9 +690,12 @@ export const addProject = async (options: any) => {
         if (!auth.ok) {
             throw new Error("Error setting up Firebase Auth.")
         }
+        await updateProjectData(24)
+    }
 
-        const secretManager = new SecretManagerServiceClient()
+    const secretManager = new SecretManagerServiceClient()
 
+    if (getProgress() < 25) {
         if (process.env.ALGOLIA_ADMIN_KEY) {
             const [algoliaSecret] = await secretManager.createSecret({
                 parent: `projects/${projectId}`,
@@ -592,7 +715,12 @@ export const addProject = async (options: any) => {
             })
             console.log(algoliaSecretVersion)
         }
-        const [smtpPasswordSecret] = await secretManager.createSecret({
+        await updateProjectData(25)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let smtpPasswordSecret: any
+    if (getProgress() < 26) {
+        ;[smtpPasswordSecret] = await secretManager.createSecret({
             parent: `projects/${projectId}`,
             secret: {
                 name: "firestore-send-email-SMTP_PASSWORD",
@@ -602,6 +730,9 @@ export const addProject = async (options: any) => {
             },
             secretId: "firestore-send-email-SMTP_PASSWORD",
         })
+        await updateProjectData(26)
+    }
+    if (getProgress() < 27) {
         const [smtpPasswordSecretVersion] = await secretManager.addSecretVersion({
             parent: smtpPasswordSecret.name,
             payload: {
@@ -609,8 +740,13 @@ export const addProject = async (options: any) => {
             },
         })
         console.log(smtpPasswordSecretVersion)
-        if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-            const [twilioPasswordSecret] = await secretManager.createSecret({
+        await updateProjectData(27)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let twilioPasswordSecret: any
+    if (getProgress() < 28) {
+        if (process.env.TWILIO_AUTH_TOKEN) {
+            ;[twilioPasswordSecret] = await secretManager.createSecret({
                 parent: `projects/${projectId}`,
                 secret: {
                     name: "TWILIO_AUTH_TOKEN",
@@ -620,6 +756,11 @@ export const addProject = async (options: any) => {
                 },
                 secretId: "TWILIO_AUTH_TOKEN",
             })
+        }
+        await updateProjectData(28)
+    }
+    if (getProgress() < 29) {
+        if (process.env.TWILIO_AUTH_TOKEN) {
             const [twilioPasswordSecretVersion] = await secretManager.addSecretVersion({
                 parent: twilioPasswordSecret.name,
                 payload: {
@@ -627,8 +768,14 @@ export const addProject = async (options: any) => {
                 },
             })
             console.log(twilioPasswordSecretVersion)
-
-            const [twilioAccountSidSecret] = await secretManager.createSecret({
+        }
+        await updateProjectData(29)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let twilioAccountSidSecret: any
+    if (getProgress() < 30) {
+        if (process.env.TWILIO_ACCOUNT_SID) {
+            ;[twilioAccountSidSecret] = await secretManager.createSecret({
                 parent: `projects/${projectId}`,
                 secret: {
                     name: "TWILIO_ACCOUNT_SID",
@@ -638,6 +785,11 @@ export const addProject = async (options: any) => {
                 },
                 secretId: "TWILIO_ACCOUNT_SID",
             })
+        }
+        await updateProjectData(30)
+    }
+    if (getProgress() < 31) {
+        if (process.env.TWILIO_ACCOUNT_SID) {
             const [twilioAccountSidSecretVersion] = await secretManager.addSecretVersion({
                 parent: twilioAccountSidSecret.name,
                 payload: {
@@ -645,7 +797,11 @@ export const addProject = async (options: any) => {
                 },
             })
             console.log(twilioAccountSidSecretVersion)
-
+        }
+        await updateProjectData(31)
+    }
+    if (getProgress() < 32) {
+        if (process.env.TWILIO_PHONE_NUMBER) {
             const [twilioPhoneNumberSecret] = await secretManager.createSecret({
                 parent: `projects/${projectId}`,
                 secret: {
@@ -664,7 +820,9 @@ export const addProject = async (options: any) => {
             })
             console.log(twilioPhoneNumberSecretVersion)
         }
-
+        await updateProjectData(32)
+    }
+    if (getProgress() < 33) {
         const externalSecrets = JSON.parse(process.env.EXTERNAL_SECRETS || "{}")
         for (const [secretName, secretValue] of Object.entries(externalSecrets)) {
             const [externalSecret] = await secretManager.createSecret({
@@ -685,7 +843,10 @@ export const addProject = async (options: any) => {
             })
             console.log(secretVersion)
         }
+        await updateProjectData(33)
+    }
 
+    if (getProgress() < 34) {
         const apiKeys = await runChildProcess("gcloud", [
             "services",
             "api-keys",
@@ -721,34 +882,34 @@ export const addProject = async (options: any) => {
         )
 
         await runChildProcess("gcloud", apiKeyUpdateArgs)
+        await updateProjectData(34)
+    }
 
-        const recaptchaResponse = await fetch(
-            `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/keys`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    "X-Goog-User-Project": projectId,
-                },
-                body: JSON.stringify({
-                    displayName: "Firebase App Check",
-                    webSettings: {
-                        allowedDomains: [`${projectId}.web.app`, `${projectId}.firebaseapp.com`],
-                        integrationType: "SCORE",
-                    },
-                }),
+    const recaptchaResponse = await fetch(`https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/keys`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "X-Goog-User-Project": projectId,
+        },
+        body: JSON.stringify({
+            displayName: "Firebase App Check",
+            webSettings: {
+                allowedDomains: [`${projectId}.web.app`, `${projectId}.firebaseapp.com`],
+                integrationType: "SCORE",
             },
-        )
-        const recaptchaResponseJson = await recaptchaResponse.json()
-        console.log(recaptchaResponseJson)
-        if (!recaptchaResponse.ok) {
-            throw new Error("Failed to create Recaptcha key")
-        }
+        }),
+    })
+    const recaptchaResponseJson = await recaptchaResponse.json()
+    console.log(recaptchaResponseJson)
+    if (!recaptchaResponse.ok) {
+        throw new Error("Failed to create Recaptcha key")
+    }
 
-        const recaptchaKey = recaptchaResponseJson.name
-        const recaptchaKeyId = recaptchaKey.split("/").pop()
+    const recaptchaKey = recaptchaResponseJson.name
+    const recaptchaKeyId = recaptchaKey.split("/").pop()
 
+    if (getProgress() < 35) {
         const recaptchaEnterpriseConfig = await fetch(
             `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/apps/${appId}/recaptchaEnterpriseConfig?updateMask=siteKey,tokenTtl,riskAnalysis`,
             {
@@ -774,7 +935,10 @@ export const addProject = async (options: any) => {
         if (!recaptchaEnterpriseConfig.ok) {
             throw new Error("Failed to create Recaptcha Enterprise config")
         }
+        await updateProjectData(35)
+    }
 
+    if (getProgress() < 36) {
         if (process.env.FB_ENABLE_APP_CHECK === "true") {
             const servicesResponse = await fetch(
                 `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/services:batchUpdate`,
@@ -832,18 +996,20 @@ export const addProject = async (options: any) => {
                 throw new Error("Failed to update App Check services")
             }
         }
+        await updateProjectData(36)
+    }
 
-        const firebaseJson = JSON.parse(await readFile(join(process.cwd(), "firebase.json"), "utf8"))
-        const authPort = firebaseJson.emulators.auth.port
-        const databasePort = firebaseJson.emulators.database.port
-        const firestorePort = firebaseJson.emulators.firestore.port
-        const storagePort = firebaseJson.emulators.storage.port
-        const functionsPort = firebaseJson.emulators.functions.port
+    const firebaseJson = JSON.parse(await readFile(join(process.cwd(), "firebase.json"), "utf8"))
+    const authPort = firebaseJson.emulators.auth.port
+    const databasePort = firebaseJson.emulators.database.port
+    const firestorePort = firebaseJson.emulators.firestore.port
+    const storagePort = firebaseJson.emulators.storage.port
+    const functionsPort = firebaseJson.emulators.functions.port
 
-        const envDir = join(process.cwd(), ".env")
-        const envFile = join(envDir, `.env.${projectId}`)
+    const envDir = join(process.cwd(), ".env")
+    const envFile = join(envDir, `.env.${projectId}`)
 
-        let envContent = `STOKER_FB_WEB_APP_CONFIG='${JSON.stringify(webAppConfig)}'
+    let envContent = `STOKER_FB_WEB_APP_CONFIG='${JSON.stringify(webAppConfig)}'
 STOKER_FB_ENABLE_APP_CHECK=${process.env.FB_ENABLE_APP_CHECK}
 STOKER_FB_APP_CHECK_KEY="${recaptchaKeyId}"
 STOKER_ALGOLIA_ID="${process.env.ALGOLIA_ID || ""}"
@@ -851,47 +1017,39 @@ STOKER_FB_FUNCTIONS_REGION="${process.env.FB_FUNCTIONS_REGION}"
 FB_DATABASE="${projectId}-default-rtdb"
 FB_FIRESTORE_EXPORT_BUCKET="${projectId}-export"`
 
-        if (process.env.SENTRY_DSN) {
-            envContent += `\nSTOKER_SENTRY_DSN="${process.env.SENTRY_DSN}"`
-        }
+    if (process.env.SENTRY_DSN) {
+        envContent += `\nSTOKER_SENTRY_DSN="${process.env.SENTRY_DSN}"`
+    }
 
-        if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-            envContent += `\nSTOKER_SMS_ENABLED=true`
-        }
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
+        envContent += `\nSTOKER_SMS_ENABLED=true`
+    }
 
-        if (process.env.FULLCALENDAR_KEY) {
-            envContent += `\nSTOKER_FULLCALENDAR_KEY="${process.env.FULLCALENDAR_KEY}"`
-        }
+    if (process.env.FULLCALENDAR_KEY) {
+        envContent += `\nSTOKER_FULLCALENDAR_KEY="${process.env.FULLCALENDAR_KEY}"`
+    }
 
-        if (options.development) {
-            envContent += `
+    if (options.development) {
+        envContent += `
 STOKER_FB_EMULATOR_AUTH_PORT=${authPort}
 STOKER_FB_EMULATOR_DATABASE_PORT=${databasePort}
 STOKER_FB_EMULATOR_FIRESTORE_PORT=${firestorePort}
 STOKER_FB_EMULATOR_STORAGE_PORT=${storagePort}
 STOKER_FB_EMULATOR_FUNCTIONS_PORT=${functionsPort}`
-        }
-
-        // eslint-disable-next-line security/detect-non-literal-fs-filename
-        await writeFile(envFile, envContent)
-
-        dotenv.config({ path: join(process.cwd(), ".env", `.env.${projectId}`), quiet: true })
-
-        await runChildProcess("npx", ["stoker", "deploy", "--initial"])
-
-        if (!options.testMode) {
-            const projectData = JSON.parse(await readFile(join(process.cwd(), "project-data.json"), "utf8"))
-            projectData.projects.push(projectId)
-            await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectData, null, 4))
-        }
-
-        await runChildProcess("npx", ["stoker", "set-project"])
-
-        await addTenant()
-
-        process.exit()
-    } catch {
-        await runChildProcess("npx", ["stoker", "delete-project"])
-        process.exit(1)
     }
+
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    await writeFile(envFile, envContent)
+
+    dotenv.config({ path: join(process.cwd(), ".env", `.env.${projectId}`), quiet: true })
+
+    await runChildProcess("npx", ["stoker", "deploy", "--initial"])
+
+    await runChildProcess("npx", ["stoker", "set-project"])
+
+    await addTenant()
+
+    await updateProjectData(1000)
+
+    process.exit()
 }

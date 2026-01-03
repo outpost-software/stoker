@@ -14,7 +14,7 @@ export const deleteProject = async (options: { testMode?: boolean }) => {
 
     if (!options.testMode) {
         const projectData = JSON.parse(await readFile(join(process.cwd(), "project-data.json"), "utf8"))
-        projectData.projects = projectData.projects.filter((project: string) => project !== process.env.GCP_PROJECT)
+        delete projectData.projects[process.env.GCP_PROJECT]
         projectData.deleted_projects.push(process.env.GCP_PROJECT)
         await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectData, null, 4))
         console.log("Project deleted from project data.")

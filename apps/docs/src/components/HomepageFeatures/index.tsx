@@ -70,7 +70,9 @@ const FeatureList: FeatureItem[] = [
     {
         title: "Built Over Years",
         Svg: require("@site/static/img/undraw_app-dark-mode.svg").default,
-        description: <>12+ years of experience building internal tools. 2,000+ commits. Built on Google Cloud and React.</>,
+        description: (
+            <>12+ years of experience building internal tools. 2,000+ commits. Built on Google Cloud and React.</>
+        ),
     },
 ]
 

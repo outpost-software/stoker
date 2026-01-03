@@ -134,7 +134,7 @@ Development project deployment takes around **20 minutes**- there's quite a lot 
 It's normal to see some error messages in the terminal output during deployment.
 :::
 
-1. Add a development project using `stoker add-project -n <PROJECT_NAME> --development`. You'll be prompted to add the first tenant to your project (requires an organization name and a user).
+1. Add a development project using `stoker add-project -n <PROJECT_NAME> --development`. You'll be prompted to add the first tenant to your project (requires an organization name and a user). If your deployment is stopped for any reason, you can run the same command again to resume.
 2. Navigate to the project by running `export GCP_PROJECT=<PROJECT_NAME> && stoker set-project`
 3. Run `stoker emulator-data`
 4. `npm run start`
