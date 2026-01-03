@@ -1,5 +1,16 @@
 # @stoker-platform/cli
 
+## 0.5.8
+
+### Patch Changes
+
+- feat: remove image fields from prompt record creation
+- feat: add resumability to project deployment
+- fix: increase retry count for deployment record creation
+- Updated dependencies
+    - @stoker-platform/utils@0.5.4
+    - @stoker-platform/node-client@0.5.6
+
 ## 0.5.7
 
 ### Patch Changes

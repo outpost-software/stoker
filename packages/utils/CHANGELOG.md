@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.4
+
+### Patch Changes
+
+- feat: add retries parameter to retryOperation utility
+
 ## 0.5.3
 
 ### Patch Changes
