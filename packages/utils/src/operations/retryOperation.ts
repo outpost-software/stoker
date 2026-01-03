@@ -1,6 +1,12 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const retryOperation = async (callback: any, args: unknown[], errorCallback?: any, delay = 1000) => {
-    let retries = 5
+export const retryOperation = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callback: any,
+    args: unknown[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    errorCallback?: any,
+    delay = 1000,
+    retries = 5,
+) => {
     while (retries > 0) {
         try {
             await callback(...args)
