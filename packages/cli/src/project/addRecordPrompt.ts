@@ -7,7 +7,7 @@ import {
     StokerPermissions,
     StokerRecord,
 } from "@stoker-platform/types"
-import { getField, getFieldCustomization, isRelationField } from "@stoker-platform/utils"
+import { getField, getFieldCustomization, isRelationField, tryFunction } from "@stoker-platform/utils"
 import { Timestamp } from "firebase-admin/firestore"
 import { join } from "node:path"
 
@@ -44,7 +44,8 @@ export const addRecordPrompt = async (
             !(isRelationField(field) && ["ManyToMany", "ManyToOne"].includes(field.type)) &&
             field.type !== "Embedding" &&
             field.type !== "Array" &&
-            field.type !== "Map"
+            field.type !== "Map" &&
+            !(field.type === "String" && tryFunction(fieldCustomization.admin?.image))
         ) {
             if (isRelationField(field)) {
                 let value: string | undefined
