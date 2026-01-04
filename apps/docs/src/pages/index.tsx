@@ -15,7 +15,7 @@ function HomepageHeader() {
             <div className="container">
                 <img src="/img/Stoker Logo.png" alt="Stoker" width={500} />
                 <div>
-                    <p className={styles.tagline}>Build multi-tenant SaaS products or custom internal tools.<br></br>Realtime, offline-ready, and highly scalable.</p>
+                    <p className={styles.tagline}>Build realtime, offline-ready internal tools.<br></br>Optionally ship them as highly scalable, multi-tenant SaaS products.</p>
                 </div>
                 <div className={styles.buttons}>
                     <Link className="button button--secondary button--lg" to="/docs/Getting Started">
