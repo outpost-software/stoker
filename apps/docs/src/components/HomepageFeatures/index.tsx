@@ -11,7 +11,7 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
     {
-        title: "Config First",
+        title: "Developer First",
         Svg: require("@site/static/img/undraw_hacker-mindset.svg").default,
         description: (
             <>
