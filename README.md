@@ -1,6 +1,6 @@
 <img width="500" src="https://storage.googleapis.com/stoker-assets/Stoker%20Logo.png" />
 
-## Build realtime, multi-tenant SaaS products.<br></br>Or give an organization a competitive edge with a custom internal tool.<br></br>
+## Build multi-tenant SaaS products or custom internal tools.<br></br>Realtime updates, offline-ready, and highly scalable.<br></br>
 
 [Visit Website](https://stoker-website.web.app)
 
