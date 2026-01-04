@@ -50,7 +50,7 @@
         "npm": "11"
     },
     "packageManager": "npm@11.6.2",
-    "description": "Build realtime internal tools.",
+    "description": "Build realtime, offline-ready enterprise applications.",
     "homepage": "https://stoker-platform.web.app",
     "repository": {
         "repository": {
