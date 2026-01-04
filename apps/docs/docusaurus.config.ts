@@ -6,7 +6,7 @@ import type * as Preset from "@docusaurus/preset-classic"
 
 const config: Config = {
     title: "Stoker",
-    tagline: "Build realtime internal tools.",
+    tagline: "Build realtime, offline-ready enterprise applications.",
     favicon: "img/favicon.ico",
 
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
