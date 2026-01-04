@@ -2,7 +2,7 @@
 
 ## Build realtime, multi-tenant SaaS products.<br></br>Or give an organization a competitive edge with a custom internal tool.<br></br>
 
-[stoker-website.web.app](https://stoker-website.web.app)
+[Visit Website](https://stoker-website.web.app)
 
 Stoker is in alpha mode.
 
