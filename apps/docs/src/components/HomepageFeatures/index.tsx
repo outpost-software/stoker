@@ -15,8 +15,8 @@ const FeatureList: FeatureItem[] = [
         Svg: require("@site/static/img/undraw_hacker-mindset.svg").default,
         description: (
             <>
-                Build complex enterprise applications by writing simple TypeScript config files. Use code to extend or customize
-                your apps.
+                Build complex enterprise applications by writing simple TypeScript config files. Use code to extend or
+                customize your apps.
             </>
         ),
     },
@@ -71,7 +71,10 @@ const FeatureList: FeatureItem[] = [
         title: "Built Over Years",
         Svg: require("@site/static/img/undraw_app-dark-mode.svg").default,
         description: (
-            <>12+ years of experience building enterprise applications. 2,000+ commits. Built on Google Cloud and React.</>
+            <>
+                12+ years of experience building enterprise applications. 2,000+ commits. Built on Google Cloud and
+                React.
+            </>
         ),
     },
 ]
