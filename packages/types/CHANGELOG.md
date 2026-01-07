@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.4
+
+### Patch Changes
+
+- chore: update license
+
 ## 0.5.3
 
 ### Patch Changes

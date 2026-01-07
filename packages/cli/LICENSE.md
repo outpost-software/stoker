@@ -1,6 +1,6 @@
 # Source-Available Development License
 
-Copyright © 2025 Shopfront International Pty Ltd.
+Copyright © 2026 Shopfront International Pty Ltd.
 
 This is a source‑available license and not an OSI‑approved open‑source license.
 
@@ -23,13 +23,34 @@ No other rights are granted except as expressly stated in this License.
 - Using the Software in any revenue-generating product, service, or project
 - Selling, sublicensing, or monetising the Software
 
-You may not use the Software to develop, distribute, or operate:
+You may not use the Software, directly or indirectly, to develop, distribute, operate, or enable any product or service that:
 
-- A competing headless CMS or application framework
-- A low-code, no-code or AI powered application builder
-- A program that replicates the core functionality of the Software, regardless of the backend or database technology used
+- #### Competes with the Software
 
-You may not use the Software to train or improve AI/ML models.
+    By functioning as a headless CMS, application framework, developer platform, or substantially similar system.
+
+- #### Replicates Core Functionality
+
+    Copies or substantially mirrors the Software’s architecture, workflows, abstractions, or core features.
+
+- #### Offers the Software as a Service
+
+    Provides the Software itself or its functionality to third parties as a managed service, hosted platform, API, or marketplace.
+
+- #### Rebrands or White-Labels the Software
+
+    Offers the Software itself under a different name, branding, or identity.
+
+- #### Creates Derived Frameworks or Tooling
+
+    Distributes frameworks, starter kits, templates, scaffolding, or developer toolkits substantially derived from the Software.
+
+- #### Competitive Analysis and Cloning
+
+    Uses the Software mainly to analyse, benchmark, reverse engineer, or replicate it for a competing product or service.
+
+- #### Artificial Intelligence and Machine Learning
+    Uses the Software itself to train, fine-tune, or improve artificial intelligence or machine learning models.
 
 To use the Software commercially or in production, you must obtain a Commercial License from the Licensor. Contact info@getoutpost.com for licensing information.
 
@@ -49,13 +70,17 @@ All trademarks, service marks, and logos associated with the Software are the pr
 
 ## 5. Alpha Mode
 
-The Software is currently in alpha development. Features, functionality, and data handling practices may change as the Software is improved. By using the Software in its alpha stage, you acknowledge that the Software is experimental and subject to updates.
+- The Software may be provided in alpha or pre-release form. Features, functionality, and data handling may change without notice.
+- By using the Software in alpha, you acknowledge it may contain bugs, errors, or incomplete functionality.
+- The Licensor makes no commitment to maintain backward compatibility or preserve data formats during the alpha period.
+- Alpha releases may be discontinued or replaced without prior notice.
+- You are responsible for backing up your data and testing compatibility before upgrading.
 
 ## 6. Limited Warranty / Liability
 
-The Software is provided **“AS IS”**, without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.
-
-To the maximum extent permitted by law, the Licensor shall not be liable for any damages, including direct, indirect, incidental, or consequential damages arising from the use or inability to use the Software.
+- To the extent permitted by law, the Software is provided **"AS IS"**, without warranties of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.
+- Licensor is not liable for any damages arising from use or inability to use the Software, to the maximum extent permitted by law.
+- Nothing in this License excludes rights or remedies that cannot be waived under applicable law.
 
 ## 7. Termination
 
