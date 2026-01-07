@@ -106,14 +106,16 @@ For more information, see [Global Config File](https://stoker-website.web.app/do
 
 ## Collection Files
 
+
 Collection files are found at `src/collections`
 
 The default collections are enough to get started.
 
-If you are not using the default roles "Admin" and "User", you will need to:
-
-- Go into each default collection file
-- Change all references to "Admin" and "User" to the roles you provided.
+> [!IMPORTANT]
+> If you are not using the default roles "Admin" and "User", you will need to:
+>
+> - Go into each default collection file
+> - Change all references to "Admin" and "User" to the roles you provided.
 
 The most important concepts to know are:
 
@@ -123,6 +125,9 @@ The most important concepts to know are:
 - Relational Fields:
     - [Include Fields](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#includefields) and [Title Field](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#titlefield)
     - [Dependency Fields](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#dependencyfields)
+
+> [!TIP]
+> Stoker is available in [Context7](https://context7.com/outpost-software/stoker) as "Stoker Platform".
 
 For more information, see [Collection Config Files](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files).
 
