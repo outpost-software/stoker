@@ -5,7 +5,7 @@ const PricingCard = ({ children, description, price, type, subscription, buttonT
     return (
         <>
             <div className="w-full px-4 md:w-1/2 lg:w-1/3">
-                <div className="relative min-h-[350px] z-10 mb-10 overflow-hidden rounded-[10px] border-2 border-solid border-stroke bg-white px-8 py-10 shadow-pricing dark:border-dark-3 dark:bg-dark-2 sm:p-12 lg:px-6 lg:py-10 xl:p-[50px]">
+                <div className="relative min-h-[400px] z-10 mb-10 overflow-hidden rounded-[10px] border-2 border-solid border-stroke bg-white px-8 py-10 shadow-pricing dark:border-dark-3 dark:bg-dark-2 sm:p-12 lg:px-6 lg:py-10 xl:p-[50px]">
                     <span className="mb-3 block text-lg font-semibold text-primary">{type}</span>
                     <h2 className="mb-5 text-[42px] font-bold text-dark dark:text-white">
                         {price}
@@ -330,7 +330,7 @@ const Pricing = () => {
                                 type="First Production Tenant"
                                 price="USD $29"
                                 subscription="/ month"
-                                description="This applies to your first currently active production tenant."
+                                description="This applies to your first currently active production tenant. Production tenants are free for the first 30 days."
                                 buttonText="Contact Us"
                                 buttonLink="/contact"
                             >
