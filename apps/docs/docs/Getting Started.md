@@ -124,6 +124,10 @@ The most important concepts to know are:
     - [Dependency Fields](/docs/api-reference/Collection%20Config%20Files#dependencyfields)
 
 
+:::tip
+Stoker is available in [Context7](https://context7.com/outpost-software/stoker) as "Stoker Platform".
+:::
+
 For more information, see [Collection Config Files](/docs/api-reference/Collection%20Config%20Files).
 
 ## Development Environment
