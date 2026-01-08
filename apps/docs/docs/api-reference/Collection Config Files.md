@@ -1031,7 +1031,7 @@ The collection for the relational field.
 
 Save fields from the related record to the target record. Field values will be denormalized and will automatically update when the source record is updated.
 
-This architecture removes the need for N+1 queries, giving you an offline-friendly, snappy app. The downside is that potentially large back-end write operations are required when values change. However, these write operations are automatically managed by highly scalable Cloud Functions in Stoker.
+This architecture avoids the N+1 problem and gives you a snappy, offline-friendly app. The downside is that potentially large back-end write operations are required when values change. However, these write operations are automatically managed by highly scalable Cloud Functions in Stoker.
 
 For examples of this config, see the "Sender" and "Recipients" fields in the default Inbox collection in your project (created by `stoker init`)
 
