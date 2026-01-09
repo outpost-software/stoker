@@ -139,7 +139,7 @@ It's normal to see some error messages in the terminal output during deployment.
 :::
 
 :::warning
-If you have not already used Firebase in your Google Cloud account, you'll have to [manually create a Firebase project](https://console.firebase.google.com) in your account before continuing. This is currently the only way you can accept the Firebase terms and conditions, which is requried to continue. You can delete your manually created porject when you are done- it won't be required for Stoker.
+If you have not already used Firebase in your Google Cloud account, you'll have to [manually create a Firebase project](https://console.firebase.google.com) in your account before continuing. This is currently the only way you can accept the Firebase terms and conditions, which is required to continue. You can delete your manually created porject when you are done- it won't be required for Stoker.
 :::
 
 1. Add a development project using `stoker add-project -n <PROJECT_NAME> --development`. You'll be prompted to add the first tenant to your project (requires an organization name and a user). If your deployment is stopped for any reason, you can re-run the `add-project` command to resume.
