@@ -1,5 +1,13 @@
 # @stoker-platform/web-app
 
+## 0.5.11
+
+### Patch Changes
+
+- fix: improve Windows support
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.9
+
 ## 0.5.10
 
 ### Patch Changes

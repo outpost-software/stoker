@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/node-client",
-    "version": "0.5.8",
+    "version": "0.5.9",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
