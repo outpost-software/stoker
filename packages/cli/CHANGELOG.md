@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.13
+
+### Patch Changes
+
+- fix: revert script file permissions
+
 ## 0.5.12
 
 ### Patch Changes
