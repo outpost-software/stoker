@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process"
+import spawn from "cross-spawn"
 
 export const runChildProcess = async (
     command: string,
@@ -23,11 +23,11 @@ export const runChildProcess = async (
             process.removeListener("SIGTERM", handleSIGTERM)
         }
 
-        child.stdout.on("data", (data) => {
+        child.stdout?.on("data", (data) => {
             stdout += data.toString()
             console.log(data.toString())
         })
-        child.stderr.on("data", (error) => {
+        child.stderr?.on("data", (error) => {
             console.log(error.toString())
         })
         child.on("exit", (code) => {

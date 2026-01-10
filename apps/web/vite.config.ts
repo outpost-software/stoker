@@ -2,12 +2,15 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import eslint from "vite-plugin-eslint"
 import { join, resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import { VitePWA } from "vite-plugin-pwa"
 import { tryPromise } from "@stoker-platform/node-client"
 import { watch } from "fs"
 
 export default defineConfig(async () => {
-    const globalConfigModule = await import(join(process.cwd(), "src", "assets", "system-custom", "main.js"))
+    const path = join(process.cwd(), "src", "assets", "system-custom", "main.js")
+    const url = pathToFileURL(path).href
+    const globalConfigModule = await import(url)
     const globalConfig = globalConfigModule.default("node")
     const appName = await tryPromise(globalConfig.appName)
     const description = await tryPromise(globalConfig.admin?.meta?.description)

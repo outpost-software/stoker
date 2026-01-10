@@ -1,7 +1,7 @@
 import type { CollectionSchema, CollectionsSchema } from "@stoker-platform/types"
 import { runChildProcess, initializeFirebase } from "@stoker-platform/node-client"
 
-import { spawn } from "child_process"
+import spawn from "cross-spawn"
 import { generateSchema } from "../schema/generateSchema.js"
 import { lintSchema } from "../../lint/lintSchema.js"
 
@@ -76,10 +76,10 @@ export const deployTTLs = async () => {
             ])
             let stdout = ""
             let stderr = ""
-            childProcess.stdout.on("data", (data) => {
+            childProcess.stdout?.on("data", (data) => {
                 stdout += data.toString()
             })
-            childProcess.stderr.on("data", (data) => {
+            childProcess.stderr?.on("data", (data) => {
                 stderr += data.toString()
             })
             childProcess.on("close", (code) => {

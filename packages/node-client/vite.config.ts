@@ -21,7 +21,7 @@ export default defineConfig({
             fileName: "bundle",
         },
         rollupOptions: {
-            external: [/lodash\/.*/, /firebase-admin\/.*/, "@google-cloud/storage", /^node:.*/],
+            external: [/^node:.*/, /lodash\/.*/, /firebase-admin\/.*/, "@google-cloud/storage", "cross-spawn"],
         },
     },
 })

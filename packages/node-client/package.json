@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/node-client",
-    "version": "0.5.7",
+    "version": "0.5.8",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -26,12 +26,14 @@
         "@stoker-platform/types": "0.5.4",
         "@stoker-platform/utils": "0.5.5",
         "@types/luxon": "^3.7.1",
+        "cross-spawn": "^7.0.6",
         "firebase-admin": "^13.6.0",
         "lodash": "^4.17.21",
         "luxon": "^3.7.2"
     },
     "devDependencies": {
         "@rollup/plugin-typescript": "^12.3.0",
+        "@types/cross-spawn": "^6.0.6",
         "eslint-config-custom": "*",
         "tsconfig": "*",
         "vite-plugin-eslint": "^1.8.1"

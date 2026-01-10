@@ -106,7 +106,6 @@ For more information, see [Global Config File](https://stoker-website.web.app/do
 
 ## Collection Files
 
-
 Collection files are found at `src/collections`
 
 The default collections are enough to get started.

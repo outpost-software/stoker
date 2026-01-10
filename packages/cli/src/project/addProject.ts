@@ -494,6 +494,10 @@ export const addProject = async (options: any) => {
     }
 
     if (getProgress() < 17) {
+        if (process.platform === "win32") {
+            const firebasercPath = join(process.cwd(), ".firebaserc")
+            await runChildProcess("attrib", ["-H", firebasercPath])
+        }
         await runChildProcess("firebase", ["target:apply", "storage", "default", projectId, "--project", projectId])
         await updateProjectData(17)
     }

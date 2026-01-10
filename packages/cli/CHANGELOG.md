@@ -1,5 +1,13 @@
 # @stoker-platform/cli
 
+## 0.5.10
+
+### Patch Changes
+
+- fix: improve Windows support
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.8
+
 ## 0.5.9
 
 ### Patch Changes

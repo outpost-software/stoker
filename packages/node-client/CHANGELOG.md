@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.8
+
+### Patch Changes
+
+- fix: improve Windows support
+
 ## 0.5.7
 
 ### Patch Changes
