@@ -1047,7 +1047,10 @@ STOKER_FB_EMULATOR_FUNCTIONS_PORT=${functionsPort}`
 
     dotenv.config({ path: join(process.cwd(), ".env", `.env.${projectId}`), quiet: true })
 
-    await runChildProcess("stoker", ["deploy", "--initial", "--retry"])
+    if (getProgress() < 37) {
+        await runChildProcess("npx", ["stoker", "deploy", "--initial", "--retry"])
+        await updateProjectData(37)
+    }
 
     await runChildProcess("npx", ["stoker", "set-project"])
 

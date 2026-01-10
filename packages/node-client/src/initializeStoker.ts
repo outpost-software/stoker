@@ -12,6 +12,7 @@ import { DocumentSnapshot, getFirestore } from "firebase-admin/firestore"
 import cloneDeep from "lodash/cloneDeep.js"
 import { getCustomizationFiles } from "./utils/getCustomizationFiles"
 import { fetchCurrentSchema } from "./main"
+import { pathToFileURL } from "node:url"
 
 let app: App,
     mode: "development" | "production",
@@ -79,7 +80,8 @@ export const initializeStoker = async (
     const firebaseConfigString = process.env.STOKER_FB_WEB_APP_CONFIG
     const firebaseConfig = JSON.parse(firebaseConfigString)
 
-    const globalConfigFile = await import(/* @vite-ignore */ configFilePath)
+    const url = pathToFileURL(configFilePath).href
+    const globalConfigFile = await import(/* @vite-ignore */ url)
     const config: GenerateGlobalConfig = globalConfigFile.default
     globalConfig = config("node", utilities)
 
