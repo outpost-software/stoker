@@ -43,7 +43,7 @@ export const deployProject = async (options: any) => {
         await runChildProcess("npm", ["run", "test"])
         await runChildProcess("npx", ["stoker", "build-web-app"])
 
-        await runChildProcess("stoker", ["lint-schema"])
+        await runChildProcess("npx", ["stoker", "lint-schema"])
         await runChildProcess("npx", ["stoker", "security-report"])
 
         await setDeploymentStatus("in_progress")
@@ -56,12 +56,12 @@ export const deployProject = async (options: any) => {
         }
 
         if (!options.retry || options.initial) {
-            await runChildProcess("stoker", ["persist-schema"])
+            await runChildProcess("npx", ["stoker", "persist-schema"])
         }
-        await runChildProcess("stoker", ["deploy-ttls"])
-        await runChildProcess("stoker", ["generate-firestore-indexes"])
-        if (options.firestoreRules) await runChildProcess("stoker", ["generate-firestore-rules"])
-        if (options.storageRules) await runChildProcess("stoker", ["generate-storage-rules"])
+        await runChildProcess("npx", ["stoker", "deploy-ttls"])
+        await runChildProcess("npx", ["stoker", "generate-firestore-indexes"])
+        if (options.firestoreRules) await runChildProcess("npx", ["stoker", "generate-firestore-rules"])
+        if (options.storageRules) await runChildProcess("npx", ["stoker", "generate-storage-rules"])
         await getFunctionsData()
 
         if (options.migrate && !options.initial) {
