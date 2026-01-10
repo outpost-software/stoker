@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.11
+
+### Patch Changes
+
+- fix: improve Windows support
+
 ## 0.5.10
 
 ### Patch Changes

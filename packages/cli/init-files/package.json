@@ -14,7 +14,7 @@
         "format": "prettier . --write",
         "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",
         "prebuild": "npm run clean:lib && npm run clean:functions",
-        "build": "tsc && node bin/build.js && if [ -f .env/.env.project.$GCP_PROJECT ]; then grep -h '^FB_FUNCTIONS_\\|^FB_AI_REGION\\|^STOKER_\\|^ADMIN_' .env/.env.project.$GCP_PROJECT .env/.env.$GCP_PROJECT > functions/.env; else grep -h '^FB_FUNCTIONS_\\|^FB_AI_REGION\\|^STOKER_\\|^ADMIN_' .env/.env .env/.env.$GCP_PROJECT > functions/.env; fi && rm -r -f functions/src/system-custom && cp -r src/. functions/src/system-custom && node bin/shim.js && npm --prefix functions run build",
+        "build": "tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build",
         "test": "vitest --run",
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
     },

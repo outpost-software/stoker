@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.10
+
+### Patch Changes
+
+- fix: improve Windows support
+
 ## 0.5.9
 
 ### Patch Changes

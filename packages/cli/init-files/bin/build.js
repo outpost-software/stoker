@@ -3,11 +3,12 @@
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
 import { readFile, writeFile, readdir, mkdir, copyFile } from "fs/promises"
-import { existsSync } from "fs"
+import { existsSync, cpSync, rmSync } from "fs"
 import dotenv from "dotenv"
 import { runChildProcess } from "@stoker-platform/node-client"
 
-const projectEnvFile = join(process.cwd(), ".env", `.env.project.${process.env.GCP_PROJECT}`)
+const envDir = join(process.cwd(), ".env")
+const projectEnvFile = join(envDir, `.env.project.${process.env.GCP_PROJECT}`)
 // eslint-disable-next-line security/detect-non-literal-fs-filename
 if (existsSync(projectEnvFile)) {
     dotenv.config({ path: projectEnvFile, quiet: true })
@@ -176,6 +177,45 @@ try {
             await runChildProcess("npm", ["install", "--no-audit", "--no-fund"], functionsDir)
         }
     }
+
+    // Create functions .env file with filtered environment variables
+
+    const functionsEnvPath = join(process.cwd(), "functions", ".env")
+    const defaultEnvFile = join(envDir, ".env")
+    const projectSpecificEnvFile = join(envDir, `.env.${process.env.GCP_PROJECT}`)
+
+    let envContent = ""
+    const envPattern = /^(FB_FUNCTIONS_|FB_AI_REGION|STOKER_|ADMIN_)/
+
+    if (existsSync(projectEnvFile)) {
+        const projectEnvContent = await readFile(projectEnvFile, "utf8")
+        const projectSpecificContent = existsSync(projectSpecificEnvFile)
+            ? await readFile(projectSpecificEnvFile, "utf8")
+            : ""
+
+        const allLines = [...projectEnvContent.split("\n"), ...projectSpecificContent.split("\n")]
+        const filteredLines = allLines.filter((line) => envPattern.test(line.trim()))
+        envContent = filteredLines.join("\n")
+    } else {
+        const defaultContent = existsSync(defaultEnvFile) ? await readFile(defaultEnvFile, "utf8") : ""
+        const projectSpecificContent = existsSync(projectSpecificEnvFile)
+            ? await readFile(projectSpecificEnvFile, "utf8")
+            : ""
+
+        const allLines = [...defaultContent.split("\n"), ...projectSpecificContent.split("\n")]
+        const filteredLines = allLines.filter((line) => envPattern.test(line.trim()))
+        envContent = filteredLines.join("\n")
+    }
+
+    await writeFile(functionsEnvPath, envContent, "utf8")
+
+    // Copy source files to functions directory
+
+    const systemCustom = join(process.cwd(), "functions", "src", "system-custom")
+    if (existsSync(systemCustom)) {
+        rmSync(systemCustom, { recursive: true })
+    }
+    cpSync(join(process.cwd(), "src"), systemCustom, { recursive: true })
 } catch (error) {
     throw new Error(error)
 }

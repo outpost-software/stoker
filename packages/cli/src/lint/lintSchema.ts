@@ -37,9 +37,12 @@ import {
 } from "@stoker-platform/types"
 import { getCustomizationFiles } from "@stoker-platform/node-client"
 import { join } from "path"
+import { pathToFileURL } from "url"
 
 export const lintSchema = async (noLog = false) => {
-    const globalConfigFile = await import(join(process.cwd(), "lib", "main.js"))
+    const path = join(process.cwd(), "lib", "main.js")
+    const url = pathToFileURL(path).href
+    const globalConfigFile = await import(url)
     const globalConfig: GlobalConfig = globalConfigFile.default("node")
     const schema = await generateSchema(true)
     const customizationFiles = await getCustomizationFiles(

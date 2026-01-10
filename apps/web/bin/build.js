@@ -1,11 +1,10 @@
 #!/usr/bin/env -S node --no-warnings
 
 import { runChildProcess, tryPromise } from "@stoker-platform/node-client"
-import { fileURLToPath } from "url"
+import { fileURLToPath, pathToFileURL } from "url"
 import { dirname, join } from "path"
 import { cpSync, existsSync, rmSync, readFileSync, writeFileSync, readdirSync, statSync } from "fs"
 import { readFile, writeFile } from "fs/promises"
-import dotenv from "dotenv"
 
 try {
     const __filename = fileURLToPath(import.meta.url)
@@ -402,7 +401,9 @@ try {
     cpSync(join(process.cwd(), "icons", "logo-large.png"), join(__dirname, "..", "src", "assets", "logo-large.png"))
     await runChildProcess("npm", ["run", "generate-pwa-assets"], join(__dirname, ".."))
 
-    const globalConfigModule = await import(join(process.cwd(), "lib", "main.js"))
+    const path = join(process.cwd(), "lib", "main.js")
+    const url = pathToFileURL(path).href
+    const globalConfigModule = await import(url)
     const globalConfig = globalConfigModule.default("node")
     const appName = await tryPromise(globalConfig.appName)
     const description = await tryPromise(globalConfig.admin?.meta?.description)

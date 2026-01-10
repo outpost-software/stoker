@@ -10,6 +10,7 @@ import {
 } from "@stoker-platform/utils"
 import { statSync } from "node:fs"
 import { join } from "node:path"
+import { pathToFileURL } from "node:url"
 import { GlobalConfig } from "@stoker-platform/types"
 
 /* eslint-disable security/detect-object-injection */
@@ -34,7 +35,9 @@ export const securityReport = async () => {
     let isError = false
 
     const schema = await generateSchema()
-    const globalConfigFile = await import(join(process.cwd(), "lib", "main.js"))
+    const path = join(process.cwd(), "lib", "main.js")
+    const url = pathToFileURL(path).href
+    const globalConfigFile = await import(url)
     const globalConfig: GlobalConfig = globalConfigFile.default("node")
 
     for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
@@ -98,9 +101,9 @@ export const securityReport = async () => {
             ) {
                 for (const field of fields) {
                     if (field.access) continue
-                    const customizationFile = await import(
-                        join(process.cwd(), "lib", "collections", `${collectionName}.js`)
-                    )
+                    const path = join(process.cwd(), "lib", "collections", `${collectionName}.js`)
+                    const url = pathToFileURL(path).href
+                    const customizationFile = await import(url)
                     const customization = customizationFile.default("node")
                     if (isRelationField(field)) {
                         const relationCollection = schema.collections[field.collection]

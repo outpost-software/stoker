@@ -13,12 +13,15 @@ import { getRelationLists, roleHasOperationAccess } from "@stoker-platform/utils
 import { ServerValue } from "firebase-admin/database"
 import { readdir, readFile } from "fs/promises"
 import { join } from "path"
+import { pathToFileURL } from "url"
 
 export const generateSchema = async (includeComputedFields: boolean = false) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newSchema = {} as CollectionsSchema
 
-    const globalConfigFile = await import(join(process.cwd(), "lib", "main.js"))
+    const path = join(process.cwd(), "lib", "main.js")
+    const url = pathToFileURL(path).href
+    const globalConfigFile = await import(url)
     const globalConfig: GlobalConfig = globalConfigFile.default("node")
 
     const projectData = await readFile(join(process.cwd(), "project-data.json"), "utf8")
@@ -49,14 +52,18 @@ export const generateSchema = async (includeComputedFields: boolean = false) => 
     const fullSchema: CollectionSchema[] = []
     for (const collection of collections) {
         if (globalConfig.disabledCollections?.includes(collection)) continue
-        const schema = await import(join(process.cwd(), "lib", "collections", collection))
+        const path = join(process.cwd(), "lib", "collections", collection)
+        const url = pathToFileURL(path).href
+        const schema = await import(url)
         fullSchema.push(schema.default("node"))
     }
 
     newSchema.collections = {}
     for (const collection of collections) {
         if (globalConfig.disabledCollections?.includes(collection)) continue
-        const schema = await import(join(process.cwd(), "lib", "collections", collection))
+        const path = join(process.cwd(), "lib", "collections", collection)
+        const url = pathToFileURL(path).href
+        const schema = await import(url)
         const persistSchema: CollectionSchema = schema.default("node")
         const { labels, access, preloadCache, admin } = persistSchema
         const { serverReadOnly } = access
