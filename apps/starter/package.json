@@ -7,7 +7,8 @@
     "scripts": {
         "clean:lib": "rm -rf lib",
         "clean:functions": "rm -rf functions/lib",
-        "dev": "concurrently \"nodemon --quiet --watch src --ext ts,tsx,js,json --exec 'npm run clean:lib && tsc && cp -r src/. ../web/src/assets/system-custom && cp lib/main.js ../web/src/assets/system-custom/main.js'\" \"npm --prefix functions run build:watch\"",
+        "dev:assets": "npm run clean:lib && tsc && cp -r src/. ../web/src/assets/system-custom && cp lib/main.js ../web/src/assets/system-custom/main.js",
+        "dev": "concurrently \"bash -c 'nodemon --quiet --watch src --ext ts,tsx,js,json --exec \\\"npm run dev:assets\\\"'\" \"bash -c 'npm --prefix functions run build:watch'\"",
         "format": "",
         "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",
         "prebuild": "npm run clean:lib && npm run clean:functions",
