@@ -1,5 +1,5 @@
 import { describe, test, expect, afterAll } from "vitest"
-import { ChildProcess, spawn } from "node:child_process"
+import { ChildProcess } from "node:child_process"
 import { mkdir, readdir, rm } from "node:fs/promises"
 import { getFirestore, Timestamp } from "firebase-admin/firestore"
 import {
@@ -13,6 +13,7 @@ import { join } from "node:path"
 import { algoliasearch } from "algoliasearch"
 import { getAuth } from "firebase-admin/auth"
 import dotenv from "dotenv"
+import spawn from "cross-spawn"
 
 const projectName = `test-project-${Date.now()}`
 
@@ -167,18 +168,18 @@ describe("CLI", async () => {
 
         let promptIndex = 0
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
 
             if (promptIndex < prompts.length && output.includes(prompts[promptIndex].match)) {
                 await wait(1000)
-                child.stdin.write(prompts[promptIndex].input)
+                child.stdin?.write(prompts[promptIndex].input)
                 promptIndex++
             }
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -227,16 +228,16 @@ describe("CLI", async () => {
 
         let promptIndex = 0
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             if (promptIndex < prompts.length && output.includes(prompts[promptIndex].match)) {
                 await wait(1000)
-                child.stdin.write(prompts[promptIndex].input)
+                child.stdin?.write(prompts[promptIndex].input)
                 promptIndex++
             }
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -272,16 +273,16 @@ describe("CLI", async () => {
 
         let promptIndex = 0
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             if (promptIndex < prompts.length && output.includes(prompts[promptIndex].match)) {
                 await wait(1000)
-                child.stdin.write(prompts[promptIndex].input)
+                child.stdin?.write(prompts[promptIndex].input)
                 promptIndex++
             }
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -317,16 +318,16 @@ describe("CLI", async () => {
 
         let promptIndex = 0
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             if (promptIndex < prompts.length && output.includes(prompts[promptIndex].match)) {
                 await wait(1000)
-                child.stdin.write(prompts[promptIndex].input)
+                child.stdin?.write(prompts[promptIndex].input)
                 promptIndex++
             }
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -342,7 +343,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -358,7 +359,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -389,7 +390,7 @@ describe("CLI", async () => {
             },
         )
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -423,7 +424,7 @@ describe("CLI", async () => {
             },
         )
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -441,7 +442,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -458,7 +459,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -478,7 +479,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -512,7 +513,7 @@ describe("CLI", async () => {
             },
         )
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -549,7 +550,7 @@ describe("CLI", async () => {
             },
         )
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -568,7 +569,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -586,7 +587,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -607,7 +608,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -625,12 +626,12 @@ describe("CLI", async () => {
             },
         })
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -647,12 +648,12 @@ describe("CLI", async () => {
             },
         })
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -669,12 +670,12 @@ describe("CLI", async () => {
             },
         })
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -691,12 +692,12 @@ describe("CLI", async () => {
             },
         })
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -713,7 +714,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -730,7 +731,7 @@ describe("CLI", async () => {
             },
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -747,12 +748,12 @@ describe("CLI", async () => {
             },
         })
 
-        child.stdout.on("data", async (data) => {
+        child.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child.stderr.on("data", (data) => {
+        child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
@@ -768,12 +769,12 @@ describe("CLI", async () => {
             },
         })
 
-        child_process.stdout.on("data", async (data) => {
+        child_process.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child_process.stderr.on("data", (data) => {
+        child_process.stderr?.on("data", (data) => {
             console.error(data.toString())
             throw new Error("Error starting Firebase Emulator suite")
         })
@@ -791,12 +792,12 @@ describe("CLI", async () => {
             },
         })
 
-        child_process.stdout.on("data", async (data) => {
+        child_process.stdout?.on("data", async (data) => {
             const output = data.toString()
             console.log(output)
         })
 
-        child_process.stderr.on("data", (data) => {
+        child_process.stderr?.on("data", (data) => {
             console.error(data.toString())
             throw new Error("Error starting Firebase Hosting emulator")
         })
@@ -988,7 +989,7 @@ afterAll(async () => {
         },
     })
 
-    child.stderr.on("data", (data) => {
+    child.stderr?.on("data", (data) => {
         console.error(data.toString())
     })
 

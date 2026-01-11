@@ -57,6 +57,9 @@ Stoker:
 
 You might also want to update your package name in package.json.
 
+> [!IMPORTANT]
+> For Windows users- Stoker has only been tested in Git Bash at this stage. Powershell and Command Prompt are not currently supported.
+
 ## Back End Setup
 
 The back end config for your app is found at `.env/.env` in your project directory.

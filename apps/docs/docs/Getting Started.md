@@ -50,6 +50,10 @@ Stoker:
 
 You might also want to update your package name in package.json.
 
+:::warning
+For Windows users- Stoker has only been tested in Git Bash at this stage. Powershell and Command Prompt are not currently supported.
+:::
+
 :::info
 You don't need to sign up to use Stoker at this stage, but you may need to in future.
 :::
