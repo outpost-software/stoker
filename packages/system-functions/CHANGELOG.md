@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.10
+
+### Patch Changes
+
+- fix: do not log server write validation errors
+
 ## 0.5.9
 
 ### Patch Changes

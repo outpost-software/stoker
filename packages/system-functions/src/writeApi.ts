@@ -127,10 +127,7 @@ export const writeApi = async (
                 undefined,
                 {secrets: secretValues, user},
                 id,
-            ).catch((error) => {
-                errorLogger(error);
-                throw error;
-            });
+            );
             return {result};
         }
         if (operation === "update") {
@@ -142,10 +139,7 @@ export const writeApi = async (
                 user,
                 undefined,
                 {secrets: secretValues, user},
-            ).catch((error) => {
-                errorLogger(error);
-                throw error;
-            });
+            );
             return {result};
         }
         if (operation === "delete") {
@@ -155,10 +149,7 @@ export const writeApi = async (
                 user,
                 undefined,
                 {secrets: secretValues, user},
-            ).catch((error) => {
-                errorLogger(error);
-                throw error;
-            });
+            );
             return {result};
         }
         return;
@@ -170,11 +161,13 @@ export const writeApi = async (
                 error.message
             );
         } else if (error.message.includes("PERMISSION_DENIED")) {
+            errorLogger(error);
             throw new HttpsError(
                 "permission-denied",
                 "Error writing data"
             );
         } else if (error.message.includes("ROLLBACK_FAILED")) {
+            errorLogger(error);
             info(operation);
             info(path);
             if (id) {
