@@ -12,7 +12,7 @@ You can prevent accidental or malicious deletion of a Google Cloud project by pl
 
 ## Realtime Database Backups
 
-Your Stoker app data is stored in Cloud Firestore, and disaster prevention is managed via the options in you `.env/.env` file.
+Your Stoker app data is stored in Cloud Firestore, and disaster prevention is managed via the options in your `.env/.env` file.
 
 However, your schema history is stored separately in the Firebase Realtime Database. We recommend setting up backups for that service in the [Firebase Console](https://console.firebase.google.com/project/_/database/backups?_gl=1*kzeeyy*_ga*MjExMzY4MjQwMi4xNzY0Mjk3NzM5*_ga_CW55HF8NVT*czE3NjQzMjIwMjMkbzIkZzEkdDE3NjQzMjIwNDIkajQxJGwwJGgw).
 
