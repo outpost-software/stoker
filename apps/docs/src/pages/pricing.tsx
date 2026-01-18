@@ -330,7 +330,7 @@ const Pricing = () => {
                                 type="First Production Tenant"
                                 price="USD $29"
                                 subscription="/ month"
-                                description="This applies to your first currently active production tenant. Production tenants are free for the first 30 days."
+                                description="This applies to an app's first active production tenant."
                                 buttonText="Contact Us"
                                 buttonLink="/contact"
                             >
@@ -341,7 +341,7 @@ const Pricing = () => {
                                 type="Additional Production Tenants"
                                 price="USD $9"
                                 subscription="/ month"
-                                description="Contact us for bulk discounts."
+                                description="Additional production tenants are free for the first 30 days. Contact us for bulk discounts."
                                 buttonText="Contact Us"
                                 buttonLink="/contact"
                             >

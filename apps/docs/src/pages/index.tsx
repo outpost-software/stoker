@@ -11,23 +11,32 @@ import styles from "./index.module.css"
 function HomepageHeader() {
     const { siteConfig } = useDocusaurusContext()
     return (
-        <header className={clsx("hero hero--primary", styles.heroBanner)}>
-            <div className="container">
-                <img src="/img/Stoker Logo.png" alt="Stoker" width={500} />
-                <div>
-                    <p className={styles.tagline}>
-                        Build realtime, offline-ready internal tools.<br></br>Optionally ship them as highly scalable,
-                        multi-tenant SaaS products.
-                    </p>
-                </div>
-                <div className={styles.buttons}>
-                    <Link className="button button--secondary button--lg" to="/docs/Getting Started">
-                        Read the docs
-                    </Link>
-                </div>
-                <p className={styles.free}>Free for development and evaluation*</p>
+        <>
+            <div className={styles.alphaBanner}>
+                Approved alpha users get 3 years free! Tell us about your project at {" "}
+                <a className="text-black" style={{ textDecoration: "underline" }} href="mailto:info@getoutpost.com">
+                    info@getoutpost.com
+                </a>{" "}
+                to request access.
             </div>
-        </header>
+            <header className={clsx("hero hero--primary", styles.heroBanner)}>
+                <div className="container">
+                    <img src="/img/Stoker Logo.png" alt="Stoker" width={500} />
+                    <div>
+                        <p className={styles.tagline}>
+                            Build realtime, offline-ready internal tools.<br></br>Optionally ship them as highly
+                            scalable, multi-tenant SaaS products.
+                        </p>
+                    </div>
+                    <div className={styles.buttons}>
+                        <Link className="button button--secondary button--lg" to="/docs/Getting Started">
+                            Read the docs
+                        </Link>
+                    </div>
+                    <p className={styles.free}>Free for development and evaluation*</p>
+                </div>
+            </header>
+        </>
     )
 }
 

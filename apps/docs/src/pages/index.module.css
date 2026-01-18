@@ -67,3 +67,12 @@
     margin-top: 2rem;
     border: 1px solid #262626;
 }
+
+.alphaBanner {
+    text-align: center;
+    background-color: #54cb7a;
+    color: #222;
+    font-weight: bold;
+    padding: 8px 8px;
+    font-size: 1.1rem;
+}
