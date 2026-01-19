@@ -13,7 +13,7 @@ function HomepageHeader() {
     return (
         <>
             <div className={styles.alphaBanner}>
-                Approved alpha users get 3 years free! Tell us about your project at {" "}
+                Approved alpha users get 3 years free! Tell us about your project at{" "}
                 <a className="text-black" style={{ textDecoration: "underline" }} href="mailto:info@getoutpost.com">
                     info@getoutpost.com
                 </a>{" "}
