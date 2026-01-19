@@ -190,7 +190,7 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
                             ],
                         }
                         const replyRecord = {
-                            Subject: `Re: ${originalRecord.Subject}`,
+                            Subject: `Re: ${originalRecord.Subject.replaceAll("Re: ", "")}`,
                             Message: replyMessage,
                             Sender: {
                                 [claims.doc as string]: {
@@ -241,7 +241,7 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
                             return key !== Object.keys(originalRecord.Recipient)[0] ? value : undefined
                         })
                         const replyRecord = {
-                            Subject: `Re: ${originalRecord.Subject}`,
+                            Subject: `Re: ${originalRecord.Subject.replaceAll("Re: ", "")}`,
                             Message: replyMessage,
                             Sender: {
                                 [claims.doc as string]: {
