@@ -208,7 +208,7 @@ export const validateRelations = async (
                                 if (batchSize && batchSize.size > 500) {
                                     console.error(
                                         new Error(
-                                            `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of two way updates, unique field checks, entity restrictions (in permissions when dealing with user collections) or relation hierarchy checks.`,
+                                            `VALIDATION_ERROR: ${batchSize.size} operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of two way updates, unique field checks, entity restrictions (in permissions when dealing with user collections) or relation hierarchy checks.`,
                                         ),
                                     )
                                 }
@@ -265,7 +265,7 @@ export const validateRelations = async (
                                 if (batchSize && batchSize.size > 500) {
                                     console.error(
                                         new Error(
-                                            `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of two way updates, unique field checks, entity restrictions (in permissions when dealing with user collections) or relation hierarchy checks.`,
+                                            `VALIDATION_ERROR: ${batchSize.size} operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of two way updates, unique field checks, entity restrictions (in permissions when dealing with user collections) or relation hierarchy checks.`,
                                         ),
                                     )
                                 }

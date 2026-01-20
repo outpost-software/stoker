@@ -1,5 +1,13 @@
 # @stoker-platform/node-client
 
+## 0.5.11
+
+### Patch Changes
+
+- feat: provide number of transaction operations in warning log
+- Updated dependencies
+    - @stoker-platform/utils@0.5.7
+
 ## 0.5.10
 
 ### Patch Changes

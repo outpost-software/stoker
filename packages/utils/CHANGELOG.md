@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.7
+
+### Patch Changes
+
+- feat: provide number of transaction operations in warning log
+
 ## 0.5.6
 
 ### Patch Changes
