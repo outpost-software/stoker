@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.18
+
+### Patch Changes
+
+- fix: run build and shim scripts on config change
+
 ## 0.5.17
 
 ### Patch Changes
