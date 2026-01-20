@@ -320,8 +320,10 @@ export const prepareDenormalized = (
         } else throw new Error(`SCHEMA_ERROR: Invalid field type: ${targetField.type}`)
     }
     if (batchSize && batchSize.size > 500) {
-        throw new Error(
-            `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of two way updates, roles, dependencies on the collection, unique field checks, entity restrictions (in permissions when dealing with user collections) or relation hierarchy checks.`,
+        console.error(
+            new Error(
+                `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of two way updates, roles, dependencies on the collection, unique field checks, entity restrictions (in permissions when dealing with user collections) or relation hierarchy checks.`,
+            ),
         )
     }
     for (const field of twoWayFields) {

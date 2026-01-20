@@ -1,5 +1,13 @@
 # @stoker-platform/node-client
 
+## 0.5.10
+
+### Patch Changes
+
+- feat: remove Firestore transaction operations limit guard
+- Updated dependencies
+    - @stoker-platform/utils@0.5.6
+
 ## 0.5.9
 
 ### Patch Changes

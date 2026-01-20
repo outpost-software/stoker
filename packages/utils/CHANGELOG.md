@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.6
+
+### Patch Changes
+
+- feat: remove Firestore transaction operations limit guard
+
 ## 0.5.5
 
 ### Patch Changes
