@@ -42,7 +42,6 @@ try {
             const newContent = filteredLines.join("\n")
             if (newContent !== content) {
                 await writeFile(filePath, newContent, "utf8")
-                console.log(`Removed CSS imports from: ${filePath}`)
             }
         } catch (error) {
             console.error(`Error processing ${filePath}:`, error.message)
