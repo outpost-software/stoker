@@ -243,7 +243,7 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                                         }}
                                                     >
                                                         {getFormattedFieldValue(
-                                                            collectionSchema,
+                                                            customization,
                                                             getField(fields, column),
                                                             result,
                                                             connectionStatus,

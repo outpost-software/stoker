@@ -2080,6 +2080,7 @@ function RelationField({
 }
 
 function ComputedField({ form, collection, label, description, field, record, icon }: FieldProps) {
+    const customization = getCollectionConfigModule(collection.labels.collection)
     const [connectionStatus] = useConnection()
     const goToRecord = useGoToRecord()
     const values = { ...record, ...form.getValues() } as StokerRecord
@@ -2095,7 +2096,15 @@ function ComputedField({ form, collection, label, description, field, record, ic
             />
             <FormControl>
                 <div>
-                    {getFormattedFieldValue(collection, field, values, connectionStatus, undefined, goToRecord, true)}
+                    {getFormattedFieldValue(
+                        customization,
+                        field,
+                        values,
+                        connectionStatus,
+                        undefined,
+                        goToRecord,
+                        true,
+                    )}
                 </div>
             </FormControl>
             {description && <FormDescription>{description}</FormDescription>}

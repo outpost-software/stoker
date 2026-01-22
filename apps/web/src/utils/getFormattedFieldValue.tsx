@@ -1,13 +1,14 @@
-import { CollectionField, CollectionSchema, RelationField, StokerRecord } from "@stoker-platform/types"
+import {
+    CollectionCustomization,
+    CollectionField,
+    CollectionSchema,
+    RelationField,
+    StokerRecord,
+} from "@stoker-platform/types"
 import { collectionAccess, getFieldCustomization, isRelationField, tryFunction } from "@stoker-platform/utils"
 import { Timestamp } from "firebase/firestore"
 import zip from "lodash/zip.js"
-import {
-    convertTimestampToTimezone,
-    getCollectionConfigModule,
-    getCurrentUserPermissions,
-    getSchema,
-} from "@stoker-platform/web-client"
+import { convertTimestampToTimezone, getCurrentUserPermissions, getSchema } from "@stoker-platform/web-client"
 import { Badge } from "../components/ui/badge"
 import { Check, X } from "lucide-react"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -18,7 +19,7 @@ import { cn } from "@/lib/utils"
 import { getSafeUrl } from "./isSafeUrl"
 
 export const getFormattedFieldValue = (
-    collection: CollectionSchema,
+    customization: CollectionCustomization,
     field: CollectionField,
     record: StokerRecord,
     connectionStatus: "online" | "offline",
@@ -47,7 +48,6 @@ export const getFormattedFieldValue = (
     }
 
     const schema = getSchema()
-    const customization = getCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
     const permissions = getCurrentUserPermissions()
     if (!permissions) return ""

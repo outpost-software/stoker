@@ -105,7 +105,7 @@ function CardItem({ index, style, data }: CardItemProps) {
 
     const headerFieldValue = cardsConfig.headerField
         ? getFormattedFieldValue(
-              collection,
+              customization,
               getField(fields.concat(systemFields), cardsConfig.headerField),
               record,
               connectionStatus,
@@ -116,7 +116,7 @@ function CardItem({ index, style, data }: CardItemProps) {
     const maxFootlerLines = cardsConfig.maxFooterLines === 2 ? 2 : 1
     const footerFieldValue = cardsConfig.footerField
         ? getFormattedFieldValue(
-              collection,
+              customization,
               getField(fields.concat(systemFields), cardsConfig.footerField),
               record,
               connectionStatus,
@@ -347,7 +347,7 @@ function CardItem({ index, style, data }: CardItemProps) {
                                                                 )}
                                                             >
                                                                 {getFormattedFieldValue(
-                                                                    collection,
+                                                                    customization,
                                                                     field,
                                                                     record,
                                                                     connectionStatus,
@@ -401,7 +401,7 @@ function CardItem({ index, style, data }: CardItemProps) {
                                                             )}
                                                         >
                                                             {getFormattedFieldValue(
-                                                                collection,
+                                                                customization,
                                                                 field,
                                                                 record,
                                                                 connectionStatus,
@@ -453,7 +453,7 @@ function CardItem({ index, style, data }: CardItemProps) {
                                                         </span>
                                                         <span className="max-w-[50%] text-right break-words">
                                                             {getFormattedFieldValue(
-                                                                collection,
+                                                                customization,
                                                                 field,
                                                                 record,
                                                                 connectionStatus,

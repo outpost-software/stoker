@@ -509,7 +509,7 @@ export function List({
                             return (
                                 <div className={className}>
                                     {getFormattedFieldValue(
-                                        collection,
+                                        customization,
                                         field,
                                         row.original,
                                         connectionStatus,
@@ -613,8 +613,22 @@ export function List({
         sortingFns: {
             /* eslint-disable security/detect-object-injection */
             stringSortingFn: (rowA, rowB, columnId) => {
-                const valueA = getSortingValue(collection, columnId, rowA.original, relationCollection, relationParent)
-                const valueB = getSortingValue(collection, columnId, rowB.original, relationCollection, relationParent)
+                const valueA = getSortingValue(
+                    collection,
+                    customization,
+                    columnId,
+                    rowA.original,
+                    relationCollection,
+                    relationParent,
+                )
+                const valueB = getSortingValue(
+                    collection,
+                    customization,
+                    columnId,
+                    rowB.original,
+                    relationCollection,
+                    relationParent,
+                )
                 const rawA = valueA?.toString().toLowerCase()
                 const rawB = valueB?.toString().toLowerCase()
                 return rawA > rawB ? 1 : rawA < rawB ? -1 : 0
@@ -642,15 +656,43 @@ export function List({
                 }
             },
             dateSortingFn: (rowA, rowB, columnId) => {
-                const valueA = getSortingValue(collection, columnId, rowA.original, relationCollection, relationParent)
-                const valueB = getSortingValue(collection, columnId, rowB.original, relationCollection, relationParent)
+                const valueA = getSortingValue(
+                    collection,
+                    customization,
+                    columnId,
+                    rowA.original,
+                    relationCollection,
+                    relationParent,
+                )
+                const valueB = getSortingValue(
+                    collection,
+                    customization,
+                    columnId,
+                    rowB.original,
+                    relationCollection,
+                    relationParent,
+                )
                 const rawA = Number(valueA?.valueOf() || 0)
                 const rawB = Number(valueB?.valueOf() || 0)
                 return rawA > rawB ? 1 : rawA < rawB ? -1 : 0
             },
             rawSortingFn: (rowA, rowB, columnId) => {
-                const valueA = getSortingValue(collection, columnId, rowA.original, relationCollection, relationParent)
-                const valueB = getSortingValue(collection, columnId, rowB.original, relationCollection, relationParent)
+                const valueA = getSortingValue(
+                    collection,
+                    customization,
+                    columnId,
+                    rowA.original,
+                    relationCollection,
+                    relationParent,
+                )
+                const valueB = getSortingValue(
+                    collection,
+                    customization,
+                    columnId,
+                    rowB.original,
+                    relationCollection,
+                    relationParent,
+                )
                 const rawA = valueA
                 const rawB = valueB
                 return rawA > rawB ? 1 : rawA < rawB ? -1 : 0

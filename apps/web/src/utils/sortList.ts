@@ -1,6 +1,7 @@
 import { CollectionSchema, StokerRecord } from "@stoker-platform/types"
 import { getField, isRelationField } from "@stoker-platform/utils"
 import { getSortingValue } from "./getSortingValue"
+import { getCollectionConfigModule } from "@stoker-platform/web-client"
 
 export const sortList = (
     collection: CollectionSchema,
@@ -10,6 +11,7 @@ export const sortList = (
     relationCollection?: CollectionSchema,
     relationParent?: StokerRecord,
 ) => {
+    const customization = getCollectionConfigModule(collection.labels.collection)
     const { fields } = collection
     let orderByFieldName = orderByField
     if (orderByField.endsWith("_Lowercase") && !orderByField.includes("_Single.")) {
@@ -21,8 +23,22 @@ export const sortList = (
     const orderByFieldSchema = getField(fields, orderByFieldName)
     if (!isRelationField(orderByFieldSchema)) {
         const sortedList = [...list].sort((a, b) => {
-            const valueA = getSortingValue(collection, orderByFieldName, a, relationCollection, relationParent)
-            const valueB = getSortingValue(collection, orderByFieldName, b, relationCollection, relationParent)
+            const valueA = getSortingValue(
+                collection,
+                customization,
+                orderByFieldName,
+                a,
+                relationCollection,
+                relationParent,
+            )
+            const valueB = getSortingValue(
+                collection,
+                customization,
+                orderByFieldName,
+                b,
+                relationCollection,
+                relationParent,
+            )
             const fieldA =
                 orderByFieldSchema.type === "String"
                     ? // eslint-disable-next-line security/detect-object-injection

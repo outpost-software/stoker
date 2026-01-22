@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.16
+
+### Patch Changes
+
+- perf: improve list view performance
+
 ## 0.5.15
 
 ### Patch Changes
