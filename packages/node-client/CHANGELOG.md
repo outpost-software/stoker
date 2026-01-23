@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.12
+
+### Patch Changes
+
+- feat: add ability to override system fields on record create
+
 ## 0.5.11
 
 ### Patch Changes

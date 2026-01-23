@@ -55,6 +55,8 @@ export const addRecord = async (
     userId?: string,
     options?: {
         noTwoWay?: boolean
+        createdAt?: Timestamp
+        createdBy?: string
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: any,
@@ -107,6 +109,12 @@ export const addRecord = async (
         Timestamp.now(),
         FieldValue.serverTimestamp(),
     )
+    if (options?.createdAt) {
+        record.Created_At = options.createdAt
+    }
+    if (options?.createdBy) {
+        record.Created_By = options.createdBy
+    }
     const originalSystemFields = cloneDeep(record)
 
     if (softDelete) {
