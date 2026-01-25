@@ -287,6 +287,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
             getSome([collection], newConstraints as QueryConstraint[] | [string, WhereFilterOp, unknown][], {
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
                 pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
+                noEmbeddingFields: true,
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 

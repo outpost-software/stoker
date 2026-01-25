@@ -215,6 +215,7 @@ export interface GetSomeOptions {
     transactional?: boolean
     providedTransaction?: Transaction
     noEmbeddingFields?: boolean
+    noComputedFields?: boolean
 }
 
 export const getSome = async (path: string[], constraints?: [string, string, unknown][], options?: GetSomeOptions) => {
@@ -400,6 +401,11 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
             pages = paginationNumber > 0 ? Math.ceil(count / paginationNumber) : 0
         }
 
+        let retrieverData
+        if (!options?.noComputedFields) {
+            retrieverData = await tryPromise(customization.admin?.retriever)
+        }
+
         for (const doc of docs.values()) {
             const operations = []
             const documentPath = [...doc.Collection_Path, doc.id]
@@ -448,20 +454,25 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
             }
 
             await Promise.all(operations)
-            for (const docData of docs.values()) {
-                for (const field of collectionSchema.fields) {
-                    if (field.type === "Computed") {
-                        const fieldCustomization = getFieldCustomization(field, customization)
-                        if (!fieldCustomization.formula) continue
-                        docData[field.name] = await fieldCustomization.formula(docData)
-                    }
-                    if (options?.noEmbeddingFields) {
-                        if (field.type === "Embedding") {
-                            delete docData[field.name]
-                        }
+
+            const computedFieldPromises = []
+            for (const field of collectionSchema.fields) {
+                if (field.type === "Computed" && !options?.noComputedFields) {
+                    const fieldCustomization = getFieldCustomization(field, customization)
+                    if (!fieldCustomization.formula) continue
+                    computedFieldPromises.push(
+                        tryPromise(fieldCustomization.formula, [doc, retrieverData]).then((result) => {
+                            doc[field.name] = result
+                        }),
+                    )
+                }
+                if (options?.noEmbeddingFields) {
+                    if (field.type === "Embedding") {
+                        delete doc[field.name]
                     }
                 }
             }
+            await Promise.all(computedFieldPromises)
 
             if (options?.user && permissions?.Role) {
                 const role = permissions.Role

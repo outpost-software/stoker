@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.5
+
+### Patch Changes
+
+- feat: add data retriever utility
+
 ## 0.5.4
 
 ### Patch Changes

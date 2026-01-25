@@ -721,6 +721,8 @@ export interface CollectionAdmin {
     ) => Partial<StokerRecord> | void | Promise<Partial<StokerRecord> | void>
     addRecordButtonOverride?: (record?: StokerRecord) => void | Promise<void>
     disableRangeSelector?: boolean | (() => boolean)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    retriever?: () => any | Promise<any>
 }
 export interface CollectionAdminCache {
     navbarPosition?: number
@@ -943,7 +945,8 @@ export interface EmbeddingField extends StandardField {
 }
 export interface ComputedField extends StandardField {
     type: "Computed"
-    formula: (record: StokerRecord) => string | number | Promise<string | number>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    formula: (record: StokerRecord, retrieverData?: any) => string | number | Promise<string | number>
 }
 export type CollectionField =
     | BooleanField

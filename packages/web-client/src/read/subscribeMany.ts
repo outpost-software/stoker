@@ -66,6 +66,8 @@ export interface SubscribeManyOptions {
         startAt?: Cursor
         endAt?: Cursor
     }
+    noComputedFields?: boolean
+    noEmbeddingFields?: boolean
 }
 
 const validateFirstCursor = (cursor: Cursor) => {
@@ -276,6 +278,39 @@ export const subscribeMany = async (
     const fieldReferences = new Map()
     const referenceCount = new Map()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sendData = (cursor: Cursor, metadata?: SnapshotMetadata, retrieverData?: any) => {
+        const promises: Promise<void>[] = []
+        docs.forEach((doc) => {
+            removeDeletedFields(doc, fieldReferences.get(doc.id))
+            for (const field of collectionSchema.fields) {
+                if (field.type === "Computed" && !options?.noComputedFields) {
+                    promises.push(
+                        tryPromise(field.formula, [doc, retrieverData]).then((value) => {
+                            doc[field.name] = value
+                        }),
+                    )
+                }
+                if (options?.noEmbeddingFields) {
+                    if (field.type === "Embedding") {
+                        delete doc[field.name]
+                    }
+                }
+            }
+        })
+
+        Promise.all(promises).then(() => {
+            callback(Array.from(docs.values()), cursor, metadata)
+
+            docs.forEach((doc) => {
+                const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
+                runHooks("postOperation", globalConfig, customization, postOperationArgs)
+                const postReadArgs: PostReadHookArgs = [context, refs, doc, true]
+                runHooks("postRead", globalConfig, customization, postReadArgs)
+            })
+        })
+    }
+
     const callbackOnLoaded = (cursor: Cursor, metadata?: SnapshotMetadata) => {
         let docsLoaded = true
         if (options?.relations) {
@@ -289,31 +324,13 @@ export const subscribeMany = async (
             const unsubscribe = onSnapshotsInSync(db, () => {
                 unsubscribe()
 
-                const promises: Promise<void>[] = []
-
-                docs.forEach((doc) => {
-                    removeDeletedFields(doc, fieldReferences.get(doc.id))
-                    for (const field of collectionSchema.fields) {
-                        if (field.type === "Computed") {
-                            promises.push(
-                                tryPromise(() => field.formula(doc)).then((value) => {
-                                    doc[field.name] = value
-                                }),
-                            )
-                        }
-                    }
-                })
-
-                Promise.all(promises).then(() => {
-                    callback(Array.from(docs.values()), cursor, metadata)
-
-                    docs.forEach((doc) => {
-                        const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
-                        runHooks("postOperation", globalConfig, customization, postOperationArgs)
-                        const postReadArgs: PostReadHookArgs = [context, refs, doc, true]
-                        runHooks("postRead", globalConfig, customization, postReadArgs)
+                if (!options?.noComputedFields && customization?.admin?.retriever) {
+                    tryPromise(customization.admin.retriever).then((retrieverData) => {
+                        sendData(cursor, metadata, retrieverData)
                     })
-                })
+                } else {
+                    sendData(cursor, metadata)
+                }
             })
         }
     }

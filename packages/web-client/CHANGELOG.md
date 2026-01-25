@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.8
+
+### Patch Changes
+
+- feat: add data retriever utility
+- Updated dependencies
+    - @stoker-platform/types@0.5.5
+    - @stoker-platform/utils@0.5.8
+
 ## 0.5.7
 
 ### Patch Changes

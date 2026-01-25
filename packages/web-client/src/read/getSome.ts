@@ -32,6 +32,7 @@ import {
     isPaginationEnabled,
     isRelationField,
     runHooks,
+    tryPromise,
 } from "@stoker-platform/utils"
 import {
     getCollectionConfigModule,
@@ -377,6 +378,11 @@ export const getSome = async (
         }
     }
 
+    let retrieverData
+    if (!options?.noComputedFields) {
+        retrieverData = await tryPromise(customization.admin?.retriever)
+    }
+
     for (const doc of docs.values()) {
         const operations = []
         const documentPath = [...doc.Collection_Path, doc.id]
@@ -419,18 +425,22 @@ export const getSome = async (
         }
         await Promise.all(operations)
 
-        for (const docData of docs.values()) {
-            for (const field of collectionSchema.fields) {
-                if (field.type === "Computed" && !options?.noComputedFields) {
-                    docData[field.name] = await field.formula(docData)
-                }
-                if (options?.noEmbeddingFields) {
-                    if (field.type === "Embedding") {
-                        delete docData[field.name]
-                    }
+        const computedFieldPromises = []
+        for (const field of collectionSchema.fields) {
+            if (field.type === "Computed" && !options?.noComputedFields) {
+                computedFieldPromises.push(
+                    tryPromise(field.formula, [doc, retrieverData]).then((result) => {
+                        doc[field.name] = result
+                    }),
+                )
+            }
+            if (options?.noEmbeddingFields) {
+                if (field.type === "Embedding") {
+                    delete doc[field.name]
                 }
             }
         }
+        await Promise.all(computedFieldPromises)
 
         const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
