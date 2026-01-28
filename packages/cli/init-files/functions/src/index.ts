@@ -39,6 +39,7 @@ import {defineSecret} from "firebase-functions/params";
 import {readFileSync} from "fs";
 import {
     getPathCollections,
+    roleHasOperationAccess,
 } from "@stoker-platform/utils";
 import {
     CollectionSchema,
@@ -202,10 +203,12 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         });
     }
 
+    const readRoles = schema.config.roles.filter((role) =>
+        roleHasOperationAccess(collectionSchema, role, "read"));
     if (
         collectionSchema.fullTextSearch &&
         process.env.STOKER_ALGOLIA_ID &&
-        !schema.config.roles.every((role) =>
+        !readRoles.every((role) =>
             collectionSchema.preloadCache?.roles.includes(role) ||
             collectionSchema.access.serverReadOnly?.includes(role)
         )) {
