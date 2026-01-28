@@ -32,6 +32,7 @@ import {
     StokerRole,
     StokerPermissions,
     CollectionSchema,
+    CollectionsSchema,
 } from "@stoker-platform/types"
 import { getFirestorePathRef } from "../utils/getFirestorePathRef.js"
 import cloneDeep from "lodash/cloneDeep.js"
@@ -64,13 +65,25 @@ export const updateRecord = async (
     userId?: string,
     options?: {
         noTwoWay?: boolean
+        providedTransaction?: Transaction
+        providedSchema?: CollectionsSchema
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: any,
+    originalRecord?: StokerRecord,
 ) => {
     const tenantId = getTenant()
     const globalConfig = getGlobalConfigModule()
-    let schema = await fetchCurrentSchema(true)
+    if (options?.providedTransaction && userId) {
+        throw new Error("PERMISSION_DENIED")
+    }
+    if (options?.providedSchema && userId) {
+        throw new Error("PERMISSION_DENIED")
+    }
+    if (options?.providedTransaction && !originalRecord) {
+        throw new Error("PERMISSION_DENIED")
+    }
+    let schema = options?.providedSchema || (await fetchCurrentSchema(true))
     if (path.length === 0) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const collectionName: StokerCollection = path.at(-1)!
@@ -96,11 +109,13 @@ export const updateRecord = async (
     context = context || {}
     context.collection = labels.collection
 
-    let originalRecord = await getOne(path, docId, {
-        user: userId,
-        noComputedFields: true,
-        noEmbeddingFields: true,
-    })
+    originalRecord =
+        originalRecord ||
+        (await getOne(path, docId, {
+            user: userId,
+            noComputedFields: true,
+            noEmbeddingFields: true,
+        }))
 
     for (const field of fields) {
         if (field.type === "Computed") {
@@ -182,7 +197,7 @@ export const updateRecord = async (
     removeUndefined(partial)
     removeUndefined(originalRecord)
 
-    if (enableWriteLog)
+    if (enableWriteLog && !options?.providedTransaction)
         await writeLog("update", "started", partial, tenantId, path, docId, collectionSchema, undefined, originalRecord)
 
     const preOperationArgs: PreOperationHookArgs = [
@@ -206,17 +221,19 @@ export const updateRecord = async (
         if (createUserRequest) {
             if (!user.password) throw new Error("Password is required")
         }
-        const record = { ...originalRecord, ...partial }
-        await uniqueValidation("update", tenantId, docId, record, collectionSchema, schema)
-        removeDeleteSentinels(record)
-        await validateRecord(
-            "update",
-            record,
-            collectionSchema,
-            customization,
-            ["update", partial, context, undefined, cloneDeep(originalRecord)],
-            schema,
-        )
+        if (!options?.providedTransaction) {
+            const record = { ...originalRecord, ...partial }
+            await uniqueValidation("update", tenantId, docId, record, collectionSchema, schema)
+            removeDeleteSentinels(record)
+            await validateRecord(
+                "update",
+                record,
+                collectionSchema,
+                customization,
+                ["update", partial, context, undefined, cloneDeep(originalRecord)],
+                schema,
+            )
+        }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         throw new Error(`VALIDATION_ERROR: ${error.message}`)
@@ -258,31 +275,40 @@ export const updateRecord = async (
     const preWriteChecks = async (transaction: Transaction, initial?: boolean, batchSize?: { size: number }) => {
         const [latestDeploy, maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema] =
             await Promise.all([
-                transaction.get(db.collection("system_deployment").doc("latest_deploy")),
-                transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
-                getOne(path, docId, {
-                    user: userId,
-                    providedTransaction: transaction,
-                    noComputedFields: true,
-                }),
+                !options?.providedTransaction
+                    ? transaction.get(db.collection("system_deployment").doc("latest_deploy"))
+                    : Promise.resolve({} as DocumentSnapshot),
+                !options?.providedTransaction
+                    ? transaction.get(db.collection("system_deployment").doc("maintenance_mode"))
+                    : Promise.resolve({} as DocumentSnapshot),
+                !options?.providedTransaction
+                    ? getOne(path, docId, {
+                          user: userId,
+                          providedTransaction: transaction,
+                          noComputedFields: true,
+                      })
+                    : Promise.resolve(originalRecord),
                 userId
                     ? transaction.get(
                           db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),
                       )
-                    : Promise.resolve(Promise.resolve({} as DocumentSnapshot)),
-                fetchCurrentSchema(),
+                    : Promise.resolve({} as DocumentSnapshot),
+                !options?.providedSchema ? fetchCurrentSchema() : Promise.resolve(options.providedSchema),
             ])
         if (batchSize) batchSize.size += 3
 
-        if (!latestDeploy.exists) throw new Error("VERSION_ERROR")
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const deploy = latestDeploy.data()!
-        if (deploy.force && partial.Last_Write_At.valueOf() < deploy.time.valueOf()) throw new Error("VERSION_ERROR")
+        if (!options?.providedTransaction) {
+            if (!latestDeploy.exists) throw new Error("VERSION_ERROR")
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const deploy = latestDeploy.data()!
+            if (deploy.force && partial.Last_Write_At.valueOf() < deploy.time.valueOf())
+                throw new Error("VERSION_ERROR")
 
-        if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const maintenance = maintenanceMode.data()!
-        if (maintenance.active) throw new Error("MAINTENANCE_MODE")
+            if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const maintenance = maintenanceMode.data()!
+            if (maintenance.active) throw new Error("MAINTENANCE_MODE")
+        }
 
         if (!latestOriginalRecord) throw new Error("NOT_FOUND")
         originalRecord = latestOriginalRecord as StokerRecord
@@ -327,51 +353,53 @@ export const updateRecord = async (
             }
         }
 
-        const uniqueFields = fields.filter((field) => "unique" in field && field.unique)
-        const uniqueFieldPromises = uniqueFields.map(async (field) => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (!userId || !field.access || field.access.includes(currentUserPermissions!.Role!)) {
-                if (partial[field.name] === undefined || isDeleteSentinel(partial[field.name])) return
-                const fieldCustomization = getFieldCustomization(field, customization)
-                const finalRecord = { ...originalRecord, ...partial }
-                const allowField =
-                    userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
-                        ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
-                              currentUserPermissions?.Role,
-                              finalRecord,
-                          ])
-                        : true
-                if (!allowField) throw new Error("PERMISSION_DENIED")
-                const fieldName = partial[field.name]
-                    .toString()
-                    .toLowerCase()
-                    .replace(/\s/g, "---")
-                    .replaceAll("/", "|||")
-                if (!isValidUniqueFieldValue(fieldName)) {
-                    throw new Error(`VALIDATION_ERROR: ${field.name} "${partial[field.name]}" is invalid`)
-                } else {
-                    if (batchSize) batchSize.size++
-                    if (batchSize && batchSize.size > 500) {
-                        throw new Error(
-                            `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of unique field checks.`,
+        if (!options?.providedTransaction) {
+            const uniqueFields = fields.filter((field) => "unique" in field && field.unique)
+            const uniqueFieldPromises = uniqueFields.map(async (field) => {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                if (!userId || !field.access || field.access.includes(currentUserPermissions!.Role!)) {
+                    if (partial[field.name] === undefined || isDeleteSentinel(partial[field.name])) return
+                    const fieldCustomization = getFieldCustomization(field, customization)
+                    const finalRecord = { ...originalRecord, ...partial }
+                    const allowField =
+                        userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
+                            ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
+                                  currentUserPermissions?.Role,
+                                  finalRecord,
+                              ])
+                            : true
+                    if (!allowField) throw new Error("PERMISSION_DENIED")
+                    const fieldName = partial[field.name]
+                        .toString()
+                        .toLowerCase()
+                        .replace(/\s/g, "---")
+                        .replaceAll("/", "|||")
+                    if (!isValidUniqueFieldValue(fieldName)) {
+                        throw new Error(`VALIDATION_ERROR: ${field.name} "${partial[field.name]}" is invalid`)
+                    } else {
+                        if (batchSize) batchSize.size++
+                        if (batchSize && batchSize.size > 500) {
+                            throw new Error(
+                                `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of unique field checks.`,
+                            )
+                        }
+                        const unique = await transaction.get(
+                            db
+                                .collection("tenants")
+                                .doc(tenantId)
+                                .collection("system_unique")
+                                .doc(labels.collection)
+                                .collection(`Unique-${labels.collection}-${field.name}`)
+                                .doc(fieldName),
                         )
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        if (unique.exists && !(unique.data()!.id === docId))
+                            throw new Error(`VALIDATION_ERROR: ${field.name} "${partial[field.name]}" already exists`)
                     }
-                    const unique = await transaction.get(
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_unique")
-                            .doc(labels.collection)
-                            .collection(`Unique-${labels.collection}-${field.name}`)
-                            .doc(fieldName),
-                    )
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    if (unique.exists && !(unique.data()!.id === docId))
-                        throw new Error(`VALIDATION_ERROR: ${field.name} "${partial[field.name]}" already exists`)
                 }
-            }
-        })
-        await Promise.all(uniqueFieldPromises)
+            })
+            await Promise.all(uniqueFieldPromises)
+        }
 
         if (userId && currentUserPermissions?.Role) {
             const role = currentUserPermissions.Role
@@ -450,6 +478,152 @@ export const updateRecord = async (
         )
     }
 
+    const runTransaction = async (transaction: Transaction, originalUser: UserRecord | undefined) => {
+        if (!originalRecord) throw new Error("NOT_FOUND")
+        try {
+            const batchSize = { size: 1 }
+            const record = { ...originalRecord, ...partial }
+
+            await preWriteChecks(transaction, false, batchSize)
+
+            let noDelete: Map<string, string[]> | undefined
+            if (!options?.noTwoWay && !options?.providedTransaction) {
+                noDelete = await validateRelations(
+                    "Update",
+                    tenantId,
+                    docId,
+                    record,
+                    partial,
+                    collectionSchema,
+                    schema,
+                    transaction,
+                    batchSize,
+                    userId,
+                    currentUserPermissions,
+                    originalRecord,
+                )
+            }
+
+            const roleGroups = getAllRoleGroups(schema)
+            addDenormalized(
+                "update",
+                transaction,
+                path,
+                docId,
+                partial,
+                schema,
+                collectionSchema,
+                options,
+                roleGroups,
+                FieldValue.arrayUnion,
+                FieldValue.arrayRemove,
+                FieldValue.delete,
+                (field: CollectionField) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(labels.collection)
+                        .collection(`${labels.collection}-${field.name}`)
+                        .doc(docId),
+                (field: CollectionField, uniqueValue: string) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_unique")
+                        .doc(labels.collection)
+                        .collection(`Unique-${labels.collection}-${field.name}`)
+                        .doc(uniqueValue),
+                (role: StokerRole) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(labels.collection)
+                        .collection(`${labels.collection}-${role}`)
+                        .doc(docId),
+                (relationPath: string[], id: string) => {
+                    const ref = getFirestorePathRef(db, relationPath, tenantId)
+                    return ref.doc(id)
+                },
+                (field: RelationField, dependencyField: string, id: string) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(field.collection)
+                        .collection(`${field.collection}-${dependencyField}`)
+                        .doc(id),
+                (field: RelationField, role: StokerRole, id: string) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(field.collection)
+                        .collection(`${field.collection}-${role.replaceAll(" ", "-")}`)
+                        .doc(id),
+                originalRecord,
+                noDelete,
+                batchSize,
+            )
+
+            transaction.update(ref.doc(docId), partial)
+        } catch (error) {
+            if (!options?.providedTransaction) {
+                const postWriteErrorArgs: PostWriteErrorHookArgs = [
+                    "update",
+                    partial,
+                    docId,
+                    context,
+                    error,
+                    undefined,
+                    undefined,
+                    cloneDeep(originalRecord),
+                ]
+                const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
+                if (enableWriteLog) {
+                    await new Promise((resolve) => {
+                        setTimeout(resolve, 250)
+                    })
+                    await writeLog(
+                        "update",
+                        errorHook?.resolved ? "success" : "failed",
+                        partial,
+                        tenantId,
+                        path,
+                        docId,
+                        collectionSchema,
+                        errorHook?.resolved ? undefined : error,
+                        originalRecord,
+                    )
+                }
+                if (!errorHook?.resolved) {
+                    if (createUserRequest) {
+                        await deleteUser(originalRecord)
+                    }
+                    if (updateUserRequired(originalRecord)) {
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        await rollbackUser(originalRecord.User_ID, originalUser!, originalPermissions!, "USER_ERROR")
+                    }
+                    if (deleteUserRequest) {
+                        await db
+                            .collection("tenants")
+                            .doc(tenantId)
+                            .collection(labels.collection)
+                            .doc(docId)
+                            .update({ User_ID: FieldValue.delete() })
+                    }
+                    throw error
+                }
+            } else throw error
+        }
+        if (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest) {
+            await retryOperation(unlockRecord, [docId, originalRecord.User_ID]).catch(() => {
+                throw new Error("USER_ERROR")
+            })
+        }
+    }
+
     try {
         let originalUser: UserRecord | undefined
         if (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest) {
@@ -483,150 +657,15 @@ export const updateRecord = async (
             }
         }
 
-        try {
-            const batchSize = { size: 1 }
+        if (options?.providedTransaction) {
+            await runTransaction(options.providedTransaction, originalUser)
+        } else {
             await db.runTransaction(
                 async (transaction) => {
-                    const record = { ...originalRecord, ...partial }
-
-                    await preWriteChecks(transaction, false, batchSize)
-
-                    let noDelete: Map<string, string[]> | undefined
-                    if (!options?.noTwoWay) {
-                        noDelete = await validateRelations(
-                            "Update",
-                            tenantId,
-                            docId,
-                            record,
-                            partial,
-                            collectionSchema,
-                            schema,
-                            transaction,
-                            batchSize,
-                            userId,
-                            currentUserPermissions,
-                            originalRecord,
-                        )
-                    }
-
-                    const roleGroups = getAllRoleGroups(schema)
-                    addDenormalized(
-                        "update",
-                        transaction,
-                        path,
-                        docId,
-                        partial,
-                        schema,
-                        collectionSchema,
-                        options,
-                        roleGroups,
-                        FieldValue.arrayUnion,
-                        FieldValue.arrayRemove,
-                        FieldValue.delete,
-                        (field: CollectionField) =>
-                            db
-                                .collection("tenants")
-                                .doc(tenantId)
-                                .collection("system_fields")
-                                .doc(labels.collection)
-                                .collection(`${labels.collection}-${field.name}`)
-                                .doc(docId),
-                        (field: CollectionField, uniqueValue: string) =>
-                            db
-                                .collection("tenants")
-                                .doc(tenantId)
-                                .collection("system_unique")
-                                .doc(labels.collection)
-                                .collection(`Unique-${labels.collection}-${field.name}`)
-                                .doc(uniqueValue),
-                        (role: StokerRole) =>
-                            db
-                                .collection("tenants")
-                                .doc(tenantId)
-                                .collection("system_fields")
-                                .doc(labels.collection)
-                                .collection(`${labels.collection}-${role}`)
-                                .doc(docId),
-                        (relationPath: string[], id: string) => {
-                            const ref = getFirestorePathRef(db, relationPath, tenantId)
-                            return ref.doc(id)
-                        },
-                        (field: RelationField, dependencyField: string, id: string) =>
-                            db
-                                .collection("tenants")
-                                .doc(tenantId)
-                                .collection("system_fields")
-                                .doc(field.collection)
-                                .collection(`${field.collection}-${dependencyField}`)
-                                .doc(id),
-                        (field: RelationField, role: StokerRole, id: string) =>
-                            db
-                                .collection("tenants")
-                                .doc(tenantId)
-                                .collection("system_fields")
-                                .doc(field.collection)
-                                .collection(`${field.collection}-${role.replaceAll(" ", "-")}`)
-                                .doc(id),
-                        originalRecord,
-                        noDelete,
-                        batchSize,
-                    )
-
-                    transaction.update(ref.doc(docId), partial)
+                    await runTransaction(transaction, originalUser)
                 },
                 { maxAttempts: 10 },
             )
-        } catch (error) {
-            const postWriteErrorArgs: PostWriteErrorHookArgs = [
-                "update",
-                partial,
-                docId,
-                context,
-                error,
-                undefined,
-                undefined,
-                cloneDeep(originalRecord),
-            ]
-            const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
-            if (enableWriteLog) {
-                await new Promise((resolve) => {
-                    setTimeout(resolve, 250)
-                })
-                await writeLog(
-                    "update",
-                    errorHook?.resolved ? "success" : "failed",
-                    partial,
-                    tenantId,
-                    path,
-                    docId,
-                    collectionSchema,
-                    errorHook?.resolved ? undefined : error,
-                    originalRecord,
-                )
-            }
-            if (!errorHook?.resolved) {
-                if (createUserRequest) {
-                    await deleteUser(originalRecord)
-                }
-                if (updateUserRequired(originalRecord)) {
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    await rollbackUser(originalRecord.User_ID, originalUser!, originalPermissions!, "USER_ERROR")
-                }
-                if (deleteUserRequest) {
-                    await db
-                        .collection("tenants")
-                        .doc(tenantId)
-                        .collection(labels.collection)
-                        .doc(docId)
-                        .update({ User_ID: FieldValue.delete() })
-                }
-                throw error
-            }
-        }
-        if (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest) {
-            await retryOperation(unlockRecord, [docId, originalRecord.User_ID]).catch(() => {
-                throw new Error("USER_ERROR")
-            })
         }
     } catch (error) {
         if (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest) {
@@ -637,10 +676,19 @@ export const updateRecord = async (
         throw error
     }
 
-    const postWriteArgs: PostWriteHookArgs = ["update", partial, docId, context, undefined, cloneDeep(originalRecord)]
-    const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
-    await runHooks("postWrite", globalConfig, customization, postWriteArgs)
-    await runHooks("postOperation", globalConfig, customization, postOperationArgs)
+    if (!options?.providedTransaction) {
+        const postWriteArgs: PostWriteHookArgs = [
+            "update",
+            partial,
+            docId,
+            context,
+            undefined,
+            cloneDeep(originalRecord),
+        ]
+        const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+        await runHooks("postWrite", globalConfig, customization, postWriteArgs)
+        await runHooks("postOperation", globalConfig, customization, postOperationArgs)
+    }
 
     const finalRecord = { ...originalRecord, ...partial }
     removeDeleteSentinels(finalRecord)

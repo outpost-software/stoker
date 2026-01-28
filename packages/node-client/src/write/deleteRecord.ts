@@ -112,7 +112,7 @@ export const deleteRecord = async (
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),
                   )
-                : Promise.resolve(Promise.resolve({} as DocumentSnapshot)),
+                : Promise.resolve({} as DocumentSnapshot),
             fetchCurrentSchema(),
         ])
 

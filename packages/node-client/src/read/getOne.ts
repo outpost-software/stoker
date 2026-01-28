@@ -201,7 +201,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.user),
                   )
-                : Promise.resolve(Promise.resolve({} as DocumentSnapshot)),
+                : Promise.resolve({} as DocumentSnapshot),
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
             fetchCurrentSchema(true),
         ])

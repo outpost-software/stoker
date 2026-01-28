@@ -29,6 +29,7 @@ import {
     StokerRole,
     StokerPermissions,
     CollectionSchema,
+    CollectionsSchema,
 } from "@stoker-platform/types"
 import { getFirestorePathRef } from "../utils/getFirestorePathRef.js"
 import { addUser } from "./addUser.js"
@@ -57,6 +58,8 @@ export const addRecord = async (
         noTwoWay?: boolean
         createdAt?: Timestamp
         createdBy?: string
+        providedTransaction?: Transaction
+        providedSchema?: CollectionsSchema
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: any,
@@ -64,7 +67,13 @@ export const addRecord = async (
 ) => {
     const tenantId = getTenant()
     const globalConfig = getGlobalConfigModule()
-    let schema = await fetchCurrentSchema()
+    if (options?.providedTransaction && userId) {
+        throw new Error("PERMISSION_DENIED")
+    }
+    if (options?.providedSchema && userId) {
+        throw new Error("PERMISSION_DENIED")
+    }
+    let schema = options?.providedSchema || (await fetchCurrentSchema())
     if (path.length === 0) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const collectionName: StokerCollection = path.at(-1)!
@@ -123,7 +132,8 @@ export const addRecord = async (
 
     removeUndefined(data)
 
-    if (enableWriteLog) await writeLog("create", "started", record, tenantId, path, docId, collectionSchema)
+    if (enableWriteLog && !options?.providedTransaction)
+        await writeLog("create", "started", record, tenantId, path, docId, collectionSchema)
 
     const preOperationArgs: PreOperationHookArgs = ["create", record, docId, context]
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
@@ -140,8 +150,10 @@ export const addRecord = async (
         if (collectionSchema.auth && user) {
             if (!user.password) throw new Error("Password is required")
         }
-        await uniqueValidation("create", tenantId, docId, record, collectionSchema, schema)
-        await validateRecord("create", record, collectionSchema, customization, ["create", record, context], schema)
+        if (!options?.providedTransaction) {
+            await uniqueValidation("create", tenantId, docId, record, collectionSchema, schema)
+            await validateRecord("create", record, collectionSchema, customization, ["create", record, context], schema)
+        }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         throw new Error(`VALIDATION_ERROR: ${error.message}`)
@@ -190,26 +202,32 @@ export const addRecord = async (
 
     const preWriteChecks = async (transaction: Transaction, batchSize?: { size: number }) => {
         const [latestDeploy, maintenanceMode, permissionsSnapshot, latestSchema] = await Promise.all([
-            transaction.get(db.collection("system_deployment").doc("latest_deploy")),
-            transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
+            !options?.providedTransaction
+                ? transaction.get(db.collection("system_deployment").doc("latest_deploy"))
+                : Promise.resolve({} as DocumentSnapshot),
+            !options?.providedTransaction
+                ? transaction.get(db.collection("system_deployment").doc("maintenance_mode"))
+                : Promise.resolve({} as DocumentSnapshot),
             userId
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),
                   )
-                : Promise.resolve(Promise.resolve({} as DocumentSnapshot)),
-            fetchCurrentSchema(),
+                : Promise.resolve({} as DocumentSnapshot),
+            !options?.providedSchema ? fetchCurrentSchema() : Promise.resolve(options.providedSchema),
         ])
         if (batchSize) batchSize.size += 3
 
-        if (!latestDeploy.exists) throw new Error("VERSION_ERROR")
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const deploy = latestDeploy.data()!
-        if (deploy.force && record.Last_Write_At.valueOf() < deploy.time.valueOf()) throw new Error("VERSION_ERROR")
+        if (!options?.providedTransaction) {
+            if (!latestDeploy.exists) throw new Error("VERSION_ERROR")
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const deploy = latestDeploy.data()!
+            if (deploy.force && record.Last_Write_At.valueOf() < deploy.time.valueOf()) throw new Error("VERSION_ERROR")
 
-        if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const maintenance = maintenanceMode.data()!
-        if (maintenance.active) throw new Error("MAINTENANCE_MODE")
+            if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const maintenance = maintenanceMode.data()!
+            if (maintenance.active) throw new Error("MAINTENANCE_MODE")
+        }
 
         schema = latestSchema
 
@@ -221,47 +239,52 @@ export const addRecord = async (
             if (!currentUserPermissions.Enabled) throw new Error("PERMISSION_DENIED")
         }
 
-        const uniqueFields = fields.filter((field) => "unique" in field && field.unique)
-        const uniqueFieldPromises = uniqueFields.map(async (field) => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (!userId || !field.access || field.access.includes(currentUserPermissions!.Role!)) {
-                if (!data[field.name]) return
-                const fieldCustomization = getFieldCustomization(field, customization)
-                const allowField =
-                    userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
-                        ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
-                              currentUserPermissions?.Role,
-                              record,
-                          ])
-                        : true
-                if (!allowField) throw new Error("PERMISSION_DENIED")
-                const fieldName = data[field.name].toString().toLowerCase().replace(/\s/g, "---").replaceAll("/", "|||")
-                if (!isValidUniqueFieldValue(fieldName)) {
-                    throw new Error(`VALIDATION_ERROR: ${field.name} "${record[field.name]}" is invalid`)
-                } else {
-                    if (batchSize) batchSize.size++
-                    if (batchSize && batchSize.size > 500) {
-                        throw new Error(
-                            `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of unique field checks.`,
+        if (!options?.providedTransaction) {
+            const uniqueFields = fields.filter((field) => "unique" in field && field.unique)
+            const uniqueFieldPromises = uniqueFields.map(async (field) => {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                if (!userId || !field.access || field.access.includes(currentUserPermissions!.Role!)) {
+                    if (!data[field.name]) return
+                    const fieldCustomization = getFieldCustomization(field, customization)
+                    const allowField =
+                        userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
+                            ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
+                                  currentUserPermissions?.Role,
+                                  record,
+                              ])
+                            : true
+                    if (!allowField) throw new Error("PERMISSION_DENIED")
+                    const fieldName = data[field.name]
+                        .toString()
+                        .toLowerCase()
+                        .replace(/\s/g, "---")
+                        .replaceAll("/", "|||")
+                    if (!isValidUniqueFieldValue(fieldName)) {
+                        throw new Error(`VALIDATION_ERROR: ${field.name} "${record[field.name]}" is invalid`)
+                    } else {
+                        if (batchSize) batchSize.size++
+                        if (batchSize && batchSize.size > 500) {
+                            throw new Error(
+                                `VALIDATION_ERROR: The number of operations in the Firestore transaction has exceeded the limit of 500. This is likely due to a large number of unique field checks.`,
+                            )
+                        }
+                        const unique = await transaction.get(
+                            db
+                                .collection("tenants")
+                                .doc(tenantId)
+                                .collection("system_unique")
+                                .doc(labels.collection)
+                                .collection(`Unique-${labels.collection}-${field.name}`)
+                                .doc(fieldName),
                         )
-                    }
-                    const unique = await transaction.get(
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_unique")
-                            .doc(labels.collection)
-                            .collection(`Unique-${labels.collection}-${field.name}`)
-                            .doc(fieldName),
-                    )
-                    if (unique?.exists) {
-                        throw new Error(`VALIDATION_ERROR: ${field.name} "${record[field.name]}" already exists`)
+                        if (unique?.exists) {
+                            throw new Error(`VALIDATION_ERROR: ${field.name} "${record[field.name]}" already exists`)
+                        }
                     }
                 }
-            }
-        })
-
-        await Promise.all(uniqueFieldPromises)
+            })
+            await Promise.all(uniqueFieldPromises)
+        }
 
         addRecordAccessControl(
             record,
@@ -308,124 +331,136 @@ export const addRecord = async (
         record.User_ID = uid
     }
 
-    try {
-        const batchSize = { size: 1 }
-        await db.runTransaction(
-            async (transaction) => {
-                await preWriteChecks(transaction, batchSize)
+    const runTransaction = async (transaction: Transaction) => {
+        try {
+            const batchSize = { size: 1 }
+            await preWriteChecks(transaction, batchSize)
 
-                if (!options?.noTwoWay) {
-                    await validateRelations(
-                        "Create",
-                        tenantId,
-                        docId,
-                        record,
-                        record,
-                        collectionSchema,
-                        schema,
-                        transaction,
-                        batchSize,
-                        userId,
-                        currentUserPermissions,
-                    )
-                }
-
-                const roleGroups = getAllRoleGroups(schema)
-                addDenormalized(
-                    "create",
-                    transaction,
-                    path,
+            if (!options?.noTwoWay) {
+                await validateRelations(
+                    "Create",
+                    tenantId,
                     docId,
                     record,
-                    schema,
+                    record,
                     collectionSchema,
-                    options,
-                    roleGroups,
-                    FieldValue.arrayUnion,
-                    FieldValue.arrayRemove,
-                    FieldValue.delete,
-                    (field: CollectionField) =>
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_fields")
-                            .doc(labels.collection)
-                            .collection(`${labels.collection}-${field.name}`)
-                            .doc(docId),
-                    (field: CollectionField, uniqueValue: string) =>
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_unique")
-                            .doc(labels.collection)
-                            .collection(`Unique-${labels.collection}-${field.name}`)
-                            .doc(uniqueValue),
-                    (role: StokerRole) =>
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_fields")
-                            .doc(labels.collection)
-                            .collection(`${labels.collection}-${role}`)
-                            .doc(docId),
-                    (relationPath: string[], id: string) => {
-                        const ref = getFirestorePathRef(db, relationPath, tenantId)
-                        return ref.doc(id)
-                    },
-                    (field: RelationField, dependencyField: string, id: string) =>
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_fields")
-                            .doc(field.collection)
-                            .collection(`${field.collection}-${dependencyField}`)
-                            .doc(id),
-                    (field: RelationField, role: StokerRole, id: string) =>
-                        db
-                            .collection("tenants")
-                            .doc(tenantId)
-                            .collection("system_fields")
-                            .doc(field.collection)
-                            .collection(`${field.collection}-${role.replaceAll(" ", "-")}`)
-                            .doc(id),
-                    undefined,
-                    undefined,
+                    schema,
+                    transaction,
                     batchSize,
+                    userId,
+                    currentUserPermissions,
                 )
-                transaction.set(ref.doc(docId), record)
-            },
-            { maxAttempts: 10 },
-        )
-    } catch (error) {
-        const postWriteErrorArgs: PostWriteErrorHookArgs = ["create", record, docId, context, error]
-        const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
-        if (enableWriteLog) {
-            await new Promise((resolve) => {
-                setTimeout(resolve, 250)
-            })
-            await writeLog(
+            }
+
+            const roleGroups = getAllRoleGroups(schema)
+            addDenormalized(
                 "create",
-                errorHook?.resolved ? "success" : "failed",
-                record,
-                tenantId,
+                transaction,
                 path,
                 docId,
+                record,
+                schema,
                 collectionSchema,
-                errorHook?.resolved ? undefined : error,
+                options,
+                roleGroups,
+                FieldValue.arrayUnion,
+                FieldValue.arrayRemove,
+                FieldValue.delete,
+                (field: CollectionField) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(labels.collection)
+                        .collection(`${labels.collection}-${field.name}`)
+                        .doc(docId),
+                (field: CollectionField, uniqueValue: string) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_unique")
+                        .doc(labels.collection)
+                        .collection(`Unique-${labels.collection}-${field.name}`)
+                        .doc(uniqueValue),
+                (role: StokerRole) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(labels.collection)
+                        .collection(`${labels.collection}-${role}`)
+                        .doc(docId),
+                (relationPath: string[], id: string) => {
+                    const ref = getFirestorePathRef(db, relationPath, tenantId)
+                    return ref.doc(id)
+                },
+                (field: RelationField, dependencyField: string, id: string) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(field.collection)
+                        .collection(`${field.collection}-${dependencyField}`)
+                        .doc(id),
+                (field: RelationField, role: StokerRole, id: string) =>
+                    db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(field.collection)
+                        .collection(`${field.collection}-${role.replaceAll(" ", "-")}`)
+                        .doc(id),
+                undefined,
+                undefined,
+                batchSize,
             )
-        }
-        if (!errorHook?.resolved) {
-            if (collectionSchema.auth && user) {
-                await deleteUser(record)
-            }
-            throw error
+            transaction.set(ref.doc(docId), record)
+        } catch (error) {
+            if (!options?.providedTransaction) {
+                const postWriteErrorArgs: PostWriteErrorHookArgs = ["create", record, docId, context, error]
+                const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
+                if (enableWriteLog) {
+                    await new Promise((resolve) => {
+                        setTimeout(resolve, 250)
+                    })
+                    await writeLog(
+                        "create",
+                        errorHook?.resolved ? "success" : "failed",
+                        record,
+                        tenantId,
+                        path,
+                        docId,
+                        collectionSchema,
+                        errorHook?.resolved ? undefined : error,
+                    )
+                }
+                if (!errorHook?.resolved) {
+                    if (collectionSchema.auth && user) {
+                        await deleteUser(record)
+                    }
+                    throw error
+                }
+            } else throw error
         }
     }
 
-    const postWriteArgs: PostWriteHookArgs = ["create", record, docId, context]
-    const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
-    await runHooks("postWrite", globalConfig, customization, postWriteArgs)
-    await runHooks("postOperation", globalConfig, customization, postOperationArgs)
+    if (options?.providedTransaction) {
+        await runTransaction(options.providedTransaction)
+    } else {
+        await db.runTransaction(
+            async (transaction) => {
+                await runTransaction(transaction)
+            },
+            { maxAttempts: 10 },
+        )
+    }
+
+    if (!options?.providedTransaction) {
+        const postWriteArgs: PostWriteHookArgs = ["create", record, docId, context]
+        const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+        await runHooks("postWrite", globalConfig, customization, postWriteArgs)
+        await runHooks("postOperation", globalConfig, customization, postOperationArgs)
+    }
 
     const result = { id: docId, ...record }
     return result

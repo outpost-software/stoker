@@ -250,7 +250,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.user),
                   )
-                : Promise.resolve(Promise.resolve({} as DocumentSnapshot)),
+                : Promise.resolve({} as DocumentSnapshot),
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
             fetchCurrentSchema(true),
         ])

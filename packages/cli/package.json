@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/cli",
-    "version": "0.5.20",
+    "version": "0.5.21",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "./lib/src/main.js",
@@ -24,7 +24,7 @@
         "@google-cloud/secret-manager": "^6.1.1",
         "@google-cloud/storage": "^7.18.0",
         "@inquirer/prompts": "^8.1.0",
-        "@stoker-platform/node-client": "0.5.13",
+        "@stoker-platform/node-client": "0.5.14",
         "@stoker-platform/types": "0.5.5",
         "@stoker-platform/utils": "0.5.8",
         "algoliasearch": "^5.46.2",

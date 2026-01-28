@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.14
+
+### Patch Changes
+
+- feat: add bulk record creation support
+
 ## 0.5.13
 
 ### Patch Changes
