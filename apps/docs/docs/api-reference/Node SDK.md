@@ -62,6 +62,8 @@ Retrieve you app's previous schema.
     userId?: string,
     options?: {
         noTwoWay?: boolean
+        providedTransaction?: Transaction
+        providedSchema?: CollectionsSchema
     },
     context?: any,
     id?: string,
@@ -106,6 +108,14 @@ type StokerPermissions = {
 
 `options.noTwoWay`: Do not write two-way relations.
 
+`options.providedTransaction`: Provide a Firestore transaction to be used for the operation. This allows batched writes, which is useful for data imports / migrations. There are some limitations:
+- Unique field checks will not run. If you want unique field validation you'll have to do it manually.
+- postWrite and postWriteError hooks will not fire.
+- No write log entries will be created.
+- Relation validation will not run.
+
+`options.providedSchema`: Provide a Stoker schema when `options.providedTransaction` is in use. This will prevent the schema from being re-fetched for every write operation.
+
 `context`: The context to pass to hooks.
 
 `id`: Optionally provide a Firestore id for the new record.
@@ -137,8 +147,11 @@ You can [transactionally increment or decrement a field value](https://firebase.
     userId?: string,
     options?: {
         noTwoWay?: boolean
+        providedTransaction?: Transaction
+        providedSchema?: CollectionsSchema
     },
     context?: any,
+    originalRecord?: StokerRecord
 ) => Promise<StokerRecord>
 ```
 
@@ -156,7 +169,18 @@ You can [transactionally increment or decrement a field value](https://firebase.
 
 `options.noTwoWay`: Do not write two-way relations.
 
+`options.providedTransaction`: Provide a Firestore transaction to be used for the operation. This allows batched writes, which is useful for data imports / migrations. There are some limitations:
+- Unique field checks will not run. If you want unique field validation you'll have to do it manually.
+- postWrite and postWriteError hooks will not fire.
+- No write log entries will be created.
+- Relation validation will not run.
+- You must provide a value for originalRecord (see below)
+
+`options.providedSchema`: Provide a Stoker schema when `options.providedTransaction` is in use. This will prevent the schema from being re-fetched for every write operation.
+
 `context`: The context to pass to hooks.
+
+`originalRecord`: Optionally provide the entire original record for the record that is being modified. This will prevent the original record from being retrieved from Firestore, which improves performance when performing bulk write operations.
 
 #### Returns
 
@@ -279,6 +303,7 @@ Retrieve multiple records from the database.
         transactional?: boolean
         providedTransaction?: Transaction
         noEmbeddingFields?: boolean
+        noComputedFields?: boolean
     }
 ) => Promise<{
     cursor: Cursor;
@@ -306,6 +331,8 @@ Retrieve multiple records from the database.
 `options.providedTransaction`: Provide a Firestore transaction to use for the operation.
 
 `options.noEmbeddingFields`: Exclude embeddings fields from the record.
+
+`options.noComputedFields`: Exclude computed fields from the record.
 
 #### Returns
 

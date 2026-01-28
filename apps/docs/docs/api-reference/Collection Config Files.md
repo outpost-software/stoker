@@ -46,7 +46,7 @@ Set to `true` if the collection will only have one record / page i.e. "Settings"
 
 When set to `true`, no list page will be shown in the Admin UI. The user will be sent straight to the form page for the single record in the collection.
 
-## parentCollection
+### parentCollection
 
 `string`
 
@@ -1145,6 +1145,21 @@ Set the maximum number of relations for this field.
 When a record is deleted from Stoker, its relation values in other records are deleted. This happens in a Cloud Function, so deletions made in offline mode won't be visible until the user has reconnected.
 :::
 
+### Computed Field Properties
+
+#### type
+
+`"Computed"`
+
+#### formula
+
+`(record: StokerRecord, retrieverData?: any) => string | number | Promise<string | number>`
+
+Calculates the value for the field.
+
+When using `getSome` or `subscribeMany`, `retrieverData` will return the data provided by the collection's [`retriever`](#retriever) function. This lets you load data sets for your computed field formulas **once per query**.
+
+
 ### Field Admin UI Properties
 
 Admin UI config is specified using the `admin` property.
@@ -1736,6 +1751,12 @@ Create custom pages for the collection.
 `component`: The custom component and the props that will be passed to it.
 
 `condition`: Show or hide the custom component
+
+### retriever
+
+`() => any | Promise<any>`
+
+Use this method to load data for use in your [computed fields](#computed-field-properties).
 
 ### list
 

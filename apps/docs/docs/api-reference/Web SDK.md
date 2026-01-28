@@ -430,6 +430,8 @@ Add a listener to a collection in the database.
             startAt?: Cursor
             endAt?: Cursor
         }
+        noComputedFields?: boolean;
+        noEmbeddingFields?: boolean;
     }
 ) => Promise<{
     pages: number | undefined;
@@ -453,6 +455,10 @@ Add a listener to a collection in the database.
 `options.relations`: Include related records. Optionally specify a subset of relation fields to retrieve.
 
 `options.pagination`: Optionally specify a number of results per page. Optionally enable sorting of results. Optionally provide a cursor object for `startAt`, `endAt`, `startAfter` or `endBefore`.
+
+`options.noEmbeddingFields`: Exclude embeddings fields from the record.
+
+`options.noComputedFields`: Exclude computed fields from the record.
 
 #### Returns
 
