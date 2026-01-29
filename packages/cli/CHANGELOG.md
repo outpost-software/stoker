@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.22
+
+### Patch Changes
+
+- feat: add custom Firestore index support
+
 ## 0.5.21
 
 ### Patch Changes

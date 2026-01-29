@@ -28,6 +28,10 @@ You can customize the system prompt used for your app's AI chat at `functions/pr
 
 You can add custom [Firestore Security Rules](https://firebase.google.com/docs/firestore/security/get-started) in `firebase-rules/firestore.custom.rules`.
 
+## Custom Firestore Indexes
+
+You can add custom Firestore indexes in `firebase-rules/firestore.custom.indexes.json`.
+
 ## Run Data Operations
 
 You can use the `ops.js` file to run back-end operations on your data.

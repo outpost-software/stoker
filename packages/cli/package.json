@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/cli",
-    "version": "0.5.21",
+    "version": "0.5.22",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "./lib/src/main.js",
