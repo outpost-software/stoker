@@ -140,7 +140,9 @@ const getFieldSchema = (field: CollectionField, customization?: CollectionCustom
                     message: "Must be a valid number",
                 })
             } else {
-                fieldSchema = z.number()
+                fieldSchema = z.number({
+                    message: "Must be a valid number",
+                })
                 if (field.min) {
                     fieldSchema = fieldSchema.min(field.min, `Must be greater than or equal to ${field.min}`)
                 }
