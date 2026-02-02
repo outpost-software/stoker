@@ -1908,6 +1908,7 @@ type CalendarConfig = {
     startField: string
     endField?: string
     allDayField?: string
+    eventTitle?: (record: StokerRecord) => string
     color?: string | ((record: StokerRecord) => string)
     fullCalendarLarge?: CalendarOptions
     fullCalendarSmall?: CalendarOptions
@@ -1937,6 +1938,8 @@ Show a calendar view.
 `endField`: A Timestamp field that specifies the end date for records on the calendar. If omitted, the start date will be used.
 
 `allDayField`: A Boolean field indicating whether records are all-day.
+
+`eventTitle`: A custom title for the provided record's event on the calendar
 
 `color`: The color for the provided record's event on the calendar
 

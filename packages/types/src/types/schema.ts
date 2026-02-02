@@ -532,6 +532,7 @@ export interface CalendarConfig {
     dataStartOffset?: { days: number } | { weeks: number } | { months: number } | { years: number }
     dataEndOffset?: { days: number } | { weeks: number } | { months: number } | { years: number }
     color?: string | ((record: StokerRecord) => string)
+    eventTitle?: (record: StokerRecord) => string
 }
 
 export type StatusFilter = {

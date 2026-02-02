@@ -627,10 +627,12 @@ export function Calendar({
             .map((record) => {
                 const isPendingServer = isGlobalLoading.get(record.id)?.server
 
+                // eslint-disable-next-line security/detect-object-injection
+                const title = tryFunction(calendarConfig.eventTitle, [record]) || record[recordTitleField] || record.id
+
                 const event: EventInput = {
                     id: record.id,
-                    // eslint-disable-next-line security/detect-object-injection
-                    title: record[recordTitleField] || record.id,
+                    title,
                     start: record[calendarConfig.startField].toDate(),
                     startEditable: !isPendingServer && !isUpdateDisabled && hasStartUpdateAccess,
                     durationEditable: !isPendingServer && !isUpdateDisabled && hasEndUpdateAccess,
