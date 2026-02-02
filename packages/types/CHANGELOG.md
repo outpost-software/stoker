@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.7
+
+### Patch Changes
+
+- feat: add custom calendar event title option
+
 ## 0.5.6
 
 ### Patch Changes

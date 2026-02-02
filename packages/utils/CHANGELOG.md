@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.10
+
+### Patch Changes
+
+- feat: add custom invalid number message
+- Updated dependencies
+    - @stoker-platform/types@0.5.7
+
 ## 0.5.9
 
 ### Patch Changes

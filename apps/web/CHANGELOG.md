@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.21
+
+### Patch Changes
+
+- feat: add custom calendar event title option
+- fix: limit card header relation to 2 lines
+- Updated dependencies
+    - @stoker-platform/utils@0.5.10
+    - @stoker-platform/node-client@0.5.16
+    - @stoker-platform/web-client@0.5.10
+
 ## 0.5.20
 
 ### Patch Changes
