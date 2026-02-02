@@ -448,7 +448,7 @@ Fax: 02 9429 6299`
                         </div>
                     )}
                     {labels.collection === "Invoices" && (
-                        <p className="max-w-[500px] whitespace-pre-wrap">{paymentInfo}</p>
+                        <p className="max-w-[500px] whitespace-pre-wrap mt-5">{paymentInfo}</p>
                     )}
                 </div>
             </div>
