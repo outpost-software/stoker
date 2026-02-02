@@ -26,7 +26,7 @@ export const getFormattedFieldValue = (
     maxLines?: 1 | 2 | 3 | 4 | 5 | 6,
     goToRecord?: (collection: CollectionSchema, record: StokerRecord, field: RelationField) => void,
     form?: boolean,
-    card?: boolean,
+    card?: boolean | "header",
 ) => {
     let lineClamp = "line-clamp-6"
     switch (maxLines) {
@@ -164,8 +164,10 @@ export const getFormattedFieldValue = (
                             }
                         }}
                     >
-                        {/* eslint-disable-next-line security/detect-object-injection */}
-                        {titleField ? (Object.values(value)[0] as StokerRecord)[titleField] : Object.keys(value)[0]}
+                        <span className={cn(card === "header" && "line-clamp-2")}>
+                            {/* eslint-disable-next-line security/detect-object-injection */}
+                            {titleField ? (Object.values(value)[0] as StokerRecord)[titleField] : Object.keys(value)[0]}
+                        </span>
                     </Button>
                 )
             )

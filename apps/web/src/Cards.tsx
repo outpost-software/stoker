@@ -111,6 +111,8 @@ function CardItem({ index, style, data }: CardItemProps) {
               connectionStatus,
               1,
               goToRecord,
+              undefined,
+              "header",
           )
         : undefined
     const maxFootlerLines = cardsConfig.maxFooterLines === 2 ? 2 : 1
