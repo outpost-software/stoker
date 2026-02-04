@@ -27,13 +27,14 @@ const filterAccess = (
     userId: string,
     permissions: StokerPermissions,
     record: StokerRecord,
+    dependencyAccess?: boolean,
 ) => {
     const { fields } = collectionSchema
     const collectionPermissions = permissions.collections?.[collectionSchema.labels.collection]
 
     let granted = true
 
-    if (!collectionPermissions) {
+    if (!collectionPermissions && !dependencyAccess) {
         granted = false
         return
     }
@@ -91,7 +92,7 @@ const filterAccess = (
         ?.filter((entityRestriction) => entityRestriction.type === "Individual")
         .forEach(() => {
             hasIndividualEntityRestriction = true
-            if (!collectionPermissions.individualEntities?.includes(record.id))
+            if (!collectionPermissions?.individualEntities?.includes(record.id))
                 individualEntityRestrictionPassed = false
         })
 
@@ -104,7 +105,7 @@ const filterAccess = (
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const field = getField(fields, entityRestriction.collectionField) as RelationField
             if (
-                !collectionPermissions.parentEntities?.some((entity: string) =>
+                !collectionPermissions?.parentEntities?.some((entity: string) =>
                     record[`${field.name}_Array`].includes(entity),
                 )
             )
@@ -118,7 +119,7 @@ const filterAccess = (
             const collectionField = getField(fields, entityRestriction.collectionField) as RelationField
             const propertyField = getField(fields, entityRestriction.propertyField)
             if (
-                !Object.entries(collectionPermissions.parentPropertyEntities || {}).some((property) => {
+                !Object.entries(collectionPermissions?.parentPropertyEntities || {}).some((property) => {
                     const [propertyKey, entities] = property
                     return (
                         propertyKey === record[propertyField.name] &&
@@ -270,7 +271,7 @@ export const dependencyAccess = (
 
     if (hasDependencyAccess(collectionSchema, schema, permissions).length === 0) granted = false
 
-    if (!filterAccess("Read", collectionSchema, schema, userId, permissions, record)) granted = false
+    if (!filterAccess("Read", collectionSchema, schema, userId, permissions, record, true)) granted = false
 
     return granted
 }

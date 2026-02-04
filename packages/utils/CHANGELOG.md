@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.11
+
+### Patch Changes
+
+- fix: remove collection schema guard from dependency access check
+
 ## 0.5.10
 
 ### Patch Changes
