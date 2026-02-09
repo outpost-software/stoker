@@ -50,6 +50,10 @@ Stoker:
 
 You might also want to update your package name in package.json.
 
+:::tip
+If you are using **AI**, we recommend using the [Context7](https://context7.com/outpost-software/stoker) MCP server. This will give your AI model access to the full Stoker documentation. Stoker is available in Context7 as "Stoker Platform".
+:::
+
 :::warning
 For Windows users- Stoker has only been tested in Git Bash at this stage. Powershell and Command Prompt are not currently supported.
 :::
@@ -126,11 +130,6 @@ The most important concepts to know are:
 - Relational Fields:
     - [Include Fields](/docs/api-reference/Collection%20Config%20Files#includefields) and [Title Field](/docs/api-reference/Collection%20Config%20Files#titlefield)
     - [Dependency Fields](/docs/api-reference/Collection%20Config%20Files#dependencyfields)
-
-
-:::tip
-Stoker is available in [Context7](https://context7.com/outpost-software/stoker) as "Stoker Platform".
-:::
 
 For more information, see [Collection Config Files](/docs/api-reference/Collection%20Config%20Files).
 
