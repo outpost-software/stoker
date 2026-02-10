@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/types",
-    "version": "0.5.7",
+    "version": "0.5.8",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "src/main.ts",
@@ -23,8 +23,8 @@
     },
     "dependencies": {
         "@fullcalendar/core": "^6.1.20",
-        "@google-cloud/storage": "^7.18.0",
-        "firebase": "^12.8.0",
-        "firebase-admin": "^13.6.0"
+        "@google-cloud/storage": "^7.19.0",
+        "firebase": "^12.9.0",
+        "firebase-admin": "^13.6.1"
     }
 }

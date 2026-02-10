@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/cli",
-    "version": "0.5.25",
+    "version": "0.5.26",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "./lib/src/main.js",
@@ -19,19 +19,19 @@
         "stoker": "./lib/src/main.js"
     },
     "dependencies": {
-        "@faker-js/faker": "^10.2.0",
+        "@faker-js/faker": "^10.3.0",
         "@google-cloud/bigquery": "^8.1.1",
         "@google-cloud/secret-manager": "^6.1.1",
-        "@google-cloud/storage": "^7.18.0",
+        "@google-cloud/storage": "^7.19.0",
         "@inquirer/prompts": "^8.2.0",
-        "@stoker-platform/node-client": "0.5.17",
-        "@stoker-platform/types": "0.5.7",
-        "@stoker-platform/utils": "0.5.11",
-        "algoliasearch": "^5.47.0",
+        "@stoker-platform/node-client": "0.5.18",
+        "@stoker-platform/types": "0.5.8",
+        "@stoker-platform/utils": "0.5.12",
+        "algoliasearch": "^5.48.0",
         "commander": "^14.0.0",
         "cross-spawn": "^7.0.6",
-        "dotenv": "^17.2.3",
-        "firebase-admin": "^13.6.0"
+        "dotenv": "^17.2.4",
+        "firebase-admin": "^13.6.1"
     },
     "devDependencies": {
         "@types/cross-spawn": "^6.0.6",

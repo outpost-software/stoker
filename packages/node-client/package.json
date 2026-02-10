@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/node-client",
-    "version": "0.5.17",
+    "version": "0.5.18",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -22,12 +22,12 @@
         "build": "vite build"
     },
     "dependencies": {
-        "@google-cloud/storage": "^7.18.0",
-        "@stoker-platform/types": "0.5.7",
-        "@stoker-platform/utils": "0.5.11",
+        "@google-cloud/storage": "^7.19.0",
+        "@stoker-platform/types": "0.5.8",
+        "@stoker-platform/utils": "0.5.12",
         "@types/luxon": "^3.7.1",
         "cross-spawn": "^7.0.6",
-        "firebase-admin": "^13.6.0",
+        "firebase-admin": "^13.6.1",
         "lodash": "^4.17.23",
         "luxon": "^3.7.2"
     },
