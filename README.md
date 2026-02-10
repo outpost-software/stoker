@@ -20,11 +20,12 @@ These steps are detailed below.
 
 1. Install Stoker and the required tools
 2. Fill out a simple .env file that describes your back-end infrastructure (for example, hosting regions).
-3. Fill out your global config file (project-wide config)
-4. Create a schema file for each "collection" required in your app. Defaults are provided for Users, Settings, Inbox and Outbox.
-5. Set up your development and production environments
-6. Add tenants to your app using `stoker add-tenant` (one tenant for each organization that will use your app)
-7. Hit `stoker deploy` to deploy changes
+3. Scaffold a v0 for your app using AI (optional).
+4. Fill out your global config file (project-wide config)
+5. Create a schema file for each "collection" required in your app. Defaults are provided for Users, Settings, Inbox and Outbox.
+6. Set up your development and production environments
+7. Add tenants to your app using `stoker add-tenant` (one tenant for each organization that will use your app)
+8. Hit `stoker deploy` to deploy changes
 
 > [!NOTE]
 > The cost of running your development environment on Google Cloud Platform will be around **USD$1 per month**.
@@ -56,9 +57,6 @@ Stoker:
 - `stoker init && git init && npm i && npm --prefix functions i`
 
 You might also want to update your package name in package.json.
-
-> [!TIP]
-> If you are using **AI**, we recommend using the [Context7](https://context7.com/outpost-software/stoker) MCP server. This will give your AI model access to the full Stoker documentation. Stoker is available in Context7 as "Stoker Platform".
 
 > [!IMPORTANT]
 > For Windows users- Stoker has only been tested in Git Bash at this stage. Powershell and Command Prompt are not currently supported.
@@ -97,6 +95,19 @@ For more information, see [Env Files - Back End Setup](https://stoker-website.we
 - You can use the default icons to get started.
 - Replace logo-small.png and logo-large.png in the icons directory with your own icons (keep the same file names).
 - Recommended sizes are 192 x 192 (logo-small) and 3000 x 3000 (logo-large).
+
+## AI Scaffolding
+
+At this point, you may choose to use AI to scaffold a v0 of your app.
+
+For new users, this can provide a quick jumpstart on the next two sections (the [Global Config File](#global-config-file) and [Collection Files](#collection-files)). Once you’re familiar with Stoker, you’ll likely find it faster and more precise to write your config by hand, using the docs as a feature checklist.
+
+> [!TIP]
+> We recommend using the [Context7](https://context7.com/outpost-software/stoker) MCP server. This will give your AI model access to the full Stoker documentation. Stoker is available in Context7 as "Stoker Platform".
+>
+> Example prompt: "Create a simple todo app. Use Stoker Platform in Context7."
+
+You can run `tsc && stoker lint-schema` to detect any errors made by the AI.
 
 ## Global Config File
 

@@ -46,7 +46,9 @@ const FeatureList: FeatureItem[] = [
     {
         title: "AI Ready",
         Svg: require("@site/static/img/undraw_mcp-server.svg").default,
-        description: <>Store embeddings and optionally enable agents that use your app's data as context.</>,
+        description: (
+            <>Store embeddings and optionally enable user-facing agents that use your app's data as context.</>
+        ),
     },
     {
         title: "Access Control Presets",

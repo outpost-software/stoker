@@ -21,19 +21,32 @@ function HomepageHeader() {
             </div>
             <header className={clsx("hero hero--primary", styles.heroBanner)}>
                 <div className="container">
-                    <img src="/img/Stoker Logo.png" alt="Stoker" width={500} />
-                    <div>
-                        <p className={styles.tagline}>
-                            Build realtime, offline-ready internal tools.<br></br>Optionally ship them as highly
-                            scalable, multi-tenant SaaS products.
-                        </p>
+                    <div className={styles.heroColumns}>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                            <img className={styles.heroLogo} src="/img/Stoker Logo.png" alt="Stoker" />
+                        </div>
+                        <div>
+                            <p className={styles.tagline}>
+                                <strong>Build realtime, offline-ready internal tools in TypeScript.</strong>
+                            </p>
+                            <br></br>
+                            <p className={styles.tagline}>
+                                <strong>Optional:</strong>
+                                <br></br>
+                                Scaffold v0 systems with AI
+                                <br></br>
+                                Ship your tools as highly scalable, multi-tenant SaaS products
+                            </p>
+                            <div className={styles.buttons}>
+                                <Link className="button button--secondary button--lg" to="/docs/Getting Started">
+                                    Read the docs
+                                </Link>
+                            </div>
+                            <Link to="/pricing" className={styles.free} style={{ marginTop: "2rem" }}>
+                                Free for development and evaluation*
+                            </Link>
+                        </div>
                     </div>
-                    <div className={styles.buttons}>
-                        <Link className="button button--secondary button--lg" to="/docs/Getting Started">
-                            Read the docs
-                        </Link>
-                    </div>
-                    <p className={styles.free}>Free for development and evaluation*</p>
                 </div>
             </header>
         </>

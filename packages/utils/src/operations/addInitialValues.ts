@@ -13,7 +13,10 @@ export const addInitialValues = async (
     const { fields } = collectionSchema
     for (const field of customization.fields) {
         const fieldSchema = getField(fields, field.name)
-        if (field.custom?.initialValue && !(role && fieldSchema.access && !fieldSchema.access.includes(role))) {
+        if (
+            field.custom?.initialValue !== undefined &&
+            !(role && fieldSchema.access && !fieldSchema.access.includes(role))
+        ) {
             data[field.name] = await tryPromise(field.custom.initialValue, [data])
             const lowercaseFields = getLowercaseFields(collectionSchema, [fieldSchema])
             if (lowercaseFields.size === 1) {
