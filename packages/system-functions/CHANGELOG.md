@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.20
+
+### Patch Changes
+
+- feat: update Gemini model
+
 ## 0.5.19
 
 ### Patch Changes

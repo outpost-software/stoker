@@ -1,4 +1,4 @@
-import {textEmbedding004} from "@genkit-ai/vertexai";
+import {vertexAI} from "@genkit-ai/google-genai";
 import {CollectionSchema, CollectionsSchema} from "@stoker-platform/types";
 import {
     defineFirestoreRetriever,
@@ -21,6 +21,8 @@ import {Genkit} from "genkit";
 import {join} from "node:path";
 
 /* eslint-disable max-len */
+
+const embedder = vertexAI.embedder("text-embedding-005");
 
 export const chatAuthPolicy = (
     auth: AuthData | null,
@@ -61,7 +63,7 @@ export const chatFlow = (
         collection: "",
         contentField: "input",
         vectorField: "output",
-        embedder: textEmbedding004,
+        embedder,
         distanceMeasure: "COSINE",
     });
 

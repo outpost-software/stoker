@@ -48,7 +48,7 @@ import {
 import globalConfig from "./system-custom/main.js";
 import * as functions from "firebase-functions/v1";
 import {genkit} from "genkit";
-import {vertexAI} from "@genkit-ai/vertexai";
+import {vertexAI} from "@genkit-ai/google-genai";
 import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {sendMail, sendMessage} from "@stoker-platform/node-client";

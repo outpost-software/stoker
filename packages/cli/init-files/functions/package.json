@@ -20,7 +20,7 @@
     "main": "lib/index.js",
     "dependencies": {
         "@genkit-ai/firebase": "latest",
-        "@genkit-ai/vertexai": "latest",
+        "@genkit-ai/google-genai": "latest",
         "@google-cloud/storage": "latest",
         "@stoker-platform/node-client": "latest",
         "@stoker-platform/system-functions": "latest",

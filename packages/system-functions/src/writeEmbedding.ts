@@ -7,7 +7,7 @@ import {
     StokerRecord,
 } from "@stoker-platform/types";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
-import {textEmbedding004, vertexAI} from "@genkit-ai/vertexai";
+import {vertexAI} from "@genkit-ai/google-genai";
 import {genkit} from "genkit";
 import {tryPromise} from "@stoker-platform/utils";
 import {initializeStoker} from "@stoker-platform/node-client";
@@ -15,8 +15,12 @@ import {join} from "path";
 
 /* eslint-disable max-len */
 
+const embedder = vertexAI.embedder("text-embedding-005");
+
 const ai = genkit({
-    plugins: [vertexAI()],
+    plugins: [vertexAI({
+        location: process.env.FB_AI_REGION || "us-central1",
+    })],
 });
 
 export const writeEmbedding = (
@@ -51,7 +55,7 @@ export const writeEmbedding = (
                 if (!customization.custom?.setEmbedding) return;
                 const input = await tryPromise(customization.custom?.setEmbedding, [record]);
                 const embedding = (await ai.embed({
-                    embedder: textEmbedding004,
+                    embedder,
                     content: input,
                 }))[0].embedding;
                 const doc: Record<string, unknown> = {
