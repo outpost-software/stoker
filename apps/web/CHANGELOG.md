@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.25
+
+### Patch Changes
+
+- fix: remove vite.config.ts comment
+
 ## 0.5.24
 
 ### Patch Changes

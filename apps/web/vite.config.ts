@@ -17,7 +17,7 @@ export default defineConfig(async () => {
 
     return {
         plugins: [
-            // // eslint(),
+            eslint(),
             react(),
             VitePWA({
                 registerType: "autoUpdate",
