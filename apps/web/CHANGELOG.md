@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.24
+
+### Patch Changes
+
+- fix: disable zoom for inputs and fix textarea scroll trap
+
 ## 0.5.23
 
 ### Patch Changes
