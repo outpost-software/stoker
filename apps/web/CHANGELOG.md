@@ -1,5 +1,12 @@
 # @stoker-platform/web-app
 
+## 0.5.26
+
+### Patch Changes
+
+- fix: fix Dashboard chart flicker
+- fix: improve card sorting field selector labels
+
 ## 0.5.25
 
 ### Patch Changes

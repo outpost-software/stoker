@@ -1,5 +1,13 @@
 # stoker
 
+## 0.4.34
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/web-app@0.5.26
+    - @stoker-platform/cli@0.5.28
+
 ## 0.4.33
 
 ### Patch Changes

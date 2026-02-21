@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.28
+
+### Patch Changes
+
+- fix: only check relevant roles for preload cache field access
+
 ## 0.5.27
 
 ### Patch Changes
