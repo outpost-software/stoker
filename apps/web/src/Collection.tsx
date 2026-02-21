@@ -1821,6 +1821,17 @@ function Collection({
                                                     <ScrollArea className={sortingHeight}>
                                                         <div>
                                                             {sortingFields.map((field: CollectionField) => {
+                                                                const fieldCustomization = getFieldCustomization(
+                                                                    field,
+                                                                    customization,
+                                                                )
+                                                                const label =
+                                                                    tryFunction(fieldCustomization.admin?.label) ||
+                                                                    field.name
+                                                                const condition =
+                                                                    fieldCustomization.admin?.condition?.list
+                                                                if (condition !== undefined && !tryFunction(condition))
+                                                                    return null
                                                                 return (
                                                                     <DropdownMenuItem
                                                                         key={field.name}
@@ -1859,7 +1870,7 @@ function Collection({
                                                                         {order?.field === field.name && (
                                                                             <Check className="absolute h-3.5 w-3.5 mr-1" />
                                                                         )}
-                                                                        <span className="ml-5">{field.name}</span>
+                                                                        <span className="ml-5">{label}</span>
                                                                     </DropdownMenuItem>
                                                                 )
                                                             })}
