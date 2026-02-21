@@ -95,9 +95,7 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
         }
         initialize()
         debouncedSetIsLoading(true)
-        if (!(isPreloadCacheEnabled && isCacheLoading)) {
-            getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
-        }
+        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
         return () => {
             unsubscribe?.forEach((unsubscribe) => unsubscribe())
             if (loadingTimeoutRef.current) {
@@ -112,7 +110,6 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
 
     const cacheLoaded = useCallback(() => {
         setIsCacheLoading(false)
-        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
     }, [constraints])
 
     useEffect(() => {
@@ -205,7 +202,6 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                         .sort((a, b) => {
                                             if (!sorting) return 0
                                             const sortingField = getField(fields, sorting.field)
-                                            console.log(sorting.field, sortingField)
                                             const fieldCustomization = getFieldCustomization(
                                                 sortingField,
                                                 customization,

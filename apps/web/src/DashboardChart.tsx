@@ -87,7 +87,6 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
 
     const cacheLoaded = useCallback(() => {
         setIsCacheLoading(false)
-        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
     }, [constraints])
 
     useEffect(() => {

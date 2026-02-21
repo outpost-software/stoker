@@ -62,9 +62,7 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
 
     useEffect(() => {
         debouncedSetIsLoading(true)
-        if (!(isPreloadCacheEnabled && isCacheLoading)) {
-            getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
-        }
+        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
         return () => {
             unsubscribe?.forEach((unsubscribe) => unsubscribe())
             if (loadingTimeoutRef.current) {
@@ -79,7 +77,6 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
 
     const cacheLoaded = useCallback(() => {
         setIsCacheLoading(false)
-        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
     }, [constraints])
 
     useEffect(() => {
