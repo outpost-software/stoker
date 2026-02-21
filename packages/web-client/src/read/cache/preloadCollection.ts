@@ -1,4 +1,4 @@
-import { PreloadCacheRange, StokerCollection } from "@stoker-platform/types"
+import { PreloadCacheInitial, PreloadCacheRange, StokerCollection } from "@stoker-platform/types"
 import { getCurrentUserPermissions, getLoadingState, getSchema } from "../../initializeStoker"
 import { collectionAccess, getRelatedCollections, hasDependencyAccess, tryPromise } from "@stoker-platform/utils"
 import { preloadData } from "./preloadData"
@@ -9,6 +9,7 @@ export const preloadCollection = async (
     constraints?: [string, WhereFilterOp, unknown][],
     rangeConstraints?: PreloadCacheRange,
     orQueries?: [string, WhereFilterOp, unknown][],
+    initial?: PreloadCacheInitial,
 ) => {
     // eslint-disable-next-line security/detect-object-injection
     const schema = getSchema()
@@ -44,17 +45,19 @@ export const preloadCollection = async (
             if (waitForRelationCollections) {
                 const relatedCollections = getRelatedCollections(collectionSchema, schema, permissions)
                 for (const relatedCollection of relatedCollections) {
-                    const relatedCollectionSchema = schema.collections[relatedCollection]
-                    if (!relatedCollectionSchema.preloadCache?.roles.includes(permissions.Role)) continue
-                    const relatedCollectionState = getLoadingState()[relatedCollection]
-                    if (
-                        relatedCollectionState === "Loading" ||
-                        relatedCollectionState === "Loaded" ||
-                        relatedCollectionState === "Error"
-                    )
-                        continue
-                    if (!relatedCollectionState) {
-                        await preloadCollection(relatedCollection)
+                    if (!initial?.[relatedCollection]) {
+                        const relatedCollectionSchema = schema.collections[relatedCollection]
+                        if (!relatedCollectionSchema.preloadCache?.roles.includes(permissions.Role)) continue
+                        const relatedCollectionState = getLoadingState()[relatedCollection]
+                        if (
+                            relatedCollectionState === "Loading" ||
+                            relatedCollectionState === "Loaded" ||
+                            relatedCollectionState === "Error"
+                        )
+                            continue
+                        if (!relatedCollectionState) {
+                            await preloadCollection(relatedCollection, undefined, undefined, undefined, initial)
+                        }
                     }
                 }
             }

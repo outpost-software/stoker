@@ -34,6 +34,7 @@ export const preloadCache = async (initial?: PreloadCacheInitial) => {
                 initial?.[collection].constraints,
                 initial?.[collection].range,
                 initial?.[collection].orQueries,
+                initial,
             )
         }
     }
@@ -45,6 +46,7 @@ export const preloadCache = async (initial?: PreloadCacheInitial) => {
                 initial?.[collection].constraints,
                 initial?.[collection].range,
                 initial?.[collection].orQueries,
+                initial,
             )
         }
     }
@@ -56,6 +58,7 @@ export const preloadCache = async (initial?: PreloadCacheInitial) => {
             initial?.[collection].constraints,
             initial?.[collection].range,
             initial?.[collection].orQueries,
+            initial,
         )
     }
     /* eslint-enable security/detect-object-injection */

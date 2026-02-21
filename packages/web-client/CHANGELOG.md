@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.13
+
+### Patch Changes
+
+- fix: fix multiple collection preloads
+
 ## 0.5.12
 
 ### Patch Changes
