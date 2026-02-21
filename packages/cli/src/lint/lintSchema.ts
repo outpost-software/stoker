@@ -440,9 +440,13 @@ export const lintSchema = async (noLog = false) => {
                         `Collection ${collectionName} has a preload cache with a range field ${field} that does not exist`,
                     )
                 } else if (rangeField.access) {
-                    errors.push(
-                        `Collection ${collectionName} has a preload cache range field ${field} with access restrictions`,
-                    )
+                    preloadCache.roles.forEach((role) => {
+                        if (!rangeField.access?.includes(role)) {
+                            errors.push(
+                                `Collection ${collectionName} has a preload cache range field ${field} that can't be accessed by role ${role}`,
+                            )
+                        }
+                    })
                 }
             })
         }
