@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.21
+
+### Patch Changes
+
+- feat: add notifications function collection option
+- Updated dependencies
+    - @stoker-platform/types@0.5.9
+    - @stoker-platform/node-client@0.5.19
+    - @stoker-platform/utils@0.5.13
+
 ## 0.5.20
 
 ### Patch Changes

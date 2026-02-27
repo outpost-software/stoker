@@ -804,6 +804,7 @@ export interface FieldAdmin {
     radio?: boolean | (() => boolean | Promise<boolean>)
     switch?: boolean | (() => boolean | Promise<boolean>)
     time?: boolean | (() => boolean | Promise<boolean>)
+    month?: boolean | (() => boolean | Promise<boolean>)
     slider?: boolean | (() => boolean | Promise<boolean>)
     richText?: boolean | (() => boolean | Promise<boolean>)
     location?: LocationFieldAdmin | (() => LocationFieldAdmin | Promise<LocationFieldAdmin>)

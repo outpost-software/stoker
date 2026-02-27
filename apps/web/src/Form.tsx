@@ -158,6 +158,7 @@ import Collection from "./Collection"
 import { Separator } from "./components/ui/separator"
 import { SearchResult } from "minisearch"
 import { sortList } from "./utils/sortList"
+import MonthPicker from "./components/ui/month-picker"
 
 interface FormLabelWithIconProps {
     collection: CollectionSchema
@@ -286,6 +287,7 @@ const RecordFormField = (props: FieldProps) => {
     const [isTextarea, setIsTextarea] = useState(false)
     const [isSwitch, setIsSwitch] = useState(false)
     const [isTime, setIsTime] = useState(false)
+    const [isMonth, setIsMonth] = useState(false)
     const [isSlider, setIsSlider] = useState(false)
     const [isRichText, setIsRichText] = useState(false)
     const [isLocation, setIsLocation] = useState<LocationFieldAdmin | undefined>(undefined)
@@ -306,6 +308,7 @@ const RecordFormField = (props: FieldProps) => {
                 textarea,
                 isSwitch,
                 isTime,
+                isMonth,
                 isSlider,
                 isRichText,
                 image,
@@ -320,6 +323,7 @@ const RecordFormField = (props: FieldProps) => {
                 tryPromise(admin?.textarea),
                 tryPromise(admin?.switch),
                 tryPromise(admin?.time),
+                tryPromise(admin?.month),
                 tryPromise(admin?.slider),
                 tryPromise(admin?.richText),
                 tryPromise(admin?.image),
@@ -336,6 +340,7 @@ const RecordFormField = (props: FieldProps) => {
             setIsTextarea(!!textarea)
             setIsSwitch(!!isSwitch)
             setIsTime(!!isTime)
+            setIsMonth(!!isMonth)
             setIsSlider(!!isSlider)
             setIsRichText(!!isRichText)
             setIsImage(!!image)
@@ -462,6 +467,7 @@ const RecordFormField = (props: FieldProps) => {
                     description={description}
                     isDisabled={isDisabled}
                     isTime={isTime}
+                    isMonth={isMonth}
                     icon={icon}
                 />
             )
@@ -1139,8 +1145,9 @@ function TimestampField({
     form,
     isDisabled,
     isTime,
+    isMonth,
     icon,
-}: FieldProps & { isTime?: boolean }) {
+}: FieldProps & { isTime?: boolean; isMonth?: boolean }) {
     const [open, setOpen] = useState(false)
     const globalConfig = getGlobalConfigModule()
     const timezone = getTimezone()
@@ -1163,7 +1170,39 @@ function TimestampField({
                 const currentValue = formField.value
                     ? DateTime.fromJSDate(formField.value.toDate()).setZone(timezone)
                     : undefined
-                if (isTime) {
+                if (isMonth) {
+                    return (
+                        <FormItem>
+                            <FormLabelWithIcon
+                                collection={collection}
+                                label={label}
+                                field={field}
+                                operation={operation}
+                                icon={icon}
+                                form={form}
+                            />
+                            <FormControl>
+                                <div className="flex w-fit flex-col gap-2 rounded-md border border-input">
+                                    <MonthPicker
+                                        currentMonth={
+                                            currentValue
+                                                ? keepTimezone(currentValue.toJSDate(), timezone)
+                                                : keepTimezone(new Date(), timezone)
+                                        }
+                                        onMonthChange={(date: Date | undefined) => {
+                                            if (!date) return
+                                            const newDate = DateTime.fromJSDate(date).setZone(timezone)
+                                            formField.onChange(Timestamp.fromDate(newDate.toJSDate()))
+                                        }}
+                                        disabled={isDisabled}
+                                    />
+                                </div>
+                            </FormControl>
+                            {description && <FormDescription>{description}</FormDescription>}
+                            <FormMessage className="bg-destructive p-4 rounded-md text-background dark:text-primary" />
+                        </FormItem>
+                    )
+                } else if (isTime) {
                     // Use HH:mm for broad browser compatibility (iOS Safari returns HH:mm)
                     const timeString = currentValue?.toFormat("HH:mm") || "00:00"
 

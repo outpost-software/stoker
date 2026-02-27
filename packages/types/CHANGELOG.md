@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.9
+
+### Patch Changes
+
+- feat: add month picker
+
 ## 0.5.8
 
 ### Patch Changes

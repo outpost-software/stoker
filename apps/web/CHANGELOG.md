@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.28
+
+### Patch Changes
+
+- feat: add month picker
+    - @stoker-platform/node-client@0.5.19
+    - @stoker-platform/utils@0.5.13
+    - @stoker-platform/web-client@0.5.14
+
 ## 0.5.27
 
 ### Patch Changes

@@ -6,6 +6,7 @@ import {
 } from "@stoker-platform/node-client";
 import {
     GenerateGlobalConfig,
+    StokerCollection,
     StokerRecord,
     StokerRelationObject,
 } from "@stoker-platform/types";
@@ -26,6 +27,7 @@ export const messageNotifications = (
         messageId: string;
     }>,
     globalConfig: GenerateGlobalConfig,
+    collection: StokerCollection = "Users",
 ) => {
     return (async () => {
         const tenantId = event.params.tenantId as string;
@@ -43,7 +45,7 @@ export const messageNotifications = (
         );
 
         const toId = Object.keys(doc.Recipient)[0];
-        const to = await getOne(["Users"], toId) as StokerRecord;
+        const to = await getOne([collection], toId) as StokerRecord;
         const sender = Object.values(doc.Sender as StokerRelationObject)[0].Name;
 
         try {
