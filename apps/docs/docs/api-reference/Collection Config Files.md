@@ -1287,6 +1287,12 @@ Set to `true` on a String field to make it a time field.
 
 Set to `true` on a Timestamp field to make it a datetime field.
 
+#### month
+
+`boolean | (() => boolean | Promise<boolean>)`
+
+Set to `true` on a Timestamp field to make it a month picker.
+
 #### location
 
 `{ center: { lat: number, lng: number }, zoom: number }`
