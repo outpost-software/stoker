@@ -301,7 +301,6 @@ const RecordFormField = (props: FieldProps) => {
             setCondition(!!condition)
 
             const [
-                readOnly,
                 label,
                 description,
                 descriptionCondition,
@@ -316,7 +315,6 @@ const RecordFormField = (props: FieldProps) => {
                 isRadio,
                 icon,
             ] = await Promise.all([
-                tryPromise(admin?.readOnly, [operation, record]),
                 tryFunction(admin?.label),
                 tryFunction(admin?.description?.message, [record]),
                 tryPromise(admin?.description?.condition, [record]),
@@ -362,6 +360,10 @@ const RecordFormField = (props: FieldProps) => {
             return
         }
         setCondition(true)
+        setTimeout(() => {
+            const readOnly = tryFunction(admin?.readOnly, [operation, form.getValues()])
+            setReadOnly(!!readOnly)
+        }, 0)
     }, [form.watch()])
 
     const hasUpdateAccess = useMemo(() => {
@@ -3453,19 +3455,21 @@ function RecordForm({
             }
         }
 
-        if (isInitialized && (operation === "create" || operation === "update") && customization.admin?.onChange) {
-            tryPromise(customization.admin.onChange, [
-                operation,
-                cloneDeep(formValues) as StokerRecord,
-                prevState as StokerRecord,
-            ]).then((updatedRecord: StokerRecord) => {
-                if (updatedRecord && !isEqual(updatedRecord, formValues)) {
-                    Object.entries(updatedRecord).forEach(([key, value]) => {
-                        form.setValue(key, value)
-                    })
-                }
-            })
-        }
+        setTimeout(() => {
+            if (isInitialized && (operation === "create" || operation === "update") && customization.admin?.onChange) {
+                tryPromise(customization.admin.onChange, [
+                    operation,
+                    cloneDeep(form.getValues()) as StokerRecord,
+                    prevState as StokerRecord,
+                ]).then((updatedRecord: StokerRecord) => {
+                    if (updatedRecord && !isEqual(updatedRecord, formValues)) {
+                        Object.entries(updatedRecord).forEach(([key, value]) => {
+                            form.setValue(key, value)
+                        })
+                    }
+                })
+            }
+        }, 0)
     }, [form.watch()])
 
     const recordLoaded = useRef(false)

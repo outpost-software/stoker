@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.30
+
+### Patch Changes
+
+- fix: wait for conditional fields to render
+
 ## 0.5.29
 
 ### Patch Changes
