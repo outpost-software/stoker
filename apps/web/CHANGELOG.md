@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.29
+
+### Patch Changes
+
+- feat: skip file permissions selection when no optional permissions present
+
 ## 0.5.28
 
 ### Patch Changes

@@ -2322,6 +2322,36 @@ function RecordForm({
         [collectionPath, record, path],
     )
 
+    const getUserRoleAssignment = useCallback(() => {
+        const userRole = permissions?.Role
+        if (!userRole) return null
+        // eslint-disable-next-line security/detect-object-injection
+        const assignment = collection.access?.files?.assignment?.[userRole]
+        return assignment || null
+    }, [collection, permissions])
+
+    const shouldSkipPermissionsDialog = useCallback(() => {
+        const assignment = getUserRoleAssignment()
+        if (!assignment) return false
+        const optional = assignment.optional || {}
+        const hasOptional = Boolean(
+            (optional.read && optional.read.length) ||
+            (optional.update && optional.update.length) ||
+            (optional.delete && optional.delete.length),
+        )
+        return !hasOptional
+    }, [getUserRoleAssignment])
+
+    const getDefaultPermissions = useCallback((): FilePermissions => {
+        const assignment = getUserRoleAssignment()
+        const required = assignment?.required || {}
+        return {
+            read: (required.read || []).join(","),
+            update: (required.update || []).join(","),
+            delete: (required.delete || []).join(","),
+        }
+    }, [getUserRoleAssignment])
+
     const uploadFilesToRecord = useCallback(
         async (targetId: string, files: File[] | FileList, permissions: FilePermissions, customFilename?: string) => {
             if (!files || !currentUser) return
@@ -2406,56 +2436,6 @@ function RecordForm({
         },
         [computeBasePath, currentUser, path, record],
     )
-
-    const enqueueImageForCreate = useCallback((fieldName: string, file: File) => {
-        setPermissionsContext("image-create")
-        setPendingImageFieldName(fieldName)
-        setPendingUploadFile(file)
-        setPendingUploadField(fieldName)
-        setEditingFilename(file.name)
-        setIsMultipleFileUpload(false)
-        setShowPermissionsDialog(true)
-    }, [])
-
-    const uploadImageForUpdate = useCallback(async (fieldName: string, file: File) => {
-        return await new Promise<void>((resolve) => {
-            setPermissionsContext("image-update")
-            setPendingImageForUpdate({ fieldName, file })
-            setEditingFilename(file.name)
-            setIsMultipleFileUpload(false)
-            setShowPermissionsDialog(true)
-            setImageUpdateResolver(() => resolve)
-        })
-    }, [])
-
-    const handleFormFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files
-        if (!files) return
-        if (files.length === 1) {
-            const file = files[0]
-            setPendingUploadFile(file)
-            setPendingUploadField(null)
-            setEditingFilename(file.name)
-            setIsMultipleFileUpload(false)
-            setShowFilenameDialog(true)
-        } else {
-            setPendingUploadFiles(Array.from(files))
-            setIsMultipleFileUpload(true)
-            setShowPermissionsDialog(true)
-        }
-        event.target.value = ""
-    }, [])
-
-    const handleConfirmFilename = useCallback(() => {
-        if (!pendingUploadFile) return
-        const trimmed = editingFilename.trim()
-        const validationError = validateStorageName(trimmed)
-        if (validationError) {
-            toast({ title: "Invalid file name", description: validationError, variant: "destructive" })
-            return
-        }
-        setShowPermissionsDialog(true)
-    }, [pendingUploadFile, editingFilename])
 
     const handlePermissionsConfirm = useCallback(
         async (selectedPermissions: FilePermissions) => {
@@ -2619,6 +2599,91 @@ function RecordForm({
             imageUpdateResolver,
         ],
     )
+
+    const enqueueImageForCreate = useCallback(
+        (fieldName: string, file: File) => {
+            if (shouldSkipPermissionsDialog()) {
+                setQueuedImageUploads((prev) => ({
+                    ...prev,
+                    [fieldName]: { file, permissions: getDefaultPermissions() },
+                }))
+            } else {
+                setPermissionsContext("image-create")
+                setPendingImageFieldName(fieldName)
+                setPendingUploadFile(file)
+                setEditingFilename(file.name)
+                setIsMultipleFileUpload(false)
+                setShowPermissionsDialog(true)
+            }
+        },
+        [shouldSkipPermissionsDialog, getDefaultPermissions],
+    )
+
+    const uploadImageForUpdate = useCallback(
+        async (fieldName: string, file: File) => {
+            return await new Promise<void>((resolve) => {
+                setPermissionsContext("image-update")
+                setPendingImageForUpdate({ fieldName, file })
+                setEditingFilename(file.name)
+                setIsMultipleFileUpload(false)
+                setImageUpdateResolver(() => resolve)
+                if (shouldSkipPermissionsDialog()) {
+                    setTimeout(() => handlePermissionsConfirm(getDefaultPermissions()), 0)
+                } else {
+                    setShowPermissionsDialog(true)
+                }
+            })
+        },
+        [shouldSkipPermissionsDialog, getDefaultPermissions, handlePermissionsConfirm],
+    )
+
+    const handleFormFileUpload = useCallback(
+        async (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = event.target.files
+            if (!files) return
+            if (files.length === 1) {
+                const file = files[0]
+                setPendingUploadFile(file)
+                setPendingUploadField(null)
+                setEditingFilename(file.name)
+                setIsMultipleFileUpload(false)
+                setShowFilenameDialog(true)
+            } else {
+                const fileList = Array.from(files)
+                if (shouldSkipPermissionsDialog()) {
+                    setQueuedUploads((prev) => [...prev, { files: fileList, permissions: getDefaultPermissions() }])
+                } else {
+                    setPendingUploadFiles(fileList)
+                    setIsMultipleFileUpload(true)
+                    setShowPermissionsDialog(true)
+                }
+            }
+            event.target.value = ""
+        },
+        [shouldSkipPermissionsDialog, getDefaultPermissions],
+    )
+
+    const handleConfirmFilename = useCallback(() => {
+        if (!pendingUploadFile) return
+        const trimmed = editingFilename.trim()
+        const validationError = validateStorageName(trimmed)
+        if (validationError) {
+            toast({ title: "Invalid file name", description: validationError, variant: "destructive" })
+            return
+        }
+        if (shouldSkipPermissionsDialog()) {
+            setQueuedUploads((prev) => [
+                ...prev,
+                { files: [pendingUploadFile], permissions: getDefaultPermissions(), customFilename: trimmed },
+            ])
+            setShowFilenameDialog(false)
+            setPendingUploadFile(null)
+            setPendingUploadField(null)
+            setEditingFilename("")
+        } else {
+            setShowPermissionsDialog(true)
+        }
+    }, [pendingUploadFile, editingFilename, shouldSkipPermissionsDialog, getDefaultPermissions])
 
     const handlePermissionsCancel = useCallback(() => {
         if (permissionsContext === "image-create" && pendingImageFieldName) {

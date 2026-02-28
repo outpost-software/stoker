@@ -79,7 +79,7 @@ export const getFormattedFieldValue = (
         if (badge) {
             if (badge === true) {
                 return (
-                    <Badge variant="outline" className="text-center">
+                    <Badge variant="outline" className="text-xs text-center">
                         {value}
                     </Badge>
                 )
