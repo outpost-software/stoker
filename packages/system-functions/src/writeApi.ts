@@ -166,18 +166,13 @@ export const writeApi = async (
                 "permission-denied",
                 "Error writing data"
             );
-        } else if (error.message.includes("ROLLBACK_FAILED")) {
+        } else {
             errorLogger(error);
             info(operation);
             info(path);
             if (id) {
                 info(id);
             }
-            throw new HttpsError(
-                "internal",
-                "Error writing data"
-            );
-        } else {
             throw new HttpsError(
                 "internal",
                 "Error writing data"

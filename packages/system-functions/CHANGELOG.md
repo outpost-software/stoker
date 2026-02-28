@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.22
+
+### Patch Changes
+
+- feat: improve write API failure error handling
+
 ## 0.5.21
 
 ### Patch Changes
