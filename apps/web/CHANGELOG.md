@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.31
+
+### Patch Changes
+
+- fix: treat modified display value as Computed field type
+
 ## 0.5.30
 
 ### Patch Changes

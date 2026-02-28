@@ -67,7 +67,9 @@ export const getFormattedFieldValue = (
     }
 
     let value = record[field.name]
+    let modified = false
     if (fieldCustomization?.admin?.modifyDisplayValue) {
+        modified = true
         value = tryFunction(fieldCustomization.admin.modifyDisplayValue, [
             record,
             card ? "card" : form ? "form" : "list",
@@ -134,7 +136,23 @@ export const getFormattedFieldValue = (
         )
     }
 
-    if (isRelationField(field)) {
+    if (modified) {
+        if (value === "tick") {
+            return (
+                <div className="w-full flex justify-start">
+                    <Check />
+                </div>
+            )
+        } else if (value === "cross") {
+            return (
+                <div className="w-full flex justify-start">
+                    <X />
+                </div>
+            )
+        } else {
+            return getStandardDisplay()
+        }
+    } else if (isRelationField(field)) {
         const titleField = field.titleField
         const relationCollection = schema.collections[field.collection]
         if (["OneToOne", "OneToMany"].includes(field.type)) {
