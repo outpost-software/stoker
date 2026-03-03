@@ -1993,6 +1993,7 @@ type SelectFilter = {
     roles?: string[]
     condition?: (value: boolean | string | number | undefined) => boolean
     style?: "select" | "radio" | "buttons"
+    defaultValue: string | number | (() => string | number)
 }
 
 type RelationFilter = {
@@ -2033,7 +2034,7 @@ Return an array of filter objects (specified above). Filters will appear in the 
 
 ```
 type Metric = {
-    type: "sum" | "average" | "count"
+    type: "sum" | "average" | "count" | "custom"
     field?: string
     title?: string
     roles?: string[]
@@ -2041,6 +2042,7 @@ type Metric = {
     prefix?: string
     suffix?: string
     textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    formula?: (records: StokerRecord[]) => number | string
 }
 
 type Chart = {
@@ -2059,6 +2061,8 @@ type Chart = {
 Show metrics (numerical counters) and a chart at the top of the list page.
 
 We recommend 1-2 metrics and a chart.
+
+For "custom" metrics, use the formula method to calculate the value to display.
 
 ## Collection Hooks
 
