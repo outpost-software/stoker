@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.11
+
+### Patch Changes
+
+- feat: add filter default value option
+
 ## 0.5.10
 
 ### Patch Changes

@@ -563,6 +563,7 @@ export type SelectFilter = {
     title?: string | (() => string)
     roles?: StokerRole[]
     condition?: (value: boolean | string | number | undefined) => boolean
+    defaultValue?: string | number | (() => string | number)
     value?: string | number
     style?: "select" | "radio" | "buttons"
 }

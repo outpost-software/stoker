@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.33
+
+### Patch Changes
+
+- feat: add filter default value option
+    - @stoker-platform/node-client@0.5.21
+    - @stoker-platform/utils@0.5.15
+    - @stoker-platform/web-client@0.5.16
+
 ## 0.5.32
 
 ### Patch Changes

@@ -120,6 +120,8 @@ export interface Query {
     }[]
 }
 
+const hasFirstPageLoaded: { [key: StokerCollection]: boolean } = {}
+
 function Collection({
     collection,
     formList,
@@ -822,24 +824,38 @@ function Collection({
 
             const filtersClone = cloneDeep(filters)
             const filtersState = state[`collection-filters-${labels.collection.toLowerCase()}`]
-            if (!relationList && filtersState) {
-                const filterValues = filtersState.split(",")
-                filtersClone.forEach((filter: Filter) => {
-                    if (filter.type === "status" || filter.type === "range") {
-                        return
-                    }
-                    const filterValue = filterValues.find((value) => value.split("=")[0] === filter.field)
-                    if (filterValue) {
-                        const field = getField(fields, filter.field)
-                        if (field.type === "Number") {
-                            // eslint-disable-next-line security/detect-object-injection
-                            filter.value = Number(filterValue.split("=")[1])
-                        } else {
-                            // eslint-disable-next-line security/detect-object-injection
-                            filter.value = filterValue.split("=")[1]
+            if (!relationList) {
+                if (filtersState) {
+                    const filterValues = filtersState.split(",")
+                    filtersClone.forEach((filter: Filter) => {
+                        if (filter.type === "status" || filter.type === "range") {
+                            return
                         }
-                    }
-                })
+                        const filterValue = filterValues.find((value) => value.split("=")[0] === filter.field)
+                        if (filterValue) {
+                            const field = getField(fields, filter.field)
+                            if (field.type === "Number") {
+                                // eslint-disable-next-line security/detect-object-injection
+                                filter.value = Number(filterValue.split("=")[1])
+                            } else {
+                                // eslint-disable-next-line security/detect-object-injection
+                                filter.value = filterValue.split("=")[1]
+                            }
+                        } else if (
+                            filter.type === "select" &&
+                            !hasFirstPageLoaded[labels.collection] &&
+                            filter.defaultValue
+                        ) {
+                            filter.value = tryFunction(filter.defaultValue)
+                        }
+                    })
+                } else {
+                    filtersClone.forEach((filter: Filter) => {
+                        if (filter.type === "select" && !hasFirstPageLoaded[labels.collection] && filter.defaultValue) {
+                            filter.value = tryFunction(filter.defaultValue)
+                        }
+                    })
+                }
             }
 
             if (statusField || softDelete) {
@@ -1022,6 +1038,7 @@ function Collection({
                 setOrder({ field: recordTitleField, direction: "asc" })
             }
 
+            hasFirstPageLoaded[labels.collection] = true
             setIsInitialized(true)
         }
 
