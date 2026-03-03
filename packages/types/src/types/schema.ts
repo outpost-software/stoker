@@ -579,7 +579,7 @@ export type RelationFilter = {
 export type Filter = StatusFilter | RangeFilter | SelectFilter | RelationFilter
 
 export interface Metric {
-    type: "sum" | "average" | "count"
+    type: "sum" | "average" | "count" | "custom"
     field?: string
     roles?: StokerRole[]
     title?: string
@@ -587,6 +587,7 @@ export interface Metric {
     prefix?: string
     suffix?: string
     textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    formula?: (records: StokerRecord[]) => number | string
 }
 export interface Chart {
     type: "area"

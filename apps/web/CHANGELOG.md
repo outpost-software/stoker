@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.32
+
+### Patch Changes
+
+- feat: add custom list metric
+    - @stoker-platform/node-client@0.5.20
+    - @stoker-platform/utils@0.5.14
+    - @stoker-platform/web-client@0.5.15
+
 ## 0.5.31
 
 ### Patch Changes

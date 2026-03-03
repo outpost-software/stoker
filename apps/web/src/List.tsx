@@ -1133,7 +1133,10 @@ export function List({
         const values: Record<string, MetricValue> = {}
         metrics?.forEach((metric: Metric | Chart, index: number) => {
             if (permissions?.Role && (!metric.roles || metric.roles.includes(permissions?.Role))) {
-                if (metric.type === "count") {
+                if (metric.type === "custom" && metric.formula) {
+                    // eslint-disable-next-line security/detect-object-injection
+                    values[index] = metric.formula(list).toString() || ""
+                } else if (metric.type === "count") {
                     let value = (list?.length || 0).toString()
                     if (metric.prefix) {
                         value = `${metric.prefix}${value}`
@@ -1316,7 +1319,8 @@ export function List({
                                         if (
                                             metric.type === "sum" ||
                                             metric.type === "average" ||
-                                            metric.type === "count"
+                                            metric.type === "count" ||
+                                            metric.type === "custom"
                                         ) {
                                             const metricTitle =
                                                 metric.title || `Total ${collectionTitle || labels.collection}`

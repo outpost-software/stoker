@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.10
+
+### Patch Changes
+
+- feat: add custom list metric
+
 ## 0.5.9
 
 ### Patch Changes
