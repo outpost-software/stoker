@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.32
+
+### Patch Changes
+
+- fix: enforce nullable preload cache range fields
+
 ## 0.5.31
 
 ### Patch Changes

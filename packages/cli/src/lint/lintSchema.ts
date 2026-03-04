@@ -433,20 +433,27 @@ export const lintSchema = async (noLog = false) => {
                     )
                 }
             }
-            preloadCache.range.fields.forEach((field) => {
+            preloadCache.range.fields.forEach((field, index) => {
                 const rangeField = getField(fields.concat(systemFieldSchema), field)
                 if (!rangeField) {
                     errors.push(
                         `Collection ${collectionName} has a preload cache with a range field ${field} that does not exist`,
                     )
-                } else if (rangeField.access) {
-                    preloadCache.roles.forEach((role) => {
-                        if (!rangeField.access?.includes(role)) {
-                            errors.push(
-                                `Collection ${collectionName} has a preload cache range field ${field} that can't be accessed by role ${role}`,
-                            )
-                        }
-                    })
+                } else {
+                    if (index > 0 && !rangeField.nullable) {
+                        errors.push(
+                            `Collection ${collectionName} has a preload cache range field ${field} that must be nullable`,
+                        )
+                    }
+                    if (rangeField.access) {
+                        preloadCache.roles.forEach((role) => {
+                            if (!rangeField.access?.includes(role)) {
+                                errors.push(
+                                    `Collection ${collectionName} has a preload cache range field ${field} that can't be accessed by role ${role}`,
+                                )
+                            }
+                        })
+                    }
                 }
             })
         }
