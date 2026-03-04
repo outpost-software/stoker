@@ -1993,7 +1993,7 @@ type SelectFilter = {
     roles?: string[]
     condition?: (value: boolean | string | number | undefined) => boolean
     style?: "select" | "radio" | "buttons"
-    defaultValue: string | number | (() => string | number)
+    defaultValue?: string | number | (() => string | number)
 }
 
 type RelationFilter = {
