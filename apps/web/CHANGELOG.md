@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.34
+
+### Patch Changes
+
+- 9bc227d: fix: ignore inaccesible collections in record sidebar
+
 ## 0.5.33
 
 ### Patch Changes
