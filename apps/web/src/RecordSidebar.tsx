@@ -43,6 +43,7 @@ export const RecordSidebar = ({
             if (collection.relationLists) {
                 collection.relationLists.forEach(async (relationList) => {
                     const relationCollection = schema.collections[relationList.collection]
+                    if (!relationCollection) return
                     const relationCustomization = getCollectionConfigModule(relationCollection.labels.collection)
                     const titles = await tryPromise(relationCustomization.admin?.titles)
                     const title = titles?.collection || relationList.collection
