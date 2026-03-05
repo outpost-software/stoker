@@ -287,7 +287,7 @@ export const addRecord = async (
         !!retry,
     )
 
-    if (retry?.type === "unique") return { docId, record }
+    if (retry?.type === "unique") return { id: docId, ...record }
 
     if (enableWriteLog) {
         writeLog("create", "success", record, path, docId, collectionSchema, currentUser.uid)

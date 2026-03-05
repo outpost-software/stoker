@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.17
+
+### Patch Changes
+
+- fix: prevent undefined toast message
+
 ## 0.5.16
 
 ### Patch Changes

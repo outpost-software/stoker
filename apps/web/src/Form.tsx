@@ -3862,11 +3862,11 @@ function RecordForm({
                     docId,
                     onValid,
                 )
-                    .then(() => {
+                    .then((record: Partial<StokerRecord>) => {
                         if (serverWrite || isServerReadOnly) {
                             toast({
                                 // eslint-disable-next-line security/detect-object-injection
-                                description: `${recordTitle} ${recordTitleField ? values[recordTitleField] : id} created successfully.`,
+                                description: `${recordTitle} ${record[recordTitleField] ? record[recordTitleField] : ""} created successfully.`,
                             })
                             suppressDraftSaveRef.current = true
                             localStorage.removeItem(`stoker-draft-${labels.collection}`)
@@ -3921,7 +3921,7 @@ function RecordForm({
                         } else {
                             toast({
                                 // eslint-disable-next-line security/detect-object-injection
-                                description: `${recordTitle} ${recordTitleField ? values[recordTitleField] || "" : id} failed to create.`,
+                                description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} failed to create.`,
                                 variant: "destructive",
                             })
                         }
@@ -3932,7 +3932,7 @@ function RecordForm({
                 if (!(serverWrite || isServerReadOnly)) {
                     toast({
                         // eslint-disable-next-line security/detect-object-injection
-                        description: `${recordTitle} ${recordTitleField ? values[recordTitleField] || "" : id} created.`,
+                        description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} created.`,
                     })
                     suppressDraftSaveRef.current = true
                     localStorage.removeItem(`stoker-draft-${labels.collection}`)
