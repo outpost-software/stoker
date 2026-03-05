@@ -1110,7 +1110,19 @@ function Collection({
         return (
             filters
                 .filter((filter) => filter.type !== "status" && filter.type !== "range")
-                .filter((filter) => filter.value)
+                .filter(
+                    (filter) =>
+                        (filter.value ||
+                            (filter.type === "select" &&
+                                filter.defaultValue &&
+                                tryFunction(filter.defaultValue) &&
+                                !filter.value)) &&
+                        !(
+                            filter.type === "select" &&
+                            filter.defaultValue &&
+                            tryFunction(filter.defaultValue) === filter.value
+                        ),
+                )
                 .filter((filter) => !excludedFilters.includes(filter.field)).length > 0
         )
     }, [filters, excludedFilters])

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.36
+
+### Patch Changes
+
+- feat: improve filters active indicator
+
 ## 0.5.35
 
 ### Patch Changes
