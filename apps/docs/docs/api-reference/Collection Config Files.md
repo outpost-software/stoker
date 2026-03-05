@@ -1580,9 +1580,11 @@ This option only disables editing client side. Do not use it if you need to secu
 
 ### onFormOpen
 
-`(operation: "create" | "update", record: StokerRecord) => void | Promise<void>`
+`(operation: "create" | "update", record: StokerRecord, parentCollection?: string, parentRecord?: StokerRecord) => void | Promise<void>`
 
 A hook that fires when the record form is opened.
+
+When the "create" form is opened from within another record's relation list, the parent collection and parent record are provided.
 
 ### onChange
 

@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.37
+
+### Patch Changes
+
+- feat: provide parent record to onFormOpen hook
+    - @stoker-platform/node-client@0.5.22
+    - @stoker-platform/utils@0.5.16
+    - @stoker-platform/web-client@0.5.18
+
 ## 0.5.36
 
 ### Patch Changes

@@ -223,6 +223,8 @@ interface FormProps {
     onSaveRecord?: () => void
     rowSelection?: StokerRecord[]
     fromRelationList?: string
+    parentCollection?: string
+    parentRecord?: StokerRecord
 }
 
 interface FieldProps {
@@ -2164,6 +2166,8 @@ function RecordForm({
     onSaveRecord,
     rowSelection,
     fromRelationList,
+    parentCollection,
+    parentRecord,
 }: FormProps) {
     const { labels, access, fields, auth, recordTitleField, softDelete, relationLists } = collection
     const tenantId = getTenant()
@@ -3382,7 +3386,7 @@ function RecordForm({
             if (!onFormOpenCalledRef.current && operation === "create" && customization.admin?.onFormOpen) {
                 record ||= {} as StokerRecord
                 const recordClone = cloneDeep(record)
-                await customization.admin?.onFormOpen("create", record)
+                await customization.admin?.onFormOpen("create", record, parentCollection, parentRecord)
                 const recordKeys = Object.keys(record) as Array<keyof typeof record>
                 for (const key of recordKeys) {
                     // eslint-disable-next-line security/detect-object-injection

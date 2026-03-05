@@ -2088,6 +2088,10 @@ function Collection({
                                                                         path={[labels.collection]}
                                                                         record={createPrePopulatedRecord()}
                                                                         draft={true}
+                                                                        parentCollection={
+                                                                            relationCollection?.labels.collection
+                                                                        }
+                                                                        parentRecord={relationParent}
                                                                         onSuccess={() => {
                                                                             setIsCreateDialogOpen(false)
                                                                             setSelectedDateRange(null)

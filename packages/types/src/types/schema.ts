@@ -716,7 +716,12 @@ export interface CollectionAdmin {
     formLists?: FormList[] | (() => FormList[] | Promise<FormList[]>)
     hideCreate?: boolean | ((relationList?: StokerCollection) => boolean | Promise<boolean>)
     disableUpdate?: boolean | ((operation: "create" | "update", record: StokerRecord) => boolean | Promise<boolean>)
-    onFormOpen?: (operation: "create" | "update", record: StokerRecord) => void | Promise<void>
+    onFormOpen?: (
+        operation: "create" | "update",
+        record: StokerRecord,
+        parentCollection?: StokerCollection,
+        parentRecord?: StokerRecord,
+    ) => void | Promise<void>
     onChange?: (
         operation: "create" | "update",
         record: StokerRecord,

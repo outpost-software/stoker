@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.12
+
+### Patch Changes
+
+- feat: provide parent record to onFormOpen hook
+
 ## 0.5.11
 
 ### Patch Changes
