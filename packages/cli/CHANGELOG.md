@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.34
+
+### Patch Changes
+
+- feat: add option to query full relation records on form page
+- Updated dependencies
+    - @stoker-platform/types@0.5.13
+    - @stoker-platform/node-client@0.5.23
+    - @stoker-platform/utils@0.5.17
+
 ## 0.5.33
 
 ### Patch Changes

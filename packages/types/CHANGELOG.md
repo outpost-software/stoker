@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.13
+
+### Patch Changes
+
+- feat: add option to query full relation records on form page
+
 ## 0.5.12
 
 ### Patch Changes

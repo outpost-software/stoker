@@ -1389,6 +1389,12 @@ Modify the results in the dropdown for relational fields.
 
 Return a custom component to be used in the list view. Set `receiveClick` to `true` to have the component receive the click and override the default behaviour of navigating to the record page.
 
+#### queryFullRecord
+
+`boolean | (() => boolean)`
+
+When using [include fields](#includefields) on a relation field, return true to force the full relation record to be loaded (on the form page only).
+
 ### Field Hooks
 
 Fields can have any of the hooks defined in [Collection Hooks](#collection-hooks). Add them to the field's `custom` property.

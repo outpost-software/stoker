@@ -847,6 +847,7 @@ export interface FieldAdmin {
               receiveClick?: boolean
           }
         | undefined
+    queryFullRecord?: boolean | (() => boolean)
 }
 
 export interface DependencyField {

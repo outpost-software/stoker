@@ -18,6 +18,7 @@ export const getRelationFields = (collection: CollectionSchema) => {
     for (const field of fields) {
         const fieldCustomization = getFieldCustomization(field, customization)
         if (!isRelationField(field)) continue
+        const queryFullRecord = tryFunction(fieldCustomization.admin?.queryFullRecord)
         const condition = tryFunction(fieldCustomization.admin?.condition?.form, ["update"])
         const roleGroup = getRoleGroup(permissions.Role, collectionSchema, schema)
         if (!roleGroup) throw new Error("PERMISSION_DENIED")
@@ -27,7 +28,7 @@ export const getRelationFields = (collection: CollectionSchema) => {
         const titleField = field.titleField
         if (
             (!fieldCustomization.admin?.condition?.form || condition) &&
-            !(titleField && field.includeFields?.includes(titleField))
+            (!(titleField && field.includeFields?.includes(titleField)) || queryFullRecord)
         ) {
             relationFields.push(field.name)
         }

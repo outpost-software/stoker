@@ -1716,12 +1716,8 @@ export const lintSchema = async (noLog = false) => {
                             }
                         }
                         const dependencyFieldSchema = getField(relationCollection.fields, dependencyField.field)
-                        if (
-                            dependencyFieldSchema &&
-                            isDependencyField(dependencyFieldSchema, relationCollection, schema) &&
-                            dependencyFieldSchema.access
-                        ) {
-                            const error = `Collection ${relationCollection.labels.collection} has a relation field ${dependencyField.field} that has both dependent collections and access restrictions`
+                        if (dependencyFieldSchema && dependencyFieldSchema.access) {
+                            const error = `Collection ${relationCollection.labels.collection} has a field ${dependencyField.field} that has both dependent collections and access restrictions`
                             if (!errors.includes(error)) {
                                 errors.push(error)
                             }
