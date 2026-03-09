@@ -86,8 +86,16 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
                     computedValue = "No"
                 } else if (doc[field.name] === "tick") {
                     computedValue = "Yes"
+                } else if (fieldCustomization.admin?.modifyDisplayValue) {
+                    computedValue = tryFunction(fieldCustomization.admin?.modifyDisplayValue(doc, "export"))
+                    if (computedValue === "-") {
+                        computedValue = ""
+                    }
                 } else {
                     computedValue = doc[field.name]
+                    if (computedValue === "-") {
+                        computedValue = ""
+                    }
                 }
                 docData[field.name] = escapeCSVField(computedValue)
             } else if (doc[field.name] !== undefined) {

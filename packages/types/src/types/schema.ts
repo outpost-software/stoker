@@ -835,7 +835,7 @@ export interface FieldAdmin {
         parentCollection: CollectionSchema,
         parentRecord?: StokerRecord,
     ) => string
-    modifyDisplayValue?: (record?: StokerRecord, context?: "card" | "form" | "list") => unknown
+    modifyDisplayValue?: (record?: StokerRecord, context?: "card" | "form" | "list" | "export") => unknown
     customListView?: (
         record?: StokerRecord,
         parentCollection?: CollectionSchema,
