@@ -124,21 +124,29 @@ export const searchResults = async (
     const filters: string[] = [`tenant_id:${tenantId}`];
 
     if (constraints && constraints.length > 0) {
-        constraints.forEach((constraint: [string, "==" | "in", string[]]) => {
-            const sanitizedFieldName = sanitizeAlgoliaFieldName(constraint[0]);
+        constraints.forEach((constraint: [string, "==" | "in" | "array-contains", string[]]) => {
+            const operator = constraint[1];
+            let sanitizedFieldName = sanitizeAlgoliaFieldName(constraint[0]);
+            const isArrayField = sanitizedFieldName.includes("_Array");
+            if (isArrayField) {
+                sanitizedFieldName = sanitizedFieldName.replace("_Array", "");
+            }
             const field = getField(fields, sanitizedFieldName);
             if (!field) {
                 throw new HttpsError("invalid-argument", `Field ${sanitizedFieldName} not found`);
             }
 
-            if (constraint[1] === "==") {
+            if (operator === "array-contains") {
+                const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
+                filters.push(`${sanitizedFieldName}_Array:"${sanitizedValue}"`);
+            } else if (operator === "==") {
                 const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
                 if (typeof constraint[2] === "string") {
                     filters.push(`${sanitizedFieldName}:"${sanitizedValue}"`);
                 } else {
                     filters.push(`${sanitizedFieldName}:${sanitizedValue}`);
                 }
-            } else if (constraint[1] === "in") {
+            } else if (operator === "in") {
                 if (!Array.isArray(constraint[2])) {
                     throw new HttpsError("invalid-argument", "Filter \"in\" operator requires an array value");
                 }

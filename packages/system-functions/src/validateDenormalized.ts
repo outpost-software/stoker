@@ -65,7 +65,7 @@ export const validateDenormalized = (
                         const existing = dependencyUpdates.get(subcollection) || {};
                         dependencyUpdates.set(subcollection, {
                             ...existing,
-                            [field.name]: record[field.name] || FieldValue.delete(),
+                            [field.name]: record[field.name] ?? FieldValue.delete(),
                         });
                     }
                     for (const dependencyField of fields) {
@@ -76,7 +76,7 @@ export const validateDenormalized = (
                                 const existing = dependencyUpdates.get(subcollection) || {};
                                 dependencyUpdates.set(subcollection, {
                                     ...existing,
-                                    [field.name]: record[field.name] || FieldValue.delete(),
+                                    [field.name]: record[field.name] ?? FieldValue.delete(),
                                 });
                             }
                         }
@@ -86,11 +86,11 @@ export const validateDenormalized = (
                             const subcollection = `${labels.collection}-${roleGroup.key}`;
                             const existing = roleGroupUpdates.get(subcollection) || {};
                             const update: Record<string, unknown> = {
-                                [field.name]: record[field.name] || FieldValue.delete(),
+                                [field.name]: record[field.name] ?? FieldValue.delete(),
                             };
                             const lowercaseFields = getLowercaseFields(collection, [field]);
                             if (lowercaseFields.size === 1) {
-                                update[`${field.name}_Lowercase`] = record[field.name]?.toLowerCase() || FieldValue.delete();
+                                update[`${field.name}_Lowercase`] = record[field.name]?.toLowerCase() ?? FieldValue.delete();
                             }
                             roleGroupUpdates.set(subcollection, {...existing, ...update});
                         }
