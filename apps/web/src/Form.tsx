@@ -1678,6 +1678,17 @@ function RelationField({
                 } else {
                     setDisplay(relationId)
                 }
+                if (operation === "create") {
+                    const queryFullRecord = tryFunction(fieldCustomization.admin?.queryFullRecord)
+                    if (!(field.includeFields && field.titleField) || queryFullRecord) {
+                        const fullRecord = await getOne([relationCollection.labels.collection], relationId, {
+                            noEmbeddingFields: true,
+                        })
+                        if (!isEqual(fullRecord, relationRecord)) {
+                            form.setValue(field.name, { ...form.getValues(field.name), [relationId]: fullRecord })
+                        }
+                    }
+                }
             } else {
                 setValue("no_selection")
                 setDisplay("----")
