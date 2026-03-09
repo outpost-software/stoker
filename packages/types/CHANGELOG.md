@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.14
+
+### Patch Changes
+
+- feat: support full text search on array fields
+
 ## 0.5.13
 
 ### Patch Changes

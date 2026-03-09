@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.39
+
+### Patch Changes
+
+- feat: support full text search on array fields
+- feat: load full relation document into create record form
+- feat: support modifying CSV export value
+    - @stoker-platform/node-client@0.5.24
+    - @stoker-platform/utils@0.5.18
+    - @stoker-platform/web-client@0.5.20
+
 ## 0.5.38
 
 ### Patch Changes

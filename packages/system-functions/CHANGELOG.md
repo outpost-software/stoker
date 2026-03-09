@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.27
+
+### Patch Changes
+
+- feat: support full text search on array fields
+- Updated dependencies
+    - @stoker-platform/types@0.5.14
+    - @stoker-platform/node-client@0.5.24
+    - @stoker-platform/utils@0.5.18
+
 ## 0.5.26
 
 ### Patch Changes
