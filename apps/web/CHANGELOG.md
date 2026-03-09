@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.41
+
+### Patch Changes
+
+- feat: add button group selector to form
+    - @stoker-platform/node-client@0.5.26
+    - @stoker-platform/utils@0.5.20
+    - @stoker-platform/web-client@0.5.22
+
 ## 0.5.40
 
 ### Patch Changes

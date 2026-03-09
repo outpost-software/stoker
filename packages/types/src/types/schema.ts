@@ -809,6 +809,7 @@ export interface FieldAdmin {
     description?: FieldDescription
     textarea?: boolean | (() => boolean | Promise<boolean>)
     radio?: boolean | (() => boolean | Promise<boolean>)
+    buttonGroup?: boolean | (() => boolean | Promise<boolean>)
     switch?: boolean | (() => boolean | Promise<boolean>)
     time?: boolean | (() => boolean | Promise<boolean>)
     month?: boolean | (() => boolean | Promise<boolean>)

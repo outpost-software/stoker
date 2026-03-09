@@ -1276,6 +1276,12 @@ Set to a currency symbol on a String field to make it a currency
 
 Set to `true` on a String field with `values` to make it a radio group
 
+#### buttonGroup
+
+`boolean | (() => boolean | Promise<boolean>)`
+
+Set to `true` on a String field with `values` to make it a button group
+
 #### slider
 
 `boolean | (() => boolean | Promise<boolean>)`

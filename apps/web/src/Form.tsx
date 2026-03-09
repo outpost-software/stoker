@@ -295,6 +295,7 @@ const RecordFormField = (props: FieldProps) => {
     const [isLocation, setIsLocation] = useState<LocationFieldAdmin | undefined>(undefined)
     const [isImage, setIsImage] = useState(false)
     const [isRadio, setIsRadio] = useState(false)
+    const [isButtonGroup, setIsButtonGroup] = useState(false)
     const [icon, setIcon] = useState<FormFieldIcon | undefined>(undefined)
 
     useEffect(() => {
@@ -315,6 +316,7 @@ const RecordFormField = (props: FieldProps) => {
                 image,
                 isLocation,
                 isRadio,
+                isButtonGroup,
                 icon,
             ] = await Promise.all([
                 tryFunction(admin?.label),
@@ -329,6 +331,7 @@ const RecordFormField = (props: FieldProps) => {
                 tryPromise(admin?.image),
                 tryPromise(admin?.location),
                 tryPromise(admin?.radio),
+                tryPromise(admin?.buttonGroup),
                 tryPromise(admin?.icon),
             ])
 
@@ -346,6 +349,7 @@ const RecordFormField = (props: FieldProps) => {
             setIsImage(!!image)
             setIsLocation(isLocation)
             setIsRadio(!!isRadio)
+            setIsButtonGroup(!!isButtonGroup)
             setIcon(icon)
             // Prevent button and rich text editor from flickering
             setTimeout(() => {
@@ -437,6 +441,7 @@ const RecordFormField = (props: FieldProps) => {
                     isTextarea={isTextarea}
                     isDisabled={isDisabled}
                     isRadio={isRadio}
+                    isButtonGroup={isButtonGroup}
                     isTime={isTime}
                     icon={icon}
                 />
@@ -529,9 +534,10 @@ function StringField({
     isTextarea,
     isDisabled,
     isRadio,
+    isButtonGroup,
     isTime,
     icon,
-}: FieldProps & { isTextarea?: boolean; isRadio?: boolean; isTime?: boolean }) {
+}: FieldProps & { isTextarea?: boolean; isRadio?: boolean; isButtonGroup?: boolean; isTime?: boolean }) {
     const customization = getCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
     if ((field as StringFieldType).values) {
@@ -584,6 +590,61 @@ function StringField({
                                             </div>
                                         ))}
                                 </RadioGroup>
+                            </FormControl>
+                            {description && <FormDescription>{description}</FormDescription>}
+                            <FormMessage className="bg-destructive p-4 rounded-md text-background dark:text-primary" />
+                        </FormItem>
+                    )}
+                />
+            )
+        }
+        if (isButtonGroup) {
+            return (
+                <FormField
+                    control={form.control}
+                    name={field.name}
+                    defaultValue={
+                        operation !== "update-many" &&
+                        field.required &&
+                        (form.getValues(field.name) === undefined ||
+                            form.getValues(field.name) === null ||
+                            form.getValues(field.name) === "")
+                            ? (field as StringFieldType).values?.[0]
+                            : undefined
+                    }
+                    render={({ field: formField }) => (
+                        <FormItem>
+                            <FormLabelWithIcon
+                                collection={collection}
+                                label={label}
+                                field={field}
+                                operation={operation}
+                                icon={icon}
+                                form={form}
+                            />
+                            <FormControl>
+                                <div className="mt-2 flex flex-row gap-2 max-w-[750px] flex-wrap">
+                                    {(field as StringFieldType).values
+                                        ?.filter(
+                                            (option) =>
+                                                !fieldCustomization.admin?.filterValues ||
+                                                fieldCustomization.admin?.filterValues?.(option, collection, record),
+                                        )
+                                        .map((option) => {
+                                            return (
+                                                <Button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => formField.onChange(option)}
+                                                    // eslint-disable-next-line security/detect-object-injection
+                                                    variant={formField.value === option ? "default" : "outline"}
+                                                    className="disabled:opacity-100"
+                                                >
+                                                    {option}
+                                                </Button>
+                                            )
+                                        })}
+                                </div>
                             </FormControl>
                             {description && <FormDescription>{description}</FormDescription>}
                             <FormMessage className="bg-destructive p-4 rounded-md text-background dark:text-primary" />
