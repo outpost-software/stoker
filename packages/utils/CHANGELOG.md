@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.19
+
+### Patch Changes
+
+- feat: allow server to bypass field write restrictions
+
 ## 0.5.18
 
 ### Patch Changes

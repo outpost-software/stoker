@@ -39,18 +39,20 @@ export const privateFieldAccess = (field: CollectionField, permissions?: StokerP
 }
 
 export const restrictCreateAccess = (field: CollectionField, permissions?: StokerPermissions) => {
+    if (!permissions) return true
+    if (!permissions.Role) return false
     if (field.restrictCreate === true) return false
-    else if (permissions && typeof field.restrictCreate === "object") {
-        if (!permissions.Role) return false
+    else if (typeof field.restrictCreate === "object") {
         return field.restrictCreate?.includes(permissions.Role)
     }
     return true
 }
 
 export const restrictUpdateAccess = (field: CollectionField, permissions?: StokerPermissions) => {
+    if (!permissions) return true
+    if (!permissions.Role) return false
     if (field.restrictUpdate === true) return false
-    else if (permissions && typeof field.restrictUpdate === "object") {
-        if (!permissions.Role) return false
+    else if (typeof field.restrictUpdate === "object") {
         return field.restrictUpdate?.includes(permissions.Role)
     }
     return true
