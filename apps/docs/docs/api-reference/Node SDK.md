@@ -382,17 +382,17 @@ Convert a JavaScript date to a [Luxon DateTime object](https://moment.github.io/
 
 Convert a [Firebase Timestamp](https://firebase.google.com/docs/reference/node/firebase.firestore.Timestamp) to a [Luxon DateTime object](https://moment.github.io/luxon/api-docs/index.html#datetime) in your app's timezone.
 
-## keepTimezone
-
-`(date: Date, timezone: string) => Date`
-
-Set a Javascript date object to your app's timezone while keeping the current date and time.
-
 ## removeTimezone
 
 `(date: Date, timezone: string) => Date`
 
-Set a Javascript date object to the server's local timezone while keeping the current date and time.
+Set a JavaScript date object to your app's timezone while keeping the current date and time.
+
+## keepTimezone
+
+`(date: Date, timezone: string) => Date`
+
+Set a JavaScript date object back to the server's local timezone while keeping the current date and time.
 
 ## displayDate
 

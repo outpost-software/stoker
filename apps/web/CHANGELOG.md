@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.42
+
+### Patch Changes
+
+- feat: add clear button to month picker
+
 ## 0.5.41
 
 ### Patch Changes

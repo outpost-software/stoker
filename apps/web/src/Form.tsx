@@ -1247,20 +1247,33 @@ function TimestampField({
                                 form={form}
                             />
                             <FormControl>
-                                <div className="flex w-fit flex-col gap-2 rounded-md border border-input">
-                                    <MonthPicker
-                                        currentMonth={
-                                            currentValue
-                                                ? keepTimezone(currentValue.toJSDate(), timezone)
-                                                : keepTimezone(new Date(), timezone)
-                                        }
-                                        onMonthChange={(date: Date | undefined) => {
-                                            if (!date) return
-                                            const newDate = DateTime.fromJSDate(date).setZone(timezone)
-                                            formField.onChange(Timestamp.fromDate(newDate.toJSDate()))
-                                        }}
-                                        disabled={isDisabled}
-                                    />
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex w-fit flex-col gap-2 rounded-md border border-input">
+                                        <MonthPicker
+                                            currentMonth={
+                                                currentValue
+                                                    ? keepTimezone(currentValue.toJSDate(), timezone)
+                                                    : keepTimezone(new Date(), timezone)
+                                            }
+                                            onMonthChange={(date: Date | undefined) => {
+                                                if (!date) return
+                                                const newDate = DateTime.fromJSDate(date).setZone(timezone)
+                                                formField.onChange(Timestamp.fromDate(newDate.toJSDate()))
+                                            }}
+                                            disabled={isDisabled}
+                                        />
+                                    </div>
+                                    {formField.value && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => formField.onChange(null)}
+                                            disabled={isDisabled}
+                                            className="w-fit"
+                                        >
+                                            Clear
+                                        </Button>
+                                    )}
                                 </div>
                             </FormControl>
                             {description && <FormDescription>{description}</FormDescription>}
