@@ -630,7 +630,11 @@ export function Calendar({
             }
         })
         const mainEvents = updatedList
-            .filter((record) => record[calendarConfig.startField])
+            .filter(
+                (record) =>
+                    record[calendarConfig.startField] &&
+                    (!calendarConfig.filterRecords || calendarConfig.filterRecords(record)),
+            )
             .map((record) => {
                 const isPendingServer = isGlobalLoading.get(record.id)?.server
 
@@ -676,7 +680,11 @@ export function Calendar({
             calendarConfig.additionalFields.forEach((additionalField) => {
                 updatedList
                     // eslint-disable-next-line security/detect-object-injection
-                    .filter((record) => record[additionalField])
+                    .filter(
+                        (record) =>
+                            record[additionalField] &&
+                            (!calendarConfig.filterRecords || calendarConfig.filterRecords(record)),
+                    )
                     .forEach((record) => {
                         const additionalFieldSchema = getField(fields, additionalField)
                         const additionalFieldCustomization = getFieldCustomization(additionalFieldSchema, customization)

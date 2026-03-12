@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.45
+
+### Patch Changes
+
+- feat: add record filter to calendar
+    - @stoker-platform/node-client@0.5.29
+    - @stoker-platform/utils@0.5.23
+    - @stoker-platform/web-client@0.5.25
+
 ## 0.5.44
 
 ### Patch Changes

@@ -1941,6 +1941,7 @@ type CalendarConfig = {
     allDayField?: string
     eventTitle?: (record: StokerRecord) => string
     color?: string | ((record: StokerRecord) => string)
+    filterRecords?: (record: StokerRecord) => boolean
     fullCalendarLarge?: CalendarOptions
     fullCalendarSmall?: CalendarOptions
     resourceField?: string
@@ -1975,6 +1976,8 @@ Show a calendar view.
 `eventTitle`: A custom title for the provided record's event on the calendar
 
 `color`: The color for the provided record's event on the calendar
+
+`filterRecords`: An optional function that determines whether a record should be displayed on the calendar. This filter only runs in the client, so it should not be used for access control purposes.
 
 `fullCalendarLarge`: [Fullcalendar](https://fullcalendar.io/docs) options for the calendar at desktop screen sizes
 

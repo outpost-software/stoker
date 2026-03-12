@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.17
+
+### Patch Changes
+
+- feat: add record filter to calendar
+
 ## 0.5.16
 
 ### Patch Changes
