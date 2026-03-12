@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.16
+
+### Patch Changes
+
+- feat: add additionalFields option to calendar
+
 ## 0.5.15
 
 ### Patch Changes

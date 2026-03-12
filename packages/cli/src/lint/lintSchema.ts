@@ -703,6 +703,21 @@ export const lintSchema = async (noLog = false) => {
                 }
             }
 
+            if (calendar.additionalFields) {
+                for (const additionalField of calendar.additionalFields) {
+                    const additionalFieldSchema = getField(fields, additionalField)
+                    if (!additionalFieldSchema) {
+                        errors.push(
+                            `Collection ${collectionName} has a calendar additional field ${additionalField} that does not exist`,
+                        )
+                    } else if (additionalFieldSchema.type !== "Timestamp") {
+                        errors.push(
+                            `Collection ${collectionName} has a calendar additional field ${additionalField} that is not a Timestamp`,
+                        )
+                    }
+                }
+            }
+
             if (calendar.allDayField) {
                 const allDayFieldSchema = getField(fields, calendar.allDayField)
                 if (!allDayFieldSchema) {

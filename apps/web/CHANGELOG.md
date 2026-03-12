@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.44
+
+### Patch Changes
+
+- feat: add additionalFields option to calendar
+    - @stoker-platform/node-client@0.5.28
+    - @stoker-platform/utils@0.5.22
+    - @stoker-platform/web-client@0.5.24
+
 ## 0.5.43
 
 ### Patch Changes

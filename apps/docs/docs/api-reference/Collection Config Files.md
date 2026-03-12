@@ -1937,6 +1937,7 @@ type CalendarConfig = {
     roles?: string[]
     startField: string
     endField?: string
+    additionalFields?: string[]
     allDayField?: string
     eventTitle?: (record: StokerRecord) => string
     color?: string | ((record: StokerRecord) => string)
@@ -1966,6 +1967,8 @@ Show a calendar view.
 `startField`: A Timestamp field that specifies the start date for records on the calendar.
 
 `endField`: A Timestamp field that specifies the end date for records on the calendar. If omitted, the start date will be used.
+
+`additionalFields`: Additional Timestamp fields to include on the calendar for each record. These will appear as all day events.
 
 `allDayField`: A Boolean field indicating whether records are all-day.
 

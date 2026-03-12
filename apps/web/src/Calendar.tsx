@@ -28,7 +28,14 @@ import { ScrollArea } from "./components/ui/scroll-area"
 import { useOptimistic } from "./providers/OptimisticProvider"
 import { isServerUpdate } from "./utils/isServerWrite"
 import { isOfflineDisabled as isOfflineDisabledSync } from "./utils/isOfflineDisabled"
-import { canUpdateField, getField, getSystemFieldsSchema, isRelationField, tryFunction } from "@stoker-platform/utils"
+import {
+    canUpdateField,
+    getField,
+    getFieldCustomization,
+    getSystemFieldsSchema,
+    isRelationField,
+    tryFunction,
+} from "@stoker-platform/utils"
 import cloneDeep from "lodash/cloneDeep.js"
 import { useGlobalLoading } from "./providers/LoadingProvider"
 import { useToast } from "./hooks/use-toast"
@@ -622,7 +629,7 @@ export function Calendar({
                 updatedList.push(optimisticRecord)
             }
         })
-        return updatedList
+        const mainEvents = updatedList
             .filter((record) => record[calendarConfig.startField])
             .map((record) => {
                 const isPendingServer = isGlobalLoading.get(record.id)?.server
@@ -663,6 +670,35 @@ export function Calendar({
                 }
                 return event
             })
+
+        const additionalEvents: EventInput[] = []
+        if (calendarConfig?.additionalFields) {
+            calendarConfig.additionalFields.forEach((additionalField) => {
+                updatedList
+                    // eslint-disable-next-line security/detect-object-injection
+                    .filter((record) => record[additionalField])
+                    .forEach((record) => {
+                        const additionalFieldSchema = getField(fields, additionalField)
+                        const additionalFieldCustomization = getFieldCustomization(additionalFieldSchema, customization)
+                        const label = tryFunction(additionalFieldCustomization.admin?.label) || additionalField
+                        const title =
+                            // eslint-disable-next-line security/detect-object-injection
+                            tryFunction(calendarConfig.eventTitle, [record]) || record[recordTitleField] || record.id
+
+                        const event: EventInput = {
+                            id: `${record.id}-${additionalField}`,
+                            title: `${label}- ${title}`,
+                            // eslint-disable-next-line security/detect-object-injection
+                            start: record[additionalField].toDate(),
+                            editable: false,
+                            allDay: true,
+                            color: "#6b7280",
+                        }
+                        additionalEvents.push(event)
+                    })
+            })
+        }
+        return mainEvents.concat(additionalEvents)
     }, [
         calendarConfig,
         list,
@@ -956,7 +992,7 @@ export function Calendar({
         selectable: canAddRecords && !isCreateDisabled && !!calendarConfig?.endField,
         droppable: hasStartUpdateAccess,
         eventClick(info: EventClickArg) {
-            const record = list?.find((record) => record.id === info.event.id) as StokerRecord
+            const record = list?.find((record) => record.id === info.event.id.split("-")[0]) as StokerRecord
             goToRecord(collection, record)
         },
         eventDrop(info: EventDropArg) {

@@ -517,6 +517,7 @@ export interface CalendarConfig {
     roles?: StokerRole[]
     startField: string
     endField?: string
+    additionalFields?: string[]
     allDayField?: string
     fullCalendarLarge?: CalendarOptions
     fullCalendarSmall?: CalendarOptions

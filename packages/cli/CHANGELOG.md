@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.39
+
+### Patch Changes
+
+- feat: add additionalFields option to calendar
+- Updated dependencies
+    - @stoker-platform/types@0.5.16
+    - @stoker-platform/node-client@0.5.28
+    - @stoker-platform/utils@0.5.22
+
 ## 0.5.38
 
 ### Patch Changes
