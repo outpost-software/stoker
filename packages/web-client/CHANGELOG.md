@@ -1,5 +1,13 @@
 # @stoker-platform/web-client
 
+## 0.5.23
+
+### Patch Changes
+
+- feat: run preValidate hook on the web before handing write to server
+- Updated dependencies
+    - @stoker-platform/utils@0.5.21
+
 ## 0.5.22
 
 ### Patch Changes

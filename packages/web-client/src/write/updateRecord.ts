@@ -45,6 +45,7 @@ import {
     StokerCollection,
     StokerRole,
     StokerPermissions,
+    PreValidateHookArgs,
 } from "@stoker-platform/types"
 import cloneDeep from "lodash/cloneDeep.js"
 import { saveRecord } from "./saveRecord.js"
@@ -166,6 +167,14 @@ export const updateRecord = async (
                 }
             }
         }
+        const preValidateArgs: PreValidateHookArgs = [
+            "update",
+            { ...originalRecord, ...data },
+            context,
+            batch,
+            cloneDeep(originalRecord),
+        ]
+        await runHooks("preValidate", globalConfig, customization, preValidateArgs)
         const result = await updateRecordServer(
             path,
             docId,

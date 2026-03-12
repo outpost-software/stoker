@@ -45,6 +45,7 @@ import {
     StokerCollection,
     StokerRole,
     StokerPermissions,
+    PreValidateHookArgs,
 } from "@stoker-platform/types"
 import { saveRecord } from "./saveRecord.js"
 import { uniqueValidation } from "./uniqueValidation.js"
@@ -132,6 +133,8 @@ export const addRecord = async (
                 }
             }
         }
+        const preValidateArgs: PreValidateHookArgs = ["create", data as StokerRecord, context, batch]
+        await runHooks("preValidate", globalConfig, customization, preValidateArgs)
         if (onValid) {
             onValid()
         }

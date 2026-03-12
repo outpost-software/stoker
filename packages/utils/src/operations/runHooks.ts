@@ -17,6 +17,7 @@ import {
     PostFileAddHookArgs,
     PostFileUpdateHookArgs,
     SetEmbeddingHookArgs,
+    PreValidateHookArgs,
 } from "@stoker-platform/types"
 import { tryPromise } from "../getConfigValue.js"
 
@@ -57,6 +58,12 @@ export function runHooks(
     globalConfig: GlobalConfig,
     customization: CollectionCustomization,
     args?: PreDuplicateHookArgs,
+): Promise<void>
+export function runHooks(
+    hookName: "preValidate",
+    globalConfig: GlobalConfig,
+    customization: CollectionCustomization,
+    args?: PreValidateHookArgs,
 ): Promise<void>
 export function runHooks(
     hookName: "preWrite",

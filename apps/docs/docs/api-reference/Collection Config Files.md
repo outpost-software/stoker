@@ -2180,6 +2180,8 @@ Fires at write validation time. This is where you can define custom validation l
 
 Return an object with a boolean indicating whether validation passed, and a message to display to the user if validation has failed.
 
+When [serverWriteOnly](#serverwriteonly) is set to true, this hook will fire in the Web SDK before the write is handed off to the Node SDK. This lets you run web code such as warning dialogs before the write is sent to the server. Be sure to guard web code in [`if(sdk === "web")`](/docs/api-reference/Application%20State#sdk) to ensure it doesn't run on the server.
+
 ### preWrite
 
 ```

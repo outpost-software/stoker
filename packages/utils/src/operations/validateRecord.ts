@@ -12,7 +12,7 @@ import { tryPromise } from "../getConfigValue.js"
 const preValidate = async (callback?: PreValidateHook, args?: PreValidateHookArgs) => {
     if (callback) {
         const validation = await tryPromise(callback, args)
-        if (!validation.valid) throw new Error(`VALIDATION_ERROR: ${validation.message}`)
+        if (!validation.valid) throw new Error(validation.message)
     }
 }
 
