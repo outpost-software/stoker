@@ -679,9 +679,9 @@ export function Calendar({
         if (calendarConfig?.additionalFields) {
             calendarConfig.additionalFields.forEach((additionalField) => {
                 updatedList
-                    // eslint-disable-next-line security/detect-object-injection
                     .filter(
                         (record) =>
+                            // eslint-disable-next-line security/detect-object-injection
                             record[additionalField] &&
                             (!calendarConfig.filterRecords || calendarConfig.filterRecords(record)),
                     )
@@ -1135,15 +1135,21 @@ export function Calendar({
                                     <ScrollArea className="h-full pb-4">
                                         <Table>
                                             <TableBody>
-                                                {unscheduledRecords.map((record) => (
-                                                    <Row
-                                                        key={record.id}
-                                                        collection={collection}
-                                                        record={record}
-                                                        recordTitleField={recordTitleField}
-                                                        isDisabled={!!isUpdateDisabled}
-                                                    />
-                                                ))}
+                                                {unscheduledRecords
+                                                    .filter(
+                                                        (record) =>
+                                                            !calendarConfig.filterRecords ||
+                                                            calendarConfig.filterRecords(record),
+                                                    )
+                                                    .map((record) => (
+                                                        <Row
+                                                            key={record.id}
+                                                            collection={collection}
+                                                            record={record}
+                                                            recordTitleField={recordTitleField}
+                                                            isDisabled={!!isUpdateDisabled}
+                                                        />
+                                                    ))}
                                             </TableBody>
                                         </Table>
                                     </ScrollArea>

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.46
+
+### Patch Changes
+
+- fix: apply calendar record filter to unscheduled records
+
 ## 0.5.45
 
 ### Patch Changes
