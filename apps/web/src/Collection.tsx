@@ -698,11 +698,16 @@ function Collection({
             const statusFilterState = state[`collection-status-filter-${labels.collection.toLowerCase()}`]
             const cacheState = state[`collection-range-field-${labels.collection.toLowerCase()}`]
             const rangeState = state[`collection-range-${labels.collection.toLowerCase()}`]
+            const defaultView = tryFunction(customization.admin?.defaultView)
             if (!relationList) {
                 if (tabState) {
                     setTab(tabState)
                     tabRef.current = tabState
                     setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", tabState)
+                } else if (defaultView) {
+                    setTab(defaultView)
+                    tabRef.current = defaultView
+                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", defaultView)
                 } else {
                     setTab("list")
                     tabRef.current = "list"

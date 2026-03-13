@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.18
+
+### Patch Changes
+
+- feat: add default collection view option
+
 ## 0.5.17
 
 ### Patch Changes

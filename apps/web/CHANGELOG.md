@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.47
+
+### Patch Changes
+
+- feat: add default collection view option
+    - @stoker-platform/node-client@0.5.30
+    - @stoker-platform/utils@0.5.24
+    - @stoker-platform/web-client@0.5.26
+
 ## 0.5.46
 
 ### Patch Changes

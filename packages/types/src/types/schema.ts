@@ -676,6 +676,13 @@ export interface CollectionAdmin {
         active?: unknown[]
         archived?: unknown[]
     }
+    defaultView?:
+        | "list"
+        | "cards"
+        | "images"
+        | "map"
+        | "calendar"
+        | (() => "list" | "cards" | "images" | "map" | "calendar")
     defaultRoute?: string | (() => string)
     defaultSort?:
         | {
@@ -742,6 +749,7 @@ export interface CollectionAdminCache {
     }
     icon?: React.FC
     duplicate?: boolean
+    convert?: Convert[]
     live?: boolean
     statusField?: {
         field: string
@@ -769,6 +777,7 @@ export interface CollectionAdminCache {
     formButtons?: FormButton[]
     formUpload?: boolean
     formImages?: boolean
+    formLists?: FormList[]
     hideCreate?: boolean
 }
 

@@ -1525,6 +1525,12 @@ Return an array of objects defining which collections records can be converted t
 
 `roles`: The roles that can perform this conversion.
 
+### defaultView
+
+`"list" | "cards" | "images" | "map" | "calendar" | (() => "list" | "cards" | "images" | "map" | "calendar")`
+
+The default view for the collection.
+
 ### defaultRoute
 
 `string | (() => string)`
