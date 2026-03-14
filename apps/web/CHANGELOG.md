@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.48
+
+### Patch Changes
+
+- feat: add parent relation args to admin options
+    - @stoker-platform/node-client@0.5.31
+    - @stoker-platform/utils@0.5.25
+    - @stoker-platform/web-client@0.5.27
+
 ## 0.5.47
 
 ### Patch Changes

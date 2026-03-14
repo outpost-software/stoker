@@ -565,7 +565,10 @@ export type SelectFilter = {
     title?: string | (() => string)
     roles?: StokerRole[]
     condition?: (value: boolean | string | number | undefined) => boolean
-    defaultValue?: string | number | (() => string | number)
+    defaultValue?:
+        | string
+        | number
+        | ((parentCollection: CollectionSchema, parentRecord?: StokerRecord) => string | number | undefined)
     value?: string | number
     style?: "select" | "radio" | "buttons"
 }
@@ -682,7 +685,10 @@ export interface CollectionAdmin {
         | "images"
         | "map"
         | "calendar"
-        | (() => "list" | "cards" | "images" | "map" | "calendar")
+        | ((
+              parentCollection: CollectionSchema,
+              parentRecord?: StokerRecord,
+          ) => "list" | "cards" | "images" | "map" | "calendar")
     defaultRoute?: string | (() => string)
     defaultSort?:
         | {

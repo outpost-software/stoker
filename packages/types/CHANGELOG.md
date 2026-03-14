@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.19
+
+### Patch Changes
+
+- feat: add parent relation args to admin options
+
 ## 0.5.18
 
 ### Patch Changes

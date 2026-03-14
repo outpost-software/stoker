@@ -698,7 +698,7 @@ function Collection({
             const statusFilterState = state[`collection-status-filter-${labels.collection.toLowerCase()}`]
             const cacheState = state[`collection-range-field-${labels.collection.toLowerCase()}`]
             const rangeState = state[`collection-range-${labels.collection.toLowerCase()}`]
-            const defaultView = tryFunction(customization.admin?.defaultView)
+            const defaultView = tryFunction(customization.admin?.defaultView, [relationCollection, relationParent])
             if (!relationList) {
                 if (tabState) {
                     setTab(tabState)
@@ -734,8 +734,14 @@ function Collection({
                     setState(`collection-range-${labels.collection.toLowerCase()}`, "range", rangeState)
                 }
             } else {
-                setTab("list")
-                tabRef.current = "list"
+                if (defaultView) {
+                    setTab(defaultView)
+                    tabRef.current = defaultView
+                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", defaultView)
+                } else {
+                    setTab("list")
+                    tabRef.current = "list"
+                }
             }
             if (rangeSelectorState) {
                 setRangeSelector(rangeSelectorState as "range" | "week" | "month" | undefined)
@@ -861,6 +867,15 @@ function Collection({
                         }
                     })
                 }
+            } else {
+                filtersClone.forEach((filter: Filter) => {
+                    if (filter.type === "status" || filter.type === "range") {
+                        return
+                    }
+                    if (filter.type === "select" && !hasFirstPageLoaded[labels.collection] && filter.defaultValue) {
+                        filter.value = tryFunction(filter.defaultValue, [relationCollection, relationParent])
+                    }
+                })
             }
 
             if (statusField || softDelete) {
@@ -1120,12 +1135,12 @@ function Collection({
                         (filter.value ||
                             (filter.type === "select" &&
                                 filter.defaultValue &&
-                                tryFunction(filter.defaultValue) &&
+                                tryFunction(filter.defaultValue, [relationCollection, relationParent]) &&
                                 !filter.value)) &&
                         !(
                             filter.type === "select" &&
                             filter.defaultValue &&
-                            tryFunction(filter.defaultValue) === filter.value
+                            tryFunction(filter.defaultValue, [relationCollection, relationParent]) === filter.value
                         ),
                 )
                 .filter((filter) => !excludedFilters.includes(filter.field)).length > 0
