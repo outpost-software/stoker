@@ -27,7 +27,7 @@
         "@stoker-platform/utils": "0.5.26",
         "@types/luxon": "^3.7.1",
         "cross-spawn": "^7.0.6",
-        "firebase-admin": "^13.6.1",
+        "firebase-admin": "^13.7.0",
         "lodash": "^4.17.23",
         "luxon": "^3.7.2"
     },

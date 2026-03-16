@@ -23,15 +23,15 @@
         "@google-cloud/bigquery": "^8.1.1",
         "@google-cloud/secret-manager": "^6.1.1",
         "@google-cloud/storage": "^7.19.0",
-        "@inquirer/prompts": "^8.2.0",
+        "@inquirer/prompts": "^8.3.2",
         "@stoker-platform/node-client": "0.5.32",
         "@stoker-platform/types": "0.5.20",
         "@stoker-platform/utils": "0.5.26",
-        "algoliasearch": "^5.48.0",
+        "algoliasearch": "^5.49.2",
         "commander": "^14.0.0",
         "cross-spawn": "^7.0.6",
-        "dotenv": "^17.2.4",
-        "firebase-admin": "^13.6.1"
+        "dotenv": "^17.3.1",
+        "firebase-admin": "^13.7.0"
     },
     "devDependencies": {
         "@types/cross-spawn": "^6.0.6",

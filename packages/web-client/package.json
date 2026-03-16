@@ -25,9 +25,9 @@
     "dependencies": {
         "@stoker-platform/types": "0.5.20",
         "@stoker-platform/utils": "0.5.26",
-        "@types/lodash": "^4.17.23",
+        "@types/lodash": "^4.17.24",
         "@types/luxon": "^3.7.1",
-        "firebase": "^12.9.0",
+        "firebase": "^12.10.0",
         "lodash": "^4.17.23",
         "luxon": "^3.7.2"
     },
