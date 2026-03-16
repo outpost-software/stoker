@@ -1,13 +1,16 @@
 import {
+    Assignable,
     CollectionMeta,
     CollectionSchema,
     ImagesConfig,
+    RelationList,
     StokerCollection,
     StokerPermissions,
     StokerRecord,
 } from "@stoker-platform/types"
-import { getCachedConfigValue } from "@stoker-platform/utils"
+import { getCachedConfigValue, getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
 import {
+    callFunction,
     Cursor,
     getCollectionConfigModule,
     getCurrentUserPermissions,
@@ -35,6 +38,11 @@ import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { Helmet } from "react-helmet"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getSafeUrl } from "./utils/isSafeUrl"
+import { Switch } from "./components/ui/switch"
+import { Label } from "./components/ui/label"
+import { Badge } from "./components/ui/badge"
+import { useGlobalLoading } from "./providers/LoadingProvider"
+import { useToast } from "./hooks/use-toast"
 
 export const description = "A list of records as cards. The content area has a search bar in the header."
 
@@ -91,6 +99,11 @@ interface RowData {
     lineClamp: string
     recordTitleField: string | undefined
     imagesConfig: ImagesConfig
+    isAssigning: boolean | undefined
+    assignable: Assignable | undefined
+    relationList: RelationList | undefined
+    relationCollection: CollectionSchema | undefined
+    relationParent: StokerRecord | undefined
 }
 
 interface RowProps {
@@ -101,14 +114,107 @@ interface RowProps {
 
 const Row = ({ index, style, data }: RowProps) => {
     const goToRecord = useGoToRecord()
-    const { collection, groupedRecords, size, cols, lineClamp, recordTitleField, imagesConfig } = data
+    const {
+        collection,
+        groupedRecords,
+        size,
+        cols,
+        lineClamp,
+        recordTitleField,
+        imagesConfig,
+        isAssigning,
+        assignable,
+        relationList,
+        relationCollection,
+        relationParent,
+    } = data
     // eslint-disable-next-line security/detect-object-injection
     const group = groupedRecords[index]
+    const customization = getCollectionConfigModule(collection.labels.collection)
+    const { setGlobalLoading } = useGlobalLoading()
+    const { toast } = useToast()
+
+    const [checkedDisabled, setCheckedDisabled] = useState(false)
+
+    const handleCheckedChange = useCallback(async (checked: boolean, record: StokerRecord) => {
+        if (!relationCollection) return
+        setCheckedDisabled(true)
+        setGlobalLoading("+", record.id, true)
+        await callFunction(
+            `stoker-assign${relationCollection.labels.record.toLowerCase()}${collection.labels.collection.toLowerCase()}`,
+            {
+                operation: checked ? "add" : "remove",
+                parentId: relationParent?.id,
+                recordId: record.id,
+            },
+        ).catch(() => {
+            toast({
+                title: "Error",
+                description: `Error assigning ${collection.labels.record} to ${relationCollection.labels.record}`,
+                variant: "destructive",
+                duration: 10000000,
+            })
+        })
+        setGlobalLoading("-", record.id, true)
+        setCheckedDisabled(false)
+    }, [])
+
     return (
         <div style={style} className={cn("grid", "gap-4", "pb-4", cols)}>
             {group.map((record) => {
                 // eslint-disable-next-line security/detect-object-injection
                 const title = recordTitleField ? record[recordTitleField] : record.id
+                const checked =
+                    isAssigning && relationList?.field && relationParent
+                        ? !!record[relationList.field]?.[relationParent.id]
+                        : undefined
+                let unavailable
+                if (isAssigning) {
+                    if (assignable?.unavailableField) {
+                        const unavailableFieldSchema = getField(collection.fields, assignable?.unavailableField)
+                        const unavailableFieldCustomization = getFieldCustomization(
+                            unavailableFieldSchema,
+                            customization,
+                        )
+                        const badge = tryFunction(unavailableFieldCustomization.admin?.badge, [record])
+                        if (badge === true) {
+                            unavailable = (
+                                <Badge variant="outline" className="text-xs text-center">
+                                    {record[assignable.unavailableField]
+                                        ? record[assignable.unavailableField]
+                                        : "Not available"}
+                                </Badge>
+                            )
+                        } else {
+                            unavailable = (
+                                <Badge
+                                    variant={
+                                        ["outline", "destructive", "primary", "secondary"].includes(badge)
+                                            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                              (badge as any)
+                                            : "outline"
+                                    }
+                                    className={cn(
+                                        "text-xs text-center",
+                                        !["outline", "destructive", "primary", "secondary", true, false].includes(
+                                            badge,
+                                        ) && badge,
+                                    )}
+                                >
+                                    {record[assignable.unavailableField]
+                                        ? record[assignable.unavailableField]
+                                        : "Not available"}
+                                </Badge>
+                            )
+                        }
+                    } else {
+                        unavailable = (
+                            <Badge variant="outline" className="text-xs text-center">
+                                Not available
+                            </Badge>
+                        )
+                    }
+                }
                 return (
                     <Card key={record.id}>
                         <CardHeader
@@ -122,7 +228,30 @@ const Row = ({ index, style, data }: RowProps) => {
                             </button>
                         </CardHeader>
                         <CardContent className="pb-3 md:pb-4">
-                            <div className={cn("grid", "gap-2", size)}>
+                            <div className={cn("grid", "gap-4", size)}>
+                                {isAssigning && assignable && (assignable.isAvailable(record) || checked) && (
+                                    <div>
+                                        <div className="flex items-center justify-center space-x-3 min-h-8">
+                                            <Switch
+                                                id={`${record.id}-assigned`}
+                                                className="data-[state=checked]:bg-blue-500"
+                                                checked={checked}
+                                                disabled={checkedDisabled}
+                                                onCheckedChange={(checked) => handleCheckedChange(checked, record)}
+                                            />
+                                            {imagesConfig.size !== "sm" && (
+                                                <Label htmlFor={`${record.id}-assigned`}>Assigned</Label>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                                {isAssigning && assignable && !assignable.isAvailable(record) && !checked && (
+                                    <div>
+                                        <div className="flex items-center justify-center space-x-3 min-h-8">
+                                            {unavailable}
+                                        </div>
+                                    </div>
+                                )}
                                 <button
                                     className="relative w-full h-full flex items-center justify-center overflow-hidden"
                                     onClick={() => goToRecord(collection, record)}
@@ -130,7 +259,10 @@ const Row = ({ index, style, data }: RowProps) => {
                                     {record[imagesConfig.imageField] ? (
                                         <RowImage alt={title} src={record[imagesConfig.imageField]} />
                                     ) : (
-                                        <Image size={100} className="text-muted-foreground stroke-1 opacity-50" />
+                                        <Image
+                                            size={imagesConfig.size === "sm" ? 30 : 100}
+                                            className="text-muted-foreground stroke-1 opacity-50"
+                                        />
                                     )}
                                 </button>
                             </div>
@@ -158,8 +290,12 @@ interface ImagesProps {
     unsubscribe: React.MutableRefObject<{ [key: string | number]: (() => void)[] }>
     search: string | undefined
     backToStartKey: number
-    relationList?: boolean
+    relationList?: RelationList
+    relationCollection?: CollectionSchema
+    relationParent?: StokerRecord
     formList?: boolean
+    isAssigning?: boolean
+    assignable?: Assignable
 }
 
 export const Images = memo(
@@ -175,7 +311,11 @@ export const Images = memo(
         search,
         backToStartKey,
         relationList,
+        relationCollection,
+        relationParent,
         formList,
+        isAssigning,
+        assignable,
     }: ImagesProps) => {
         const { labels, recordTitleField, fullTextSearch } = collection
         const customization = getCollectionConfigModule(labels.collection)
@@ -582,6 +722,7 @@ export const Images = memo(
 
         const lineClamp = imagesConfig.maxHeaderLines === 2 ? "line-clamp-2" : "line-clamp-1"
         const headerSize = imagesConfig.maxHeaderLines === 2 ? 116 : 82
+        const assignedHeight = isAssigning ? 40 : 0
 
         const itemData = {
             collection,
@@ -591,6 +732,11 @@ export const Images = memo(
             lineClamp,
             recordTitleField,
             imagesConfig,
+            isAssigning,
+            assignable,
+            relationList,
+            relationCollection,
+            relationParent,
         }
 
         const Meta = () => (
@@ -622,7 +768,7 @@ export const Images = memo(
                     <List
                         height={height}
                         width="100%"
-                        itemSize={itemSize + headerSize}
+                        itemSize={itemSize + headerSize + assignedHeight}
                         itemCount={itemCount}
                         overscanCount={5}
                         itemKey={itemKey}
@@ -647,7 +793,7 @@ export const Images = memo(
                             <List
                                 height={height}
                                 width="100%"
-                                itemSize={itemSize + headerSize}
+                                itemSize={itemSize + headerSize + assignedHeight}
                                 itemCount={itemCount}
                                 overscanCount={5}
                                 itemKey={itemKey}
@@ -663,6 +809,10 @@ export const Images = memo(
             )
         }
     },
-    (prevProps, nextProps) => prevProps.list === nextProps.list && prevProps.search === nextProps.search,
+    (prevProps, nextProps) =>
+        prevProps.list === nextProps.list &&
+        prevProps.search === nextProps.search &&
+        prevProps.isAssigning === nextProps.isAssigning &&
+        prevProps.backToStartKey === nextProps.backToStartKey,
 )
 Images.displayName = "Images"

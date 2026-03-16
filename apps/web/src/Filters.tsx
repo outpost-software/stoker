@@ -1,4 +1,11 @@
-import { CollectionField, CollectionSchema, Filter, StokerCollection, StokerRecord } from "@stoker-platform/types"
+import {
+    CollectionField,
+    CollectionSchema,
+    Filter,
+    RelationList,
+    StokerCollection,
+    StokerRecord,
+} from "@stoker-platform/types"
 import {
     collectionAccess,
     getCachedConfigValue,
@@ -40,7 +47,7 @@ import { useConnection } from "./providers/ConnectionProvider"
 interface FiltersProps {
     collection: CollectionSchema
     excluded: string[]
-    relationList?: boolean
+    relationList?: RelationList
 }
 
 export function Filters({ collection, excluded, relationList }: FiltersProps) {
@@ -83,6 +90,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
         const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
         const dependencyAccess = hasDependencyAccess(relationCollection, schema, permissions)
         if (!fullCollectionAccess && dependencyAccess.length === 0) return false
+        if (relationList && relationList.field === filter.field) return false
         return true
     }, [])
 

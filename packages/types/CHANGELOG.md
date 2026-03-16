@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.20
+
+### Patch Changes
+
+- feat: add relation record assignment feature
+
 ## 0.5.19
 
 ### Patch Changes

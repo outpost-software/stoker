@@ -18,6 +18,7 @@ import {
 import { generateSchema } from "../deploy/schema/generateSchema.js"
 import {
     AccessFilesAssignmentRoles,
+    Assignable,
     CalendarConfig,
     CardsConfig,
     Chart,
@@ -884,6 +885,29 @@ export const lintSchema = async (noLog = false) => {
         const rangeFilters = filters?.filter((filter: Filter) => filter.type === "range")
         if (rangeFilters && rangeFilters.length > 1) {
             errors.push(`Collection ${collectionName} has more than one range filter`)
+        }
+
+        const assignable = (await tryPromise(customization?.admin?.assignable)) as Assignable[] | undefined
+        if (assignable) {
+            for (const assignableItem of assignable) {
+                if (!collectionNames.includes(assignableItem.collection)) {
+                    errors.push(
+                        `Collection ${collectionName} has an assignable collection ${assignableItem.collection} that does not exist`,
+                    )
+                } else if (assignableItem.unavailableField) {
+                    const relationCollection = schema.collections[assignableItem.collection]
+                    const unavailableFieldSchema = getField(relationCollection.fields, assignableItem.unavailableField)
+                    if (!unavailableFieldSchema) {
+                        errors.push(
+                            `Collection ${collectionName} has an assignable unavailable field ${assignableItem.unavailableField} that does not exist`,
+                        )
+                    } else if (unavailableFieldSchema.type !== "String" || !unavailableFieldSchema.values) {
+                        errors.push(
+                            `Collection ${collectionName} has an assignable unavailable field ${assignableItem.unavailableField} that is not a string field with values set`,
+                        )
+                    }
+                }
+            }
         }
 
         const {

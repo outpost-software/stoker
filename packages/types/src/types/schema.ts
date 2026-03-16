@@ -661,6 +661,13 @@ export interface CustomRecordPage {
     condition?: (record: StokerRecord | undefined) => boolean
     icon?: React.FC<{ className?: string }>
 }
+
+export interface Assignable {
+    collection: string
+    isAvailable: (record: StokerRecord) => boolean
+    unavailableField?: string
+}
+
 export interface CollectionAdmin {
     hidden?: boolean | (() => boolean | Promise<boolean>)
     navbarPosition?: number | (() => number)
@@ -746,6 +753,7 @@ export interface CollectionAdmin {
     disableRangeSelector?: boolean | (() => boolean)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     retriever?: () => any | Promise<any>
+    assignable?: Assignable[] | (() => Assignable[] | Promise<Assignable[]>)
 }
 export interface CollectionAdminCache {
     navbarPosition?: number

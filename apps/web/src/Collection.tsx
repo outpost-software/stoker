@@ -1,4 +1,5 @@
 import {
+    Assignable,
     CalendarConfig,
     CardsConfig,
     CollectionField,
@@ -28,6 +29,7 @@ import {
     GetSomeOptions,
     getTimezone,
     keepTimezone,
+    onStokerSignOut,
     subscribeMany,
     SubscribeManyOptions,
     updateRecord,
@@ -110,6 +112,8 @@ interface CollectionProps {
     relationList?: RelationList
     relationCollection?: CollectionSchema
     relationParent?: StokerRecord
+    isAssigning?: boolean
+    assignable?: Assignable
 }
 
 export interface Query {
@@ -120,7 +124,11 @@ export interface Query {
     }[]
 }
 
-const hasFirstPageLoaded: { [key: StokerCollection]: boolean } = {}
+let hasFirstPageLoaded: { [key: StokerCollection]: boolean } = {}
+
+onStokerSignOut(() => {
+    hasFirstPageLoaded = {}
+})
 
 function Collection({
     collection,
@@ -131,6 +139,8 @@ function Collection({
     relationList,
     relationCollection,
     relationParent,
+    isAssigning,
+    assignable,
 }: CollectionProps) {
     const navigate = useNavigate()
     const location = useLocation()
@@ -216,6 +226,8 @@ function Collection({
     const { filters, setFilters, order, setOrder, getFilterConstraints } = useFilters()
     const { orderByField, orderByDirection } = useMemo(() => getOrderBy(collection, order), [order])
     const searchResults = useRef<{ [key: string | number]: string[] | undefined }>({})
+    const additionalConstraintsRef = useRef(additionalConstraints)
+    additionalConstraintsRef.current = additionalConstraints
     const { currentField: currentFieldAll } = useCache()
     const currentField = currentFieldAll[labels.collection]
     const [backToStartKey, setBackToStartKey] = useState(0)
@@ -334,6 +346,31 @@ function Collection({
     useEffect(() => {
         serverListRef.current = serverList
     }, [serverList])
+
+    useEffect(() => {
+        if (isAssigning !== undefined) {
+            setBackToStartKey((prev) => prev + 1)
+        }
+        if (!relationList || !isInitialized) return
+        setFilters((prev) => {
+            let next = prev
+                .filter((filter) => !(filter.type === "relation" && filter.field === relationList.field))
+                .map((filter: Filter) => {
+                    if (filter.type === "status" || filter.type === "range") return filter
+                    if (filter.type === "select" && filter.defaultValue && isAssigning !== undefined) {
+                        return {
+                            ...filter,
+                            value: tryFunction(filter.defaultValue, [relationCollection, relationParent, isAssigning]),
+                        }
+                    }
+                    return filter
+                })
+            if (!isAssigning) {
+                next = [...next, { type: "relation", field: relationList.field, value: relationParent?.id }]
+            }
+            return next
+        })
+    }, [isAssigning])
 
     // This is to ensure that the optimistic list is set in cases where cached documents exactly match the downloaded server documents
     // In this case, the cache-only snapshot listener does not fire a second time when the cache has loaded because there is no change to the list
@@ -562,7 +599,7 @@ function Collection({
                             [labels.collection],
                             [
                                 ...(currentQuery.constraints as QueryConstraint[]),
-                                ...(additionalConstraints?.map((constraint) =>
+                                ...(additionalConstraintsRef.current?.map((constraint) =>
                                     where(constraint[0], constraint[1] as WhereFilterOp, constraint[2]),
                                 ) || []),
                             ],
@@ -612,7 +649,7 @@ function Collection({
                         [labels.collection],
                         [
                             ...(query.queries[0].constraints as [string, WhereFilterOp, unknown][]),
-                            ...(additionalConstraints || []),
+                            ...(additionalConstraintsRef.current || []),
                         ],
                         options as GetSomeOptions,
                     )
@@ -872,10 +909,31 @@ function Collection({
                     if (filter.type === "status" || filter.type === "range") {
                         return
                     }
-                    if (filter.type === "select" && !hasFirstPageLoaded[labels.collection] && filter.defaultValue) {
-                        filter.value = tryFunction(filter.defaultValue, [relationCollection, relationParent])
+                    if (
+                        filter.type === "relation" &&
+                        filter.field === relationList.field &&
+                        relationParent &&
+                        !isAssigning
+                    ) {
+                        filter.value = relationParent.id
+                    }
+                    if (filter.type === "select" && filter.defaultValue) {
+                        filter.value = tryFunction(filter.defaultValue, [
+                            relationCollection,
+                            relationParent,
+                            isAssigning,
+                        ])
                     }
                 })
+                if (
+                    relationParent &&
+                    !isAssigning &&
+                    !filtersClone.some(
+                        (filter: Filter) => filter.type === "relation" && filter.field === relationList.field,
+                    )
+                ) {
+                    filtersClone.push({ type: "relation", field: relationList.field, value: relationParent.id })
+                }
             }
 
             if (statusField || softDelete) {
@@ -1058,7 +1116,10 @@ function Collection({
                 setOrder({ field: recordTitleField, direction: "asc" })
             }
 
-            hasFirstPageLoaded[labels.collection] = true
+            if (!relationList) {
+                hasFirstPageLoaded[labels.collection] = true
+            }
+
             setIsInitialized(true)
         }
 
@@ -1130,17 +1191,19 @@ function Collection({
         return (
             filters
                 .filter((filter) => filter.type !== "status" && filter.type !== "range")
+                .filter((filter) => !relationList || filter.field !== relationList.field)
                 .filter(
                     (filter) =>
                         (filter.value ||
                             (filter.type === "select" &&
                                 filter.defaultValue &&
-                                tryFunction(filter.defaultValue, [relationCollection, relationParent]) &&
+                                tryFunction(filter.defaultValue, [relationCollection, relationParent, isAssigning]) &&
                                 !filter.value)) &&
                         !(
                             filter.type === "select" &&
                             filter.defaultValue &&
-                            tryFunction(filter.defaultValue, [relationCollection, relationParent]) === filter.value
+                            tryFunction(filter.defaultValue, [relationCollection, relationParent, isAssigning]) ===
+                                filter.value
                         ),
                 )
                 .filter((filter) => !excludedFilters.includes(filter.field)).length > 0
@@ -1956,7 +2019,7 @@ function Collection({
                                                     <Filters
                                                         collection={collection}
                                                         excluded={excludedFilters}
-                                                        relationList={!!relationList}
+                                                        relationList={relationList}
                                                     />
                                                 </SheetContent>
                                             </Sheet>
@@ -2289,8 +2352,12 @@ function Collection({
                                                 unsubscribe={unsubscribe}
                                                 search={search}
                                                 backToStartKey={backToStartKey}
-                                                relationList={!!relationList}
+                                                relationList={relationList}
+                                                relationCollection={relationCollection}
+                                                relationParent={relationParent}
                                                 formList={!!formList}
+                                                isAssigning={isAssigning}
+                                                assignable={assignable}
                                             />
                                         </TabsContent>
                                         <TabsContent value="map">

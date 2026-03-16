@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.43
+
+### Patch Changes
+
+- feat: add relation record assignment feature
+- Updated dependencies
+    - @stoker-platform/types@0.5.20
+    - @stoker-platform/node-client@0.5.32
+    - @stoker-platform/utils@0.5.26
+
 ## 0.5.42
 
 ### Patch Changes

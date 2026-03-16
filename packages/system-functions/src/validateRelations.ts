@@ -504,6 +504,8 @@ export const validateRelations = (
                                         }
                                         const mainRef = await transaction.get(snapshot.after.ref);
                                         const main = mainRef.data() as StokerRecord;
+                                        // eslint-disable-next-line security/detect-object-injection
+                                        if (main?.[field.name]?.[id]) return;
                                         const invalid = await correctRelation("remove", field, snapshot.after.id, id, main, ref, source, transaction);
                                         if (invalid) {
                                             info(`Two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id} for record ${snapshot.after.id} in collection ${labels.collection} was invalid.`);

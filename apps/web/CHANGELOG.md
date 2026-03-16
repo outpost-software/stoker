@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.49
+
+### Patch Changes
+
+- feat: add relation record assignment feature
+    - @stoker-platform/node-client@0.5.32
+    - @stoker-platform/utils@0.5.26
+    - @stoker-platform/web-client@0.5.28
+
 ## 0.5.48
 
 ### Patch Changes

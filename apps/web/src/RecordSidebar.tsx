@@ -1,4 +1,4 @@
-import { FileIcon, EditIcon, List as ListIcon, Book, ArrowDown } from "lucide-react"
+import { FileIcon, EditIcon, List as ListIcon, Book, ArrowDown, Pencil, List } from "lucide-react"
 import {
     Sidebar,
     SidebarContent,
@@ -10,7 +10,7 @@ import {
 } from "./components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./components/ui/dropdown-menu"
 import { useLocation, useNavigate, useParams } from "react-router"
-import { CollectionPermissions, CollectionSchema, CustomRecordPage } from "@stoker-platform/types"
+import { Assignable, CollectionPermissions, CollectionSchema, CustomRecordPage } from "@stoker-platform/types"
 import { collectionAccess, getField, isRelationField, tryFunction, tryPromise } from "@stoker-platform/utils"
 import { getCurrentUserPermissions, getCollectionConfigModule, getSchema } from "@stoker-platform/web-client"
 import { runViewTransition } from "./utils/runViewTransition"
@@ -20,14 +20,19 @@ interface SidebarItem {
     title: string
     page: string
     icon: React.FC
+    assignable?: Assignable
 }
 
 export const RecordSidebar = ({
     collection,
     customRecordPages,
+    isAssigning,
+    setIsAssigning,
 }: {
     collection: CollectionSchema
     customRecordPages?: CustomRecordPage[]
+    isAssigning: Record<string, boolean>
+    setIsAssigning: (isAssigning: Record<string, boolean>) => void
 }) => {
     const { labels } = collection
     const { path, id } = useParams()
@@ -35,8 +40,11 @@ export const RecordSidebar = ({
     const location = useLocation()
 
     const schema = getSchema()
+    const customization = getCollectionConfigModule(collection.labels.collection)
     const permissions = getCurrentUserPermissions()
     const [relationTitles, setRelationTitles] = useState<Record<string, string>>({})
+    const [relationIcons, setRelationIcons] = useState<Record<string, React.FC>>({})
+    const [assignable, setAssignable] = useState<Assignable[]>([])
 
     useEffect(() => {
         ;(async () => {
@@ -51,7 +59,14 @@ export const RecordSidebar = ({
                         ...prev,
                         [relationList.collection]: title || relationList.collection,
                     }))
+                    const icon = await tryPromise(relationCustomization.admin?.icon)
+                    setRelationIcons((prev) => ({
+                        ...prev,
+                        [relationList.collection]: icon as React.FC,
+                    }))
                 })
+                const assignable = await tryPromise(customization.admin?.assignable)
+                setAssignable(assignable)
             }
         })()
     }, [])
@@ -95,7 +110,8 @@ export const RecordSidebar = ({
             relationItems.push({
                 title: relationTitles[relationList.collection],
                 page: relationList.collection.toLowerCase(),
-                icon: ListIcon,
+                icon: relationIcons[relationList.collection] || (() => null),
+                assignable: assignable?.find((item) => item.collection === relationList.collection),
             })
         })
     }
@@ -126,13 +142,38 @@ export const RecordSidebar = ({
                                         return (
                                             <SidebarMenuItem key={item.page}>
                                                 <SidebarMenuButton asChild onClick={() => goToRecordPage(item.page)}>
-                                                    <button
-                                                        className={isActive ? "bg-sidebar-accent" : "cursor-pointer"}
-                                                        type="button"
-                                                    >
+                                                    <div className={isActive ? "bg-sidebar-accent" : "cursor-pointer"}>
                                                         <item.icon />
-                                                        <span>{item.title}</span>
-                                                    </button>
+                                                        <button type="button">{item.title}</button>
+                                                        {item.assignable && isActive && !isAssigning?.[item.page] && (
+                                                            <button
+                                                                className="ml-auto"
+                                                                onClick={() =>
+                                                                    setIsAssigning({
+                                                                        ...isAssigning,
+                                                                        [item.page]: true,
+                                                                    })
+                                                                }
+                                                                type="button"
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        {item.assignable && isActive && isAssigning?.[item.page] && (
+                                                            <button
+                                                                className="ml-auto"
+                                                                onClick={() =>
+                                                                    setIsAssigning({
+                                                                        ...isAssigning,
+                                                                        [item.page]: false,
+                                                                    })
+                                                                }
+                                                                type="button"
+                                                            >
+                                                                <List className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </SidebarMenuButton>
                                             </SidebarMenuItem>
                                         )
@@ -174,6 +215,35 @@ export const RecordSidebar = ({
                                                         onClick={() => goToRecordPage(item.page)}
                                                     >
                                                         {item.title}
+
+                                                        {item.assignable && !isAssigning?.[item.page] && (
+                                                            <button
+                                                                className="ml-auto"
+                                                                onClick={() =>
+                                                                    setIsAssigning({
+                                                                        ...isAssigning,
+                                                                        [item.page]: true,
+                                                                    })
+                                                                }
+                                                                type="button"
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        {item.assignable && isAssigning?.[item.page] && (
+                                                            <button
+                                                                className="ml-auto"
+                                                                onClick={() =>
+                                                                    setIsAssigning({
+                                                                        ...isAssigning,
+                                                                        [item.page]: false,
+                                                                    })
+                                                                }
+                                                                type="button"
+                                                            >
+                                                                <List className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                     </DropdownMenuItem>
                                                 ))}
                                             </DropdownMenuContent>

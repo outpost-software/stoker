@@ -1,4 +1,5 @@
 import {
+    Assignable,
     CollectionSchema,
     CustomRecordPage,
     RelationField,
@@ -79,6 +80,9 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
     const [breadcrumbs, setBreadcrumbs] = useState<string[] | undefined>(undefined)
     const [customRecordPages, setCustomRecordPages] = useState<CustomRecordPage[] | undefined>(undefined)
 
+    const [isAssigning, setIsAssigning] = useState<Record<string, boolean>>({})
+    const [assignable, setAssignable] = useState<Assignable[] | undefined>(undefined)
+
     useEffect(() => {
         if (id && record && record.id !== id) {
             setRecord(location?.state?.relationField?.includeFields ? undefined : recordFromState)
@@ -108,6 +112,10 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                 | CustomRecordPage[]
                 | undefined
             setCustomRecordPages(pages || [])
+            const assignable = (await getCachedConfigValue(customization, [...collectionAdminPath, "assignable"])) as
+                | Assignable[]
+                | undefined
+            setAssignable(assignable)
 
             setIsRouteLoading("+", location.pathname)
 
@@ -195,7 +203,12 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                     {record && (
                         <CardContent className="px-0">
                             <SidebarProvider defaultOpen={true} open={true} className="flex flex-col lg:flex-row">
-                                <RecordSidebar collection={collection} customRecordPages={customRecordPages} />
+                                <RecordSidebar
+                                    collection={collection}
+                                    customRecordPages={customRecordPages}
+                                    isAssigning={isAssigning}
+                                    setIsAssigning={setIsAssigning}
+                                />
                                 <Routes>
                                     <Route
                                         path="edit"
@@ -256,18 +269,13 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                                 relationList={relationList}
                                                                 relationCollection={collection}
                                                                 relationParent={record}
-                                                                additionalConstraints={(() => {
-                                                                    if (record) {
-                                                                        return [
-                                                                            [
-                                                                                `${relationList.field}_Array`,
-                                                                                "array-contains",
-                                                                                record.id,
-                                                                            ],
-                                                                        ]
-                                                                    }
-                                                                    return []
-                                                                })()}
+                                                                isAssigning={
+                                                                    isAssigning?.[relationList.collection.toLowerCase()]
+                                                                }
+                                                                assignable={assignable?.find(
+                                                                    (item: Assignable) =>
+                                                                        item.collection === relationList.collection,
+                                                                )}
                                                             />
                                                         </FiltersProvider>
                                                     </main>
