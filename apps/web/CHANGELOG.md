@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.50
+
+### Patch Changes
+
+- fix: prevent clearing relation list filter
+
 ## 0.5.49
 
 ### Patch Changes

@@ -727,6 +727,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                         }
                         filters.forEach((filter) => {
                             if (filter.type === "status" || filter.type === "range") return
+                            if (relationList && relationList.field === filter.field) return
                             const field = getField(fields, filter.field)
                             if (!field) return
                             if (filter.type === "select") {
