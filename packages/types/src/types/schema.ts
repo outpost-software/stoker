@@ -493,9 +493,26 @@ export interface CardsConfig {
 export interface ImagesConfig {
     roles?: StokerRole[]
     imageField: string
-    size: "sm" | "md" | "lg"
+    size: "sm" | "md" | "lg" | "xl"
     maxHeaderLines?: 1 | 2
     title?: string
+    customComponent?: {
+        component: React.FC<{
+            record: StokerRecord | undefined
+            parentRecord?: StokerRecord
+            collection: CollectionSchema
+            parentCollection?: CollectionSchema
+            isAssigning?: boolean
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            components: any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            hooks: any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            utils: any
+        }>
+        height: number
+        condition?: (parentCollection?: CollectionSchema, parentRecord?: StokerRecord, isAssigning?: boolean) => boolean
+    }
 }
 
 export interface MapConfig {

@@ -1875,8 +1875,21 @@ type ImagesConfig = {
     title?: string
     roles?: string[]
     imageField: string
-    size: "sm" | "md" | "lg"
+    size: "sm" | "md" | "lg" | "xl"
     maxHeaderLines?: 1 | 2
+    customComponent?: {
+        component: React.FC<{
+            record: StokerRecord | undefined
+            parentRecord?: StokerRecord
+            collection: CollectionSchema
+            parentCollection?: CollectionSchema
+            components: any
+            hooks: any
+            utils: any
+        }>
+        height: number
+        condition?: (parentCollection?: CollectionSchema, parentRecord?: StokerRecord, isAssigning?: boolean) => boolean
+    }
 }
 ```
 
@@ -1893,6 +1906,8 @@ Show a list of image cards with infinite scroll.
 `size`: The size for images.
 
 `maxHeaderLines`: The number of lines for the header field text
+
+`customComponent`: An optional custom component that will be shown above each image.
 
 ### map
 

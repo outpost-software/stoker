@@ -17,7 +17,7 @@ import {
     onStokerPermissionsChange,
     subscribeOne,
 } from "@stoker-platform/web-client"
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createElement, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import { useGoToRecord } from "./utils/goToRecord"
 import { LoadingSpinner } from "./components/ui/loading-spinner"
@@ -228,30 +228,57 @@ const Row = ({ index, style, data }: RowProps) => {
                             </button>
                         </CardHeader>
                         <CardContent className="pb-3 md:pb-4">
+                            {imagesConfig.customComponent &&
+                                (!imagesConfig.customComponent.condition ||
+                                    imagesConfig.customComponent.condition(
+                                        relationCollection,
+                                        relationParent,
+                                        isAssigning,
+                                    )) && (
+                                    <div
+                                        className={cn(
+                                            `h-[${imagesConfig.customComponent.height}px]`,
+                                            "overflow-hidden",
+                                        )}
+                                    >
+                                        {createElement(imagesConfig.customComponent.component, {
+                                            record,
+                                            parentRecord: relationParent,
+                                            collection,
+                                            parentCollection: relationCollection,
+                                            isAssigning,
+                                            components: import.meta.glob("./components/ui/*.tsx", {
+                                                eager: true,
+                                            }),
+                                            hooks: import.meta.glob("./hooks/*.{ts,tsx}", { eager: true }),
+                                            utils: import.meta.glob("./lib/*.{ts,tsx}", { eager: true }),
+                                        })}
+                                    </div>
+                                )}
+                            {isAssigning && assignable && (assignable.isAvailable(record) || checked) && (
+                                <div className="pb-4">
+                                    <div className="flex items-center justify-center space-x-3 min-h-8">
+                                        <Switch
+                                            id={`${record.id}-assigned`}
+                                            className="data-[state=checked]:bg-blue-500"
+                                            checked={checked}
+                                            disabled={checkedDisabled}
+                                            onCheckedChange={(checked) => handleCheckedChange(checked, record)}
+                                        />
+                                        {imagesConfig.size !== "sm" && (
+                                            <Label htmlFor={`${record.id}-assigned`}>Assigned</Label>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                            {isAssigning && assignable && !assignable.isAvailable(record) && !checked && (
+                                <div className="pb-4">
+                                    <div className="flex items-center justify-center space-x-3 min-h-8">
+                                        {unavailable}
+                                    </div>
+                                </div>
+                            )}
                             <div className={cn("grid", "gap-4", size)}>
-                                {isAssigning && assignable && (assignable.isAvailable(record) || checked) && (
-                                    <div>
-                                        <div className="flex items-center justify-center space-x-3 min-h-8">
-                                            <Switch
-                                                id={`${record.id}-assigned`}
-                                                className="data-[state=checked]:bg-blue-500"
-                                                checked={checked}
-                                                disabled={checkedDisabled}
-                                                onCheckedChange={(checked) => handleCheckedChange(checked, record)}
-                                            />
-                                            {imagesConfig.size !== "sm" && (
-                                                <Label htmlFor={`${record.id}-assigned`}>Assigned</Label>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                                {isAssigning && assignable && !assignable.isAvailable(record) && !checked && (
-                                    <div>
-                                        <div className="flex items-center justify-center space-x-3 min-h-8">
-                                            {unavailable}
-                                        </div>
-                                    </div>
-                                )}
                                 <button
                                     className="relative w-full h-full flex items-center justify-center overflow-hidden"
                                     onClick={() => goToRecord(collection, record)}
@@ -560,6 +587,10 @@ export const Images = memo(
                         cols: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
                     },
                     lg: {
+                        size: "h-[275px] md:h-[200px] lg:h-[250px] xl:h-[300px]",
+                        cols: "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3",
+                    },
+                    xl: {
                         size: "h-[275px] md:h-[300px] lg:h-[400px] xl:h-[450px]",
                         cols: "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2",
                     },
@@ -722,7 +753,13 @@ export const Images = memo(
 
         const lineClamp = imagesConfig.maxHeaderLines === 2 ? "line-clamp-2" : "line-clamp-1"
         const headerSize = imagesConfig.maxHeaderLines === 2 ? 116 : 82
-        const assignedHeight = isAssigning ? 40 : 0
+        const assignedHeight = isAssigning ? 56 : 0
+        const customComponentHeight =
+            imagesConfig.customComponent &&
+            (!imagesConfig.customComponent.condition ||
+                imagesConfig.customComponent.condition(relationCollection, relationParent, isAssigning))
+                ? imagesConfig.customComponent.height
+                : 0
 
         const itemData = {
             collection,
@@ -768,7 +805,7 @@ export const Images = memo(
                     <List
                         height={height}
                         width="100%"
-                        itemSize={itemSize + headerSize + assignedHeight}
+                        itemSize={itemSize + headerSize + assignedHeight + customComponentHeight}
                         itemCount={itemCount}
                         overscanCount={5}
                         itemKey={itemKey}
@@ -793,7 +830,7 @@ export const Images = memo(
                             <List
                                 height={height}
                                 width="100%"
-                                itemSize={itemSize + headerSize + assignedHeight}
+                                itemSize={itemSize + headerSize + assignedHeight + customComponentHeight}
                                 itemCount={itemCount}
                                 overscanCount={5}
                                 itemKey={itemKey}

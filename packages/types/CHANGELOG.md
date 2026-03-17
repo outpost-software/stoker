@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.22
+
+### Patch Changes
+
+- feat: add new lg image size
+
 ## 0.5.21
 
 ### Patch Changes

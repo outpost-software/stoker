@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.52
+
+### Patch Changes
+
+- feat: add new lg image size
+    - @stoker-platform/node-client@0.5.34
+    - @stoker-platform/utils@0.5.28
+    - @stoker-platform/web-client@0.5.30
+
 ## 0.5.51
 
 ### Patch Changes
