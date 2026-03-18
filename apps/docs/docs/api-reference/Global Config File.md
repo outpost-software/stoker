@@ -84,7 +84,7 @@ The offline persistence strategy for your app.
 This strategy creates a security risk if your app is used on public computers, as app data is stored in IndexedDB beyond the user's session.
 :::
 
-`"WRITE"`: Writes are persisted across sessions. Offline writes will be retried when the connection is restored, even if the window is closed while still offline. [`enableWriteLog`](/docs/api-reference/Collection%20Config%20Files#enablewritelog) must be set to `true` for offline persitent writes to work for a collection.
+`"WRITE"`: Writes are persisted across sessions. Offline writes will be retried when the connection is restored, even if the window is closed while still offline. [`enableWriteLog`](/docs/api-reference/Collection%20Files#enablewritelog) must be set to `true` for offline persitent writes to work for a collection.
 
 :::warning
 This strategy creates a security risk if your app is used on public computers, as app data is stored in IndexedDB beyond the user's session. However, this option is more secure than `"ALL"` because read data is not persisted.
@@ -360,7 +360,7 @@ The Firebase log level for production mode.
 
 `number`
 
-If set, this is the number of days after which [write log](/docs/api-reference/Collection%20Config%20Files#enablewritelog) entries will be deleted. We recommend leaving it out in order to keep records of write activity indefinitely. However, you may wish to reduce your storage costs by deleting write logs after a certain number of days.
+If set, this is the number of days after which [write log](/docs/api-reference/Collection%20Files#enablewritelog) entries will be deleted. We recommend leaving it out in order to keep records of write activity indefinitely. However, you may wish to reduce your storage costs by deleting write logs after a certain number of days.
 
 ### permissionsIndexExemption
 
@@ -382,7 +382,7 @@ Exempt individual fields from the write log. We recommend leaving this as an emp
 
 ## Preload Cache Config
 
-[Preload cache](/docs/api-reference/Collection%20Config%20Files#preload-cache-config) config is specified using the `preload` property.
+[Preload cache](/docs/api-reference/Collection%20Files#preload-cache-config) config is specified using the `preload` property.
 
 ### async
 

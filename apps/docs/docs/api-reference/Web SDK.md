@@ -176,7 +176,7 @@ To delete a field, provide a [Firestore delete sentinel](https://firebase.google
 You can [transactionally increment or decrement a field value](https://firebase.google.com/docs/firestore/manage-data/add-data)
 
 :::note
-The `originalRecord` value provided to hooks in the Web SDK may be stale. If you need the latest value for `originalRecord`, you'll need to set [`access.serverReadOnly`](/docs/api-reference/Collection%20Config%20Files#serverreadonly).
+The `originalRecord` value provided to hooks in the Web SDK may be stale. If you need the latest value for `originalRecord`, you'll need to set [`access.serverReadOnly`](/docs/api-reference/Collection%20Files#serverreadonly).
 :::
 
 ```
@@ -492,7 +492,7 @@ An array of Firebase Storage items.
 
 ## preloadCollection
 
-Load or reload the [preload cache](/docs/api-reference/Collection%20Config%20Files#preload-cache-config) for a collection.
+Load or reload the [preload cache](/docs/api-reference/Collection%20Files#preload-cache-config) for a collection.
 
 ```
 (

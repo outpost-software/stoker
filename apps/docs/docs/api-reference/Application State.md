@@ -108,7 +108,7 @@ Returns the currently logged in user's permissions.
 
 `() => { [collection: string]: "Loading" | "Loaded" | "Error" }`
 
-Returns the loading state for collections with the [preload cache](/docs/api-reference/Collection%20Config%20Files#preload-cache-config) enabled.
+Returns the loading state for collections with the [preload cache](/docs/api-reference/Collection%20Files#preload-cache-config) enabled.
 
 ### getAppCheck
 

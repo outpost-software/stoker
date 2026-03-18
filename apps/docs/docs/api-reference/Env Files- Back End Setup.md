@@ -262,13 +262,13 @@ Provide a Sentry DSN to enable Sentry on your web app (for all projects).
 
 ### `FULLCALENDAR_KEY`
 
-Provide a license key for [Fullcalendar](https://fullcalendar.io) if you will enable the [Calendar](/docs/api-reference/Collection%20Config%20Files#calendar) view.
+Provide a license key for [Fullcalendar](https://fullcalendar.io) if you will enable the [Calendar](/docs/api-reference/Collection%20Files#calendar) view.
 
 ### `EXTERNAL_SECRETS`
 
-You can provide a key-value list of secrets that for use in your custom Cloud Functions and [hooks](/docs/api-reference/Collection%20Config%20Files#collection-hooks). These secrets will be uploaded to [Google Cloud Secret Manager](https://cloud.google.com/security/products/secret-manager?hl=en).
+You can provide a key-value list of secrets that for use in your custom Cloud Functions and [hooks](/docs/api-reference/Collection%20Files#collection-hooks). These secrets will be uploaded to [Google Cloud Secret Manager](https://cloud.google.com/security/products/secret-manager?hl=en).
 
-If you want to use secrets in you Node [hooks](/docs/api-reference/Collection%20Config%20Files#collection-hooks), add them to `EXTERNAL_SECRETS` and the Write API function, for example:
+If you want to use secrets in you Node [hooks](/docs/api-reference/Collection%20Files#collection-hooks), add them to `EXTERNAL_SECRETS` and the Write API function, for example:
 
 ```
 const xeroId = defineSecret("XERO_ID");

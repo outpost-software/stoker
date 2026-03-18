@@ -135,14 +135,14 @@ If you are not using the default roles "Admin" and "User", you will need to:
 
 The most important concepts to know are:
 
-- Views: [List](/docs/api-reference/Collection%20Config%20Files#list), [Board](/docs/api-reference/Collection%20Config%20Files#cards), [Images](/docs/api-reference/Collection%20Config%20Files#images), [Map](/docs/api-reference/Collection%20Config%20Files#map) & [Calendar](/docs/api-reference/Collection%20Config%20Files#calendar)
-- [Access control policies](/docs/api-reference/Collection%20Config%20Files#access-control-policies) and [field-level access restrictions](/docs/api-reference/Collection%20Config%20Files#access)
-- [Preload Cache](/docs/api-reference/Collection%20Config%20Files#preload-cache-config)
+- Views: [List](/docs/api-reference/Collection%20Files#list), [Board](/docs/api-reference/Collection%20Files#cards), [Images](/docs/api-reference/Collection%20Files#images), [Map](/docs/api-reference/Collection%20Files#map) & [Calendar](/docs/api-reference/Collection%20Files#calendar)
+- [Access control policies](/docs/api-reference/Collection%20Files#access-control-policies) and [field-level access restrictions](/docs/api-reference/Collection%20Files#access)
+- [Preload Cache](/docs/api-reference/Collection%20Files#preload-cache-config)
 - Relational Fields:
-    - [Include Fields](/docs/api-reference/Collection%20Config%20Files#includefields) and [Title Field](/docs/api-reference/Collection%20Config%20Files#titlefield)
-    - [Dependency Fields](/docs/api-reference/Collection%20Config%20Files#dependencyfields)
+    - [Include Fields](/docs/api-reference/Collection%20Files#includefields) and [Title Field](/docs/api-reference/Collection%20Files#titlefield)
+    - [Dependency Fields](/docs/api-reference/Collection%20Files#dependencyfields)
 
-For more information, see [Collection Config Files](/docs/api-reference/Collection%20Config%20Files).
+For more information, see [Collection Files](/docs/api-reference/Collection%20Files).
 
 ## Development Environment
 
