@@ -265,8 +265,9 @@ export interface GlobalConfigCache {
     timezone?: string
     auth?: {
         enableMultiFactorAuth?: boolean | StokerRole[]
-        autoRefreshAppCheckToken?: boolean
         authPersistenceType?: "LOCAL" | "SESSION" | "NONE"
+        signOutOnPermissionsChange?: boolean
+        clearPersistenceOnSignOut?: boolean
         offlinePersistenceType?: "ALL" | "WRITE" | "NONE"
         tabManager?: "SINGLE" | "MULTI"
         garbageCollectionStrategy?: "LRU" | "EAGER"
@@ -274,6 +275,7 @@ export interface GlobalConfigCache {
         maxWriteCacheSize?: number
     }
     firebase?: {
+        enableEmulators?: boolean
         disableIndividualEmulators?: ("Auth" | "Database" | "Firestore" | "Storage" | "Functions")[]
         GDPRSettings?: boolean
         enableAnalytics?: boolean
@@ -294,15 +296,18 @@ export interface GlobalConfigCache {
     }
     enableUserIDLogging?: boolean
     admin?: {
+        access?: StokerRole[]
+        background?: Background
         logo?: {
-            small?: string
-            large?: string
+            navbar?: string
+            login?: string
         }
         menu?: {
-            groups?: string[]
+            groups?: MenuGroup[]
         }
         dateFormat?: string
         meta?: {
+            description?: string
             icons?: MetaIcon[]
         }
         dashboard?: DashboardItem[]

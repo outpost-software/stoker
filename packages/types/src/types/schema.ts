@@ -773,6 +773,7 @@ export interface CollectionAdmin {
     assignable?: Assignable[] | (() => Assignable[] | Promise<Assignable[]>)
 }
 export interface CollectionAdminCache {
+    hidden?: boolean
     navbarPosition?: number
     titles?: {
         collection: string
@@ -787,6 +788,8 @@ export interface CollectionAdminCache {
         active?: unknown[]
         archived?: unknown[]
     }
+    defaultView?: "list" | "cards" | "images" | "map" | "calendar"
+    defaultRoute?: string
     defaultSort?: {
         field: string
         direction?: "asc" | "desc"
@@ -798,6 +801,8 @@ export interface CollectionAdminCache {
     map?: MapConfig
     calendar?: CalendarConfig
     filters?: Filter[]
+    rangeSelectorValues?: "range" | "week" | "month" | ("range" | "week" | "month")[]
+    defaultRangeSelector?: "range" | "week" | "month"
     restrictExport?: StokerRole[]
     metrics?: (Metric | Chart)[]
     meta?: CollectionMeta
@@ -810,6 +815,10 @@ export interface CollectionAdminCache {
     formImages?: boolean
     formLists?: FormList[]
     hideCreate?: boolean
+    disableUpdate?: boolean
+    disableRangeSelector?: boolean
+    assignable?: Assignable[]
+    customListActions?: CustomListAction[]
 }
 
 export interface FieldCustom extends Hooks {
