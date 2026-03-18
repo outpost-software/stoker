@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.23
+
+### Patch Changes
+
+- feat: add custom list actions
+
 ## 0.5.22
 
 ### Patch Changes

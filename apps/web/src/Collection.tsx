@@ -4,6 +4,7 @@ import {
     CardsConfig,
     CollectionField,
     CollectionSchema,
+    CustomListAction,
     Filter,
     FormList,
     ImagesConfig,
@@ -206,6 +207,7 @@ function Collection({
     const [isOfflineDisabled, setIsOfflineDisabled] = useState<boolean | undefined>(undefined)
     const [restrictExport, setRestrictExport] = useState<StokerRole[] | undefined>(undefined)
     const [disableCreate, setDisableCreate] = useState<boolean>(false)
+    const [customListActions, setCustomListActions] = useState<CustomListAction[] | undefined>(undefined)
 
     const [table, setTable] = useState<Table<StokerRecord> | undefined>(undefined)
     const [listConfig, setListConfig] = useState<ListConfig | undefined>(undefined)
@@ -840,6 +842,9 @@ function Collection({
             )
             setDisableCreate(!!disableCreate)
             const filters = (await getCachedConfigValue(customization, [...collectionAdminPath, "filters"])) || []
+            const customListActions =
+                (await getCachedConfigValue(customization, [...collectionAdminPath, "customListActions"])) || []
+            setCustomListActions(customListActions)
 
             const statusField = await getCachedConfigValue(customization, [...collectionAdminPath, "statusField"])
             setStatusField(statusField)
@@ -1883,26 +1888,84 @@ function Collection({
                                                 )}
                                             </ToggleGroup>
                                         )}
-                                        {!formList &&
-                                            tab === "list" &&
-                                            (!restrictExport || restrictExport.includes(permissions.Role)) && (
-                                                <>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        disabled={
-                                                            !list.default?.length ||
-                                                            isRouteLoading.has(location.pathname)
-                                                        }
-                                                        className="hidden sm:flex h-7 gap-1"
-                                                        onClick={handleExport}
-                                                    >
-                                                        <File className="h-3.5 w-3.5" />
-                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                            Export
-                                                        </span>
-                                                    </Button>
+                                        {!formList && tab === "list" && (
+                                            <>
+                                                {customListActions &&
+                                                customListActions.some(
+                                                    (action) => !action.condition || action.condition(),
+                                                ) ? (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="hidden sm:flex h-7 gap-1"
+                                                            >
+                                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                    Actions
+                                                                </span>
+                                                                <ChevronsUpDown className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent>
+                                                            {(!restrictExport ||
+                                                                restrictExport.includes(permissions.Role)) && (
+                                                                <DropdownMenuItem
+                                                                    key="export"
+                                                                    onClick={handleExport}
+                                                                    disabled={
+                                                                        !list.default?.length ||
+                                                                        isRouteLoading.has(location.pathname)
+                                                                    }
+                                                                >
+                                                                    <File className="h-3.5 w-3.5 shrink-0 mr-1" />
+                                                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                        Export
+                                                                    </span>
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            {customListActions
+                                                                .filter(
+                                                                    (action) => !action.condition || action.condition(),
+                                                                )
+                                                                .map((action) => (
+                                                                    <DropdownMenuItem
+                                                                        key={action.title}
+                                                                        onClick={action.action}
+                                                                    >
+                                                                        {action.icon &&
+                                                                            createElement(action.icon, {
+                                                                                className: "h-3.5 w-3.5 shrink-0 mr-1",
+                                                                            })}
+                                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                            {action.title}
+                                                                        </span>
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                ) : (
+                                                    (!restrictExport || restrictExport.includes(permissions.Role)) && (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled={
+                                                                !list.default?.length ||
+                                                                isRouteLoading.has(location.pathname)
+                                                            }
+                                                            className="hidden sm:flex h-7 gap-1"
+                                                            onClick={handleExport}
+                                                        >
+                                                            <File className="h-3.5 w-3.5" />
+                                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                Export
+                                                            </span>
+                                                        </Button>
+                                                    )
+                                                )}
+                                                {(!restrictExport || restrictExport.includes(permissions.Role)) && (
                                                     <CSVLink
                                                         ref={csvLinkRef}
                                                         className="hidden"
@@ -1911,8 +1974,9 @@ function Collection({
                                                         filename={`${collectionTitle}.csv`}
                                                         target="_blank"
                                                     />
-                                                </>
-                                            )}
+                                                )}
+                                            </>
+                                        )}
                                         {(tab === "cards" || tab === "images") && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>

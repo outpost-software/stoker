@@ -1577,6 +1577,21 @@ Disable the date range selector for the user.
 
 Restrict CSV export to the defined roles.
 
+### customListActions
+
+```
+type CustomListAction = {
+    title: string
+    icon?: React.FC<{ className?: string }>
+    action: () => void | Promise<void>
+    condition?: () => boolean
+}
+```
+
+`CustomListAction[] | (() => CustomListAction[] | Promise<CustomListAction[]>)`
+
+Provide custom actions that will be shown in a dropdown menu on the list page.
+
 ### addRecordButtonOverride
 
 `(record?: StokerRecord) => void | Promise<void>`

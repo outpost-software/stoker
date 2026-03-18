@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.53
+
+### Patch Changes
+
+- feat: add custom list actions
+    - @stoker-platform/node-client@0.5.35
+    - @stoker-platform/utils@0.5.29
+    - @stoker-platform/web-client@0.5.31
+
 ## 0.5.52
 
 ### Patch Changes

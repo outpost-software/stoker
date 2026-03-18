@@ -685,6 +685,13 @@ export interface Assignable {
     unavailableField?: string
 }
 
+export interface CustomListAction {
+    title: string
+    icon?: React.FC<{ className?: string }>
+    action: () => void | Promise<void>
+    condition?: () => boolean
+}
+
 export interface CollectionAdmin {
     hidden?: boolean | (() => boolean | Promise<boolean>)
     navbarPosition?: number | (() => number)
@@ -771,6 +778,7 @@ export interface CollectionAdmin {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     retriever?: () => any | Promise<any>
     assignable?: Assignable[] | (() => Assignable[] | Promise<Assignable[]>)
+    customListActions?: CustomListAction[] | (() => CustomListAction[] | Promise<CustomListAction[]>)
 }
 export interface CollectionAdminCache {
     hidden?: boolean
