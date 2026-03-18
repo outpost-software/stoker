@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.38
+
+### Patch Changes
+
+- fix: update include fields when source value added
+
 ## 0.5.37
 
 ### Patch Changes

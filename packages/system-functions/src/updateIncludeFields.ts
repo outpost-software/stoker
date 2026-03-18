@@ -157,35 +157,37 @@ export const updateIncludeFields = (
                                             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                             main!
                                         )) return;
+                                        const relationEntry = data?.[field.name]?.[snapshot.after.id];
                                         includeFields.forEach((includeField) => {
-                                            // eslint-disable-next-line security/detect-object-injection
-                                            if (data?.[field.name]?.[snapshot.after.id]?.[includeField] !== undefined &&
+                                            if (relationEntry !== undefined &&
                                                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                                 !includeFieldsChanged([includeField], after, main!)) {
                                                 const relationCollection = schema.collections[field.collection];
                                                 const includeFieldSchema = getField(relationCollection.fields, includeField);
                                                 const lowercaseFields = getLowercaseFields(relationCollection, [includeFieldSchema]);
+                                                // eslint-disable-next-line security/detect-object-injection
+                                                const includeFieldValue = after[includeField];
                                                 updateData[
                                                     `${field.name}.${snapshot.after.id}.${includeField}`
-                                                    // eslint-disable-next-line security/detect-object-injection
-                                                ] = after[includeField];
+                                                ] = includeFieldValue !== undefined ? includeFieldValue : FieldValue.delete();
                                                 if (lowercaseFields.size === 1) {
+                                                    // eslint-disable-next-line security/detect-object-injection
+                                                    const lowercaseValue = after[`${includeField}_Lowercase`];
                                                     updateData[
                                                         `${field.name}.${snapshot.after.id}.${includeField}_Lowercase`
-                                                        // eslint-disable-next-line security/detect-object-injection
-                                                    ] = after[`${includeField}_Lowercase`];
+                                                    ] = lowercaseValue !== undefined ? lowercaseValue : FieldValue.delete();
                                                 }
                                                 updateDataWithSingle = {...updateData};
                                                 if (singleFieldRelationsNames.includes(field.name)) {
                                                     updateDataWithSingle[
                                                         `${field.name}_Single.${includeField}`
-                                                        // eslint-disable-next-line security/detect-object-injection
-                                                    ] = after[includeField];
+                                                    ] = includeFieldValue !== undefined ? includeFieldValue : FieldValue.delete();
                                                     if (lowercaseFields.size === 1) {
+                                                        // eslint-disable-next-line security/detect-object-injection
+                                                        const lowercaseValue = after[`${includeField}_Lowercase`];
                                                         updateDataWithSingle[
                                                             `${field.name}_Single.${includeField}_Lowercase`
-                                                            // eslint-disable-next-line security/detect-object-injection
-                                                        ] = after[`${includeField}_Lowercase`];
+                                                        ] = lowercaseValue !== undefined ? lowercaseValue : FieldValue.delete();
                                                     }
                                                 }
                                             }
