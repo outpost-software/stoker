@@ -135,14 +135,14 @@ The default collections are enough to get started.
 
 The most important concepts to know are:
 
-- Views: [List](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#list), [Board](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#cards), [Images](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#images), [Map](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#map) & [Calendar](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#calendar)
-- [Access control policies](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#access-control-policies) and [field-level access restrictions](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#access)
-- [Preload Cache](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#preload-cache-config)
+- Views: [List](https://stoker-website.web.app/docs/api-reference/Collection%20Files#list), [Board](https://stoker-website.web.app/docs/api-reference/Collection%20Files#cards), [Images](https://stoker-website.web.app/docs/api-reference/Collection%20Files#images), [Map](https://stoker-website.web.app/docs/api-reference/Collection%20Files#map) & [Calendar](https://stoker-website.web.app/docs/api-reference/Collection%20Files#calendar)
+- [Access control policies](https://stoker-website.web.app/docs/api-reference/Collection%20Files#access-control-policies) and [field-level access restrictions](https://stoker-website.web.app/docs/api-reference/Collection%20Files#access)
+- [Preload Cache](https://stoker-website.web.app/docs/api-reference/Collection%20Files#preload-cache-config)
 - Relational Fields:
-    - [Include Fields](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#includefields) and [Title Field](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#titlefield)
-    - [Dependency Fields](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files#dependencyfields)
+    - [Include Fields](https://stoker-website.web.app/docs/api-reference/Collection%20Files#includefields) and [Title Field](https://stoker-website.web.app/docs/api-reference/Collection%20Files#titlefield)
+    - [Dependency Fields](https://stoker-website.web.app/docs/api-reference/Collection%20Files#dependencyfields)
 
-For more information, see [Collection Config Files](https://stoker-website.web.app/docs/api-reference/Collection%20Config%20Files).
+For more information, see [Collection Files](https://stoker-website.web.app/docs/api-reference/Collection%20Files).
 
 ## Development Environment
 
