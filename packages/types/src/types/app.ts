@@ -19,6 +19,7 @@ import type {
     RoleGroup,
     StokerCollection,
     StokerPermissions,
+    StokerRecord,
     StokerRole,
 } from "./schema"
 
@@ -110,6 +111,7 @@ export interface DashboardMetric {
     prefix?: string
     suffix?: string
     textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    constraints?: [string, WhereFilterOp, unknown][]
 }
 export interface DashboardChart {
     kind: "chart"
@@ -118,9 +120,17 @@ export interface DashboardChart {
     dateField: string
     metricField1?: string
     metricField2?: string
-    defaultRange: "90d" | "30d" | "7d"
+    formula1?: (record: StokerRecord) => number
+    formula2?: (record: StokerRecord) => number
+    label1?: string | (() => string)
+    label2?: string | (() => string)
+    yAxis?: { show?: boolean | (() => boolean) }
     roles?: StokerRole[]
     title?: string
+    constraints?: [string, WhereFilterOp, unknown][]
+    interval?: "day" | "month" | "year"
+    numberOfIntervals?: number
+    offset?: number
 }
 
 export interface DashboardReminder {

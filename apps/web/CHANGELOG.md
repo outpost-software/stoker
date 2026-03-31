@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.54
+
+### Patch Changes
+
+- feat: improve charts
+    - @stoker-platform/node-client@0.5.36
+    - @stoker-platform/utils@0.5.30
+    - @stoker-platform/web-client@0.5.32
+
 ## 0.5.53
 
 ### Patch Changes

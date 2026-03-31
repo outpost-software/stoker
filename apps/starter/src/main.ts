@@ -278,7 +278,9 @@ const globalConfig: GenerateGlobalConfig = (sdk, utils, context): GlobalConfig =
                     collection: "Inbox",
                     type: "area",
                     dateField: "Saved_At",
-                    defaultRange: "30d",
+                    interval: "day",
+                    numberOfIntervals: 30,
+                    offset: -30,
                     title: "Messages Over Time",
                 },
                 {
@@ -303,7 +305,9 @@ const globalConfig: GenerateGlobalConfig = (sdk, utils, context): GlobalConfig =
                     type: "area",
                     dateField: "Start",
                     metricField1: "Area",
-                    defaultRange: "30d",
+                    interval: "day",
+                    numberOfIntervals: 30,
+                    offset: -30,
                     title: "Area Over Time",
                 },
                 {

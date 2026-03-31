@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import { useCallback, useEffect, useMemo, useState, useRef } from "react"
 import { getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
 import { getCollectionConfigModule, getLoadingState, getSchema, getTimezone } from "@stoker-platform/web-client"
-import { Timestamp, Unsubscribe, WhereFilterOp } from "firebase/firestore"
+import { Timestamp, Unsubscribe } from "firebase/firestore"
 import { DateTime } from "luxon"
 import {
     ChartConfig,
@@ -13,7 +13,6 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "./components/ui/chart"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { getData } from "./utils/getData"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
@@ -63,7 +62,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
     }, [])
 
     const constraints = useMemo(() => {
-        const existingConstraints: [string, WhereFilterOp, unknown][] = []
+        const existingConstraints = [...(chart.constraints || [])]
         if (softDelete) {
             existingConstraints.push(["Archived", "==", false])
         }
@@ -108,23 +107,59 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
 
     type ChartData = { date: string; metric1: number; metric2?: number }[]
 
-    const [timeRange, setTimeRange] = useState<string | undefined>(undefined)
-
-    useEffect(() => {
-        if (chart.type === "area") {
-            setTimeRange(chart.defaultRange || "30d")
-        }
-    }, [])
-
     const chartData: ChartData = useMemo(() => {
         if (!results) return []
         const chartData: ChartData = []
-        if (chart.metricField1) {
+        const interval = chart.interval || "day"
+        let numberOfIntervals = chart.numberOfIntervals
+        if (!numberOfIntervals) {
+            if (interval === "day") {
+                numberOfIntervals = 90
+            } else if (interval === "month") {
+                numberOfIntervals = 6
+            } else if (interval === "year") {
+                numberOfIntervals = 3
+            }
+        }
+        const offset = chart.offset || 0
+        if (chart.formula1) {
+            results?.forEach((record: StokerRecord) => {
+                if (!record[chart.dateField] || !chart.formula1) return
+                const date = DateTime.fromJSDate((record[chart.dateField] as Timestamp).toDate(), {
+                    zone: timezone,
+                })
+                    .startOf(interval)
+                    .toISO()
+                    ?.split("T")[0]
+                const metric1 = chart.formula1(record)
+                let metric2
+                if (chart.formula2) {
+                    metric2 = chart.formula2(record)
+                }
+                if (date && (metric1 || metric2)) {
+                    const existingInterval = chartData.find((item) => item.date === date)
+                    if (existingInterval) {
+                        existingInterval.metric1 += metric1
+                        if (existingInterval.metric2 && metric2) {
+                            existingInterval.metric2 += metric2
+                        }
+                    } else {
+                        chartData.push({ date, metric1, metric2 })
+                    }
+                }
+            })
+            chartData.sort((a, b) => {
+                if (a.date < b.date) return -1
+                if (a.date > b.date) return 1
+                return 0
+            })
+        } else if (chart.metricField1) {
             results?.forEach((record: StokerRecord) => {
                 if (!record[chart.dateField] || !chart.metricField1) return
                 const date = DateTime.fromJSDate((record[chart.dateField] as Timestamp).toDate(), {
                     zone: timezone,
                 })
+                    .startOf(interval)
                     .toISO()
                     ?.split("T")[0]
                 const metric1 = record[chart.metricField1]
@@ -133,7 +168,15 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                     metric2 = record[chart.metricField2]
                 }
                 if (date && (metric1 || metric2)) {
-                    chartData.push({ date, metric1, metric2 })
+                    const existingInterval = chartData.find((item) => item.date === date)
+                    if (existingInterval) {
+                        existingInterval.metric1 += metric1
+                        if (existingInterval.metric2 && metric2) {
+                            existingInterval.metric2 += metric2
+                        }
+                    } else {
+                        chartData.push({ date, metric1, metric2 })
+                    }
                 }
             })
             chartData.sort((a, b) => {
@@ -149,6 +192,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                 const date = DateTime.fromJSDate((record[chart.dateField] as Timestamp).toDate(), {
                     zone: timezone,
                 })
+                    .startOf(interval)
                     .toISO()
                     ?.split("T")[0]
                 if (date) {
@@ -172,27 +216,35 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
         }
 
         return chartData?.filter((item) => {
-            const date = new Date(item.date)
-            let daysToSubtract = 90
-            // eslint-disable-next-line security/detect-object-injection
-            if (timeRange === "30d") {
-                daysToSubtract = 30
-                // eslint-disable-next-line security/detect-object-injection
-            } else if (timeRange === "7d") {
-                daysToSubtract = 7
-            }
-            const startDate = DateTime.now().setZone(timezone).toJSDate()
-            startDate.setDate(startDate.getDate() - daysToSubtract)
-            return date >= startDate
+            const date = DateTime.fromISO(item.date).setZone(timezone).startOf(interval).toJSDate()
+            const startDate = DateTime.now()
+                .setZone(timezone)
+                .startOf(interval)
+                .plus({ [`${interval}s`]: offset })
+                .toJSDate()
+            const endDate = DateTime.now()
+                .setZone(timezone)
+                .endOf(interval)
+                .plus({ [`${interval}s`]: (numberOfIntervals || 0) + offset })
+                .toJSDate()
+            return date >= startDate && date < endDate
         })
-    }, [results, timeRange])
+    }, [results])
 
     const metricField1 = chart.metricField1 ? getField(fields, chart.metricField1) : undefined
     const metricField1Customization = metricField1 ? getFieldCustomization(metricField1, customization) : undefined
-    const metricField1Title = tryFunction(metricField1Customization?.admin?.label) || metricField1?.name || "Total"
+    const metricField1Title =
+        tryFunction(chart.label1) ||
+        tryFunction(metricField1Customization?.admin?.label) ||
+        metricField1?.name ||
+        "Total"
     const metricField2 = chart.metricField2 ? getField(fields, chart.metricField2) : undefined
     const metricField2Customization = metricField2 ? getFieldCustomization(metricField2, customization) : undefined
-    const metricField2Title = tryFunction(metricField2Customization?.admin?.label) || metricField2?.name
+    const metricField2Title =
+        tryFunction(chart.label2) ||
+        tryFunction(metricField2Customization?.admin?.label) ||
+        metricField2?.name ||
+        "Total"
 
     const chartConfig = {
         visitors: {
@@ -211,48 +263,20 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
     return (
         <div className="grid gap-3 flex-1 min-w-0 h-full w-full">
             <Card className="pt-0 w-full h-full">
-                <div className="grid 2xl:flex h-full">
-                    <CardHeader className="flex flex-col justify-center gap-2 space-y-0 2xl:border-r pb-0 2xl:pb-5 pt-5 w-[200px]">
+                <div className="grid h-full">
+                    <CardHeader className="flex flex-col justify-center gap-2 space-y-0 2xl:border-r pb-0 2xl:pb-5 pt-5 w-[200px] h-[52px]">
                         <div className="grid flex-1 gap-1">
                             <CardTitle>{metricTitle}</CardTitle>
                         </div>
-                        {!isLoading && timeRange && !(isPreloadCacheEnabled && isCacheLoading) && (
-                            <Select
-                                // eslint-disable-next-line security/detect-object-injection
-                                value={timeRange}
-                                onValueChange={(value) =>
-                                    // eslint-disable-next-line security/detect-object-injection
-                                    setTimeRange(value)
-                                }
-                            >
-                                <SelectTrigger className="w-[160px] rounded-lg" aria-label="Select a value">
-                                    <SelectValue placeholder="Last 3 months" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    <SelectItem value="90d" className="rounded-lg">
-                                        Last 3 months
-                                    </SelectItem>
-                                    <SelectItem value="30d" className="rounded-lg">
-                                        Last 30 days
-                                    </SelectItem>
-                                    <SelectItem value="7d" className="rounded-lg">
-                                        Last 7 days
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        )}
                     </CardHeader>
                     <CardContent className="flex-1 px-2 sm:px-6 pb-0">
                         {connectionStatus === "online" || isPreloadCacheEnabled ? (
                             isLoading || (isPreloadCacheEnabled && isCacheLoading) ? (
-                                <div className="flex items-center justify-center h-[294px] md:h-[269px] 2xl:h-[325px]">
+                                <div className="flex items-center justify-center h-[271px]">
                                     <LoadingSpinner size={7} className="relative bottom-6" />
                                 </div>
                             ) : (
-                                <ChartContainer
-                                    config={chartConfig}
-                                    className="aspect-auto w-full h-[250px] md:h-[225px] 2xl:h-[325px]"
-                                >
+                                <ChartContainer config={chartConfig} className="aspect-auto w-full h-[271px]">
                                     <AreaChart data={chartData}>
                                         <defs>
                                             <linearGradient id="fill1" x1="0" y1="0" x2="0" y2="1">
@@ -273,22 +297,35 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                             minTickGap={32}
                                             tickFormatter={(value) => {
                                                 const date = new Date(value)
-                                                return date.toLocaleDateString("en-US", {
-                                                    month: "short",
-                                                    day: "numeric",
-                                                })
+                                                if (chart.interval === "month" || chart.interval === "year") {
+                                                    return date.toLocaleDateString("en-US", {
+                                                        month: "short",
+                                                    })
+                                                } else {
+                                                    return date.toLocaleDateString("en-US", {
+                                                        month: "short",
+                                                        day: "numeric",
+                                                    })
+                                                }
                                             }}
                                         />
-                                        <YAxis hide padding={{ top: 16 }} />
+                                        <YAxis hide={!tryFunction(chart.yAxis?.show)} padding={{ top: 16 }} />
                                         <ChartTooltip
                                             cursor={false}
                                             content={
                                                 <ChartTooltipContent
                                                     labelFormatter={(value) => {
-                                                        return new Date(value).toLocaleDateString("en-US", {
-                                                            month: "short",
-                                                            day: "numeric",
-                                                        })
+                                                        const date = new Date(value)
+                                                        if (chart.interval === "month" || chart.interval === "year") {
+                                                            return date.toLocaleDateString("en-US", {
+                                                                month: "short",
+                                                            })
+                                                        } else {
+                                                            return date.toLocaleDateString("en-US", {
+                                                                month: "short",
+                                                                day: "numeric",
+                                                            })
+                                                        }
                                                     }}
                                                     indicator="dot"
                                                 />
@@ -301,7 +338,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                             stroke="var(--chart-dark)"
                                             stackId="a"
                                         />
-                                        {metricField2 && (
+                                        {(metricField2 || chart.formula2) && (
                                             <Area
                                                 dataKey="metric2"
                                                 type="natural"
@@ -310,7 +347,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                                 stackId="a"
                                             />
                                         )}
-                                        {metricField1 && (
+                                        {(metricField1 || chart.formula1) && (
                                             <ChartLegend className="pb-3" content={<ChartLegendContent />} />
                                         )}
                                     </AreaChart>

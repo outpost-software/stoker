@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.40
+
+### Patch Changes
+
+- feat: improve charts
+- Updated dependencies
+    - @stoker-platform/types@0.5.24
+    - @stoker-platform/node-client@0.5.36
+    - @stoker-platform/utils@0.5.30
+
 ## 0.5.39
 
 ### Patch Changes

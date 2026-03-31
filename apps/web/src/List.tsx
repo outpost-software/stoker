@@ -1219,6 +1219,7 @@ export function List({
                             const date = DateTime.fromJSDate((record[metric.dateField] as Timestamp).toDate(), {
                                 zone: timezone,
                             })
+                                .startOf("day")
                                 .toISO()
                                 ?.split("T")[0]
                             const metric1 = record[metric.metricField1]
@@ -1227,7 +1228,15 @@ export function List({
                                 metric2 = record[metric.metricField2]
                             }
                             if (date && (metric1 || metric2)) {
-                                chartData.push({ date, metric1, metric2 })
+                                const existingInterval = chartData.find((item) => item.date === date)
+                                if (existingInterval) {
+                                    existingInterval.metric1 += metric1
+                                    if (existingInterval.metric2 && metric2) {
+                                        existingInterval.metric2 += metric2
+                                    }
+                                } else {
+                                    chartData.push({ date, metric1, metric2 })
+                                }
                             }
                         })
                         chartData.sort((a, b) => {
@@ -1246,6 +1255,7 @@ export function List({
                             const date = DateTime.fromJSDate((record[metric.dateField] as Timestamp).toDate(), {
                                 zone: timezone,
                             })
+                                .startOf("day")
                                 .toISO()
                                 ?.split("T")[0]
 
@@ -1413,8 +1423,9 @@ export function List({
                                                     daysToSubtract = 7
                                                 }
                                                 const startDate = DateTime.now().setZone(timezone).toJSDate()
+                                                const endDate = DateTime.now().setZone(timezone).toJSDate()
                                                 startDate.setDate(startDate.getDate() - daysToSubtract)
-                                                return date >= startDate
+                                                return date >= startDate && date <= endDate
                                             })
 
                                             return (

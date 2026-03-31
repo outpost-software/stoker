@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.24
+
+### Patch Changes
+
+- feat: improve charts
+
 ## 0.5.23
 
 ### Patch Changes

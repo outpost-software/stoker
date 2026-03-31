@@ -9,7 +9,6 @@ import { getData } from "./utils/getData"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { LoadingSpinner } from "./components/ui/loading-spinner"
 import { useConnection } from "./providers/ConnectionProvider"
-import { WhereFilterOp } from "firebase/firestore"
 
 interface DashboardMetricProps {
     metric: Metric
@@ -53,7 +52,7 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
     }, [])
 
     const constraints = useMemo(() => {
-        const existingConstraints: [string, WhereFilterOp, unknown][] = []
+        const existingConstraints = [...(metric.constraints || [])]
         if (softDelete) {
             existingConstraints.push(["Archived", "==", false])
         }

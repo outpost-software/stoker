@@ -16,6 +16,7 @@ import {
     getEntityRestrictions,
     getField,
     hasDependencyAccess,
+    isRelationField,
 } from "@stoker-platform/utils";
 import {getFirestore} from "firebase-admin/firestore";
 
@@ -137,8 +138,13 @@ export const searchResults = async (
             }
 
             if (operator === "array-contains") {
-                const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
-                filters.push(`${sanitizedFieldName}_Array:"${sanitizedValue}"`);
+                if (isRelationField(field)) {
+                    const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
+                    filters.push(`${sanitizedFieldName}_Array:"${sanitizedValue}"`);
+                } else {
+                    const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
+                    filters.push(`${sanitizedFieldName}:"${sanitizedValue}"`);
+                }
             } else if (operator === "==") {
                 const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
                 if (typeof constraint[2] === "string") {

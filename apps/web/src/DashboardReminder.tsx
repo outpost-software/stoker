@@ -259,7 +259,7 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                         colSpan={reminder.columns?.length || 1}
                                         className="text-center h-10 text-primary/50"
                                     >
-                                        <span>{collectionTitle} are not available in offline mode.</span>
+                                        <span>{collectionTitle} not available in offline mode.</span>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
