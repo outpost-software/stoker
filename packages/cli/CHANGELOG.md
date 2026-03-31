@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.48
+
+### Patch Changes
+
+- feat: support TypeScript 7
+
 ## 0.5.47
 
 ### Patch Changes

@@ -3,11 +3,13 @@
         "module": "ESNext",
         "noImplicitReturns": true,
         "noUnusedLocals": true,
+        "rootDir": "src",
         "outDir": "lib",
         "sourceMap": true,
         "strict": true,
         "target": "ESNext",
         "moduleResolution": "Node",
+        "ignoreDeprecations": "6.0",
 
         "allowSyntheticDefaultImports": true,
         "jsx": "react-jsx"
