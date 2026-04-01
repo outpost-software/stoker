@@ -254,7 +254,10 @@ For example:
 
 Return an array of Dashboard Items. These will be laid out in a grid.
 
-We recommend that each row contains 1-2 metrics and a chart OR 1 reminder and a chart.
+We recommend that each row contains any of: 
+- 1-2 metrics and a chart
+- 1 reminder and a chart
+- 3 reminders
 
 Display a metric (numerical counter):
 ```
@@ -269,6 +272,7 @@ type DashboardMetric = {
     prefix?: string
     suffix?: string
     textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    constraints?: [string, WhereFilterOp, unknown][]
 }
 ```
 
@@ -281,9 +285,17 @@ type DashboardChart = {
     dateField: string
     metricField1?: string
     metricField2?: string
-    defaultRange: "90d" | "30d" | "7d"
+    formula1?: (record: StokerRecord) => number
+    formula2?: (record: StokerRecord) => number
+    label1?: string | (() => string)
+    label2?: string | (() => string)
+    yAxis?: { show?: boolean | (() => boolean) }
     roles?: string[]
     title?: string
+    constraints?: [string, WhereFilterOp, unknown][]
+    interval?: "day" | "month" | "year"
+    numberOfIntervals?: number
+    offset?: number
 }
 ```
 
