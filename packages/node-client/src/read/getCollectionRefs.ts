@@ -12,13 +12,16 @@ import {
 } from "@stoker-platform/types"
 import { getFirestorePathRef } from "../utils/getFirestorePathRef"
 import { getFirestore, Query, WhereFilterOp } from "firebase-admin/firestore"
-import { collectionAccess, getField, getRoleGroup, hasDependencyAccess } from "@stoker-platform/utils"
-import { getCustomizationFile } from "../initializeStoker"
 import {
+    collectionAccess,
+    getField,
+    getRoleGroup,
+    hasDependencyAccess,
     getEntityParentFilters,
     getEntityRestrictions,
     getAttributeRestrictions,
-} from "@stoker-platform/utils/lib/src/access/getCollectionRestrictions"
+} from "@stoker-platform/utils"
+import { getCustomizationFile } from "../initializeStoker"
 
 export const getCollectionRefs = (
     tenantId: string,

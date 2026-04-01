@@ -12,12 +12,14 @@ import {
 } from "@stoker-platform/types"
 import { Query, QueryFieldFilterConstraint, collection, getFirestore, query, where } from "firebase/firestore"
 import { getCollectionConfigModule, getCurrentUserPermissions, getSchema, getTenant } from "../initializeStoker"
-import { collectionAccess, getField, hasDependencyAccess } from "@stoker-platform/utils"
 import {
+    collectionAccess,
+    getField,
+    hasDependencyAccess,
     getEntityParentFilters,
     getEntityRestrictions,
     getAttributeRestrictions,
-} from "@stoker-platform/utils/lib/src/access/getCollectionRestrictions"
+} from "@stoker-platform/utils"
 
 export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, getAll?: boolean) => {
     const db = getFirestore()

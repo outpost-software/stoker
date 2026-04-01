@@ -4,11 +4,9 @@ import {
     getSome,
     GetOneOptions,
     serializeTimestamps,
-} from "@stoker-platform/node-client";
-import {
     Cursor,
     GetSomeOptions,
-} from "@stoker-platform/node-client/dist/types/read/getSome";
+} from "@stoker-platform/node-client";
 import {StokerRecord} from "@stoker-platform/types";
 import {Timestamp} from "firebase-admin/firestore";
 import {error as errorLogger} from "firebase-functions/logger";

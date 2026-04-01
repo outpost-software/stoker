@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/cli",
-    "version": "0.5.48",
+    "version": "0.5.49",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "./lib/src/main.js",
@@ -19,15 +19,15 @@
         "stoker": "./lib/src/main.js"
     },
     "dependencies": {
-        "@faker-js/faker": "^10.3.0",
+        "@faker-js/faker": "^10.4.0",
         "@google-cloud/bigquery": "^8.1.1",
         "@google-cloud/secret-manager": "^6.1.1",
         "@google-cloud/storage": "^7.19.0",
         "@inquirer/prompts": "^8.3.2",
-        "@stoker-platform/node-client": "0.5.36",
-        "@stoker-platform/types": "0.5.24",
-        "@stoker-platform/utils": "0.5.30",
-        "algoliasearch": "^5.49.2",
+        "@stoker-platform/node-client": "0.5.37",
+        "@stoker-platform/types": "0.5.25",
+        "@stoker-platform/utils": "0.5.31",
+        "algoliasearch": "^5.50.0",
         "commander": "^14.0.0",
         "cross-spawn": "^7.0.6",
         "dotenv": "^17.3.1",

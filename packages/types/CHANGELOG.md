@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.25
+
+### Patch Changes
+
+- chore: update dependencies
+
 ## 0.5.24
 
 ### Patch Changes

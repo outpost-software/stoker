@@ -258,6 +258,7 @@ const Invoices: GenerateSchema = (_sdk, _utils, context): CollectionSchema => {
             {
                 name: "Issued_Date",
                 type: "Timestamp",
+                nullable: true,
                 required: true,
             },
             {

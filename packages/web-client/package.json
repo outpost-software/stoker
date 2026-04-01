@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-client",
-    "version": "0.5.32",
+    "version": "0.5.33",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -12,6 +12,7 @@
     "browser": "./dist/bundle.js",
     "exports": {
         ".": {
+            "types": "./dist/types/main.d.ts",
             "import": "./dist/bundle.js"
         }
     },
@@ -23,11 +24,11 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
-        "@stoker-platform/types": "0.5.24",
-        "@stoker-platform/utils": "0.5.30",
+        "@stoker-platform/types": "0.5.25",
+        "@stoker-platform/utils": "0.5.31",
         "@types/lodash": "^4.17.24",
         "@types/luxon": "^3.7.1",
-        "firebase": "^12.10.0",
+        "firebase": "^12.11.0",
         "lodash": "^4.17.23",
         "luxon": "^3.7.2"
     },

@@ -8,8 +8,7 @@
         "sourceMap": true,
         "strict": true,
         "target": "ESNext",
-        "moduleResolution": "Node",
-        "ignoreDeprecations": "6.0",
+        "moduleResolution": "Bundler",
 
         "allowSyntheticDefaultImports": true,
         "jsx": "react-jsx"

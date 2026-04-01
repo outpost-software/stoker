@@ -40,3 +40,4 @@ export {
 } from "@stoker-platform/utils"
 
 export type { GetOneOptions } from "./read/getOne.js"
+export type { Cursor, GetSomeOptions } from "./read/getSome.js"

@@ -438,6 +438,7 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
             {
                 name: "End",
                 type: "Timestamp",
+                nullable: true,
                 description: "The end date of the work order.",
                 admin: {
                     readOnly(operation) {
