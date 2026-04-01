@@ -302,12 +302,14 @@ export const subscribeMany = async (
         Promise.all(promises).then(() => {
             callback(Array.from(docs.values()), cursor, metadata)
 
-            docs.forEach((doc) => {
-                const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
-                runHooks("postOperation", globalConfig, customization, postOperationArgs)
-                const postReadArgs: PostReadHookArgs = [context, refs, doc, true]
-                runHooks("postRead", globalConfig, customization, postReadArgs)
-            })
+            if (metadata?.fromCache === false) {
+                docs.forEach((doc) => {
+                    const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
+                    runHooks("postOperation", globalConfig, customization, postOperationArgs)
+                    const postReadArgs: PostReadHookArgs = [context, refs, doc, true]
+                    runHooks("postRead", globalConfig, customization, postReadArgs)
+                })
+            }
         })
     }
 

@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.34
+
+### Patch Changes
+
+- fix: prevent postRead from firing on cache updates
+
 ## 0.5.33
 
 ### Patch Changes
