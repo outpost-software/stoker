@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.58
+
+### Patch Changes
+
+- feat: improve list metrics layout
+
 ## 0.5.57
 
 ### Patch Changes

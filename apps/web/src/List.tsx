@@ -1320,8 +1320,9 @@ export function List({
                 >
                     <CardContent>
                         {metrics && hasMetrics && !relationList && (
-                            <div className="hidden lg:flex flex-row gap-4 mb-4 mt-4">
+                            <div className="hidden lg:flex flex-row gap-4 mb-4 mt-4 max-w-[calc(100vw-96px)]">
                                 {metrics.map((metric: Metric | Chart, index: number) => {
+                                    const hideThirdMetric = index >= 2 ? "hidden xl:grid" : undefined
                                     if (
                                         permissions?.Role &&
                                         (!metric.roles || metric.roles.includes(permissions?.Role))
@@ -1337,7 +1338,7 @@ export function List({
                                             return (
                                                 <div
                                                     key={`metric-${index}`}
-                                                    className="grid gap-3 place-content-center"
+                                                    className={cn("grid gap-3 place-content-center", hideThirdMetric)}
                                                 >
                                                     <Card className="p-4 pt-6 pb-6 h-[175px] min-w-[175px] flex flex-col place-content-center items-center bg-blue-500 dark:bg-blue-500/50 text-primary-foreground dark:text-primary">
                                                         <div className="relative bottom-2">
