@@ -2301,6 +2301,7 @@ Fires after a write operation.
     docId: string,
     context: any,
     error: unknown,
+    batch?: WriteBatch,
     retry?: boolean,
     retries?: number,
     originalRecord?: StokerRecord,
