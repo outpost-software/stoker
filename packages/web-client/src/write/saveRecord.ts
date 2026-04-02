@@ -139,6 +139,7 @@ export const saveRecord = async (
                 docId,
                 context,
                 error,
+                batch,
                 retry,
                 retries,
                 operation === "update" ? originalRecord : undefined,

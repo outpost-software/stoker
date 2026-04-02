@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.35
+
+### Patch Changes
+
+- feat: pass write batch to postWriteError hook
+- Updated dependencies
+    - @stoker-platform/types@0.5.26
+    - @stoker-platform/utils@0.5.32
+
 ## 0.5.34
 
 ### Patch Changes

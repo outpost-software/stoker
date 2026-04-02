@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.26
+
+### Patch Changes
+
+- feat: pass write batch to postWriteError hook
+
 ## 0.5.25
 
 ### Patch Changes

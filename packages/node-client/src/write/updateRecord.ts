@@ -578,6 +578,7 @@ export const updateRecord = async (
                     error,
                     undefined,
                     undefined,
+                    undefined,
                     cloneDeep(originalRecord),
                 ]
                 const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)

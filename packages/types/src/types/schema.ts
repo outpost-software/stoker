@@ -279,6 +279,7 @@ export type PostWriteErrorHookArgs = [
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: any,
     error: unknown,
+    batch?: WriteBatch,
     retry?: boolean,
     retries?: number,
     originalRecord?: StokerRecord,
