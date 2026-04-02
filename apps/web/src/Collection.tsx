@@ -1895,7 +1895,7 @@ function Collection({
                                                     (action) => !action.condition || action.condition(),
                                                 ) ? (
                                                     <DropdownMenu>
-                                                        <DropdownMenuTrigger>
+                                                        <DropdownMenuTrigger asChild>
                                                             <Button
                                                                 type="button"
                                                                 size="sm"
