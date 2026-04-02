@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.36
+
+### Patch Changes
+
+- feat: improve permissions change logic
+
 ## 0.5.35
 
 ### Patch Changes
