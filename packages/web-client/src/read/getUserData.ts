@@ -1,7 +1,7 @@
 import { IdTokenResult, User } from "firebase/auth"
 import { Unsubscribe, doc, getFirestore, onSnapshot } from "firebase/firestore"
 import { StokerPermissions } from "@stoker-platform/types"
-import { getGlobalConfigModule, getTenant, signOut } from "../main"
+import { getGlobalConfigModule, getSchema, getTenant, signOut } from "../main"
 import isEqual from "lodash/isEqual.js"
 import { preloadCollection } from "./cache/preloadCollection"
 
@@ -12,6 +12,7 @@ export const initializeUserListeners = async (user: User, idTokenResult: IdToken
     const tenantId = getTenant()
     const db = getFirestore()
     const globalConfig = getGlobalConfigModule()
+    const schema = getSchema()
     if (!idTokenResult.claims.doc) throw new Error("User document ID not found in claims")
 
     let permissionsInitialized = false
@@ -39,6 +40,8 @@ export const initializeUserListeners = async (user: User, idTokenResult: IdToken
                                 if (permissionCollections) {
                                     for (const [key, permission] of Object.entries(permissionCollections)) {
                                         if (
+                                            // eslint-disable-next-line security/detect-object-injection
+                                            schema.collections[key] &&
                                             previousPermissions &&
                                             // eslint-disable-next-line security/detect-object-injection
                                             (!previousPermissions.collections?.[key] ||

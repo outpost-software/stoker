@@ -14,6 +14,7 @@ import {
     RelationField,
     RelationList,
     StokerCollection,
+    StokerPermissions,
     StokerRecord,
     StokerRole,
 } from "@stoker-platform/types"
@@ -30,6 +31,7 @@ import {
     GetSomeOptions,
     getTimezone,
     keepTimezone,
+    onStokerPermissionsChange,
     onStokerSignOut,
     subscribeMany,
     SubscribeManyOptions,
@@ -153,7 +155,7 @@ function Collection({
     const schema = getSchema()
     const customization = getCollectionConfigModule(labels.collection)
     const timezone = getTimezone()
-    const permissions = getCurrentUserPermissions()
+    const [permissions, setPermissions] = useState<StokerPermissions | null>(() => getCurrentUserPermissions())
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
     const { toast } = useToast()
 
@@ -235,6 +237,13 @@ function Collection({
     const [backToStartKey, setBackToStartKey] = useState(0)
 
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
+
+    useEffect(() => {
+        const unsubscribe = onStokerPermissionsChange(() => {
+            setPermissions(getCurrentUserPermissions())
+        })
+        return unsubscribe
+    }, [])
 
     const onTabChange = useCallback((value: string) => {
         Object.values(unsubscribe.current).forEach((unsubscribe) => unsubscribe.forEach((unsubscribe) => unsubscribe()))
@@ -1333,7 +1342,7 @@ function Collection({
     }, [calendarConfig, schema])
 
     const canAddRecords =
-        permissions.collections?.[labels.collection].operations.includes("Create") &&
+        permissions.collections?.[labels.collection]?.operations.includes("Create") &&
         !hasEntityRestrictions.some((entityRestriction) => entityRestriction.type === "Individual") &&
         !disableCreate
     const isCreateDisabled = getConnectionStatus() === "Offline" && (isOfflineDisabled || serverWriteOnly)
@@ -1640,6 +1649,8 @@ function Collection({
         },
         [recordTitle],
     )
+
+    if (!permissions.collections?.[labels.collection]) return null
 
     return (
         !collection.singleton && (
