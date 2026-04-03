@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.27
+
+### Patch Changes
+
+- feat: add relation list loadAll option
+
 ## 0.5.26
 
 ### Patch Changes

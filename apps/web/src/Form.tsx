@@ -5247,18 +5247,6 @@ function RecordForm({
                                                     field: formList.sortField || relationCollection.recordTitleField,
                                                     direction: formList.sortDirection,
                                                 }}
-                                                additionalConstraints={(() => {
-                                                    if (record) {
-                                                        return [
-                                                            [
-                                                                `${relationList.field}_Array`,
-                                                                "array-contains",
-                                                                record.id,
-                                                            ],
-                                                        ]
-                                                    }
-                                                    return []
-                                                })()}
                                             />
                                         </FiltersProvider>
                                     </div>

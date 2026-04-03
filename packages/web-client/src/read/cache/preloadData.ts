@@ -15,6 +15,7 @@ export const preloadData = async (
     constraints?: [string, WhereFilterOp, unknown][],
     rangeConstraints?: PreloadCacheRange,
     orQueries?: [string, WhereFilterOp, unknown][],
+    tempCache?: string,
 ) => {
     const { labels, preloadCache } = collectionSchema
     const roleGroups = getCurrentUserRoleGroups()
@@ -27,8 +28,16 @@ export const preloadData = async (
 
     const listeners = getPreloadListeners()
 
-    if (listeners[labels.collection]) {
-        listeners[labels.collection].forEach((unsubscribe) => unsubscribe())
+    let location = labels.collection
+    if (tempCache) {
+        location = tempCache
+        // eslint-disable-next-line security/detect-object-injection
+        listeners[location] ||= []
+    }
+    // eslint-disable-next-line security/detect-object-injection
+    if (listeners[location]) {
+        // eslint-disable-next-line security/detect-object-injection
+        listeners[location].forEach((unsubscribe) => unsubscribe())
     }
 
     const timezone = await getCachedConfigValue(globalConfig, ["global", "timezone"])
@@ -44,9 +53,11 @@ export const preloadData = async (
         "custom",
         "preloadCacheOrQueries",
     ])) as [string, WhereFilterOp, unknown][]
-    rangeConstraints ||= preloadCache.range
+    if (!tempCache) {
+        rangeConstraints ||= preloadCache.range
+    }
 
-    const queries = getCollectionRefs([labels.collection], roleGroup).map((ref) => {
+    const queries = getCollectionRefs([labels.collection], roleGroup, !!tempCache).map((ref) => {
         if (rangeConstraints) {
             const { start, end } = getRange(rangeConstraints, timezone)
             const rangeQueries = rangeConstraints.fields
@@ -92,11 +103,12 @@ export const preloadData = async (
                     }
                 },
                 (error) => {
-                    console.error(error)
+                    console.error(`${location} - ${error.message}`)
                     reject(error)
                 },
             )
-            listeners[labels.collection].push(listener)
+            // eslint-disable-next-line security/detect-object-injection
+            listeners[location].push(listener)
         })
     })
 }

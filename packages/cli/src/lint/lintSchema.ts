@@ -406,6 +406,18 @@ export const lintSchema = async (noLog = false) => {
                                     )
                                 }
                             }
+                            if (relation.loadAll) {
+                                if (relationCollection.parentCollection) {
+                                    errors.push(
+                                        `Collection ${collectionName} has a relation list for collection ${relation.collection} that has loadAll enabled but is on a subcollection`,
+                                    )
+                                }
+                                if (relationCollection.indexExemption) {
+                                    errors.push(
+                                        `Collection ${collectionName} has a relation list for collection ${relation.collection} that has loadAll enabled but is on a collection with indexExemption enabled`,
+                                    )
+                                }
+                            }
                         }
                     }
                 }

@@ -21,7 +21,7 @@ import {
     getAttributeRestrictions,
 } from "@stoker-platform/utils"
 
-export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, getAll?: boolean) => {
+export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, loadAll?: boolean) => {
     const db = getFirestore()
     const tenantId = getTenant()
     const schema = getSchema()
@@ -48,20 +48,21 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, getAll?:
     const getQueries = (constraints: QueryFieldFilterConstraint[] = []): Query[] => {
         const queries = []
         if (fullCollectionAccess) {
-            queries.push(
-                query(
-                    collection(
-                        db,
-                        "tenants",
-                        tenantId,
-                        "system_fields",
-                        labels.collection,
-                        `${labels.collection}-${roleGroup.key}`,
-                    ),
-                    where("Collection_Path_String", "==", path.join("/")),
-                    ...constraints,
+            let newQuery = query(
+                collection(
+                    db,
+                    "tenants",
+                    tenantId,
+                    "system_fields",
+                    labels.collection,
+                    `${labels.collection}-${roleGroup.key}`,
                 ),
+                ...constraints,
             )
+            if (!loadAll) {
+                newQuery = query(newQuery, where("Collection_Path_String", "==", path.join("/")))
+            }
+            queries.push(newQuery)
         } else if (dependencyAccess) {
             for (const field of dependencyAccess) {
                 queries.push(
@@ -91,10 +92,9 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, getAll?:
     })
 
     if (
-        getAll ||
-        (applicableAttributeRestrictions.length === 0 &&
-            hasEntityRestrictions.length === 0 &&
-            hasEntityParentFilters.length === 0)
+        applicableAttributeRestrictions.length === 0 &&
+        hasEntityRestrictions.length === 0 &&
+        hasEntityParentFilters.length === 0
     ) {
         return getQueries()
     }

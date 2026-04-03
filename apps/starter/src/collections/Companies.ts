@@ -39,6 +39,7 @@ const Companies: GenerateSchema = (): CollectionSchema => {
             {
                 collection: "Work_Orders",
                 field: "Establishment",
+                loadAll: true,
             },
         ],
         seedOrder: 2,

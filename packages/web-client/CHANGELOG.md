@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.37
+
+### Patch Changes
+
+- feat: add relation list loadAll option
+- Updated dependencies
+    - @stoker-platform/types@0.5.27
+    - @stoker-platform/utils@0.5.33
+
 ## 0.5.36
 
 ### Patch Changes

@@ -36,6 +36,7 @@ import {
     subscribeMany,
     SubscribeManyOptions,
     updateRecord,
+    getPreloadListeners,
 } from "@stoker-platform/web-client"
 import { createElement, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
@@ -453,7 +454,7 @@ function Collection({
             const startingTab = tabRef.current
             key ||= "default"
 
-            if (!isPreloadCacheEnabled) {
+            if (!isPreloadCacheEnabled || relationList?.loadAll) {
                 setIsRouteLoading("+", location.pathname)
             }
 
@@ -581,8 +582,8 @@ function Collection({
                             if (!query.infinite || firstLoad) {
                                 setCursor((prev) => ({ ...prev, [key]: newCursor }))
                             }
-                            if (!isPreloadCacheEnabled) {
-                                loadedKeys.current.add(key)
+                            if (!isPreloadCacheEnabled || relationList?.loadAll) {
+                                if (!isPreloadCacheEnabled) loadedKeys.current.add(key)
                                 if (loadedKeys.current.size === keysLength.current) {
                                     setIsRouteLoading("-", location.pathname)
                                 }
@@ -627,7 +628,7 @@ function Collection({
                             },
                             (error) => {
                                 console.error(error)
-                                if (!isPreloadCacheEnabled) {
+                                if (!isPreloadCacheEnabled || relationList?.loadAll) {
                                     setIsRouteLoading("-", location.pathname)
                                 }
                                 resolve()
@@ -637,6 +638,13 @@ function Collection({
                             },
                             {
                                 ...currentQuery.options,
+                                tempCache:
+                                    isPreloadCacheEnabled && relationList?.loadAll
+                                        ? {
+                                              label: `${labels.collection}-${relationList?.field}`,
+                                              constraints: [[`${relationList?.field}.${relationParent?.id}`, ">", {}]],
+                                          }
+                                        : undefined,
                             } as SubscribeManyOptions,
                         )
                         const { unsubscribe: newUnsubscribe, count: newCount, pages: newPages } = result
@@ -645,7 +653,7 @@ function Collection({
                             load()
                         }
                     } catch (error) {
-                        if (!isPreloadCacheEnabled) {
+                        if (!isPreloadCacheEnabled || relationList?.loadAll) {
                             setIsRouteLoading("-", location.pathname)
                         }
                         reject(error)
@@ -980,51 +988,49 @@ function Collection({
             if (currentField && (!rangeFilter || isPreloadCacheEnabled)) {
                 let rangeValue = rangeState
                 if (preloadCache?.range) {
-                    if (!rangeValue) {
-                        if (formList) {
+                    if (formList || relationList?.loadAll) {
+                        rangeValue = JSON.stringify({
+                            from: getMinDate(),
+                            to: getMaxDate(),
+                        })
+                    } else if (!rangeValue) {
+                        const now = convertDateToTimezone(new Date())
+                        if (rangeSelectorState === "month") {
                             rangeValue = JSON.stringify({
-                                from: getMinDate(),
-                                to: getMaxDate(),
+                                from: now
+                                    .startOf("month")
+                                    .plus({ days: preloadCache.range.startOffsetDays || 0 })
+                                    .plus({ hours: preloadCache.range.startOffsetHours })
+                                    .toJSDate()
+                                    .toISOString(),
+                                to: now
+                                    .endOf("month")
+                                    .plus({ days: preloadCache.range.endOffsetDays || 0 })
+                                    .plus({ hours: preloadCache.range.endOffsetHours })
+                                    .toJSDate()
+                                    .toISOString(),
+                            })
+                        } else if (rangeSelectorState === "week") {
+                            rangeValue = JSON.stringify({
+                                from: now
+                                    .startOf("week")
+                                    .plus({ days: preloadCache.range.startOffsetDays || 0 })
+                                    .plus({ hours: preloadCache.range.startOffsetHours })
+                                    .toJSDate()
+                                    .toISOString(),
+                                to: now
+                                    .endOf("week")
+                                    .plus({ days: preloadCache.range.endOffsetDays || 0 })
+                                    .plus({ hours: preloadCache.range.endOffsetHours })
+                                    .toJSDate()
+                                    .toISOString(),
                             })
                         } else {
-                            const now = convertDateToTimezone(new Date())
-                            if (rangeSelectorState === "month") {
-                                rangeValue = JSON.stringify({
-                                    from: now
-                                        .startOf("month")
-                                        .plus({ days: preloadCache.range.startOffsetDays || 0 })
-                                        .plus({ hours: preloadCache.range.startOffsetHours })
-                                        .toJSDate()
-                                        .toISOString(),
-                                    to: now
-                                        .endOf("month")
-                                        .plus({ days: preloadCache.range.endOffsetDays || 0 })
-                                        .plus({ hours: preloadCache.range.endOffsetHours })
-                                        .toJSDate()
-                                        .toISOString(),
-                                })
-                            } else if (rangeSelectorState === "week") {
-                                rangeValue = JSON.stringify({
-                                    from: now
-                                        .startOf("week")
-                                        .plus({ days: preloadCache.range.startOffsetDays || 0 })
-                                        .plus({ hours: preloadCache.range.startOffsetHours })
-                                        .toJSDate()
-                                        .toISOString(),
-                                    to: now
-                                        .endOf("week")
-                                        .plus({ days: preloadCache.range.endOffsetDays || 0 })
-                                        .plus({ hours: preloadCache.range.endOffsetHours })
-                                        .toJSDate()
-                                        .toISOString(),
-                                })
-                            } else {
-                                const preloadCacheRange = getRange(preloadCache.range, timezone)
-                                rangeValue = JSON.stringify({
-                                    from: preloadCacheRange.start.toISOString(),
-                                    to: preloadCacheRange.end?.toISOString(),
-                                })
-                            }
+                            const preloadCacheRange = getRange(preloadCache.range, timezone)
+                            rangeValue = JSON.stringify({
+                                from: preloadCacheRange.start.toISOString(),
+                                to: preloadCacheRange.end?.toISOString(),
+                            })
                         }
                     }
                     filtersClone.push({
@@ -1152,6 +1158,12 @@ function Collection({
             if (isPreloadCacheEnabled) {
                 document.removeEventListener(`stoker:loading:${labels.collection}`, cacheLoading)
                 document.removeEventListener(`stoker:loaded:${labels.collection}`, cacheLoaded)
+            }
+            if (relationList?.loadAll) {
+                const unsubscribes = getPreloadListeners()[`${labels.collection}-${relationList.field}`]
+                if (unsubscribes) {
+                    unsubscribes.forEach((unsubscribe) => unsubscribe())
+                }
             }
         }
     }, [])
@@ -1675,24 +1687,26 @@ function Collection({
                             </Card>
                             {(connectionStatus === "online" || isPreloadCacheEnabled) && (
                                 <>
-                                    {tab !== "calendar" && (hasRangeFilter || currentField) && (
-                                        <div
-                                            className={cn(
-                                                "hidden",
-                                                relationList ? "xl:flex" : "lg:flex",
-                                                "2xl:hidden absolute",
-                                                relationList ? "left-[calc(50%+98px)]" : "left-1/2",
-                                                "transform -translate-x-1/2",
-                                            )}
-                                        >
-                                            <DateRangeSelector
-                                                collection={collection}
-                                                rangeSelector={rangeSelector}
-                                                setRangeSelector={setRangeSelector}
-                                                relationList={!!relationList}
-                                            />
-                                        </div>
-                                    )}
+                                    {tab !== "calendar" &&
+                                        !relationList?.loadAll &&
+                                        (hasRangeFilter || currentField) && (
+                                            <div
+                                                className={cn(
+                                                    "hidden",
+                                                    relationList ? "xl:flex" : "lg:flex",
+                                                    "2xl:hidden absolute",
+                                                    relationList ? "left-[calc(50%+98px)]" : "left-1/2",
+                                                    "transform -translate-x-1/2",
+                                                )}
+                                            >
+                                                <DateRangeSelector
+                                                    collection={collection}
+                                                    rangeSelector={rangeSelector}
+                                                    setRangeSelector={setRangeSelector}
+                                                    relationList={!!relationList}
+                                                />
+                                            </div>
+                                        )}
                                     <div className="relative ml-auto flex-1 md:grow-0 print:hidden flex items-center">
                                         {tab !== "calendar" &&
                                             tab !== "map" &&
@@ -1746,7 +1760,7 @@ function Collection({
                             )}
                         </header>
                     )}
-                    {!(connectionStatus === "online" || isPreloadCacheEnabled) ? (
+                    {!(connectionStatus === "online" || (isPreloadCacheEnabled && !relationList?.loadAll)) ? (
                         <div
                             className={cn(
                                 "flex justify-center items-center p-5",
@@ -1782,8 +1796,8 @@ function Collection({
                                     )}
                                 >
                                     {formList && (
-                                        <Badge variant="outline" className="py-2 px-4 text-md">
-                                            {formList.label || formList.collection}
+                                        <Badge variant="outline" className="py-2 px-4 text-md whitespace-nowrap">
+                                            {formList.label || collectionTitle || formList.collection}
                                         </Badge>
                                     )}
                                     <div className="lg:h-9">
@@ -1811,22 +1825,25 @@ function Collection({
                                             </TabsList>
                                         )}
                                     </div>
-                                    {!formList && tab !== "calendar" && (hasRangeFilter || currentField) && (
-                                        <div
-                                            className={cn(
-                                                relationList
-                                                    ? "xl:hidden 2xl:flex xl:absolute xl:left-[calc(50%+128px)] xl:transform xl:-translate-x-[calc(50%+98px)] xl:mt-0 mt-2"
-                                                    : "lg:hidden 2xl:flex lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:mt-0 mt-2",
-                                            )}
-                                        >
-                                            <DateRangeSelector
-                                                collection={collection}
-                                                rangeSelector={rangeSelector}
-                                                setRangeSelector={setRangeSelector}
-                                                relationList={!!relationList}
-                                            />
-                                        </div>
-                                    )}
+                                    {!formList &&
+                                        !relationList?.loadAll &&
+                                        tab !== "calendar" &&
+                                        (hasRangeFilter || currentField) && (
+                                            <div
+                                                className={cn(
+                                                    relationList
+                                                        ? "xl:hidden 2xl:flex xl:absolute xl:left-[calc(50%+128px)] xl:transform xl:-translate-x-[calc(50%+98px)] xl:mt-0 mt-2"
+                                                        : "lg:hidden 2xl:flex lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:mt-0 mt-2",
+                                                )}
+                                            >
+                                                <DateRangeSelector
+                                                    collection={collection}
+                                                    rangeSelector={rangeSelector}
+                                                    setRangeSelector={setRangeSelector}
+                                                    relationList={!!relationList}
+                                                />
+                                            </div>
+                                        )}
                                     <div
                                         className={cn(
                                             "ml-auto flex items-center gap-2 justify-center w-full",

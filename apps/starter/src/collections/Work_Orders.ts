@@ -137,9 +137,8 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
                 roles: ["Office"],
             },
             { collection: "Users", field: "Work_Orders", roles: ["Office", "Area Manager"] },
-            { collection: "Inbox", field: "Work_Order", roles: ["Office", "Area Manager"] },
+            { collection: "Inbox", field: "Work_Order", roles: ["Office", "Area Manager"], loadAll: true },
         ],
-        indexExemption: true,
         custom: {
             autoCorrectUnique: true,
             setEmbedding(record: StokerRecord) {

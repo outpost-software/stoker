@@ -5,6 +5,7 @@ import {
     QueryConstraint,
     SnapshotMetadata,
     Unsubscribe,
+    WhereFilterOp,
     endAt,
     endBefore,
     getCountFromServer,
@@ -46,7 +47,7 @@ import {
     tryPromise,
     updateFieldReference,
 } from "@stoker-platform/utils"
-import { Cursor, getOne } from "../main"
+import { Cursor, getOne, preloadCollection } from "../main"
 import { subscribeOne } from "./subscribeOne"
 
 export interface SubscribeManyOptions {
@@ -68,6 +69,10 @@ export interface SubscribeManyOptions {
     }
     noComputedFields?: boolean
     noEmbeddingFields?: boolean
+    tempCache?: {
+        label: string
+        constraints: [string, WhereFilterOp, unknown][]
+    }
 }
 
 const validateFirstCursor = (cursor: Cursor) => {
@@ -137,7 +142,7 @@ export const subscribeMany = async (
     }
 
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    const refs = getCollectionRefs(path, roleGroup, options?.getAll)
+    const refs = getCollectionRefs(path, roleGroup, !!options?.tempCache)
     if (refs.length === 0) return { pages: 0, count: 0, unsubscribe: () => {} }
     let constraintRefs = refs.map((ref) => query(ref, ...constraints))
     const cursor = options?.pagination?.startAfter ||
@@ -613,6 +618,17 @@ export const subscribeMany = async (
     }
 
     const useCache = options?.only === "cache" || isPreloadCacheEnabled
+
+    if (isPreloadCacheEnabled && options?.tempCache) {
+        await preloadCollection(
+            labels.collection,
+            options.tempCache?.constraints,
+            undefined,
+            undefined,
+            undefined,
+            options.tempCache?.label,
+        )
+    }
 
     for (const ref of constraintRefs) {
         let first = true

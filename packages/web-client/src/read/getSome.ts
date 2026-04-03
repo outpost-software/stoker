@@ -183,7 +183,6 @@ const getRelations = async (
 }
 
 export interface GetSomeOptions {
-    getAll?: boolean
     only?: "cache" | "server"
     relations?: {
         fields?: (string | CollectionField)[]
@@ -261,7 +260,7 @@ export const getSome = async (
     }
 
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    const refs = getCollectionRefs(path, roleGroup, options?.getAll)
+    const refs = getCollectionRefs(path, roleGroup)
     if (refs.length === 0) return { cursor: {}, pages: 0, docs: [] }
     let constraintRefs = refs.map((ref) => query(ref, ...((constraints || []) as QueryConstraint[])))
     const cursor = options?.pagination?.startAfter ||

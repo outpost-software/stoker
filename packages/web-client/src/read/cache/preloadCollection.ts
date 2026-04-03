@@ -10,6 +10,7 @@ export const preloadCollection = async (
     rangeConstraints?: PreloadCacheRange,
     orQueries?: [string, WhereFilterOp, unknown][],
     initial?: PreloadCacheInitial,
+    tempCache?: string,
 ) => {
     // eslint-disable-next-line security/detect-object-injection
     const schema = getSchema()
@@ -20,10 +21,14 @@ export const preloadCollection = async (
     const { labels, preloadCache } = collectionSchema
 
     const state = getLoadingState()
-
-    if (state[labels.collection] === "Loading") return
+    let location = labels.collection
+    if (tempCache) {
+        location = tempCache
+    }
 
     /* eslint-disable security/detect-object-injection */
+    if (state[location] === "Loading") return
+
     if (!preloadCache?.roles.includes(permissions.Role)) return
     const collectionPermissions = permissions.collections?.[collection]
     if (
@@ -32,15 +37,15 @@ export const preloadCollection = async (
             hasDependencyAccess(collectionSchema, schema, permissions).length > 0
         )
     ) {
-        state[labels.collection] = "Error"
+        state[location] = "Error"
         return
     }
-    state[labels.collection] = "Loading"
+    state[location] = "Loading"
     const event = new Event(`stoker:loading:${collection}`)
     document.dispatchEvent(event)
     try {
-        await preloadData(collectionSchema, constraints, rangeConstraints, orQueries)
-        if (preloadCache?.relationCollections) {
+        await preloadData(collectionSchema, constraints, rangeConstraints, orQueries, tempCache)
+        if (preloadCache?.relationCollections && !tempCache) {
             const waitForRelationCollections = await tryPromise(preloadCache.relationCollections)
             if (waitForRelationCollections) {
                 const relatedCollections = getRelatedCollections(collectionSchema, schema, permissions)
@@ -62,11 +67,11 @@ export const preloadCollection = async (
                 }
             }
         }
-        state[labels.collection] = "Loaded"
+        state[location] = "Loaded"
         const event = new Event(`stoker:loaded:${collection}`)
         document.dispatchEvent(event)
     } catch (error: unknown) {
-        state[labels.collection] = "Error"
+        state[location] = "Error"
         throw error
     }
     return

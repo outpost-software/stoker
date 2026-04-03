@@ -1057,6 +1057,7 @@ export interface RelationList {
     collection: StokerCollection
     field: string
     roles?: StokerRole[]
+    loadAll?: boolean
 }
 
 export interface CollectionSchema {

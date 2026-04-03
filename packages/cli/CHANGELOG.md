@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.51
+
+### Patch Changes
+
+- feat: add relation list loadAll option
+- Updated dependencies
+    - @stoker-platform/types@0.5.27
+    - @stoker-platform/node-client@0.5.39
+    - @stoker-platform/utils@0.5.33
+
 ## 0.5.50
 
 ### Patch Changes

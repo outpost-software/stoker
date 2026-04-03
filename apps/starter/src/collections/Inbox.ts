@@ -47,7 +47,6 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
                 selector: ["week", "month", "range"],
             },
         },
-        indexExemption: true,
         admin: {
             navbarPosition: 6,
             titles: {
