@@ -49,7 +49,7 @@ export const addRelationArrays = (collection: CollectionSchema, data: StokerReco
                 if (id) {
                     // eslint-disable-next-line security/detect-object-injection
                     const includeFields = data[field.name][id] || {}
-                    data[`${field.name}_Single`] = { ...includeFields }
+                    data[`${field.name}_Single`] = { id, ...includeFields }
                 }
             } else {
                 data[`${field.name}_Single`] = data[field.name]

@@ -32,7 +32,7 @@ const isServerTimestamp = () => {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
-const isRelationSingle = (field: RelationField, schema: CollectionsSchema) => {
+const isRelationSingle = (field: RelationField, schema: CollectionsSchema, single?: boolean) => {
     const includeFields: any = {}
     if (field.includeFields) {
         const relationCollection = schema.collections[field.collection]
@@ -50,10 +50,14 @@ const isRelationSingle = (field: RelationField, schema: CollectionsSchema) => {
             }
         })
     }
-    return z.object({
+    const relationSchema = {
         Collection_Path: z.array(z.string()),
         ...includeFields,
-    })
+    }
+    if (single) {
+        relationSchema.id = z.string().length(20)
+    }
+    return z.object(relationSchema)
 }
 
 const isRelationObject = (field: RelationField, schema: CollectionsSchema) => {
@@ -287,7 +291,7 @@ export const getZodSchema = (
             fields[field.name] = isRelationObject(field, schema)
             fields[`${field.name}_Array`] = isRelationArray(field)
             if (singleFieldRelationsNames.includes(field.name)) {
-                fields[`${field.name}_Single`] = isRelationSingle(field, schema)
+                fields[`${field.name}_Single`] = isRelationSingle(field, schema, true)
                 if (!field.required) {
                     fields[`${field.name}_Single`] = fields[`${field.name}_Single`].optional()
                 }

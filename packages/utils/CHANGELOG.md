@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.34
+
+### Patch Changes
+
+- feat: add ID to single relation nodes
+
 ## 0.5.33
 
 ### Patch Changes

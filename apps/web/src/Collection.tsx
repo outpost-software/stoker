@@ -642,7 +642,9 @@ function Collection({
                                     isPreloadCacheEnabled && relationList?.loadAll
                                         ? {
                                               label: `${labels.collection}-${relationList?.field}`,
-                                              constraints: [[`${relationList?.field}.${relationParent?.id}`, ">", {}]],
+                                              constraints: [
+                                                  [`${relationList?.field}_Single.id`, "==", relationParent?.id],
+                                              ],
                                           }
                                         : undefined,
                             } as SubscribeManyOptions,

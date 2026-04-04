@@ -109,7 +109,7 @@ const restoreRelation = async (
     partial[`${field.name}_Array`] ||= []
     partial[`${field.name}_Array`].push(id)
     if (singleFieldRelation) {
-        partial[`${field.name}_Single`] = relation
+        partial[`${field.name}_Single`] = { id, ...relation }
     }
 }
 
@@ -240,7 +240,7 @@ export const validateRelations = async (
                             updatedRecord[`${targetField.name}_Array`] ||= []
                             updatedRecord[`${targetField.name}_Array`].push(docId)
                             if (singleFieldRelations.size === 1) {
-                                updatedRecord[`${targetField.name}_Single`] = mainRelation
+                                updatedRecord[`${targetField.name}_Single`] = { id: docId, ...mainRelation }
                             }
                             updatedRelationRecords.set(field.collection, {
                                 ...(updatedRelationRecords.get(field.collection) || {}),

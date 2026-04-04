@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.61
+
+### Patch Changes
+
+- feat: add ID to single relation nodes
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.40
+    - @stoker-platform/utils@0.5.34
+    - @stoker-platform/web-client@0.5.38
+
 ## 0.5.60
 
 ### Patch Changes

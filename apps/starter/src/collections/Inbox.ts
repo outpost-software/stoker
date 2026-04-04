@@ -348,6 +348,7 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
                 name: "Work_Order",
                 type: "OneToMany",
                 collection: "Work_Orders",
+                preserve: true,
                 admin: {
                     condition: {
                         list: false,

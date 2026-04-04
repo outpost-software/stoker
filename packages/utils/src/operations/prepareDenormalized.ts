@@ -255,6 +255,7 @@ export const prepareDenormalized = (
                     if (targetSingleFieldRelationsNames.includes(targetField.name)) {
                         fieldUpdate[`${field.twoWay}_Single`] = {
                             Collection_Path: path,
+                            id: docId,
                             ...includeFields,
                         }
                     }

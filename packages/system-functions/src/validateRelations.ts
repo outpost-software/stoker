@@ -314,6 +314,7 @@ export const validateRelations = (
                     const relationCollection = schema.collections[field.collection];
                     const includeFields = field.includeFields || [];
                     includeFields.push("Collection_Path");
+                    includeFields.push("id");
                     includeFields.push("deleted");
                     if (after[field.name]) {
                         for (const relationRecord of Object.entries(after[field.name])) {
@@ -334,6 +335,8 @@ export const validateRelations = (
                                             deleteMainRelation(field, snapshot.after.id, id, transaction);
                                             info(`No source found for relation ${field.name} ${id} in collection ${labels.collection} for record ${snapshot.after.id}.`);
                                             return;
+                                        } else {
+                                            collectionPath = mainRelation.Collection_Path;
                                         }
                                     } else {
                                         collectionPath = sourceDoc.Collection_Path;
@@ -370,7 +373,7 @@ export const validateRelations = (
                                     }
                                     for (const includeField of includeFields) {
                                         let lowercaseFields: Set<CollectionField> = new Set();
-                                        if (includeField !== "Collection_Path" && includeField !== "deleted") {
+                                        if (includeField !== "Collection_Path" && includeField !== "deleted" && includeField !== "id") {
                                             const includeFieldSchema = getField(relationCollection.fields, includeField);
                                             lowercaseFields = getLowercaseFields(relationCollection, [includeFieldSchema]);
                                         }
@@ -381,10 +384,12 @@ export const validateRelations = (
                                         // eslint-disable-next-line security/detect-object-injection
                                         if (source && includeField !== "deleted" && (!isEqual(mainRelation[includeField], source[includeField]) ||
                                             (lowercaseFields.size === 1 && !isEqual(mainRelation[`${includeField}_Lowercase`], source[`${includeField}_Lowercase`])))) {
-                                            // eslint-disable-next-line security/detect-object-injection
-                                            fieldUpdate[`${field.name}.${id}.${includeField}`] = source[includeField] ?? FieldValue.delete();
-                                            if (lowercaseFields.size === 1) {
-                                                fieldUpdate[`${field.name}.${id}.${includeField}_Lowercase`] = source[`${includeField}_Lowercase`] ?? FieldValue.delete();
+                                            if (includeField !== "id") {
+                                                // eslint-disable-next-line security/detect-object-injection
+                                                fieldUpdate[`${field.name}.${id}.${includeField}`] = source[includeField] ?? FieldValue.delete();
+                                                if (lowercaseFields.size === 1) {
+                                                    fieldUpdate[`${field.name}.${id}.${includeField}_Lowercase`] = source[`${includeField}_Lowercase`] ?? FieldValue.delete();
+                                                }
                                             }
                                             fieldUpdateWithSingle = {...fieldUpdate};
                                             if (singleFieldRelationsNames.includes(field.name)) {
@@ -402,7 +407,7 @@ export const validateRelations = (
                                         }
                                         const includeFieldsSchema: CollectionField[] = [];
                                         includeFields.forEach((includeField) => {
-                                            if (includeField !== "Collection_Path" && includeField !== "deleted") {
+                                            if (includeField !== "Collection_Path" && includeField !== "deleted" && includeField !== "id") {
                                                 const field = getField(relationCollection.fields, includeField);
                                                 includeFieldsSchema.push(field);
                                             }
@@ -416,7 +421,7 @@ export const validateRelations = (
                                                     fieldUpdateWithSingle[`${field.name}_Single.deleted`] = true;
                                                 }
                                             }
-                                            if (includeField !== "deleted" && Array.from(relationLowercaseFields).map((field) => field.name).includes(includeField)) {
+                                            if (includeField !== "deleted" && includeField !== "id" && Array.from(relationLowercaseFields).map((field) => field.name).includes(includeField)) {
                                                 // eslint-disable-next-line security/detect-object-injection
                                                 if (mainRelation[`${includeField}_Lowercase`] !== mainRelation[includeField]?.toLowerCase()) {
                                                     // eslint-disable-next-line security/detect-object-injection
@@ -427,6 +432,11 @@ export const validateRelations = (
                                                         // eslint-disable-next-line security/detect-object-injection
                                                         fieldUpdateWithSingle[`${field.name}_Single.${includeField}_Lowercase`] = mainRelation[includeField]?.toLowerCase() ?? FieldValue.delete();
                                                     }
+                                                }
+                                            }
+                                            if (includeField === "id" && singleFieldRelationsNames.includes(field.name)) {
+                                                if (id !== main[`${field.name}_Single`].id) {
+                                                    fieldUpdateWithSingle[`${field.name}_Single.id`] = id;
                                                 }
                                             }
                                         }

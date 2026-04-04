@@ -1,5 +1,14 @@
 # @stoker-platform/cli
 
+## 0.5.52
+
+### Patch Changes
+
+- feat: add ID to single relation nodes
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.40
+    - @stoker-platform/utils@0.5.34
+
 ## 0.5.51
 
 ### Patch Changes
