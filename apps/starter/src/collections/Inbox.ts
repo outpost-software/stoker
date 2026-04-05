@@ -30,6 +30,7 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
                 },
             ],
         },
+        indexExemption: true,
         recordTitleField: "Subject",
         softDelete: {
             archivedField: "Archived",

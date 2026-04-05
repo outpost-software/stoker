@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.39
+
+### Patch Changes
+
+- feat: improve relation list loadAll feature
+
 ## 0.5.38
 
 ### Patch Changes

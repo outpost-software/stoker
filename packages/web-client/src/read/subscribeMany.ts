@@ -142,7 +142,7 @@ export const subscribeMany = async (
     }
 
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    const refs = getCollectionRefs(path, roleGroup, !!options?.tempCache)
+    const refs = getCollectionRefs(path, roleGroup)
     if (refs.length === 0) return { pages: 0, count: 0, unsubscribe: () => {} }
     let constraintRefs = refs.map((ref) => query(ref, ...constraints))
     const cursor = options?.pagination?.startAfter ||

@@ -21,7 +21,7 @@ import {
     getAttributeRestrictions,
 } from "@stoker-platform/utils"
 
-export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, loadAll?: boolean) => {
+export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
     const db = getFirestore()
     const tenantId = getTenant()
     const schema = getSchema()
@@ -48,21 +48,20 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup, loadAll?
     const getQueries = (constraints: QueryFieldFilterConstraint[] = []): Query[] => {
         const queries = []
         if (fullCollectionAccess) {
-            let newQuery = query(
-                collection(
-                    db,
-                    "tenants",
-                    tenantId,
-                    "system_fields",
-                    labels.collection,
-                    `${labels.collection}-${roleGroup.key}`,
+            queries.push(
+                query(
+                    collection(
+                        db,
+                        "tenants",
+                        tenantId,
+                        "system_fields",
+                        labels.collection,
+                        `${labels.collection}-${roleGroup.key}`,
+                    ),
+                    where("Collection_Path_String", "==", path.join("/")),
+                    ...constraints,
                 ),
-                ...constraints,
             )
-            if (!loadAll) {
-                newQuery = query(newQuery, where("Collection_Path_String", "==", path.join("/")))
-            }
-            queries.push(newQuery)
         } else if (dependencyAccess) {
             for (const field of dependencyAccess) {
                 queries.push(

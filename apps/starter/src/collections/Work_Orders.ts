@@ -17,6 +17,7 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
             embedding: true,
         },
         enableWriteLog: true,
+        indexExemption: true,
         fullTextSearch: ["Name"],
         access: {
             operations: {

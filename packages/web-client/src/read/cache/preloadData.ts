@@ -57,7 +57,7 @@ export const preloadData = async (
         rangeConstraints ||= preloadCache.range
     }
 
-    const queries = getCollectionRefs([labels.collection], roleGroup, !!tempCache).map((ref) => {
+    const queries = getCollectionRefs([labels.collection], roleGroup).map((ref) => {
         if (rangeConstraints) {
             const { start, end } = getRange(rangeConstraints, timezone)
             const rangeQueries = rangeConstraints.fields
