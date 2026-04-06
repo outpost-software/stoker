@@ -140,8 +140,10 @@ import { getSafeUrl } from "./utils/isSafeUrl"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getAuth } from "firebase/auth"
 import Quill, { Delta } from "quill"
+import QuillTableBetter from "quill-table-better"
 import "quill/dist/quill.core.css"
 import "quill/dist/quill.snow.css"
+import "quill-table-better/dist/quill-table-better.css"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { FilePermissionsDialog, FilePermissions } from "./FilePermissions"
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
@@ -1580,6 +1582,13 @@ function ArrayField({
     )
 }
 
+Quill.register(
+    {
+        "modules/table-better": QuillTableBetter,
+    },
+    true,
+)
+
 const RichTextEditor = forwardRef<
     Quill,
     { readOnly?: boolean; formField: ControllerRenderProps<FieldValues, string>; isDisabled?: boolean }
@@ -1590,10 +1599,10 @@ const RichTextEditor = forwardRef<
         if (ref && typeof ref === "object" && ref.current) {
             const quill = ref.current
             const currentContents = quill.getContents()
-            const newContents = formField.value
-
-            if (JSON.stringify(currentContents) !== JSON.stringify(newContents)) {
-                quill.setContents(newContents || [])
+            const incoming = new Delta(formField.value?.ops || [])
+            const diff = currentContents.diff(incoming)
+            if (diff.ops?.length > 0) {
+                quill.updateContents(diff, Quill.sources.SILENT)
             }
         }
     }, [ref, formField.value])
@@ -1602,9 +1611,38 @@ const RichTextEditor = forwardRef<
         const container = containerRef.current
         if (!container) return
 
+        const toolbarOptions = [
+            [
+                "table-better",
+                { header: [] },
+                "bold",
+                "italic",
+                "underline",
+                "strike",
+                "link",
+                { align: [] },
+                { list: "ordered" },
+                { list: "bullet" },
+                { color: [] },
+                { background: [] },
+            ],
+        ]
+
         const editorContainer = container.appendChild(container.ownerDocument.createElement("div"))
         const quill = new Quill(editorContainer, {
             theme: "snow",
+            modules: {
+                table: false,
+                toolbar: toolbarOptions,
+                "table-better": {
+                    language: "en_US",
+                    menus: ["column", "row", "merge", "table", "cell", "wrap", "copy", "delete"],
+                    toolbarTable: true,
+                },
+                keyboard: {
+                    bindings: QuillTableBetter.keyboardBindings,
+                },
+            },
         })
 
         if (ref && typeof ref === "object") {
@@ -1612,7 +1650,7 @@ const RichTextEditor = forwardRef<
         }
 
         if (formField.value) {
-            quill.setContents(formField.value)
+            quill.updateContents(formField.value)
         }
 
         quill.on(Quill.events.TEXT_CHANGE, () => {
@@ -4361,7 +4399,7 @@ function RecordForm({
                 </>
             )}
             <Form {...form}>
-                <form className="space-y-8 max-w-[750px]">
+                <form className="space-y-8 max-w-[750px]" onSubmit={(e) => e.preventDefault()}>
                     {formImagesEnabled && operation === "update" && !isOffline && (
                         <div className="flex flex-col gap-3 mt-2">
                             <Label>Images</Label>

@@ -57,6 +57,9 @@
     border-radius: var(--radius) var(--radius) 0 0 !important;
     border: 1px solid hsl(var(--border)) !important;
 }
+.ql-snow .ql-tooltip {
+    left: 0 !important;
+}
 
 .dark .ql-toolbar.ql-snow .ql-stroke {
     stroke: hsl(var(--foreground)) !important;
@@ -101,11 +104,51 @@
 }
 
 .dark .ql-toolbar.ql-snow .ql-picker-item:hover {
-    background-color: hsl(var(--background)) !important;
     color: hsl(240 4.9% 83.9%) !important;
 }
 
 .dark .ql-toolbar.ql-snow .ql-picker-item.ql-selected {
-    background-color: hsl(var(--background)) !important;
     color: hsl(240 4.9% 83.9%) !important;
+}
+
+.label-field-view-input-wrapper label {
+    bottom: 40px !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-table-better svg path {
+    fill: hsl(240 4.9% 83.9%) !important;
+}
+.dark .ql-toolbar.ql-snow .ql-table-button-disabled {
+    background: transparent !important;
+}
+
+.dark .ql-editor table {
+    background: #fff;
+    color: #222;
+}
+
+.dark .ql-editor td,
+.dark .ql-editor th {
+    border-color: #bbb !important;
+}
+
+.dark .ql-table-menus-container,
+.dark .ql-table-dropdown-list,
+.dark .ql-table-dropdown-properties-list,
+.dark .ql-table-select-container,
+.dark .ql-table-properties-form,
+.dark .ql-table-color-container .color-picker .color-picker-select,
+.dark .ql-table-color-container .color-picker .color-picker-palette {
+    background: #fff !important;
+    color: #333 !important;
+    border-color: #ccced1 !important;
+}
+
+.dark .ql-table-select-container span {
+    border-color: #000 !important;
+}
+
+.dark .ql-table-properties-form .properties-form-header {
+    color: #333 !important;
+    border-color: #ccced1 !important;
 }

@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-app",
-    "version": "0.5.66",
+    "version": "0.5.67",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "scripts": {
@@ -70,6 +70,7 @@
         "moment-timezone": "latest",
         "qrcode.react": "^4.2.0",
         "quill": "^2.0.3",
+        "quill-table-better": "^1.2.3",
         "react": "18.3.1",
         "react-csv": "^2.2.2",
         "react-day-picker": "^8.10.1",
