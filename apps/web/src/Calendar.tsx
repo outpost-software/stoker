@@ -158,6 +158,7 @@ interface CalendarProps {
     backToStartKey: number
     relationList?: boolean
     formList?: boolean
+    hasBreadcrumbs?: boolean
 }
 
 export function Calendar({
@@ -173,6 +174,7 @@ export function Calendar({
     backToStartKey,
     relationList,
     formList,
+    hasBreadcrumbs,
 }: CalendarProps) {
     const { labels, access, fields, recordTitleField, preloadCache } = collection
     const { serverWriteOnly } = access
@@ -1044,8 +1046,12 @@ export function Calendar({
                 <Card className="flex-1">
                     <ScrollArea
                         className={cn(
-                            "hidden sm:block h-[calc(100vh-188px)] print:h-full",
-                            relationList && "h-[calc(100vh-304px)]",
+                            "hidden sm:block print:h-full",
+                            relationList && hasBreadcrumbs
+                                ? "h-[calc(100vh-306px-73px)]"
+                                : relationList && !hasBreadcrumbs
+                                  ? "h-[calc(100vh-306px)]"
+                                  : "h-[calc(100vh-206px)]",
                         )}
                     >
                         <CardContent className="p-4 h-full">
@@ -1118,7 +1124,7 @@ export function Calendar({
                     (!calendarConfig?.unscheduled.roles ||
                         calendarConfig?.unscheduled.roles.includes(permissions.Role)) &&
                     hasStartUpdateAccess && (
-                        <Card className="hidden xl:block w-[300px] h-[calc(100vh-188px)] print:hidden">
+                        <Card className="hidden xl:block w-[300px] h-[calc(100vh-204px)] print:hidden">
                             <CardHeader className="px-4">
                                 <CardTitle>{calendarConfig.unscheduled.title}</CardTitle>
                             </CardHeader>

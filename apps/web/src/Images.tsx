@@ -323,6 +323,7 @@ interface ImagesProps {
     formList?: boolean
     isAssigning?: boolean
     assignable?: Assignable
+    hasBreadcrumbs?: boolean
 }
 
 export const Images = memo(
@@ -343,6 +344,7 @@ export const Images = memo(
         formList,
         isAssigning,
         assignable,
+        hasBreadcrumbs,
     }: ImagesProps) => {
         const { labels, recordTitleField, fullTextSearch } = collection
         const customization = getCollectionConfigModule(labels.collection)
@@ -800,7 +802,15 @@ export const Images = memo(
 
         if (isPreloadCacheEnabled || isServerReadOnly) {
             return (
-                <div className={cn(relationList ? "xl:h-[calc(100vh-304px)] overflow-y-scroll" : "")}>
+                <div
+                    className={cn(
+                        relationList && hasBreadcrumbs
+                            ? "xl:h-[calc(100vh-304px-73px)] overflow-y-scroll"
+                            : relationList && !hasBreadcrumbs
+                              ? "xl:h-[calc(100vh-304px)] overflow-y-scroll"
+                              : "",
+                    )}
+                >
                     {!formList && <Meta />}
                     <List
                         height={height}
@@ -817,7 +827,15 @@ export const Images = memo(
             )
         } else {
             return (
-                <div className={cn(relationList ? "xl:h-[calc(100vh-304px)] overflow-y-scroll" : "")}>
+                <div
+                    className={cn(
+                        relationList && hasBreadcrumbs
+                            ? "xl:h-[calc(100vh-304px-73px)] overflow-y-scroll"
+                            : relationList && !hasBreadcrumbs
+                              ? "xl:h-[calc(100vh-304px)] overflow-y-scroll"
+                              : "",
+                    )}
+                >
                     {!formList && <Meta />}
                     <InfiniteLoader
                         isItemLoaded={(index) => index < itemCount}

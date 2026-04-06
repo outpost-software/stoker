@@ -112,6 +112,7 @@ interface MapProps {
     setOptimisticList: () => void
     relationList?: boolean
     formList?: boolean
+    hasBreadcrumbs?: boolean
 }
 
 export function Map({
@@ -125,6 +126,7 @@ export function Map({
     setOptimisticList,
     relationList,
     formList,
+    hasBreadcrumbs,
 }: MapProps) {
     const { labels, fields, access, recordTitleField } = collection
     const { serverWriteOnly } = access
@@ -570,7 +572,11 @@ export function Map({
                         "flex-1",
                         "mb-2",
                         "xl:mb-0",
-                        relationList ? "xl:h-[calc(100vh-304px)] overflow-y-scroll" : "xl:h-[calc(100vh-204px)]",
+                        relationList && hasBreadcrumbs
+                            ? "xl:h-[calc(100vh-304px-73px)] overflow-y-scroll"
+                            : relationList && !hasBreadcrumbs
+                              ? "xl:h-[calc(100vh-304px)] overflow-y-scroll"
+                              : "xl:h-[calc(100vh-204px)]",
                         "print:h-[500px]",
                         background,
                     )}
@@ -633,7 +639,11 @@ export function Map({
                     <Card
                         className={cn(
                             "hidden xl:block w-[300px] print:hidden",
-                            relationList ? "xl:h-[calc(100vh-304px)] overflow-y-scroll" : "xl:h-[calc(100vh-204px)]",
+                            relationList && hasBreadcrumbs
+                                ? "xl:h-[calc(100vh-304px-73px)] overflow-y-scroll"
+                                : relationList && !hasBreadcrumbs
+                                  ? "xl:h-[calc(100vh-304px)] overflow-y-scroll"
+                                  : "xl:h-[calc(100vh-204px)]",
                         )}
                     >
                         <CardHeader className="px-4">

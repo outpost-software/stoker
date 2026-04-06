@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.63
+
+### Patch Changes
+
+- fix: improve collection view layout
+
 ## 0.5.62
 
 ### Patch Changes

@@ -1097,6 +1097,7 @@ interface CardsProps {
     search: string | undefined
     relationList?: boolean
     formList?: boolean
+    hasBreadcrumbs?: boolean
 }
 
 export function Cards({
@@ -1117,6 +1118,7 @@ export function Cards({
     search,
     relationList,
     formList,
+    hasBreadcrumbs,
 }: CardsProps) {
     const { labels, fields, preloadCache, recordTitleField, fullTextSearch } = collection
     const customization = getCollectionConfigModule(labels.collection)
@@ -1521,7 +1523,8 @@ export function Cards({
                     "pb-4",
                     "h-full",
                     "select-none",
-                    relationList && "xl:h-[calc(100vh-304px)] overflow-y-scroll",
+                    relationList && hasBreadcrumbs && "xl:h-[calc(100vh-304px-73px)] overflow-y-scroll",
+                    relationList && !hasBreadcrumbs && "xl:h-[calc(100vh-352px)] overflow-y-scroll",
                 )}
             >
                 {statusValues.map((statusValue) => (

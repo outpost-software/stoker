@@ -276,6 +276,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                                     (item: Assignable) =>
                                                                         item.collection === relationList.collection,
                                                                 )}
+                                                                hasBreadcrumbs={!!breadcrumbs}
                                                             />
                                                         </FiltersProvider>
                                                     </main>

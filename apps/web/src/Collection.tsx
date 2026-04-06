@@ -118,6 +118,7 @@ interface CollectionProps {
     relationParent?: StokerRecord
     isAssigning?: boolean
     assignable?: Assignable
+    hasBreadcrumbs?: boolean
 }
 
 export interface Query {
@@ -145,6 +146,7 @@ function Collection({
     relationParent,
     isAssigning,
     assignable,
+    hasBreadcrumbs,
 }: CollectionProps) {
     const navigate = useNavigate()
     const location = useLocation()
@@ -2407,6 +2409,7 @@ function Collection({
                                                 relationParent={relationParent}
                                                 formList={formList}
                                                 itemsPerPage={itemsPerPage}
+                                                hasBreadcrumbs={hasBreadcrumbs}
                                             />
                                         </TabsContent>
                                         <TabsContent value="cards">
@@ -2430,6 +2433,7 @@ function Collection({
                                                 search={search}
                                                 relationList={!!relationList}
                                                 formList={!!formList}
+                                                hasBreadcrumbs={hasBreadcrumbs}
                                             />
                                         </TabsContent>
                                         <TabsContent value="images">
@@ -2452,6 +2456,7 @@ function Collection({
                                                 formList={!!formList}
                                                 isAssigning={isAssigning}
                                                 assignable={assignable}
+                                                hasBreadcrumbs={hasBreadcrumbs}
                                             />
                                         </TabsContent>
                                         <TabsContent value="map">
@@ -2467,6 +2472,7 @@ function Collection({
                                                 setOptimisticList={setOptimisticList}
                                                 relationList={!!relationList}
                                                 formList={!!formList}
+                                                hasBreadcrumbs={hasBreadcrumbs}
                                             />
                                         </TabsContent>
                                         <TabsContent value="calendar">
@@ -2485,6 +2491,7 @@ function Collection({
                                                     backToStartKey={backToStartKey}
                                                     relationList={!!relationList}
                                                     formList={!!formList}
+                                                    hasBreadcrumbs={hasBreadcrumbs}
                                                 />
                                             )}
                                         </TabsContent>

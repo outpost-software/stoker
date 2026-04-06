@@ -126,6 +126,7 @@ interface ListProps {
     relationParent?: StokerRecord
     formList?: FormList
     itemsPerPage?: number
+    hasBreadcrumbs?: boolean
 }
 
 export function List({
@@ -150,6 +151,7 @@ export function List({
     relationParent,
     formList,
     itemsPerPage: itemsPerPageOverride,
+    hasBreadcrumbs,
 }: ListProps) {
     const { labels, fields, access, recordTitleField, softDelete, fullTextSearch } = collection
     const { serverWriteOnly } = access
@@ -1314,7 +1316,8 @@ export function List({
                 <ScrollArea
                     className={cn(
                         !relationList && !formList && "min-h-screen xl:min-h-full xl:h-[calc(100vh-252px)]",
-                        relationList && "xl:h-[calc(100vh-352px)]",
+                        relationList && hasBreadcrumbs && "xl:h-[calc(100vh-352px-73px)]",
+                        relationList && !hasBreadcrumbs && "xl:h-[calc(100vh-352px)]",
                         formList && "h-[264px] xl:h-[316px]",
                     )}
                 >
