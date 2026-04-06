@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.64
+
+### Patch Changes
+
+- fix: show save button on update many form
+
 ## 0.5.63
 
 ### Patch Changes

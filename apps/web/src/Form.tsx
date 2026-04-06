@@ -5519,7 +5519,7 @@ function RecordForm({
                                 )}
                             </div>
                             {((operation === "create" && hasCreateAccess) ||
-                                (operation === "update" && hasUpdateAccess)) && (
+                                ((operation === "update" || operation === "update-many") && hasUpdateAccess)) && (
                                 <div className="flex gap-2 items-center">
                                     <Button
                                         className="w-full md:w-auto"
