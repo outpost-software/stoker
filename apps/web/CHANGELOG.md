@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.68
+
+### Patch Changes
+
+- fix: fix chart animation clipping issue
+
 ## 0.5.67
 
 ### Patch Changes

@@ -5,6 +5,21 @@
     }
 }
 
+/* Print */
+
+@media print {
+    body {
+        background-color: white !important;
+        background-image: none !important;
+    }
+    .list-table th:first-child,
+    .list-table td:first-child {
+        display: none;
+    }
+}
+
+/* FullCalendar */
+
 @media screen and (max-width: 1023px) {
     .fc-toolbar.fc-header-toolbar {
         font-size: 85%;
@@ -22,6 +37,8 @@
     }
 }
 
+/* Date range picker */
+
 @media screen and (min-width: 1536px) and (max-width: 1669px) {
     .date-range-arrow {
         display: none;
@@ -34,16 +51,13 @@
     }
 }
 
-@media print {
-    body {
-        background-color: white !important;
-        background-image: none !important;
-    }
-    .list-table th:first-child,
-    .list-table td:first-child {
-        display: none;
-    }
+/* Fix Recharts animation clipping */
+
+clipPath[id^="animationClipPath-"] > rect {
+    height: 9999px;
 }
+
+/* Quill */
 
 .ql-container.ql-snow {
     border-radius: 0 0 var(--radius) var(--radius) !important;
