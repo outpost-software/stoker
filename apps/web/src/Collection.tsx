@@ -2229,59 +2229,63 @@ function Collection({
                                                         >
                                                             <div className="fixed inset-0 bg-black/50" />
                                                             <div
-                                                                className="relative bg-background sm:rounded-lg p-6 w-full max-w-2xl h-full sm:h-[90vh] overflow-y-auto border border-border"
+                                                                className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
                                                                 aria-labelledby="dialog-title"
                                                             >
-                                                                <div className="space-y-2">
-                                                                    <div className="flex justify-between items-center mb-4">
-                                                                        <h4
-                                                                            id="dialog-title"
-                                                                            className="font-medium leading-none"
-                                                                        >
-                                                                            Add {recordTitle}
-                                                                        </h4>
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="right-4 top-4"
-                                                                            onClick={() => {
+                                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                                    <div className="space-y-2">
+                                                                        <div className="flex justify-between items-center mb-4">
+                                                                            <h4
+                                                                                id="dialog-title"
+                                                                                className="font-medium leading-none"
+                                                                            >
+                                                                                Add {recordTitle}
+                                                                            </h4>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="right-4 top-4"
+                                                                                onClick={() => {
+                                                                                    setIsCreateDialogOpen(false)
+                                                                                    setSelectedDateRange(null)
+                                                                                    setTimeout(() => {
+                                                                                        addButtonRef.current?.focus()
+                                                                                    }, 0)
+
+                                                                                    localStorage.removeItem(
+                                                                                        `stoker-draft-${labels.collection}`,
+                                                                                    )
+                                                                                }}
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                                <span className="sr-only">Close</span>
+                                                                            </Button>
+                                                                        </div>
+                                                                        <RecordForm
+                                                                            collection={collection}
+                                                                            operation="create"
+                                                                            path={[labels.collection]}
+                                                                            record={createPrePopulatedRecord()}
+                                                                            draft={true}
+                                                                            parentCollection={
+                                                                                relationCollection?.labels.collection
+                                                                            }
+                                                                            parentRecord={relationParent}
+                                                                            onSuccess={() => {
                                                                                 setIsCreateDialogOpen(false)
                                                                                 setSelectedDateRange(null)
                                                                                 setTimeout(() => {
                                                                                     addButtonRef.current?.focus()
                                                                                 }, 0)
-
-                                                                                localStorage.removeItem(
-                                                                                    `stoker-draft-${labels.collection}`,
-                                                                                )
+                                                                                if (isServerReadOnly) {
+                                                                                    setBackToStartKey(
+                                                                                        (prev) => prev + 1,
+                                                                                    )
+                                                                                }
                                                                             }}
-                                                                        >
-                                                                            <X className="h-4 w-4" />
-                                                                            <span className="sr-only">Close</span>
-                                                                        </Button>
+                                                                        />
                                                                     </div>
-                                                                    <RecordForm
-                                                                        collection={collection}
-                                                                        operation="create"
-                                                                        path={[labels.collection]}
-                                                                        record={createPrePopulatedRecord()}
-                                                                        draft={true}
-                                                                        parentCollection={
-                                                                            relationCollection?.labels.collection
-                                                                        }
-                                                                        parentRecord={relationParent}
-                                                                        onSuccess={() => {
-                                                                            setIsCreateDialogOpen(false)
-                                                                            setSelectedDateRange(null)
-                                                                            setTimeout(() => {
-                                                                                addButtonRef.current?.focus()
-                                                                            }, 0)
-                                                                            if (isServerReadOnly) {
-                                                                                setBackToStartKey((prev) => prev + 1)
-                                                                            }
-                                                                        }}
-                                                                    />
                                                                 </div>
                                                             </div>
                                                         </div>,
@@ -2299,72 +2303,76 @@ function Collection({
                                                             role="dialog"
                                                         >
                                                             <div className="fixed inset-0 bg-black/50" />
-                                                            <div className="relative bg-background sm:rounded-lg p-6 w-full max-w-2xl h-full sm:h-[50vh] overflow-y-auto border border-border">
-                                                                <div className="flex items-center justify-between mb-4">
-                                                                    <h4 className="font-medium leading-none">
-                                                                        Select {recordTitle}
-                                                                    </h4>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        onClick={() => {
-                                                                            setShowSelectExisting(false)
-                                                                            setSelectableSearch("")
-                                                                            setSelectableData([])
-                                                                        }}
-                                                                    >
-                                                                        <X className="h-4 w-4" />
-                                                                        <span className="sr-only">Close</span>
-                                                                    </Button>
-                                                                </div>
-                                                                <div>
-                                                                    <Command filter={() => 1}>
-                                                                        <CommandInput
-                                                                            placeholder={`Search ${collectionTitle}...`}
-                                                                            className="h-9"
-                                                                            value={selectableSearch}
-                                                                            onValueChange={(value) => {
-                                                                                setSelectableSearch(value)
-                                                                                fetchSelectableRecords(value)
+                                                            <div className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[50vh] overflow-hidden border border-border">
+                                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                                    <div className="flex items-center justify-between mb-4">
+                                                                        <h4 className="font-medium leading-none">
+                                                                            Select {recordTitle}
+                                                                        </h4>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => {
+                                                                                setShowSelectExisting(false)
+                                                                                setSelectableSearch("")
+                                                                                setSelectableData([])
                                                                             }}
-                                                                        />
-                                                                        <CommandList className="max-h-full sm:max-h-[calc(50vh-138px)]">
-                                                                            <CommandEmpty>
-                                                                                {selectLoading ? (
-                                                                                    <LoadingSpinner
-                                                                                        size={7}
-                                                                                        className="m-auto"
-                                                                                    />
-                                                                                ) : !selectLoadingImmediate ? (
-                                                                                    `No ${collectionTitle} found.`
-                                                                                ) : null}
-                                                                            </CommandEmpty>
-                                                                            {(!selectLoading ||
-                                                                                isPreloadCacheEnabled) && (
-                                                                                <CommandGroup>
-                                                                                    {selectableData.map((record) => (
-                                                                                        <CommandItem
-                                                                                            key={record.id}
-                                                                                            value={record.id}
-                                                                                            onSelect={() => {
-                                                                                                linkExistingRecord(
-                                                                                                    record,
-                                                                                                )
-                                                                                            }}
-                                                                                        >
-                                                                                            {
-                                                                                                record[
-                                                                                                    recordTitleField ||
-                                                                                                        "id"
-                                                                                                ]
-                                                                                            }
-                                                                                        </CommandItem>
-                                                                                    ))}
-                                                                                </CommandGroup>
-                                                                            )}
-                                                                        </CommandList>
-                                                                    </Command>
+                                                                        >
+                                                                            <X className="h-4 w-4" />
+                                                                            <span className="sr-only">Close</span>
+                                                                        </Button>
+                                                                    </div>
+                                                                    <div>
+                                                                        <Command filter={() => 1}>
+                                                                            <CommandInput
+                                                                                placeholder={`Search ${collectionTitle}...`}
+                                                                                className="h-9"
+                                                                                value={selectableSearch}
+                                                                                onValueChange={(value) => {
+                                                                                    setSelectableSearch(value)
+                                                                                    fetchSelectableRecords(value)
+                                                                                }}
+                                                                            />
+                                                                            <CommandList className="max-h-full sm:max-h-[calc(50vh-138px)]">
+                                                                                <CommandEmpty>
+                                                                                    {selectLoading ? (
+                                                                                        <LoadingSpinner
+                                                                                            size={7}
+                                                                                            className="m-auto"
+                                                                                        />
+                                                                                    ) : !selectLoadingImmediate ? (
+                                                                                        `No ${collectionTitle} found.`
+                                                                                    ) : null}
+                                                                                </CommandEmpty>
+                                                                                {(!selectLoading ||
+                                                                                    isPreloadCacheEnabled) && (
+                                                                                    <CommandGroup>
+                                                                                        {selectableData.map(
+                                                                                            (record) => (
+                                                                                                <CommandItem
+                                                                                                    key={record.id}
+                                                                                                    value={record.id}
+                                                                                                    onSelect={() => {
+                                                                                                        linkExistingRecord(
+                                                                                                            record,
+                                                                                                        )
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {
+                                                                                                        record[
+                                                                                                            recordTitleField ||
+                                                                                                                "id"
+                                                                                                        ]
+                                                                                                    }
+                                                                                                </CommandItem>
+                                                                                            ),
+                                                                                        )}
+                                                                                    </CommandGroup>
+                                                                                )}
+                                                                            </CommandList>
+                                                                        </Command>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>,

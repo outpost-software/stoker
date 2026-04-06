@@ -1615,62 +1615,64 @@ export function List({
                                         >
                                             <div className="fixed inset-0 bg-black/50" />
                                             <div
-                                                className="relative bg-background sm:rounded-lg p-6 w-full max-w-2xl h-full sm:h-[90vh] overflow-y-auto border border-border"
+                                                className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
                                                 aria-labelledby="dialog-title"
                                             >
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h4 id="dialog-title" className="font-medium leading-none">
-                                                            Update {collectionTitle || labels.collection}
-                                                        </h4>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="right-4 top-4"
-                                                            onClick={() => {
+                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                    <div className="space-y-2">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <h4 id="dialog-title" className="font-medium leading-none">
+                                                                Update {collectionTitle || labels.collection}
+                                                            </h4>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="right-4 top-4"
+                                                                onClick={() => {
+                                                                    setIsUpdateDialogOpen(false)
+                                                                    setTimeout(() => {
+                                                                        updateButtonRef.current?.focus()
+                                                                    }, 0)
+
+                                                                    localStorage.removeItem(
+                                                                        `stoker-draft-${labels.collection}`,
+                                                                    )
+                                                                }}
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                                <span className="sr-only">Close</span>
+                                                            </Button>
+                                                        </div>
+                                                        <RecordForm
+                                                            collection={collection}
+                                                            operation="update-many"
+                                                            path={[labels.collection]}
+                                                            onSuccess={() => {
                                                                 setIsUpdateDialogOpen(false)
                                                                 setTimeout(() => {
                                                                     updateButtonRef.current?.focus()
                                                                 }, 0)
-
-                                                                localStorage.removeItem(
-                                                                    `stoker-draft-${labels.collection}`,
-                                                                )
+                                                                if (isServerReadOnly) {
+                                                                    setBackToStartKey((prev) => prev + 1)
+                                                                }
                                                             }}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                            <span className="sr-only">Close</span>
-                                                        </Button>
+                                                            onSaveRecord={() => {
+                                                                setOptimisticList()
+                                                            }}
+                                                            rowSelection={Object.keys(rowSelection)
+                                                                .map((row) => {
+                                                                    const key = row as unknown as number
+                                                                    if (!list) return undefined
+                                                                    // eslint-disable-next-line security/detect-object-injection
+                                                                    return list[key]
+                                                                })
+                                                                .filter(
+                                                                    (record): record is StokerRecord =>
+                                                                        record !== undefined,
+                                                                )}
+                                                        />
                                                     </div>
-                                                    <RecordForm
-                                                        collection={collection}
-                                                        operation="update-many"
-                                                        path={[labels.collection]}
-                                                        onSuccess={() => {
-                                                            setIsUpdateDialogOpen(false)
-                                                            setTimeout(() => {
-                                                                updateButtonRef.current?.focus()
-                                                            }, 0)
-                                                            if (isServerReadOnly) {
-                                                                setBackToStartKey((prev) => prev + 1)
-                                                            }
-                                                        }}
-                                                        onSaveRecord={() => {
-                                                            setOptimisticList()
-                                                        }}
-                                                        rowSelection={Object.keys(rowSelection)
-                                                            .map((row) => {
-                                                                const key = row as unknown as number
-                                                                if (!list) return undefined
-                                                                // eslint-disable-next-line security/detect-object-injection
-                                                                return list[key]
-                                                            })
-                                                            .filter(
-                                                                (record): record is StokerRecord =>
-                                                                    record !== undefined,
-                                                            )}
-                                                    />
                                                 </div>
                                             </div>
                                         </div>,

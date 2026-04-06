@@ -114,33 +114,35 @@ export const CreateProvider: React.FC<CreateProviderProps> = ({ children }) => {
                     >
                         <div className="fixed inset-0 bg-black/50" />
                         <div
-                            className="relative bg-background sm:rounded-lg p-6 w-full max-w-2xl h-full sm:h-[90vh] overflow-y-auto border border-border"
+                            className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
                             aria-labelledby="modal-title"
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 id="modal-title" className="text-lg font-semibold">
-                                    Create {recordTitle}
-                                </h2>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
+                            <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 id="modal-title" className="text-lg font-semibold">
+                                        Create {recordTitle}
+                                    </h2>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setOpen(false)
+                                        }}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <RecordForm
+                                    collection={currentCollection}
+                                    operation="create"
+                                    path={currentPath}
+                                    record={currentRecord}
+                                    onSuccess={() => {
                                         setOpen(false)
                                     }}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
+                                />
                             </div>
-                            <RecordForm
-                                collection={currentCollection}
-                                operation="create"
-                                path={currentPath}
-                                record={currentRecord}
-                                onSuccess={() => {
-                                    setOpen(false)
-                                }}
-                            />
                         </div>
                     </div>,
                     document.body,

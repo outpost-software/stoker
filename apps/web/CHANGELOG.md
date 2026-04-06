@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.65
+
+### Patch Changes
+
+- fix: improve modal overscroll behaviour
+
 ## 0.5.64
 
 ### Patch Changes

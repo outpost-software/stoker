@@ -5305,37 +5305,39 @@ function RecordForm({
                             >
                                 <div className="fixed inset-0 bg-black/50" />
                                 <div
-                                    className="relative bg-background sm:rounded-lg p-6 w-full max-w-2xl h-full sm:h-[90vh] overflow-y-auto border border-border"
+                                    className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
                                     aria-labelledby="modal-title"
                                 >
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 id="modal-title" className="text-lg font-semibold">
-                                            Create {recordTitle}
-                                        </h2>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
+                                    <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 id="modal-title" className="text-lg font-semibold">
+                                                Create {recordTitle}
+                                            </h2>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setShowDuplicateModal(false)
+                                                    setDuplicateRecordData(undefined)
+                                                    setIsDuplicate(false)
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <RecordForm
+                                            collection={collection}
+                                            operation="create"
+                                            path={collectionPath || [labels.collection]}
+                                            record={duplicateRecordData as StokerRecord}
+                                            onSuccess={() => {
                                                 setShowDuplicateModal(false)
                                                 setDuplicateRecordData(undefined)
                                                 setIsDuplicate(false)
                                             }}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
+                                        />
                                     </div>
-                                    <RecordForm
-                                        collection={collection}
-                                        operation="create"
-                                        path={collectionPath || [labels.collection]}
-                                        record={duplicateRecordData as StokerRecord}
-                                        onSuccess={() => {
-                                            setShowDuplicateModal(false)
-                                            setDuplicateRecordData(undefined)
-                                            setIsDuplicate(false)
-                                        }}
-                                    />
                                 </div>
                             </div>,
                             document.body,
@@ -5354,37 +5356,39 @@ function RecordForm({
                             >
                                 <div className="fixed inset-0 bg-black/50" />
                                 <div
-                                    className="relative bg-background sm:rounded-lg p-6 w-full max-w-2xl h-full sm:h-[90vh] overflow-y-auto border border-border"
+                                    className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
                                     aria-labelledby="convert-modal-title"
                                 >
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 id="convert-modal-title" className="text-lg font-semibold">
-                                            Convert to {allRecordTitles[convertTargetCollection.labels.collection]}
-                                        </h2>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
+                                    <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 id="convert-modal-title" className="text-lg font-semibold">
+                                                Convert to {allRecordTitles[convertTargetCollection.labels.collection]}
+                                            </h2>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setShowConvertModal(false)
+                                                    setConvertRecordData(undefined)
+                                                    setConvertTargetCollection(undefined)
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <RecordForm
+                                            collection={convertTargetCollection}
+                                            operation="create"
+                                            path={[convertTargetCollection.labels.collection]}
+                                            record={convertRecordData as StokerRecord}
+                                            onSuccess={() => {
                                                 setShowConvertModal(false)
                                                 setConvertRecordData(undefined)
                                                 setConvertTargetCollection(undefined)
                                             }}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
+                                        />
                                     </div>
-                                    <RecordForm
-                                        collection={convertTargetCollection}
-                                        operation="create"
-                                        path={[convertTargetCollection.labels.collection]}
-                                        record={convertRecordData as StokerRecord}
-                                        onSuccess={() => {
-                                            setShowConvertModal(false)
-                                            setConvertRecordData(undefined)
-                                            setConvertTargetCollection(undefined)
-                                        }}
-                                    />
                                 </div>
                             </div>,
                             document.body,
