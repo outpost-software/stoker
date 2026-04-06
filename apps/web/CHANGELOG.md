@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.66
+
+### Patch Changes
+
+- fix: remove list table header hover state
+
 ## 0.5.65
 
 ### Patch Changes

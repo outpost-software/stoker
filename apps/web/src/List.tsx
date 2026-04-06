@@ -1715,7 +1715,7 @@ export function List({
                             <Table className="list-table">
                                 <TableHeader>
                                     {table.getHeaderGroups().map((headerGroup) => (
-                                        <TableRow key={headerGroup.id}>
+                                        <TableRow key={headerGroup.id} className="hover:bg-transparent">
                                             {headerGroup.headers.map((header) => {
                                                 let className = ""
                                                 if (header.id !== "select") {
