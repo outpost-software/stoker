@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.40
+
+### Patch Changes
+
+- feat: improve global error handling
+
 ## 0.5.39
 
 ### Patch Changes

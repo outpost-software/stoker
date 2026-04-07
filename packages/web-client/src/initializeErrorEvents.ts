@@ -34,6 +34,27 @@ export const initializeErrorEvents = (globalConfig: GlobalConfig) => {
         }
     }
 
+    const originalConsoleError = console.error.bind(console)
+    let insideConsoleErrorForward = false
+    console.error = (...args: unknown[]) => {
+        originalConsoleError(...args)
+        if (insideConsoleErrorForward) {
+            return
+        }
+        insideConsoleErrorForward = true
+        try {
+            for (const arg of args) {
+                if (typeof arg === "string") {
+                    processError(arg)
+                } else if (arg instanceof Error) {
+                    processError(arg.message)
+                }
+            }
+        } finally {
+            insideConsoleErrorForward = false
+        }
+    }
+
     window.addEventListener("error", (event) => {
         processError(event.message)
     })

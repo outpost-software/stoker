@@ -23,11 +23,11 @@ export const initializeVersionListener = async () => {
                     }
                 }
             } else {
-                throw new Error("Version info not found")
+                console.error("Version info not found")
             }
         },
         (error): void => {
-            throw new Error("Error getting version info", { cause: error.message })
+            console.error("Error getting version info", { cause: error.message })
         },
     )
     return versionListener

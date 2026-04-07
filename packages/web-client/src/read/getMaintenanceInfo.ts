@@ -15,11 +15,11 @@ export const initializeMaintenanceListener = async () => {
                 maintenanceInfo = snapshot.data() as { active: boolean }
                 tryPromise(globalConfig.onMaintenanceUpdate, [maintenanceInfo.active ? "on" : "off"])
             } else {
-                throw new Error("Maintenance status not found")
+                console.error("Maintenance status not found")
             }
         },
         (error): void => {
-            throw new Error("Error getting maintenance status", { cause: error.message })
+            console.error("Error getting maintenance status", { cause: error.message })
         },
     )
 }
