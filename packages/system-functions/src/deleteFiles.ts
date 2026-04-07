@@ -4,6 +4,7 @@ import {
     QueryDocumentSnapshot,
 } from "firebase-functions/v2/firestore";
 import {getApp} from "firebase-admin/app";
+import {getFirestore} from "firebase-admin/firestore";
 import {getStorage} from "firebase-admin/storage";
 
 export const deleteFiles = (
@@ -19,6 +20,7 @@ export const deleteFiles = (
         const id = snapshot.id;
 
         const app = getApp();
+        const db = getFirestore();
         const storage = getStorage();
         const bucket = storage.bucket(app.options.projectId);
 
@@ -29,5 +31,18 @@ export const deleteFiles = (
         await Promise.all(
             files.map((file) => file.delete())
         );
+
+        if (collection.enableWriteLog && !collection.preserveWriteLog) {
+            const logsSnapshot = await snapshot.ref
+                .collection("system_write_log").get();
+            const batchSize = 500;
+            for (let i = 0; i < logsSnapshot.docs.length; i += batchSize) {
+                const batch = db.batch();
+                for (const log of logsSnapshot.docs.slice(i, i + batchSize)) {
+                    batch.delete(log.ref);
+                }
+                await batch.commit();
+            }
+        }
     })();
 };

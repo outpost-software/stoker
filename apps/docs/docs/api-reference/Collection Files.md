@@ -108,6 +108,12 @@ For example, a "Clients" collection might have lists of related "Sites", "Quotes
 
 Set to `true` to enable the write log for this collection. Every write to a record will be logged in Firestore, creating a history that can be used for data recovery and audit purposes.
 
+### preserveWriteLog
+
+`boolean`
+
+Set to `true` to preserve write log entries for deleted records. If this option is not enabled, all write log entries for a record will be deleted on record delete.
+
 ### indexExemption
 
 `boolean`

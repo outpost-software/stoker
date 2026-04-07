@@ -1081,6 +1081,7 @@ export interface CollectionSchema {
     relationLists?: RelationList[]
     allowSchemalessFields?: boolean
     enableWriteLog?: boolean
+    preserveWriteLog?: boolean
     fullTextSearch?: string[]
     searchOptions?: Record<string, unknown>
     ttl?: string

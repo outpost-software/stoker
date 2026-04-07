@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.45
+
+### Patch Changes
+
+- feat: add preserve write log option
+- Updated dependencies
+    - @stoker-platform/types@0.5.28
+    - @stoker-platform/node-client@0.5.41
+    - @stoker-platform/utils@0.5.35
+
 ## 0.5.44
 
 ### Patch Changes
