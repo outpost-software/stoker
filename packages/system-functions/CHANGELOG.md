@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.46
+
+### Patch Changes
+
+- fix: always delete orphaned write log entries
+
 ## 0.5.45
 
 ### Patch Changes

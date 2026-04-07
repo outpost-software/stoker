@@ -32,7 +32,7 @@ export const deleteFiles = (
             files.map((file) => file.delete())
         );
 
-        if (collection.enableWriteLog && !collection.preserveWriteLog) {
+        if (!collection.preserveWriteLog) {
             const logsSnapshot = await snapshot.ref
                 .collection("system_write_log").get();
             const batchSize = 500;
