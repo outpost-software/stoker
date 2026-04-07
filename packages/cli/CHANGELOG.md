@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.53
+
+### Patch Changes
+
+- chore: run external package install before build script
+
 ## 0.5.52
 
 ### Patch Changes

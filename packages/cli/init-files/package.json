@@ -15,7 +15,7 @@
         "format": "prettier . --write",
         "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",
         "prebuild": "npm run clean:lib && npm run clean:functions",
-        "build": "tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build",
+        "build": "node bin/install.js && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build",
         "test": "vitest --run",
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
     },
