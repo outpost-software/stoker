@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.73
+
+### Patch Changes
+
+- chore: skip eslint comment
+
 ## 0.5.72
 
 ### Patch Changes

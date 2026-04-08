@@ -4,7 +4,7 @@ import { runChildProcess, tryPromise } from "@stoker-platform/node-client"
 import { fileURLToPath, pathToFileURL } from "url"
 import { dirname, join } from "path"
 import { cpSync, existsSync, rmSync, readFileSync, writeFileSync, readdirSync, statSync } from "fs"
-import { readFile, writeFile } from "fs/promises"
+import { appendFile, readFile, writeFile } from "fs/promises"
 
 try {
     const __filename = fileURLToPath(import.meta.url)
@@ -394,6 +394,9 @@ try {
         }
     }
     cpSync(join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`), join(__dirname, "..", ".env"))
+    if (process.env.SKIP_ESLINT_DISABLE) {
+        await appendFile(join(__dirname, "..", ".env"), "\nSKIP_ESLINT_DISABLE=true")
+    }
 
     cpSync(join(process.cwd(), "icons", "logo-small.png"), join(__dirname, "..", "public", "logo-small.png"))
     cpSync(join(process.cwd(), "icons", "logo-large.png"), join(__dirname, "..", "public", "logo-large.png"))
@@ -416,10 +419,13 @@ try {
     )
     writeFileSync(join(__dirname, "..", "index.html"), indexHtml)
 
-    let viteConfigPath = join(__dirname, "..", "vite.config.ts")
-    let viteConfig = readFileSync(viteConfigPath, "utf8")
-    viteConfig = viteConfig.replace(/eslint\(\),/, "// eslint(),")
-    writeFileSync(viteConfigPath, viteConfig)
+    if (!process.env.SKIP_ESLINT_DISABLE) {
+        ;``
+        let viteConfigPath = join(__dirname, "..", "vite.config.ts")
+        let viteConfig = readFileSync(viteConfigPath, "utf8")
+        viteConfig = viteConfig.replace(/eslint\(\),/, "// eslint(),")
+        writeFileSync(viteConfigPath, viteConfig)
+    }
 
     const updateDependencies = async (packageJsonPath, externalDeps) => {
         const packageJsonRaw = await readFile(packageJsonPath, "utf8")

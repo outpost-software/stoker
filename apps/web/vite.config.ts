@@ -1,4 +1,4 @@
-import { defineConfig } from "vite"
+import { defineConfig, loadEnv } from "vite"
 import react from "@vitejs/plugin-react"
 import eslint from "vite-plugin-eslint"
 import { join, resolve } from "node:path"
@@ -7,7 +7,9 @@ import { VitePWA } from "vite-plugin-pwa"
 import { tryPromise } from "@stoker-platform/node-client"
 import { watch } from "fs"
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ mode }) => {
+    const env = loadEnv(mode, __dirname, "")
+    const skipEslintDisable = (env.SKIP_ESLINT_DISABLE || process.env.SKIP_ESLINT_DISABLE) === "true"
     const path = join(process.cwd(), "src", "assets", "system-custom", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigModule = await import(url)
@@ -77,8 +79,8 @@ export default defineConfig(async () => {
         resolve: {
             alias: {
                 "@": resolve(__dirname, "./src"),
-                //    react: resolve(__dirname, "./node_modules/react"),
-                //    "react-dom": resolve(__dirname, "./node_modules/react-dom"),
+                react: skipEslintDisable ? resolve(__dirname, "./node_modules/react") : "react",
+                "react-dom": skipEslintDisable ? resolve(__dirname, "./node_modules/react-dom") : "react-dom",
             },
         },
         optimizeDeps: {
