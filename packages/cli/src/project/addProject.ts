@@ -737,6 +737,12 @@ export const addProject = async (options: any) => {
         await updateProjectData(26)
     }
     if (getProgress() < 27) {
+        if (!smtpPasswordSecret?.name) {
+            const [existingSmtpPasswordSecret] = await secretManager.getSecret({
+                name: `projects/${projectId}/secrets/firestore-send-email-SMTP_PASSWORD`,
+            })
+            smtpPasswordSecret = existingSmtpPasswordSecret
+        }
         const [smtpPasswordSecretVersion] = await secretManager.addSecretVersion({
             parent: smtpPasswordSecret.name,
             payload: {
@@ -765,6 +771,12 @@ export const addProject = async (options: any) => {
     }
     if (getProgress() < 29) {
         if (process.env.TWILIO_AUTH_TOKEN) {
+            if (!twilioPasswordSecret?.name) {
+                const [existingTwilioPasswordSecret] = await secretManager.getSecret({
+                    name: `projects/${projectId}/secrets/TWILIO_AUTH_TOKEN`,
+                })
+                twilioPasswordSecret = existingTwilioPasswordSecret
+            }
             const [twilioPasswordSecretVersion] = await secretManager.addSecretVersion({
                 parent: twilioPasswordSecret.name,
                 payload: {
@@ -794,6 +806,12 @@ export const addProject = async (options: any) => {
     }
     if (getProgress() < 31) {
         if (process.env.TWILIO_ACCOUNT_SID) {
+            if (!twilioAccountSidSecret?.name) {
+                const [existingTwilioAccountSidSecret] = await secretManager.getSecret({
+                    name: `projects/${projectId}/secrets/TWILIO_ACCOUNT_SID`,
+                })
+                twilioAccountSidSecret = existingTwilioAccountSidSecret
+            }
             const [twilioAccountSidSecretVersion] = await secretManager.addSecretVersion({
                 parent: twilioAccountSidSecret.name,
                 payload: {
@@ -889,31 +907,66 @@ export const addProject = async (options: any) => {
         await updateProjectData(34)
     }
 
-    const recaptchaResponse = await fetch(`https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/keys`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "X-Goog-User-Project": projectId,
-        },
-        body: JSON.stringify({
-            displayName: "Firebase App Check",
-            webSettings: {
-                allowedDomains: [`${projectId}.web.app`, `${projectId}.firebaseapp.com`],
-                integrationType: "SCORE",
+    let recaptchaKeyId: string | undefined
+    if (getProgress() < 35) {
+        const recaptchaResponse = await fetch(
+            `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/keys`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "X-Goog-User-Project": projectId,
+                },
+                body: JSON.stringify({
+                    displayName: "Firebase App Check",
+                    webSettings: {
+                        allowedDomains: [`${projectId}.web.app`, `${projectId}.firebaseapp.com`],
+                        integrationType: "SCORE",
+                    },
+                }),
             },
-        }),
-    })
-    const recaptchaResponseJson = await recaptchaResponse.json()
-    console.log(recaptchaResponseJson)
-    if (!recaptchaResponse.ok) {
-        throw new Error("Failed to create Recaptcha key")
+        )
+        const recaptchaResponseJson = await recaptchaResponse.json()
+        console.log(recaptchaResponseJson)
+        if (!recaptchaResponse.ok) {
+            throw new Error("Failed to create Recaptcha key")
+        }
+
+        const recaptchaKey = recaptchaResponseJson.name
+        recaptchaKeyId = recaptchaKey.split("/").pop()
+
+        await updateProjectData(35)
     }
 
-    const recaptchaKey = recaptchaResponseJson.name
-    const recaptchaKeyId = recaptchaKey.split("/").pop()
+    if (getProgress() < 36) {
+        if (!recaptchaKeyId) {
+            const listKeysResponse = await fetch(
+                `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/keys?pageSize=100`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        "X-Goog-User-Project": projectId,
+                    },
+                },
+            )
+            const listKeysJson = await listKeysResponse.json()
+            if (!listKeysResponse.ok) {
+                throw new Error("Failed to list Recaptcha keys")
+            }
 
-    if (getProgress() < 35) {
+            const matchingKey = listKeysJson.keys.find(
+                (key: { displayName: string }) => key.displayName === "Firebase App Check",
+            )
+            const recaptchaKey = matchingKey?.name
+            recaptchaKeyId = recaptchaKey ? recaptchaKey.split("/").pop() : undefined
+            if (!recaptchaKeyId) {
+                throw new Error("Failed to recover Recaptcha key ID")
+            }
+        }
+
         const recaptchaEnterpriseConfig = await fetch(
             `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/apps/${appId}/recaptchaEnterpriseConfig?updateMask=siteKey,tokenTtl,riskAnalysis`,
             {
@@ -939,10 +992,10 @@ export const addProject = async (options: any) => {
         if (!recaptchaEnterpriseConfig.ok) {
             throw new Error("Failed to create Recaptcha Enterprise config")
         }
-        await updateProjectData(35)
+        await updateProjectData(36)
     }
 
-    if (getProgress() < 36) {
+    if (getProgress() < 37) {
         if (process.env.FB_ENABLE_APP_CHECK === "true") {
             const servicesResponse = await fetch(
                 `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/services:batchUpdate`,
@@ -1000,7 +1053,7 @@ export const addProject = async (options: any) => {
                 throw new Error("Failed to update App Check services")
             }
         }
-        await updateProjectData(36)
+        await updateProjectData(37)
     }
 
     const firebaseJson = JSON.parse(await readFile(join(process.cwd(), "firebase.json"), "utf8"))
@@ -1047,9 +1100,9 @@ STOKER_FB_EMULATOR_FUNCTIONS_PORT=${functionsPort}`
 
     dotenv.config({ path: join(process.cwd(), ".env", `.env.${projectId}`), quiet: true })
 
-    if (getProgress() < 37) {
+    if (getProgress() < 38) {
         await runChildProcess("npx", ["stoker", "deploy", "--initial", "--retry"])
-        await updateProjectData(37)
+        await updateProjectData(38)
     }
 
     await runChildProcess("npx", ["stoker", "set-project"])

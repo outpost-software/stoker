@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.55
+
+### Patch Changes
+
+- fix: improve add project command resumability
+
 ## 0.5.54
 
 ### Patch Changes

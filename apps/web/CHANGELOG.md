@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.71
+
+### Patch Changes
+
+- fix: improve add project command resumability
+
 ## 0.5.70
 
 ### Patch Changes
