@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.37
+
+### Patch Changes
+
+- feat: improve soft delete authorisation
+
 ## 0.5.36
 
 ### Patch Changes

@@ -48,13 +48,13 @@ export const updateRecordAccessControl = (
     if (
         currentUserId &&
         collectionSchema.softDelete &&
-        partial[collectionSchema.softDelete.archivedField] === true &&
-        !originalRecord[collectionSchema.softDelete.archivedField] &&
+        finalRecord[collectionSchema.softDelete.archivedField] !==
+            originalRecord[collectionSchema.softDelete.archivedField] &&
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         !collectionAccess("Delete", collectionPermissions!)
     ) {
         granted = false
-        errorDetails = "Authenticated user does not have Delete access to this document"
+        errorDetails = "Authenticated user does not have Delete or Restore access to this document"
     }
 
     if (userOperation) {
