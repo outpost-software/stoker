@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.74
+
+### Patch Changes
+
+- feat: improve soft delete authorisation
+- Updated dependencies
+    - @stoker-platform/utils@0.5.36
+    - @stoker-platform/node-client@0.5.42
+    - @stoker-platform/web-client@0.5.42
+
 ## 0.5.73
 
 ### Patch Changes

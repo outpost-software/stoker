@@ -1678,8 +1678,7 @@ export function List({
                                         </div>,
                                         document.body,
                                     )}
-                                {((!softDelete && collectionAccess("Delete", collectionPermissions)) ||
-                                    (softDelete && collectionAccess("Update", collectionPermissions))) && (
+                                {collectionAccess("Delete", collectionPermissions) && (
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button

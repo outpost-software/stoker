@@ -2408,10 +2408,7 @@ function RecordForm({
         return collectionAccess("Update", collectionPermissions)
     }, [collection, permissions])
     const hasDeleteAccess = useMemo(() => {
-        return (
-            (!softDelete && collectionAccess("Delete", collectionPermissions)) ||
-            (softDelete && collectionAccess("Update", collectionPermissions))
-        )
+        return collectionAccess("Delete", collectionPermissions)
     }, [collection, permissions])
 
     const isPending = !!(id && isGlobalLoading.has(id))
