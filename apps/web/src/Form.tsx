@@ -139,7 +139,7 @@ import { getFormattedFieldValue } from "./utils/getFormattedFieldValue"
 import { getSafeUrl } from "./utils/isSafeUrl"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getAuth } from "firebase/auth"
-import Quill, { Delta } from "quill"
+import Quill, { Delta, type Op } from "quill"
 import QuillTableBetter from "quill-table-better"
 import "quill/dist/quill.core.css"
 import "quill/dist/quill.snow.css"
@@ -1589,17 +1589,43 @@ Quill.register(
     true,
 )
 
+const TABLE_BLOCK_KEYS = ["table-cell-block", "table-th-block", "table-header", "table-list"]
+const TABLE_CONTAINER_KEYS = ["table-cell", "table-th"]
+
+const fixTableAttributeOrder = (delta: { ops?: Op[] }): Delta => {
+    const ops = delta?.ops || []
+    const fixed = ops.map((op) => {
+        if (!op.attributes) return op
+        const attrs = op.attributes as Record<string, unknown>
+        const blockKey = TABLE_BLOCK_KEYS.find((key) => key in attrs)
+        const containerKey = TABLE_CONTAINER_KEYS.find((key) => key in attrs)
+        if (blockKey && containerKey) {
+            // eslint-disable-next-line security/detect-object-injection
+            const reordered: Record<string, unknown> = { [blockKey]: attrs[blockKey] }
+            for (const key of Object.keys(attrs)) {
+                // eslint-disable-next-line security/detect-object-injection
+                if (key !== blockKey) reordered[key] = attrs[key]
+            }
+            return { ...op, attributes: reordered }
+        }
+        return op
+    })
+    return new Delta(fixed)
+}
+
 const RichTextEditor = forwardRef<
     Quill,
     { readOnly?: boolean; formField: ControllerRenderProps<FieldValues, string>; isDisabled?: boolean }
 >(({ readOnly, formField, isDisabled }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null)
+    const initializedRef = useRef(false)
 
     useEffect(() => {
+        if (!initializedRef.current) return
         if (ref && typeof ref === "object" && ref.current) {
             const quill = ref.current
             const currentContents = quill.getContents()
-            const incoming = new Delta(formField.value?.ops || [])
+            const incoming = fixTableAttributeOrder(formField.value)
             const diff = currentContents.diff(incoming)
             if (diff.ops?.length > 0) {
                 quill.updateContents(diff, Quill.sources.SILENT)
@@ -1610,6 +1636,7 @@ const RichTextEditor = forwardRef<
     useEffect(() => {
         const container = containerRef.current
         if (!container) return
+        initializedRef.current = false
 
         const toolbarOptions = [
             [
@@ -1650,14 +1677,18 @@ const RichTextEditor = forwardRef<
         }
 
         if (formField.value) {
-            quill.updateContents(formField.value)
+            const safeDelta = fixTableAttributeOrder(formField.value)
+            quill.updateContents(safeDelta, Quill.sources.SILENT)
         }
+
+        initializedRef.current = true
 
         quill.on(Quill.events.TEXT_CHANGE, () => {
             formField.onChange(quill.getContents())
         })
 
         return () => {
+            initializedRef.current = false
             if (ref && typeof ref === "object") {
                 ref.current = null
             }

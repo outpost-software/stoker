@@ -1,5 +1,17 @@
 # @stoker-platform/web-app
 
+## 0.5.78
+
+### Patch Changes
+
+- fix: fix quill table initialisation
+
+## 0.5.77
+
+### Patch Changes
+
+- fix: fix quill table initialisation
+
 ## 0.5.76
 
 ### Patch Changes
