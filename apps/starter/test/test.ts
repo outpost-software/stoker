@@ -88,6 +88,21 @@ const getWorkOrderId = async () => {
     return workOrderSnapshot.docs[0].id as string
 }
 
+const getBuildingId = async () => {
+    await startStoker()
+    const db = getFirestore()
+    const tenantId = await getTenantId()
+    const contactId = await getContactId()
+    const buildingSnapshot = await db
+        .collection("tenants")
+        .doc(tenantId)
+        .collection("Contacts")
+        .doc(contactId)
+        .collection("Buildings")
+        .get()
+    return buildingSnapshot.docs[0]?.id as string
+}
+
 describe("CLI", async () => {
     test("init command creates a starter project", async () => {
         await mkdir("test-init", { recursive: true })
@@ -607,6 +622,137 @@ describe("CLI", async () => {
                 GCP_PROJECT: projectName,
             },
         })
+
+        child.stderr?.on("data", (data) => {
+            console.error(data.toString())
+        })
+
+        await resolveCLICommand(child)
+    }, 30000)
+
+    test("add-record command adds a subcollection record", async () => {
+        const contactId = await getContactId()
+        const tenantId = await getTenantId()
+        const child = spawn(
+            "stoker",
+            [
+                "add-record",
+                "-t",
+                tenantId,
+                "-p",
+                `Contacts/${contactId}/Buildings`,
+                "-d",
+                '{"Name": "Test Building", "Description": "Test Building"}',
+            ],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
+            },
+        )
+
+        child.stderr?.on("data", (data) => {
+            console.error(data.toString())
+        })
+
+        await resolveCLICommand(child)
+    }, 30000)
+
+    test("update-record command updates a subcollection record", async () => {
+        const contactId = await getContactId()
+        const buildingId = await getBuildingId()
+        const tenantId = await getTenantId()
+        await wait(1000)
+
+        const child = spawn(
+            "stoker",
+            [
+                "update-record",
+                "-t",
+                tenantId,
+                "-p",
+                `Contacts/${contactId}/Buildings`,
+                "-d",
+                '{"Name": "Test Building 2"}',
+                "-i",
+                buildingId,
+            ],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
+            },
+        )
+
+        child.stderr?.on("data", (data) => {
+            console.error(data.toString())
+        })
+
+        await resolveCLICommand(child)
+    }, 30000)
+
+    test("get-one command retrieves a subcollection record", async () => {
+        const contactId = await getContactId()
+        const buildingId = await getBuildingId()
+        const tenantId = await getTenantId()
+        const child = spawn(
+            "stoker",
+            ["get-one", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings/${buildingId}`],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
+            },
+        )
+
+        child.stderr?.on("data", (data) => {
+            console.error(data.toString())
+        })
+
+        await resolveCLICommand(child)
+    }, 30000)
+
+    test("get-some command retrieves all subcollection records", async () => {
+        const contactId = await getContactId()
+        const tenantId = await getTenantId()
+        const child = spawn("stoker", ["get-some", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`], {
+            stdio: ["pipe", "pipe", "pipe"],
+            env: {
+                ...process.env,
+                GCP_PROJECT: projectName,
+            },
+        })
+
+        child.stderr?.on("data", (data) => {
+            console.error(data.toString())
+        })
+
+        await resolveCLICommand(child)
+    }, 30000)
+
+    test("delete-record command deletes a subcollection record", async () => {
+        const contactId = await getContactId()
+        const buildingId = await getBuildingId()
+        const tenantId = await getTenantId()
+        await wait(1000)
+
+        const child = spawn(
+            "stoker",
+            ["delete-record", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`, "-i", buildingId],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
+            },
+        )
 
         child.stderr?.on("data", (data) => {
             console.error(data.toString())

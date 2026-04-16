@@ -110,7 +110,7 @@ export const deleteRecord = async (
     const preWriteChecks = async (transaction: Transaction) => {
         const [maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema] = await Promise.all([
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
-            getOne([labels.collection], docId, { userId, providedTransaction: transaction }),
+            getOne(path, docId, { userId, providedTransaction: transaction }),
             userId
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),

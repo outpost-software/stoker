@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.45
+
+### Patch Changes
+
+- fix: use full collection path when deleting record
+
 ## 0.5.44
 
 ### Patch Changes
