@@ -498,7 +498,6 @@ export function Calendar({
                 // TODO: subcollection support
                 const result = await subscribeMany(
                     [labels.collection],
-                    [...(constraints as QueryConstraint[]), where(calendarConfig.startField, "==", null)],
                     (docs) => {
                         docs.sort((a, b) => {
                             // eslint-disable-next-line security/detect-object-injection
@@ -516,6 +515,10 @@ export function Calendar({
                         console.error(error)
                     },
                     {
+                        constraints: [
+                            ...(constraints as QueryConstraint[]),
+                            where(calendarConfig.startField, "==", null),
+                        ],
                         pagination: {
                             number: 250,
                         },
@@ -781,7 +784,7 @@ export function Calendar({
 
             const originalRecord = cloneDeep(record)
             setGlobalLoading("+", record.id, serverWrite, !(serverWrite || isServerReadOnly))
-            updateRecord(record.Collection_Path, record.id, updatedFields, undefined, undefined, originalRecord)
+            updateRecord(record.Collection_Path, record.id, updatedFields, { originalRecord })
                 .then(() => {
                     if (serverWrite || isServerReadOnly) {
                         toast({

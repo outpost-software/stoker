@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.44
+
+### Patch Changes
+
+- feat!: simplify SDK API parameters
+
 ## 0.5.43
 
 ### Patch Changes

@@ -70,7 +70,7 @@ export const retryPendingWrites = async (schema: CollectionsSchema, user: User) 
             /* eslint-disable security/detect-object-injection, @typescript-eslint/no-non-null-assertion */
             if (operation === "create") {
                 retrying[docId]++
-                await addRecord(Collection_Path, data.data!, undefined, {
+                await addRecord(Collection_Path, data.data!, {
                     retry: {
                         type: "offline",
                         docId,
@@ -95,7 +95,7 @@ export const retryPendingWrites = async (schema: CollectionsSchema, user: User) 
                     deserializeDeleteSentinels(data.data)
                 }
                 retrying[docId]++
-                await updateRecord(Collection_Path, docId, data.data!, undefined, {
+                await updateRecord(Collection_Path, docId, data.data!, {
                     retry: {
                         type: "offline",
                         originalRecord: data.originalRecord!,

@@ -122,11 +122,12 @@ export const writeApi = async (
             const result = await addRecord(
                 path,
                 record,
-                userData,
-                user,
-                undefined,
-                {secrets: secretValues, user},
-                id,
+                {
+                    userId: user,
+                    user: userData,
+                    id,
+                    context: {secrets: secretValues, user},
+                },
             );
             return {result};
         }
@@ -135,10 +136,11 @@ export const writeApi = async (
                 path,
                 id,
                 record,
-                userData,
-                user,
-                undefined,
-                {secrets: secretValues, user},
+                {
+                    userId: user,
+                    user: userData,
+                    context: {secrets: secretValues, user},
+                },
             );
             return {result};
         }
@@ -146,9 +148,10 @@ export const writeApi = async (
             const result = await deleteRecord(
                 path,
                 id,
-                user,
-                undefined,
-                {secrets: secretValues, user},
+                {
+                    userId: user,
+                    context: {secrets: secretValues, user},
+                }
             );
             return {result};
         }

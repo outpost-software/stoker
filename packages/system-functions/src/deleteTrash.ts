@@ -69,7 +69,6 @@ export const deleteTrash = (
                         await deleteRecord(
                             record.Collection_Path,
                             record.id,
-                            undefined,
                             {force: true},
                         );
                     }

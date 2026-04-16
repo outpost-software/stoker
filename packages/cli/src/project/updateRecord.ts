@@ -10,13 +10,10 @@ export const updateRecord = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
 
-    const updatedRecord = await updateStokerRecord(
-        options.path.split("/"),
-        options.id,
-        JSON.parse(options.data),
-        options.userData ? JSON.parse(options.userData) : undefined,
-        options.user,
-    )
+    const updatedRecord = await updateStokerRecord(options.path.split("/"), options.id, JSON.parse(options.data), {
+        userId: options.user,
+        user: options.userData ? JSON.parse(options.userData) : undefined,
+    })
     console.log(JSON.stringify(updatedRecord, null, 2))
     process.exit()
 }

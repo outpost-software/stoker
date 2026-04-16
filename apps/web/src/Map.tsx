@@ -480,7 +480,7 @@ export function Map({
 
             setGlobalLoading("+", record.id, serverWrite, !(serverWrite || isServerReadOnly))
             isUpdatingRecord.current = false
-            updateRecord(record.Collection_Path, record.id, updatedFields, undefined, undefined, originalRecord)
+            updateRecord(record.Collection_Path, record.id, updatedFields, { originalRecord })
                 .then(() => {
                     if (serverWrite || isServerReadOnly) {
                         toast({

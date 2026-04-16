@@ -84,7 +84,8 @@ const getSubcollections = async (
     }
     const depth = subcollections.depth - 1
     const subcollectionPromises = subcollections.collections.map(async (subcollection) => {
-        const result = await getSome([...path, subcollection], subcollections.constraints || [], {
+        const result = await getSome([...path, subcollection], {
+            constraints: subcollections.constraints,
             only,
             pagination: subcollections.limit,
             noEmbeddingFields,
@@ -183,6 +184,7 @@ const getRelations = async (
 }
 
 export interface GetSomeOptions {
+    constraints?: QueryConstraint[] | [string, WhereFilterOp, unknown][]
     only?: "cache" | "server"
     relations?: {
         fields?: (string | CollectionField)[]
@@ -209,11 +211,7 @@ export interface GetSomeOptions {
     noComputedFields?: boolean
 }
 
-export const getSome = async (
-    path: string[],
-    constraints?: QueryConstraint[] | [string, WhereFilterOp, unknown][],
-    options?: GetSomeOptions,
-) => {
+export const getSome = async (path: string[], options?: GetSomeOptions) => {
     if (options?.subcollections?.depth && options.subcollections.depth > 10) {
         throw new Error("INPUT_ERROR: Subcollections depth cannot exceed 10")
     }
@@ -231,6 +229,7 @@ export const getSome = async (
             throw new Error("INPUT_ERROR: Pagination number must be a positive finite integer")
         }
     }
+    const constraints = options?.constraints
     const collection = path.at(-1)
     if (!collection) throw new Error("EMPTY_PATH")
     const schema = getSchema(true)

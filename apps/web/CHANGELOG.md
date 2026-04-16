@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.76
+
+### Patch Changes
+
+- feat!: simplify SDK API parameters
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.44
+    - @stoker-platform/web-client@0.5.44
+
 ## 0.5.75
 
 ### Patch Changes

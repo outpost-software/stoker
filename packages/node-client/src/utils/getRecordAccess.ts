@@ -14,7 +14,7 @@ export const getRecordAccess = async (
     if (!collectionAccess("Read", permissions.collections?.[collection.labels.collection] as CollectionPermissions))
         return false
     try {
-        await getOne([collection.labels.collection], id, { user, providedTransaction: transaction })
+        await getOne([collection.labels.collection], id, { userId: user, providedTransaction: transaction })
     } catch {
         return false
     }

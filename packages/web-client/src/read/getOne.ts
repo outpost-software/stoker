@@ -61,7 +61,8 @@ const getSubcollections = async (
     }
     const depth = subcollections.depth - 1
     const subcollectionPromises = subcollections.collections.map(async (subcollection) => {
-        const result = await getSome([...path, subcollection], subcollections.constraints || [], {
+        const result = await getSome([...path, subcollection], {
+            constraints: subcollections.constraints || [],
             only,
             relations,
             pagination: subcollections.limit,

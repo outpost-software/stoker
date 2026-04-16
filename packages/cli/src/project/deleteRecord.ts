@@ -10,7 +10,8 @@ export const deleteRecord = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
 
-    const deletedRecord = await deleteStokerRecord(options.path.split("/"), options.id, options.user, {
+    const deletedRecord = await deleteStokerRecord(options.path.split("/"), options.id, {
+        userId: options.user,
         force: options.force,
     })
     console.log(JSON.stringify(deletedRecord, null, 2))

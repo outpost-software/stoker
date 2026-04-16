@@ -108,16 +108,15 @@ Add a record to the database.
 (
     path: string[],
     data: Partial<StokerRecord>,
-    user?: {
-        password: string
-        passwordConfirm: string
-        permissions?: StokerPermissions
-    },
     options?: {
-        retry?: { type: string; docId: string }
+        user?: {
+            password: string
+            passwordConfirm: string
+            permissions?: StokerPermissions
+        },
+        id?: string,
+        onValid?: () => void,
     },
-    id?: string,
-    onValid?: () => void,
 ) => Promise<StokerRecord>
 ```
 
@@ -127,7 +126,7 @@ Add a record to the database.
 
 `data`: The record to save.
 
-`user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in this structure:
+`options.user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in this structure:
 
 ```
 type StokerPermissions = {
@@ -155,11 +154,9 @@ type StokerPermissions = {
 }
 ```
 
-`options`: For internal use.
+`options.id`: Optionally provide a Firestore id for the new record.
 
-`id`: Optionally provide a Firestore id for the new record.
-
-`onValid`: A callback that will fire when the record has passed validation.
+`options.onValid`: A callback that will fire when the record has passed validation.
 
 #### Returns
 
@@ -184,16 +181,15 @@ The `originalRecord` value provided to hooks in the Web SDK may be stale. If you
     path: string[],
     docId: string,
     data: Partial<StokerRecord>,
-    user?: {
-        operation: "create" | "update" | "delete"
-        password?: string
-        passwordConfirm?: string
-        permissions?: StokerPermissions
-    },
     options?: {
-        retry?: { type: string; originalRecord: StokerRecord }
+        user?: {
+            operation: "create" | "update" | "delete"
+            password?: string
+            passwordConfirm?: string
+            permissions?: StokerPermissions
+        }
+        originalRecord?: StokerRecord
     },
-    originalRecord?: StokerRecord,
 ) => Promise<StokerRecord>
 ```
 
@@ -205,11 +201,9 @@ The `originalRecord` value provided to hooks in the Web SDK may be stale. If you
 
 `data`: The data to update.
 
-`user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in the structure defined in `addRecord` above. Use `operation` to specify whether credentials should be added, updated or deleted.
+`options.user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in the structure defined in `addRecord` above. Use `operation` to specify whether credentials should be added, updated or deleted.
 
-`options`: For internal use.
-
-`originalRecord`: Provide the existing record where applicable to improve performance. If this is not provided, the existing record will be retrieved from the database / cache.
+`options.originalRecord`: Provide the existing record where applicable to improve performance. If this is not provided, the existing record will be retrieved from the database / cache.
 
 #### Returns
 
@@ -223,7 +217,6 @@ Delete a record from the database.
 (
     path: string[],
     docId: string,
-    options?: { retry?: { type: string; record: StokerRecord } },
 ) => Promise<StokerRecord>
 ```
 
@@ -232,8 +225,6 @@ Delete a record from the database.
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
 `docId`: The id of the record to delete.
-
-`options`: For internal use.
 
 #### Returns
 
@@ -296,34 +287,33 @@ Retrieve multiple records from the database.
 ```
 (
     path: string[],
-    constraints?: QueryConstraint[] | [string, WhereFilterOp, unknown][],
-    options?: 
-        {
-            only?: "cache" | "server"
-            relations?: {
-                fields?: (string | CollectionField)[]
-                depth: number
-            }
-            subcollections?: {
-                collections?: string[]
-                depth: number
-                constraints?: QueryConstraint[]
-                limit?: {
-                    number: number
-                    orderByField: string
-                    orderByDirection: "asc" | "desc"
-                }
-            }
-            pagination?: {
-                number: number
-                orderByField?: string | FieldPath
-                orderByDirection?: "asc" | "desc"
-                startAfter?: Cursor
-                endBefore?: Cursor
-            }
-            noEmbeddingFields?: boolean
-            noComputedFields?: boolean
+    options?: {
+        constraints?: QueryConstraint[] | [string, WhereFilterOp, unknown][]
+        only?: "cache" | "server"
+        relations?: {
+            fields?: (string | CollectionField)[]
+            depth: number
         }
+        subcollections?: {
+            collections?: string[]
+            depth: number
+            constraints?: QueryConstraint[]
+            limit?: {
+                number: number
+                orderByField: string
+                orderByDirection: "asc" | "desc"
+            }
+        }
+        pagination?: {
+            number: number
+            orderByField?: string | FieldPath
+            orderByDirection?: "asc" | "desc"
+            startAfter?: Cursor
+            endBefore?: Cursor
+        }
+        noEmbeddingFields?: boolean
+        noComputedFields?: boolean
+    }
 ) => Promise<{
     cursor: Cursor;
     pages: number | undefined;
@@ -335,7 +325,7 @@ Retrieve multiple records from the database.
 
 `path`: The path to the collection for the records i.e. `["Clients"]`. If the records are in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query.
+`options.constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query.
 
 `options.only`: Only query the cache or the server.
 
@@ -407,7 +397,6 @@ Add a listener to a collection in the database.
 ```
 (
     path: string[],
-    constraints: QueryConstraint[],
     callback: (
         docs: StokerRecord[],
         cursor: Cursor,
@@ -415,6 +404,7 @@ Add a listener to a collection in the database.
     ) => void,
     errorCallback?: (error: Error) => void,
     options?: {
+        constraints?: QueryConstraint[]
         only?: "cache" | "default"
         relations?:
             | boolean
@@ -444,11 +434,11 @@ Add a listener to a collection in the database.
 
 `path`: The path to the collection for the records i.e. `["Clients"]`. If the records are in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query.
-
 `callback`: Fires whenever the records or their relations are updated in the database. Returns the results of the query, a cursor that can be passed to `startAt`, `endAt`, `startAfter` or `endBefore` in `options.pagination` below and the [Firestore snapshot metadata](https://firebase.google.com/docs/firestore/query-data/listen#events-metadata-changes).
 
 `errorCallback`: Fires whenever the listener throw an error.
+
+`options.constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query.
 
 `options.only`: Only query the cache, or both the cache and the server (default).
 

@@ -10,12 +10,10 @@ export const addRecord = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
 
-    const result = await addStokerRecord(
-        options.path.split("/"),
-        JSON.parse(options.data),
-        options.userData ? JSON.parse(options.userData) : undefined,
-        options.user,
-    )
+    const result = await addStokerRecord(options.path.split("/"), JSON.parse(options.data), {
+        userId: options.user,
+        user: options.userData ? JSON.parse(options.userData) : undefined,
+    })
     console.log(JSON.stringify(result, null, 2))
     process.exit()
 }

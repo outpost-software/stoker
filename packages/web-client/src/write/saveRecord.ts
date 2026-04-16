@@ -116,9 +116,9 @@ export const saveRecord = async (
                         }
                         if (retryOperation) {
                             if (operation === "create")
-                                await addRecord(path, record, undefined, { retry: { type: "unique", docId } })
+                                await addRecord(path, record, { retry: { type: "unique", docId } })
                             if (operation === "update")
-                                await updateRecord(path, docId, record, undefined, {
+                                await updateRecord(path, docId, record, {
                                     retry: {
                                         type: "unique",
                                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

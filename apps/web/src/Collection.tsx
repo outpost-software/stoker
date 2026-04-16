@@ -611,12 +611,6 @@ function Collection({
                         // TODO: subcollection support
                         const result = await subscribeMany(
                             [labels.collection],
-                            [
-                                ...(currentQuery.constraints as QueryConstraint[]),
-                                ...(additionalConstraintsRef.current?.map((constraint) =>
-                                    where(constraint[0], constraint[1] as WhereFilterOp, constraint[2]),
-                                ) || []),
-                            ],
                             (docs: StokerRecord[], cursor?: Cursor) => {
                                 loadedDocs = docs
                                 newCursor = {
@@ -640,6 +634,12 @@ function Collection({
                             },
                             {
                                 ...currentQuery.options,
+                                constraints: [
+                                    ...(currentQuery.constraints as QueryConstraint[]),
+                                    ...(additionalConstraintsRef.current?.map((constraint) =>
+                                        where(constraint[0], constraint[1] as WhereFilterOp, constraint[2]),
+                                    ) || []),
+                                ],
                                 tempCache:
                                     isPreloadCacheEnabled && relationList?.loadAll
                                         ? {
@@ -668,14 +668,13 @@ function Collection({
                     const options = cloneDeep(query.queries[0].options)
                     delete options.pagination
                     // TODO: subcollection support
-                    const data = await getSome(
-                        [labels.collection],
-                        [
+                    const data = await getSome([labels.collection], {
+                        ...(options as GetSomeOptions),
+                        constraints: [
                             ...(query.queries[0].constraints as [string, WhereFilterOp, unknown][]),
                             ...(additionalConstraintsRef.current || []),
                         ],
-                        options as GetSomeOptions,
-                    )
+                    })
                     setServerList((prev) => ({ ...prev, [key]: data.docs }))
                     setOptimisticList(data.docs, key)
                     setIsRouteLoading("-", location.pathname)
@@ -1402,10 +1401,10 @@ function Collection({
             // TODO: subcollection support
             const serverData = await getSome(
                 [labels.collection],
-                finalConstraints,
                 isServerReadOnly
-                    ? undefined
+                    ? { constraints: finalConstraints }
                     : {
+                          constraints: finalConstraints,
                           pagination: { orderByField, orderByDirection, number: 10000 },
                       },
             )
@@ -1554,17 +1553,14 @@ function Collection({
                 }
 
                 // TODO: subcollection support
-                const data = await getSome(
-                    [labels.collection],
-                    (isServerReadOnly ? serverConstraints : webConstraints) as
+                const data = await getSome([labels.collection], {
+                    constraints: (isServerReadOnly ? serverConstraints : webConstraints) as
                         | [string, WhereFilterOp, unknown][]
                         | QueryConstraint[],
-                    {
-                        only: isPreloadCacheEnabled ? "cache" : undefined,
-                        pagination: isPreloadCacheEnabled ? undefined : { number: 10 },
-                        noEmbeddingFields: true,
-                    },
-                )
+                    only: isPreloadCacheEnabled ? "cache" : undefined,
+                    pagination: isPreloadCacheEnabled ? undefined : { number: 10 },
+                    noEmbeddingFields: true,
+                })
 
                 const parentId = relationParent?.id
                 const relationArrayField = `${relationList.field}_Array`
@@ -1625,7 +1621,7 @@ function Collection({
                 isRelationServerWrite,
                 !(isRelationServerWrite || isRelationServerReadOnly),
             )
-            updateRecord(record.Collection_Path, record.id, updatedFields, undefined, undefined, originalRecord)
+            updateRecord(record.Collection_Path, record.id, updatedFields, { originalRecord })
                 .then(() => {
                     if (isRelationServerWrite || isRelationServerReadOnly) {
                         if (isRelationServerReadOnly) {

@@ -43,7 +43,7 @@ const getSubcollections = async (
     },
     schema: CollectionsSchema,
     relations?: { depth: number },
-    user?: string,
+    userId?: string,
 ) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const collectionPath = path.at(-2)!
@@ -63,8 +63,9 @@ const getSubcollections = async (
     }
     const depth = subcollections.depth - 1
     const subcollectionPromises = subcollections.collections.map(async (subcollection) => {
-        const result = await getSome([...path, subcollection], subcollections.constraints || [], {
-            user,
+        const result = await getSome([...path, subcollection], {
+            constraints: subcollections.constraints || [],
+            userId,
             relations,
             pagination: subcollections.limit,
             providedTransaction: transaction,
@@ -87,7 +88,7 @@ const getSubcollections = async (
                         { depth: depth },
                         schema,
                         relations,
-                        user,
+                        userId,
                     )
                 }),
             )
@@ -104,7 +105,7 @@ const getRelations = async (
     path: string[],
     schema: CollectionsSchema,
     relations: { fields?: CollectionField[]; depth: number },
-    user?: string,
+    userId?: string,
     noComputedFields?: boolean,
     noEmbeddingFields?: boolean,
 ) => {
@@ -121,7 +122,7 @@ const getRelations = async (
             if (!relationObject) continue
             for (const [id, relation] of Object.entries(relationObject)) {
                 const promise = getOne((relation as StokerRelation).Collection_Path, id, {
-                    user,
+                    userId,
                     providedTransaction: transaction,
                     noComputedFields,
                     noEmbeddingFields,
@@ -138,7 +139,7 @@ const getRelations = async (
                                 [...(relation as StokerRelation).Collection_Path, id],
                                 schema,
                                 { depth: depth },
-                                user,
+                                userId,
                                 noComputedFields,
                                 noEmbeddingFields,
                             )
@@ -162,7 +163,7 @@ const getRelations = async (
 }
 
 export interface GetOneOptions {
-    user?: string
+    userId?: string
     subcollections?: {
         collections?: StokerCollection[]
         depth: number
@@ -197,9 +198,9 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
 
     const runTransaction = async (transaction: Transaction) => {
         const [permissionsSnapshot, maintenanceMode, latestSchema] = await Promise.all([
-            options?.user
+            options?.userId
                 ? transaction.get(
-                      db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.user),
+                      db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.userId),
                   )
                 : Promise.resolve({} as DocumentSnapshot),
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
@@ -226,7 +227,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
         const customization = getCustomizationFile(labels.collection, schema)
 
         let collectionPermissions: CollectionPermissions | undefined
-        if (options?.user) {
+        if (options?.userId) {
             if (!permissionsSnapshot?.exists) throw new Error("PERMISSION_DENIED")
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             permissions = permissionsSnapshot.data()!
@@ -236,7 +237,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
             if (!collectionPermissions) throw new Error("PERMISSION_DENIED")
         }
 
-        if (options?.user) {
+        if (options?.userId) {
             if (!collectionPermissions || !collectionAccess("Read", collectionPermissions)) {
                 throw new Error("PERMISSION_DENIED")
             }
@@ -285,7 +286,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
                     options.subcollections,
                     schema,
                     undefined,
-                    options.user,
+                    options.userId,
                 ),
             )
         }
@@ -308,7 +309,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
                     documentPath,
                     schema,
                     options.relations as { fields: CollectionField[]; depth: number },
-                    options.user,
+                    options.userId,
                     options.noComputedFields,
                     options.noEmbeddingFields,
                 ),
@@ -333,7 +334,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
             }
         }
 
-        if (options?.user && permissions?.Role) {
+        if (options?.userId && permissions?.Role) {
             const role = permissions.Role
             const allowedCollection =
                 customization.custom?.serverAccess?.read !== undefined
@@ -364,9 +365,9 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
         const postReadArgs: PostReadHookArgs = [context, refs, docData, false]
         await runHooks("postRead", globalConfig, customization, postReadArgs)
 
-        if (options?.user) {
+        if (options?.userId) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            await getOneAccessControl(docData, collectionSchema, schema, options.user, permissions!)
+            await getOneAccessControl(docData, collectionSchema, schema, options.userId, permissions!)
         }
     }
 

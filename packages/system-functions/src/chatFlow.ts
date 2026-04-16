@@ -91,7 +91,7 @@ export const chatFlow = (
             );
             try {
                 deserializeTimestampsWithoutUnderscores(input.record);
-                const record = await addRecord([labels.collection], input.record, undefined, context.auth?.uid);
+                const record = await addRecord([labels.collection], input.record, {userId: context.auth?.uid});
                 return `Record ${record.id} was successfully added to the ${labels.collection} collection.`;
             } catch {
                 return "Error adding record";
@@ -124,7 +124,7 @@ export const chatFlow = (
             );
             try {
                 deserializeTimestampsWithoutUnderscores(input.update);
-                const record = await updateRecord([labels.collection], input.recordId, input.update, undefined, context.auth?.uid);
+                const record = await updateRecord([labels.collection], input.recordId, input.update, {userId: context.auth?.uid});
                 return `Record ${record.id} was successfully updated in the ${labels.collection} collection.`;
             } catch {
                 return "Error updating record";
@@ -155,7 +155,7 @@ export const chatFlow = (
                 true,
             );
             try {
-                const record = await getOne([labels.collection], input.recordId, {user: context.auth?.uid});
+                const record = await getOne([labels.collection], input.recordId, {userId: context.auth?.uid});
                 return JSON.stringify(record);
             } catch {
                 return "Error getting record";
@@ -184,7 +184,7 @@ export const chatFlow = (
                 true,
             );
             try {
-                const records = await getSome([labels.collection], undefined, {user: context.auth?.uid});
+                const records = await getSome([labels.collection], {userId: context.auth?.uid});
                 return JSON.stringify(records.docs);
             } catch {
                 return "Error getting records";

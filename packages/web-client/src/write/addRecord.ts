@@ -54,17 +54,18 @@ import { addRecordServer } from "./addRecordServer.js"
 export const addRecord = async (
     path: string[],
     data: Partial<StokerRecord>,
-    user?: {
-        password: string
-        passwordConfirm: string
-        permissions?: StokerPermissions
-    },
     options?: {
+        user?: {
+            password: string
+            passwordConfirm: string
+            permissions?: StokerPermissions
+        }
         retry?: { type: string; docId: string }
+        id?: string
+        onValid?: () => void
     },
-    id?: string,
-    onValid?: () => void,
 ) => {
+    const user = options?.user
     const tenantId = getTenant()
     const schema = getSchema()
     const roleGroups = getAllRoleGroups()
@@ -107,7 +108,7 @@ export const addRecord = async (
     checkOnline()
 
     const batch = writeBatch(db)
-    const docId = retry?.docId || id || doc(collection(db, "tenants", tenantId, labels.collection)).id
+    const docId = retry?.docId || options?.id || doc(collection(db, "tenants", tenantId, labels.collection)).id
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
 
@@ -135,8 +136,8 @@ export const addRecord = async (
         }
         const preValidateArgs: PreValidateHookArgs = ["create", data as StokerRecord, context, batch]
         await runHooks("preValidate", globalConfig, customization, preValidateArgs)
-        if (onValid) {
-            onValid()
+        if (options?.onValid) {
+            options.onValid()
         }
         const result = await addRecordServer(
             path,
@@ -203,8 +204,8 @@ export const addRecord = async (
         }
     }
 
-    if (onValid) {
-        onValid()
+    if (options?.onValid) {
+        options.onValid()
     }
 
     removeUndefined(record)

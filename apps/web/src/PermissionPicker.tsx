@@ -124,7 +124,8 @@ export const PermissionPicker = ({
             }
 
             // TODO: subcollection support
-            getSome([labels.collection], newConstraints, {
+            getSome([labels.collection], {
+                constraints: newConstraints,
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
                 pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
                 noEmbeddingFields: true,

@@ -42,7 +42,7 @@ const getSubcollections = async (
     schema: CollectionsSchema,
     relations?: { depth: number },
     only?: "cache" | "server",
-    user?: string,
+    userId?: string,
     transaction?: Transaction,
     noEmbeddingFields?: boolean,
 ) => {
@@ -64,8 +64,9 @@ const getSubcollections = async (
     }
     const depth = subcollections.depth - 1
     const subcollectionPromises = subcollections.collections.map(async (subcollection) => {
-        const result = await getSome([...path, subcollection], subcollections.constraints, {
-            user,
+        const result = await getSome([...path, subcollection], {
+            constraints: subcollections.constraints,
+            userId,
             pagination: subcollections.limit,
             providedTransaction: transaction,
             noEmbeddingFields,
@@ -87,7 +88,7 @@ const getSubcollections = async (
                         relations,
                         schema,
                         undefined,
-                        user,
+                        userId,
                         transaction,
                         noEmbeddingFields,
                     ),
@@ -106,7 +107,7 @@ const getSubcollections = async (
                         schema,
                         relations,
                         only,
-                        user,
+                        userId,
                         transaction,
                         noEmbeddingFields,
                     ),
@@ -125,7 +126,7 @@ const getRelations = async (
     relations: { fields?: CollectionField[]; depth: number },
     schema: CollectionsSchema,
     only?: "cache" | "server",
-    user?: string,
+    userId?: string,
     transaction?: Transaction,
     noEmbeddingFields?: boolean,
 ) => {
@@ -145,7 +146,7 @@ const getRelations = async (
                 // eslint-disable-next-line security/detect-object-injection
                 const relation = relationsMap[id]
                 const promise = getOne(relation.Collection_Path, id, {
-                    user,
+                    userId,
                     providedTransaction: transaction,
                     noEmbeddingFields,
                 })
@@ -161,7 +162,7 @@ const getRelations = async (
                                 { depth: depth },
                                 schema,
                                 only,
-                                user,
+                                userId,
                                 transaction,
                                 noEmbeddingFields,
                             )
@@ -190,7 +191,8 @@ export type Cursor = {
 }
 
 export interface GetSomeOptions {
-    user?: string
+    constraints?: [string, string, unknown][]
+    userId?: string
     relations?: {
         fields?: (string | CollectionField)[]
         depth: number
@@ -218,7 +220,7 @@ export interface GetSomeOptions {
     noComputedFields?: boolean
 }
 
-export const getSome = async (path: string[], constraints?: [string, string, unknown][], options?: GetSomeOptions) => {
+export const getSome = async (path: string[], options?: GetSomeOptions) => {
     if (options?.subcollections?.depth && options.subcollections.depth > 10) {
         throw new Error("INPUT_ERROR: Subcollections depth cannot exceed 10")
     }
@@ -237,6 +239,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
         }
     }
 
+    const constraints = options?.constraints
     const tenantId = getTenant()
     const db = getFirestore()
 
@@ -246,9 +249,9 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
 
     const runTransaction = async (transaction: Transaction) => {
         const [permissionsSnapshot, maintenanceMode, latestSchema] = await Promise.all([
-            options?.user
+            options?.userId
                 ? transaction.get(
-                      db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.user),
+                      db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.userId),
                   )
                 : Promise.resolve({} as DocumentSnapshot),
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
@@ -274,7 +277,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
         const { labels } = collectionSchema
         const customization = getCustomizationFile(labels.collection, schema)
 
-        if (options?.user) {
+        if (options?.userId) {
             if (!permissionsSnapshot?.exists) throw new Error("PERMISSION_DENIED")
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             permissions = permissionsSnapshot.data()!
@@ -283,7 +286,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
         }
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        let refs = getCollectionRefs(tenantId, path, schema, options?.user, permissions!)
+        let refs = getCollectionRefs(tenantId, path, schema, options?.userId, permissions!)
         if (refs.length === 0) return { cursor: {}, pages: 0, docs: [] }
         if (constraints) {
             refs = refs.map((ref) => {
@@ -305,7 +308,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
                 throw new Error("INPUT_ERROR: startAfter and endBefore cannot be provided together")
             }
             const hasPagination = options.pagination.startAfter || options.pagination.endBefore
-            if (options?.user) {
+            if (options?.userId) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const paginationEnabled = isPaginationEnabled(permissions!.Role!, collectionSchema, schema)
                 if (hasPagination && paginationEnabled !== true) {
@@ -420,7 +423,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
                         schema,
                         cloneDeep(options?.relations),
                         undefined,
-                        options.user,
+                        options.userId,
                         options.transactional ? transaction : undefined,
                         options?.noEmbeddingFields,
                     ),
@@ -446,7 +449,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
                         cloneDeep(options.relations) as { fields: CollectionField[]; depth: number },
                         schema,
                         undefined,
-                        options.user,
+                        options.userId,
                         options.transactional ? transaction : undefined,
                         options?.noEmbeddingFields,
                     ),
@@ -474,7 +477,7 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
             }
             await Promise.all(computedFieldPromises)
 
-            if (options?.user && permissions?.Role) {
+            if (options?.userId && permissions?.Role) {
                 const role = permissions.Role
                 const allowedCollection =
                     customization.custom?.serverAccess?.read !== undefined
@@ -513,9 +516,15 @@ export const getSome = async (path: string[], constraints?: [string, string, unk
             await runHooks("postRead", globalConfig, customization, postReadArgs)
         }
 
-        if (options?.user) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            await getSomeAccessControl(Array.from(docs.values()), collectionSchema, schema, options.user, permissions!)
+        if (options?.userId) {
+            await getSomeAccessControl(
+                Array.from(docs.values()),
+                collectionSchema,
+                schema,
+                options.userId,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                permissions!,
+            )
         }
 
         return

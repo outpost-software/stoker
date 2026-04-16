@@ -401,7 +401,7 @@ program
     .option("-m, --mode <mode>", "development / production")
     .requiredOption("-t, --tenant <tenant>", "the tenant of the records")
     .requiredOption("-p, --path <path>", "the path of the collection")
-    .option("-c, --constraints <constraints>", "contraints to apply to the query")
+    .option("-c, --constraints <constraints>", "constraints to apply to the query")
     .option("-r, --relations <depth>", "retrieve relations at the specified depth")
     .option("-s, --subcollections <depth>", "retrieve subcollections at the specified depth")
     .option("-u, --user <user>", "the ID of the user to get the records as")

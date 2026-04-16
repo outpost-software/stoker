@@ -12,12 +12,15 @@ export const getSome = async (options: any) => {
 
     const path = options.path.split("/")
 
-    let constraints: [string, string, unknown][] = []
-    if (options.constraints) {
-        constraints = JSON.parse(options.constraints)
+    const getSomeOptions = {} as {
+        constraints: [string, string, unknown][]
+        subcollections: { depth: number }
+        relations: { depth: number }
+        user?: string
     }
-
-    const getSomeOptions = {} as { subcollections: { depth: number }; relations: { depth: number }; user?: string }
+    if (options.constraints) {
+        getSomeOptions.constraints = JSON.parse(options.constraints)
+    }
     if (options.subcollections) {
         getSomeOptions.subcollections = {
             depth: options.subcollections as number,
@@ -33,7 +36,7 @@ export const getSome = async (options: any) => {
         getSomeOptions.user = options.user
     }
 
-    const result = await getSomeStoker(path, constraints, getSomeOptions)
+    const result = await getSomeStoker(path, getSomeOptions)
     console.log(JSON.stringify(result.docs, null, 2))
     process.exit()
 }

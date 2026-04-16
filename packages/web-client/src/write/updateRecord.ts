@@ -59,17 +59,18 @@ export const updateRecord = async (
     path: string[],
     docId: string,
     data: Partial<StokerRecord>,
-    user?: {
-        operation: "create" | "update" | "delete"
-        password?: string
-        passwordConfirm?: string
-        permissions?: StokerPermissions
-    },
     options?: {
+        user?: {
+            operation: "create" | "update" | "delete"
+            password?: string
+            passwordConfirm?: string
+            permissions?: StokerPermissions
+        }
         retry?: { type: string; originalRecord: StokerRecord }
+        originalRecord?: StokerRecord
     },
-    originalRecord?: StokerRecord,
 ) => {
+    const user = options?.user
     const tenantId = getTenant()
     const schema = getSchema()
     const schemaWithComputedFields = getSchema(true)
@@ -98,9 +99,9 @@ export const updateRecord = async (
 
     if (isRetrying(docId)) throw new Error("RECORD_BUSY")
 
-    originalRecord =
+    const originalRecord =
         retry?.originalRecord ||
-        originalRecord ||
+        options?.originalRecord ||
         (await getOne(path, docId, { noComputedFields: true, noEmbeddingFields: true }))
 
     // eslint-disable-next-line security/detect-object-injection

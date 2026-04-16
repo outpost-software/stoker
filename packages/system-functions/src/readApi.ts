@@ -150,7 +150,7 @@ export const readApi = async (
         });
     }
 
-    options.user = user;
+    options.userId = user;
 
     await initializeStoker(
         "production",
@@ -192,8 +192,10 @@ export const readApi = async (
             const getDocs = async (options: GetSomeOptions) => {
                 const result = await getSome(
                     path,
-                    deserializedConstraints,
-                    options,
+                    {
+                        ...options,
+                        constraints: deserializedConstraints,
+                    },
                 ).catch((error) => {
                     errorLogger(error);
                     throw new HttpsError("internal", "Error reading data");

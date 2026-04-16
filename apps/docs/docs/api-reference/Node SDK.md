@@ -55,18 +55,20 @@ Retrieve you app's previous schema.
 (
     path: string[],
     data: Partial<StokerRecord>,
-    user?: {
-        password: string
-        permissions?: StokerPermissions
-    },
-    userId?: string,
     options?: {
+        userId?: string
+        user?: {
+            password: string
+            permissions?: StokerPermissions
+        }
+        id?: string
         noTwoWay?: boolean
+        createdAt?: Timestamp
+        createdBy?: string
         providedTransaction?: Transaction
         providedSchema?: CollectionsSchema
-    },
-    context?: any,
-    id?: string,
+        context?: any
+    }
 ) => Promise<StokerRecord>
 ```
 
@@ -76,7 +78,9 @@ Retrieve you app's previous schema.
 
 `data`: The record to save.
 
-`user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in this structure:
+`options.userId`: A user to impersonate.
+
+`options.user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in this structure:
 
 ```
 type StokerPermissions = {
@@ -104,9 +108,13 @@ type StokerPermissions = {
 }
 ```
 
-`userId`: A user to impersonate.
+`options.id`: Optionally provide a Firestore id for the new record.
 
 `options.noTwoWay`: Do not write two-way relations.
+
+`options.createdAt`: Override the "Created_At" timestamp.
+
+`options.createdBy`: Override the "Created_By" value.
 
 `options.providedTransaction`: Provide a Firestore transaction to be used for the operation. This allows batched writes, which is useful for data imports / migrations. There are some limitations:
 - Unique field checks will not run. If you want unique field validation you'll have to do it manually.
@@ -116,9 +124,7 @@ type StokerPermissions = {
 
 `options.providedSchema`: Provide a Stoker schema when `options.providedTransaction` is in use. This will prevent the schema from being re-fetched for every write operation.
 
-`context`: The context to pass to hooks.
-
-`id`: Optionally provide a Firestore id for the new record.
+`options.context`: The context to pass to hooks.
 
 #### Returns
 
@@ -139,19 +145,19 @@ You can [transactionally increment or decrement a field value](https://firebase.
     path: string[],
     docId: string,
     data: Partial<StokerRecord>,
-    user?: {
-        operation: "create" | "update" | "delete"
-        password?: string
-        permissions?: StokerPermissions
-    },
-    userId?: string,
     options?: {
+        userId?: string
+        user?: {
+            operation: "create" | "update" | "delete"
+            password?: string
+            permissions?: StokerPermissions
+        }
+        originalRecord?: StokerRecord
         noTwoWay?: boolean
         providedTransaction?: Transaction
         providedSchema?: CollectionsSchema
-    },
-    context?: any,
-    originalRecord?: StokerRecord
+        context?: any
+    }
 ) => Promise<StokerRecord>
 ```
 
@@ -163,9 +169,11 @@ You can [transactionally increment or decrement a field value](https://firebase.
 
 `data`: The data to update.
 
-`user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in the structure defined in `addRecord` above. Use `operation` to specify whether credentials should be added, updated or deleted.
+`options.userId`: A user to impersonate.
 
-`userId`: A user to impersonate.
+`options.user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in the structure defined in `addRecord` above. Use `operation` to specify whether credentials should be added, updated or deleted.
+
+`options.originalRecord`: Optionally provide the entire original record for the record that is being modified. This will prevent the original record from being retrieved from Firestore, which improves performance when performing bulk write operations.
 
 `options.noTwoWay`: Do not write two-way relations.
 
@@ -178,9 +186,7 @@ You can [transactionally increment or decrement a field value](https://firebase.
 
 `options.providedSchema`: Provide a Stoker schema when `options.providedTransaction` is in use. This will prevent the schema from being re-fetched for every write operation.
 
-`context`: The context to pass to hooks.
-
-`originalRecord`: Optionally provide the entire original record for the record that is being modified. This will prevent the original record from being retrieved from Firestore, which improves performance when performing bulk write operations.
+`options.context`: The context to pass to hooks.
 
 #### Returns
 
@@ -192,11 +198,11 @@ The updated record.
 (
     path: string[],
     docId: string,
-    userId?: string,
     options?: {
-        force?: boolean;
-    },
-    context?: any
+        userId?: string
+        force?: boolean
+        context?: any
+    }
 ) => Promise<StokerRecord>
 ```
 
@@ -206,11 +212,11 @@ The updated record.
 
 `docId`: The id of the record to delete.
 
-`userId`: A user to impersonate.
+`options.userId`: A user to impersonate.
 
-`options`: Force deletion of records in collections with soft-delete enabled.
+`options.force`: Force deletion of records in collections with soft-delete enabled.
 
-`context`: The context to pass to hooks.
+`options.context`: The context to pass to hooks.
 
 #### Returns
 
@@ -225,7 +231,7 @@ Retrieve a record from the database.
     path: string[],
     docId: string,
     options?: {
-        user?: string
+        userId?: string
         relations?: {
             fields?: (string | CollectionField)[]
             depth: number
@@ -253,7 +259,7 @@ Retrieve a record from the database.
 
 `docId`: The id of the record to retrieve.
 
-`options.user`: A user to impersonate.
+`options.userId`: A user to impersonate.
 
 `options.relations`: Include related records. Specify the depth to retrieve relations for. Optionally specify a subset of relation fields to retrieve.
 
@@ -276,9 +282,9 @@ Retrieve multiple records from the database.
 ```
 (
     path: string[],
-    constraints?: [string, string, unknown][],
     options?: {
-        user?: string
+        constraints?: [string, string, unknown][]
+        userId?: string
         relations?: {
             fields?: (string | CollectionField)[]
             depth: number
@@ -316,9 +322,9 @@ Retrieve multiple records from the database.
 
 `path`: The path to the collection for the records i.e. `["Clients"]`. If the records are in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query.
+`options.constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query.
 
-`options.user`: A user to impersonate.
+`options.userId`: A user to impersonate.
 
 `options.relations`: Include related records. Specify the depth to retrieve relations for. Optionally specify a subset of relation fields to retrieve.
 

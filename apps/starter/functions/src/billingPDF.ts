@@ -103,7 +103,7 @@ export const billingPDF = async (
         [collection],
         recordId,
         {
-            user,
+            userId: user,
         },
     ).catch((error) => {
         errorLogger(error);
@@ -112,7 +112,7 @@ export const billingPDF = async (
 
     // eslint-disable-next-line security/detect-object-injection
     const company = await getOne([clientCollection], doc[`${clientField}_Array`]?.[0], {
-        user,
+        userId: user,
     }).catch((error) => {
         errorLogger(error);
         throw new HttpsError("internal", "Error reading data");
@@ -291,7 +291,7 @@ export const billingPDF = async (
         const toEmails: string[] = [];
         for (const contactId of Object.keys(to)) {
             const contact = await getOne([toCollection], contactId, {
-                user,
+                userId: user,
             }).catch((error) => {
                 errorLogger(error);
                 throw new HttpsError("internal", "Error reading data");
@@ -305,7 +305,7 @@ export const billingPDF = async (
         if (cc) {
             for (const contactId of Object.keys(cc)) {
                 const contact = await getOne([toCollection], contactId, {
-                    user,
+                    userId: user,
                 }).catch((error) => {
                     errorLogger(error);
                     throw new HttpsError("internal", "Error reading data");

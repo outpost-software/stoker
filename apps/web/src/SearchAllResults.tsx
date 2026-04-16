@@ -110,7 +110,6 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
 
                     const result = await subscribeMany(
                         [labels.collection],
-                        currentQuery.constraints as QueryConstraint[],
                         (docs: StokerRecord[]) => {
                             loadedDocs = docs
                             queryLoaded = true
@@ -126,6 +125,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                             resolve()
                         },
                         {
+                            constraints: currentQuery.constraints as QueryConstraint[],
                             pagination: {
                                 number: 5,
                             },
@@ -145,15 +145,12 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
             }
 
             const getServerData = async () => {
-                const data = await getSome(
-                    [labels.collection],
-                    query.queries[0].constraints as [string, WhereFilterOp, unknown][],
-                    {
-                        pagination: {
-                            number: 5,
-                        },
+                const data = await getSome([labels.collection], {
+                    constraints: query.queries[0].constraints as [string, WhereFilterOp, unknown][],
+                    pagination: {
+                        number: 5,
                     },
-                )
+                })
                 setResults(data.docs)
                 setLoading(false)
                 resolve()

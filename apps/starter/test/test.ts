@@ -829,8 +829,7 @@ describe("Cloud Functions", async () => {
                 },
                 Start: Timestamp.now(),
             },
-            undefined,
-            adminId,
+            { userId: adminId },
         )
         functionsUserId = record.id
 

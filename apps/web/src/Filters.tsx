@@ -292,7 +292,8 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
             }
 
             // TODO: subcollection support
-            getSome([collection], newConstraints as QueryConstraint[] | [string, WhereFilterOp, unknown][], {
+            getSome([collection], {
+                constraints: newConstraints as QueryConstraint[] | [string, WhereFilterOp, unknown][],
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
                 pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
                 noEmbeddingFields: true,

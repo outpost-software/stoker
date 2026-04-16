@@ -618,9 +618,7 @@ function DropZone({
                         record.Collection_Path,
                         record.id,
                         { [statusField.name]: statusValue },
-                        undefined,
-                        undefined,
-                        originalRecord,
+                        { originalRecord },
                     )
                         .then(() => {
                             if (serverWrite || isServerReadOnly) {
@@ -655,9 +653,7 @@ function DropZone({
                         {
                             [statusField.name]: statusValue === statusValues[0],
                         },
-                        undefined,
-                        undefined,
-                        originalRecord,
+                        { originalRecord },
                     )
                         .then(() => {
                             if (serverWrite || isServerReadOnly) {

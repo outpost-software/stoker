@@ -49,22 +49,25 @@ import { entityRestrictionAccess } from "./entityRestrictionAccess.js"
 export const addRecord = async (
     path: string[],
     data: Partial<StokerRecord>,
-    user?: {
-        password: string
-        permissions?: StokerPermissions
-    },
-    userId?: string,
     options?: {
+        userId?: string
+        user?: {
+            password: string
+            permissions?: StokerPermissions
+        }
+        id?: string
         noTwoWay?: boolean
         createdAt?: Timestamp
         createdBy?: string
         providedTransaction?: Transaction
         providedSchema?: CollectionsSchema
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        context?: any
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
-    id?: string,
 ) => {
+    const userId = options?.userId
+    const user = options?.user
+    let context = options?.context
     const tenantId = getTenant()
     const globalConfig = getGlobalConfigModule()
     if (options?.providedTransaction && userId) {
@@ -97,7 +100,7 @@ export const addRecord = async (
     }
 
     const ref = getFirestorePathRef(db, path, tenantId)
-    const docId = id || ref.doc().id
+    const docId = options?.id || ref.doc().id
 
     context = context || {}
     context.collection = labels.collection

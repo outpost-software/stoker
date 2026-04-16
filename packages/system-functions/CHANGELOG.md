@@ -1,5 +1,13 @@
 # @stoker-platform/system-functions
 
+## 0.5.49
+
+### Patch Changes
+
+- feat!: simplify SDK API parameters
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.44
+
 ## 0.5.48
 
 ### Patch Changes

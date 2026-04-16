@@ -216,7 +216,7 @@ export const addRecordPrompt = async (
             delete record[fieldName]
         }
     }
-    const result = await addRecord([labels.collection], record, user)
+    const result = await addRecord([labels.collection], record, { user })
 
     console.log(result)
 

@@ -35,11 +35,15 @@ import { fetchCurrentSchema } from "../utils/fetchSchema.js"
 export const deleteRecord = async (
     path: string[],
     docId: string,
-    userId?: string,
-    options?: { force?: boolean },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
+    options?: {
+        userId?: string
+        force?: boolean
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        context?: any
+    },
 ) => {
+    const userId = options?.userId
+    let context = options?.context
     const tenantId = getTenant()
     const globalConfig = getGlobalConfigModule()
     let schema = await fetchCurrentSchema()
@@ -60,8 +64,7 @@ export const deleteRecord = async (
             path,
             docId,
             { [softDelete.archivedField]: true, [softDelete.timestampField]: FieldValue.serverTimestamp() },
-            undefined,
-            userId,
+            { userId },
         )
         return result
     }
@@ -78,7 +81,7 @@ export const deleteRecord = async (
     context = context || {}
     context.collection = labels.collection
 
-    const data = await getOne(path, docId, { user: userId })
+    const data = await getOne(path, docId, { userId })
 
     let record: StokerRecord = addSystemFields(
         "delete",
@@ -107,7 +110,7 @@ export const deleteRecord = async (
     const preWriteChecks = async (transaction: Transaction) => {
         const [maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema] = await Promise.all([
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
-            getOne([labels.collection], docId, { user: userId, providedTransaction: transaction }),
+            getOne([labels.collection], docId, { userId, providedTransaction: transaction }),
             userId
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),

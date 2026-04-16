@@ -51,7 +51,6 @@ export const getData = async (
                 // TODO: subcollection support
                 const result = await subscribeMany(
                     [labels.collection],
-                    currentQuery.constraints as QueryConstraint[],
                     (docs: StokerRecord[]) => {
                         loadedDocs = docs
                         queryLoaded = true
@@ -66,6 +65,7 @@ export const getData = async (
                         }
                         resolve()
                     },
+                    { constraints: currentQuery.constraints as QueryConstraint[] },
                 )
                 const { unsubscribe: newUnsubscribe } = result
                 promiseLoaded = true
@@ -82,10 +82,9 @@ export const getData = async (
 
         const getServerData = async () => {
             // TODO: subcollection support
-            const data = await getSome(
-                [labels.collection],
-                query.queries[0].constraints as [string, WhereFilterOp, unknown][],
-            )
+            const data = await getSome([labels.collection], {
+                constraints: query.queries[0].constraints as [string, WhereFilterOp, unknown][],
+            })
             setResults(data.docs)
             setLoading(false)
             resolve()

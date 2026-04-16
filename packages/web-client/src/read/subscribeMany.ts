@@ -51,6 +51,7 @@ import { Cursor, getOne, preloadCollection } from "../main"
 import { subscribeOne } from "./subscribeOne"
 
 export interface SubscribeManyOptions {
+    constraints?: QueryConstraint[]
     only?: "cache" | "default"
     getAll?: boolean
     relations?:
@@ -99,11 +100,11 @@ const validateLastCursor = (cursor: Cursor) => {
 
 export const subscribeMany = async (
     path: string[],
-    constraints: QueryConstraint[],
     callback: (docs: StokerRecord[], cursor: Cursor, metadata: SnapshotMetadata | undefined) => void,
     errorCallback?: (error: Error) => void,
     options?: SubscribeManyOptions,
 ) => {
+    const constraints = options?.constraints
     const collection = path.at(-1)
     if (!collection) throw new Error("EMPTY_PATH")
     const permissions = getCurrentUserPermissions()
@@ -144,7 +145,7 @@ export const subscribeMany = async (
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
     const refs = getCollectionRefs(path, roleGroup)
     if (refs.length === 0) return { pages: 0, count: 0, unsubscribe: () => {} }
-    let constraintRefs = refs.map((ref) => query(ref, ...constraints))
+    let constraintRefs = refs.map((ref) => query(ref, ...(constraints || [])))
     const cursor = options?.pagination?.startAfter ||
         options?.pagination?.endBefore ||
         options?.pagination?.startAt ||
@@ -700,7 +701,7 @@ export const subscribeMany = async (
         !preloadCache?.roles.includes(permissions.Role) &&
         !serverReadOnly?.includes(permissions.Role)
     ) {
-        let constraintRef = query(refs[0], ...constraints)
+        let constraintRef = query(refs[0], ...(constraints || []))
         if (options.pagination.orderByField && options.pagination.orderByDirection) {
             constraintRef = query(
                 constraintRef,

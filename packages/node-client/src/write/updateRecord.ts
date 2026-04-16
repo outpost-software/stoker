@@ -57,21 +57,24 @@ export const updateRecord = async (
     path: string[],
     docId: string,
     data: Partial<StokerRecord>,
-    user?: {
-        operation: "create" | "update" | "delete"
-        password?: string
-        permissions?: StokerPermissions
-    },
-    userId?: string,
     options?: {
+        userId?: string
+        user?: {
+            operation: "create" | "update" | "delete"
+            password?: string
+            permissions?: StokerPermissions
+        }
+        originalRecord?: StokerRecord
         noTwoWay?: boolean
         providedTransaction?: Transaction
         providedSchema?: CollectionsSchema
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        context?: any
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
-    originalRecord?: StokerRecord,
 ) => {
+    const userId = options?.userId
+    const user = options?.user
+    let context = options?.context
     const tenantId = getTenant()
     const globalConfig = getGlobalConfigModule()
     if (options?.providedTransaction && userId) {
@@ -80,7 +83,7 @@ export const updateRecord = async (
     if (options?.providedSchema && userId) {
         throw new Error("PERMISSION_DENIED")
     }
-    if (options?.providedTransaction && !originalRecord) {
+    if (options?.providedTransaction && !options?.originalRecord) {
         throw new Error("PERMISSION_DENIED")
     }
     let schema = options?.providedSchema || (await fetchCurrentSchema(true))
@@ -109,10 +112,10 @@ export const updateRecord = async (
     context = context || {}
     context.collection = labels.collection
 
-    originalRecord =
-        originalRecord ||
+    let originalRecord =
+        options?.originalRecord ||
         (await getOne(path, docId, {
-            user: userId,
+            userId,
             noComputedFields: true,
             noEmbeddingFields: true,
         }))
@@ -283,7 +286,7 @@ export const updateRecord = async (
                     : Promise.resolve({} as DocumentSnapshot),
                 !options?.providedTransaction
                     ? getOne(path, docId, {
-                          user: userId,
+                          userId,
                           providedTransaction: transaction,
                           noComputedFields: true,
                       })

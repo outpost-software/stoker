@@ -1921,7 +1921,8 @@ function RelationField({
             }
 
             // TODO: subcollection support
-            getSome([labels.collection], newConstraints, {
+            getSome([labels.collection], {
+                constraints: newConstraints,
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
                 pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
                 noEmbeddingFields: true,
@@ -3978,14 +3979,11 @@ function RecordForm({
                     }
                 }
 
-                addRecord(
-                    path,
-                    recordToSave,
-                    userData as UserData & { password: string; passwordConfirm: string },
-                    undefined,
-                    docId,
+                addRecord(path, recordToSave, {
+                    user: userData as UserData & { password: string; passwordConfirm: string },
+                    id: docId,
                     onValid,
-                )
+                })
                     .then((record: Partial<StokerRecord>) => {
                         if (serverWrite || isServerReadOnly) {
                             toast({
@@ -4027,7 +4025,7 @@ function RecordForm({
                             const filePath = `${basePath}/${filename}`
                             const storageRef = ref(storage, filePath)
                             const url = await getDownloadURL(storageRef)
-                            await updateRecord(path, docId, { [fieldName]: url }, undefined, undefined, originalRecord)
+                            await updateRecord(path, docId, { [fieldName]: url }, { originalRecord })
                         }
                         setQueuedImageUploads({})
                     })
@@ -4086,14 +4084,10 @@ function RecordForm({
 
                 const finalRecord = { ...originalRecord, ...cloneDeep(recordToSave) } as StokerRecord
 
-                updateRecord(
-                    path,
-                    id,
-                    recordToSave,
-                    userData as UserData & { operation: "create" | "update" | "delete" },
-                    undefined,
+                updateRecord(path, id, recordToSave, {
+                    user: userData as UserData & { operation: "create" | "update" | "delete" },
                     originalRecord,
-                )
+                })
                     .then(async () => {
                         if (serverWrite || isServerReadOnly) {
                             toast({
@@ -4152,14 +4146,9 @@ function RecordForm({
                     const serverWrite = isServerUpdate(collection, { ...recordToSave, id: selectedRecord.id })
                     setGlobalLoading("+", selectedRecord.id, serverWrite, !(serverWrite || isServerReadOnly))
 
-                    const updatePromise = updateRecord(
-                        path,
-                        selectedRecord.id,
-                        recordToSave,
-                        undefined,
-                        undefined,
-                        selectedRecord,
-                    )
+                    const updatePromise = updateRecord(path, selectedRecord.id, recordToSave, {
+                        originalRecord: selectedRecord,
+                    })
                         .catch((error) => {
                             console.error(`Failed to update record ${selectedRecord.id}:`, error)
                             toast({

@@ -40,10 +40,12 @@ export const updateInvoice = (
             true,
         )
 
-        const latestRecord = await getOne([collectionSchema.labels.collection], record.id, { user }).catch((error) => {
-            errorLogger(error)
-            throw new HttpsError("internal", "Error reading data")
-        })
+        const latestRecord = await getOne([collectionSchema.labels.collection], record.id, { userId: user }).catch(
+            (error) => {
+                errorLogger(error)
+                throw new HttpsError("internal", "Error reading data")
+            },
+        )
         record.Xero_ID = latestRecord.Xero_ID
 
         const { xero, xeroTenantId } = await xeroLogin(xeroId, xeroSecret)
