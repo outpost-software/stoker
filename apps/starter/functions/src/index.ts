@@ -177,10 +177,10 @@ Object.values(schema.collections).forEach((collectionSchema) => {
     const {serverWriteOnly} = access;
     const collectionNameLower = labels.collection.toLowerCase();
     const path = getPathCollections(collectionSchema, schema);
-    const document = path.map((collection: CollectionSchema) =>
-        // eslint-disable-next-line max-len
-        `tenants/{tenantId}/${collection.labels.collection}/{${collection.labels.record}Id}`)
-        .join("/");
+    // eslint-disable-next-line max-len
+    const document = `tenants/{tenantId}/${path.map((collection: CollectionSchema) =>
+        `${collection.labels.collection}/{${collection.labels.record}Id}`
+    ).join("/")}`;
 
     // START CUSTOM COLLECTION LEVEL FUNCTIONS
 
