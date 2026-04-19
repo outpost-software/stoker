@@ -1,6 +1,6 @@
 import { runChildProcess } from "@stoker-platform/node-client"
-import { getFunctionsData } from "./cloud-functions/getFunctionsData.js"
-import { generateSchema } from "./schema/generateSchema.js"
+import { getFunctionsData } from "../cloud-functions/getFunctionsData.js"
+import { generateSchema } from "../schema/generateSchema.js"
 import { readdir, readFile, writeFile } from "fs/promises"
 import { join } from "path"
 

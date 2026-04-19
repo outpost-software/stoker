@@ -84,9 +84,10 @@ import { auditDenormalized } from "./ops/auditDenormalized.js"
 import { auditRelations } from "./ops/auditRelations.js"
 import { listProjects } from "./ops/listProjects.js"
 import { customDomain } from "./project/customDomain.js"
-import { applySchema } from "./deploy/applySchema.js"
+import { applySchema } from "./deploy/schema/applySchema.js"
 import { addTenant } from "./project/addTenant.js"
 import { deleteTenant } from "./project/deleteTenant.js"
+import { updateLiveSchema } from "./deploy/schema/updateLiveSchema.js"
 
 const program = new Command()
 
@@ -242,6 +243,13 @@ program
     .description("apply schema to local environment")
     .action(() => {
         applySchema()
+    })
+
+program
+    .command("update-emulator-schema")
+    .description("update emulator schema")
+    .action(() => {
+        updateLiveSchema()
     })
 
 program

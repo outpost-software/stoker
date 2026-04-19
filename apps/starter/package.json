@@ -7,7 +7,7 @@
     "scripts": {
         "clean:lib": "rm -rf lib",
         "clean:functions": "rm -rf functions/lib",
-        "dev:assets": "npm run clean:lib && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build && cp -r src/. ../web/src/assets/system-custom && cp lib/main.js ../web/src/assets/system-custom/main.js",
+        "dev:assets": "npm run clean:lib && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build && npx stoker update-emulator-schema && cp -r src/. ../web/src/assets/system-custom && cp lib/main.js ../web/src/assets/system-custom/main.js",
         "dev": "nodemon --quiet --watch src --ext ts,tsx,js,json --exec \"npm run dev:assets\"",
         "format": "",
         "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",

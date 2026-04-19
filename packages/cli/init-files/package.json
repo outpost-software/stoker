@@ -7,7 +7,7 @@
     "scripts": {
         "clean:lib": "rm -rf lib",
         "clean:functions": "rm -rf functions/lib",
-        "dev:assets": "npm run clean:lib && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build && cp -r src/. web-app/src/assets/system-custom && cp lib/main.js web-app/src/assets/system-custom/main.js",
+        "dev:assets": "npm run clean:lib && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build && npx stoker update-emulator-schema && cp -r src/. web-app/src/assets/system-custom && cp lib/main.js web-app/src/assets/system-custom/main.js",
         "dev": "nodemon --quiet --watch src --ext ts,tsx,js,json --exec \"npm run dev:assets\"",
         "web:dev": "cd web-app && npm run dev",
         "prestart": "npm run build && npx stoker build-web-app && rm -rf web-app && mkdir web-app && cp -r node_modules/@stoker-platform/web-app/. web-app/ && stoker apply",
