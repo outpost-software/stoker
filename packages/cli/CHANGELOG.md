@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.61
+
+### Patch Changes
+
+- chore: update getOne path option to match other operations
+
 ## 0.5.60
 
 ### Patch Changes

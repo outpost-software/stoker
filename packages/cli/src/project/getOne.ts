@@ -1,4 +1,4 @@
-import { initializeStoker, getOne as getOneStoker } from "@stoker-platform/node-client"
+import { initializeStoker, getOne as getOneStoker, GetOneOptions } from "@stoker-platform/node-client"
 import { join } from "path"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,9 +11,9 @@ export const getOne = async (options: any) => {
     )
 
     const path = options.path.split("/")
-    const id = path.pop()
+    const id = options.id
 
-    const getOneOptions = {} as { subcollections: { depth: number }; relations: { depth: number }; user?: string }
+    const getOneOptions: GetOneOptions = {}
     if (options.subcollections) {
         getOneOptions.subcollections = {
             depth: options.subcollections as number,
@@ -26,7 +26,7 @@ export const getOne = async (options: any) => {
     }
 
     if (options.user) {
-        getOneOptions.user = options.user
+        getOneOptions.userId = options.user
     }
 
     const result = await getOneStoker(path, id, getOneOptions)

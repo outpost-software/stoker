@@ -1,4 +1,4 @@
-import { initializeStoker, getSome as getSomeStoker } from "@stoker-platform/node-client"
+import { initializeStoker, getSome as getSomeStoker, GetSomeOptions } from "@stoker-platform/node-client"
 import { join } from "path"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,12 +12,7 @@ export const getSome = async (options: any) => {
 
     const path = options.path.split("/")
 
-    const getSomeOptions = {} as {
-        constraints: [string, string, unknown][]
-        subcollections: { depth: number }
-        relations: { depth: number }
-        user?: string
-    }
+    const getSomeOptions: GetSomeOptions = {}
     if (options.constraints) {
         getSomeOptions.constraints = JSON.parse(options.constraints)
     }
@@ -33,7 +28,7 @@ export const getSome = async (options: any) => {
     }
 
     if (options.user) {
-        getSomeOptions.user = options.user
+        getSomeOptions.userId = options.user
     }
 
     const result = await getSomeStoker(path, getSomeOptions)
