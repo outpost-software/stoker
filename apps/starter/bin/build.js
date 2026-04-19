@@ -2,10 +2,9 @@
 
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
-import { readFile, writeFile, readdir, mkdir, copyFile } from "fs/promises"
+import { readFile, writeFile, readdir } from "fs/promises"
 import { existsSync, cpSync, rmSync } from "fs"
 import dotenv from "dotenv"
-import { runChildProcess } from "@stoker-platform/node-client"
 
 const envDir = join(process.cwd(), ".env")
 const projectEnvFile = join(envDir, `.env.project.${process.env.GCP_PROJECT}`)

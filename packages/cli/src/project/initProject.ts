@@ -1,6 +1,6 @@
 import { fileURLToPath } from "url"
 import { resolve, dirname, join } from "path"
-import { existsSync, cpSync, renameSync } from "fs"
+import { existsSync, cpSync, renameSync, mkdirSync } from "fs"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const initProject = async (options: any) => {
@@ -13,5 +13,7 @@ export const initProject = async (options: any) => {
     cpSync(resolve(__dirname, "..", "..", "..", "init-files"), process.cwd(), { recursive: true })
     renameSync(join(process.cwd(), ".##gitignore##"), join(process.cwd(), ".gitignore"))
     renameSync(join(process.cwd(), "functions", ".##gitignore##"), join(process.cwd(), "functions", ".gitignore"))
+    mkdirSync(join(process.cwd(), ".migration"))
+    mkdirSync(join(process.cwd(), "firebase-emulator-data"))
     process.exit()
 }
