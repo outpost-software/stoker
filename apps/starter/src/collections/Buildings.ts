@@ -10,6 +10,10 @@ const Buildings: GenerateSchema = (): CollectionSchema => {
         access: {
             operations: {
                 assignable: true,
+                read: ["Office"],
+                create: ["Office"],
+                update: ["Office"],
+                delete: ["Office"],
             },
         },
         recordTitleField: "Name",

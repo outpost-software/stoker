@@ -15,6 +15,7 @@ import { getAuth } from "firebase-admin/auth"
 import dotenv from "dotenv"
 import spawn from "cross-spawn"
 
+const stokerMain = join(process.cwd(), "..", "..", "packages", "cli", "lib", "src", "main.js")
 const projectName = `test-project-${Date.now()}`
 
 const resolveCLICommand = async (process: ChildProcess) => {
@@ -72,6 +73,22 @@ const getAdminId = async () => {
     return user?.data()?.User_ID as string
 }
 
+const getCompanyId = async () => {
+    await startStoker()
+    const db = getFirestore()
+    const tenantId = await getTenantId()
+    const companySnapshot = await db.collection("tenants").doc(tenantId).collection("Companies").get()
+    return companySnapshot.docs[0]?.id as string
+}
+
+const getCompanyName = async () => {
+    await startStoker()
+    const db = getFirestore()
+    const tenantId = await getTenantId()
+    const companySnapshot = await db.collection("tenants").doc(tenantId).collection("Companies").get()
+    return companySnapshot.docs[0]?.data()?.Name as string
+}
+
 const getContactId = async () => {
     await startStoker()
     const db = getFirestore()
@@ -106,7 +123,7 @@ const getBuildingId = async () => {
 describe("CLI", async () => {
     test("init command creates a starter project", async () => {
         await mkdir("test-init", { recursive: true })
-        const child = spawn("stoker", ["init"], {
+        const child = spawn("node", [stokerMain, "init"], {
             cwd: "test-init",
             stdio: ["pipe", "pipe", "pipe"],
         })
@@ -145,14 +162,19 @@ describe("CLI", async () => {
 
     test("add-project command creates a project", async () => {
         dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
-        const child = spawn("stoker", ["add-project", "--name", projectName, "--development", "--test-mode"], {
-            stdio: ["pipe", "pipe", "pipe"],
-        })
+        const child = spawn(
+            "node",
+            [stokerMain, "add-project", "--name", projectName, "--development", "--test-mode"],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+            },
+        )
 
         const prompts = [
             { match: "Initial value for Number in collection Companies", input: "100\n" },
             { match: "Initial value for Number in collection Invoices", input: "100\n" },
             { match: "Initial value for Number in collection Users", input: "100\n" },
+            { match: "Initial value for Number in collection Vehicles", input: "100\n" },
             { match: "Companies- Name", input: "Test Company\n" },
             { match: "Companies- Address", input: "Test Address\n" },
             { match: "Companies- Active", input: "\n" },
@@ -202,7 +224,7 @@ describe("CLI", async () => {
     }, 3600000)
 
     test("set-project command sets project", async () => {
-        const child = spawn("stoker", ["set-project"], {
+        const child = spawn("node", [stokerMain, "set-project"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -350,7 +372,7 @@ describe("CLI", async () => {
     }, 60000)
 
     test("emulator-data command imports data", async () => {
-        const child = spawn("stoker", ["emulator-data"], {
+        const child = spawn("node", [stokerMain, "emulator-data"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -366,7 +388,7 @@ describe("CLI", async () => {
     }, 60000)
 
     test("build-web-app command builds the web app", async () => {
-        const child = spawn("stoker", ["build-web-app"], {
+        const child = spawn("node", [stokerMain, "build-web-app"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -449,7 +471,7 @@ describe("CLI", async () => {
     test("get-one command retrieves a record", async () => {
         const userId = await getUserId()
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["get-one", "-t", tenantId, "-p", `Users/${userId}`], {
+        const child = spawn("node", [stokerMain, "get-one", "-t", tenantId, "-p", `Users/${userId}`], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -466,7 +488,7 @@ describe("CLI", async () => {
 
     test("get-some command retrieves all records", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["get-some", "-t", tenantId, "-p", `Users`], {
+        const child = spawn("node", [stokerMain, "get-some", "-t", tenantId, "-p", `Users`], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -486,7 +508,7 @@ describe("CLI", async () => {
         const tenantId = await getTenantId()
         await wait(1000)
 
-        const child = spawn("stoker", ["delete-record", "-t", tenantId, "-p", "Users", "-i", userId], {
+        const child = spawn("node", [stokerMain, "delete-record", "-t", tenantId, "-p", "Users", "-i", userId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -576,7 +598,7 @@ describe("CLI", async () => {
         const adminId = await getAdminId()
         const userId = await getUserId()
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["get-one", "-t", tenantId, "-p", `Users/${userId}`, "-u", adminId], {
+        const child = spawn("node", [stokerMain, "get-one", "-t", tenantId, "-p", `Users/${userId}`, "-u", adminId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -594,7 +616,7 @@ describe("CLI", async () => {
     test("get-some command as user retrieves all records", async () => {
         const adminId = await getAdminId()
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["get-some", "-t", tenantId, "-p", `Users`, "-u", adminId], {
+        const child = spawn("node", [stokerMain, "get-some", "-t", tenantId, "-p", `Users`, "-u", adminId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -615,13 +637,17 @@ describe("CLI", async () => {
         const tenantId = await getTenantId()
         await wait(1000)
 
-        const child = spawn("stoker", ["delete-record", "-t", tenantId, "-p", "Users", "-i", userId, "-u", adminId], {
-            stdio: ["pipe", "pipe", "pipe"],
-            env: {
-                ...process.env,
-                GCP_PROJECT: projectName,
+        const child = spawn(
+            "node",
+            [stokerMain, "delete-record", "-t", tenantId, "-p", "Users", "-i", userId, "-u", adminId],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
             },
-        })
+        )
 
         child.stderr?.on("data", (data) => {
             console.error(data.toString())
@@ -721,7 +747,7 @@ describe("CLI", async () => {
     test("get-some command retrieves all subcollection records", async () => {
         const contactId = await getContactId()
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["get-some", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`], {
+        const child = spawn("node", [stokerMain, "get-some", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -764,7 +790,7 @@ describe("CLI", async () => {
     test("explain-preload command explains preload", async () => {
         const adminId = await getAdminId()
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["explain-preload", "-t", tenantId, "-a", "-i", adminId], {
+        const child = spawn("node", [stokerMain, "explain-preload", "-t", tenantId, "-a", "-i", adminId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -786,7 +812,7 @@ describe("CLI", async () => {
 
     test("audit-permissions command audits permissions", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["audit-permissions", "-t", tenantId], {
+        const child = spawn("node", [stokerMain, "audit-permissions", "-t", tenantId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -808,7 +834,7 @@ describe("CLI", async () => {
 
     test("audit-denormalized command audits denormalized data", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["audit-denormalized", "-t", tenantId], {
+        const child = spawn("node", [stokerMain, "audit-denormalized", "-t", tenantId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -830,7 +856,7 @@ describe("CLI", async () => {
 
     test("audit-relationships command audits relations", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["audit-relations", "-t", tenantId], {
+        const child = spawn("node", [stokerMain, "audit-relations", "-t", tenantId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -852,7 +878,7 @@ describe("CLI", async () => {
 
     test("export command exports data", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["export"], {
+        const child = spawn("node", [stokerMain, "export"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -869,7 +895,7 @@ describe("CLI", async () => {
 
     test("bigquery command exports data", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["bigquery", "--collection", "Users"], {
+        const child = spawn("node", [stokerMain, "bigquery", "--collection", "Users"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -886,13 +912,17 @@ describe("CLI", async () => {
 
     test("seed-data command seeds data", async () => {
         const tenantId = await getTenantId()
-        const child = spawn("stoker", ["seed-data", "-t", tenantId, "-n", "5", "-r", "5", "-m", "production"], {
-            stdio: ["pipe", "pipe", "pipe"],
-            env: {
-                ...process.env,
-                GCP_PROJECT: projectName,
+        const child = spawn(
+            "node",
+            [stokerMain, "seed-data", "-t", tenantId, "-n", "5", "-r", "5", "-m", "production"],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
             },
-        })
+        )
 
         child.stdout?.on("data", async (data) => {
             const output = data.toString()
@@ -907,7 +937,7 @@ describe("CLI", async () => {
     }, 180000)
 
     test("start command starts the Firebase emulator", async () => {
-        const child_process = spawn("stoker", ["start", "--test-mode"], {
+        const child_process = spawn("node", [stokerMain, "start", "--test-mode"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -930,7 +960,7 @@ describe("CLI", async () => {
     }, 120000)
 
     test("start-web-app command starts the Firebase Hosting emulator", async () => {
-        const child_process = spawn("stoker", ["start-web-app"], {
+        const child_process = spawn("node", [stokerMain, "start-web-app"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -954,9 +984,15 @@ describe("CLI", async () => {
 })
 
 describe("Cloud Functions", async () => {
+    let functionsUserId: string
+    let functionsVehicleId: string
+    let functionsServiceId: string
+    let functionsContactId: string
+
     test("validateRelations function validates relations", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
+        functionsContactId = contactId
         const adminId = await getAdminId()
         await startStoker()
         const db = getFirestore()
@@ -986,6 +1022,43 @@ describe("Cloud Functions", async () => {
         expect(persistedRecord?.Contact[contactId].Name).toBe("Test Client")
     }, 30000)
 
+    test("validateRelations function validates relations in subcollection", async () => {
+        const tenantId = await getTenantId()
+        const contactId = await getContactId()
+        const companyId = await getCompanyId()
+        const companyName = await getCompanyName()
+        const adminId = await getAdminId()
+        await startStoker()
+        const db = getFirestore()
+        const record = await addRecord(
+            ["Contacts", contactId, "Vehicles"],
+            {
+                Name: "Test Vehicle",
+                Company: {
+                    [companyId]: {
+                        Collection_Path: ["Companies"],
+                        Name: "Test Company 1000",
+                    },
+                },
+            },
+            { userId: adminId },
+        )
+
+        await wait(20000)
+
+        const persistedSnapshot = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("Contacts")
+            .doc(contactId)
+            .collection("Vehicles")
+            .doc(record.id)
+            .get()
+        const persistedRecord = persistedSnapshot.data()
+        expect(persistedRecord?.Company[companyId].Name).toBe(companyName)
+        functionsVehicleId = record.id
+    }, 30000)
+
     test("autoIncrement function increments record number", async () => {
         const tenantId = await getTenantId()
         const userId = await getUserId()
@@ -1013,6 +1086,49 @@ describe("Cloud Functions", async () => {
         expect(dependency2.data()?.Number).toBe(snapshot.data()?.Number)
     })
 
+    test("autoIncrement function increments record number in subcollection", async () => {
+        const tenantId = await getTenantId()
+        const contactId = await getContactId()
+        await startStoker()
+        const db = getFirestore()
+        const snapshot = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("Contacts")
+            .doc(contactId)
+            .collection("Vehicles")
+            .doc(functionsVehicleId)
+            .get()
+        expect(snapshot.data()?.Number).not.toBeNaN()
+        const dependency1 = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("system_fields")
+            .doc("Vehicles")
+            .collection("Vehicles-1")
+            .doc(functionsVehicleId)
+            .get()
+        expect(dependency1.data()?.Number).toBe(snapshot.data()?.Number)
+        const dependency2 = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("system_fields")
+            .doc("Vehicles")
+            .collection("Vehicles-2")
+            .doc(functionsVehicleId)
+            .get()
+        expect(dependency2.data()?.Number).toBe(snapshot.data()?.Number)
+        const dependency3 = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("system_fields")
+            .doc("Vehicles")
+            .collection("Vehicles-3")
+            .doc(functionsVehicleId)
+            .get()
+        expect(dependency3.data()?.Number).toBe(snapshot.data()?.Number)
+    })
+
     test("fullTextSearch adds a record to the search index", async () => {
         const userId = await getUserId()
         await startStoker()
@@ -1026,8 +1142,6 @@ describe("Cloud Functions", async () => {
         const record = await client.getObject({ indexName: "Users", objectID: userId })
         expect(record.objectID).toBe(userId)
     }, 30000)
-
-    let functionsUserId: string
 
     test("updateIncludeFields function updates include fields", async () => {
         const tenantId = await getTenantId()
@@ -1045,18 +1159,40 @@ describe("Cloud Functions", async () => {
         expect(record?.Contact[contactId].Name).toBe("Test Contact 2")
     }, 30000)
 
-    test("removeRelations function removes relations", async () => {
+    test("updateIncludeFields function updates include fields in subcollection", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
         await startStoker()
         const db = getFirestore()
-        await deleteRecord(["Contacts"], contactId)
+        const service = await addRecord(["Contacts", contactId, "Vehicles", functionsVehicleId, "Services"], {
+            Name: "Test Service",
+            Vehicle: {
+                [functionsVehicleId]: {
+                    Collection_Path: ["Contacts", contactId, "Vehicles"],
+                    Name: "Test Vehicle",
+                },
+            },
+        })
+        functionsServiceId = service.id
+
+        await updateRecord(["Contacts", contactId, "Vehicles"], functionsVehicleId, {
+            Name: "Test Vehicle 2",
+        })
 
         await wait(20000)
 
-        const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(functionsUserId).get()
-        const record = snapshot.data()
-        expect(record?.Contact[contactId]).toBeUndefined()
+        const snapshot = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("Contacts")
+            .doc(contactId)
+            .collection("Vehicles")
+            .doc(functionsVehicleId)
+            .collection("Services")
+            .doc(service.id)
+            .get()
+        const persistedRecord = snapshot.data()
+        expect(persistedRecord?.Vehicle[functionsVehicleId].Name).toBe("Test Vehicle 2")
     }, 30000)
 
     test("validateDenormalized function validates denormalized data", async () => {
@@ -1082,6 +1218,63 @@ describe("Cloud Functions", async () => {
         expect(record?.Name).toBe("Test Work Order 2")
     }, 30000)
 
+    test("removeRelations function removes relations", async () => {
+        const tenantId = await getTenantId()
+        const contactId = await getContactId()
+        await startStoker()
+        const db = getFirestore()
+        await deleteRecord(["Contacts"], contactId)
+
+        await wait(20000)
+
+        const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(functionsUserId).get()
+        const record = snapshot.data()
+        expect(record?.Contact[contactId]).toBeUndefined()
+    }, 30000)
+
+    test("removeRelations function removes relations in subcollection", async () => {
+        const tenantId = await getTenantId()
+        const companyId = await getCompanyId()
+        await startStoker()
+        const db = getFirestore()
+        await deleteRecord(["Companies"], companyId, { force: true })
+
+        await wait(20000)
+
+        const snapshot = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("Contacts")
+            .doc(functionsContactId)
+            .collection("Vehicles")
+            .doc(functionsVehicleId)
+            .get()
+        const record = snapshot.data()
+        expect(record?.Company[companyId]).toBeUndefined()
+    }, 30000)
+
+    test("validateRelations function removes relations in subcollection", async () => {
+        const tenantId = await getTenantId()
+        await startStoker()
+        const db = getFirestore()
+        await deleteRecord(["Contacts", functionsContactId, "Vehicles"], functionsVehicleId)
+
+        await wait(20000)
+
+        const snapshot = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("Contacts")
+            .doc(functionsContactId)
+            .collection("Vehicles")
+            .doc(functionsVehicleId)
+            .collection("Services")
+            .doc(functionsServiceId)
+            .get()
+        const record = snapshot.data()
+        expect(record?.Vehicle[functionsVehicleId]).toBeUndefined()
+    }, 30000)
+
     test("verifyWriteLog function verifies write log", async () => {
         const tenantId = await getTenantId()
         await startStoker()
@@ -1091,6 +1284,26 @@ describe("Cloud Functions", async () => {
             .doc(tenantId)
             .collection("Users")
             .doc(functionsUserId)
+            .collection("system_write_log")
+            .get()
+        snapshot.forEach((doc) => {
+            expect(doc.data()?.status).toBe("verified")
+        })
+    })
+
+    test("verifyWriteLog function verifies write log in subcollection", async () => {
+        const tenantId = await getTenantId()
+        await startStoker()
+        const db = getFirestore()
+        const snapshot = await db
+            .collection("tenants")
+            .doc(tenantId)
+            .collection("Contacts")
+            .doc(functionsContactId)
+            .collection("Vehicles")
+            .doc(functionsVehicleId)
+            .collection("Services")
+            .doc(functionsServiceId)
             .collection("system_write_log")
             .get()
         snapshot.forEach((doc) => {
@@ -1126,7 +1339,7 @@ describe("Cloud Functions", async () => {
 })
 
 afterAll(async () => {
-    const child = spawn("stoker", ["delete-project", "--test-mode"], {
+    const child = spawn("node", [stokerMain, "delete-project", "--test-mode"], {
         stdio: ["pipe", "pipe", "pipe"],
         env: {
             ...process.env,

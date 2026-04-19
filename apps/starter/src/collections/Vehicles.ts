@@ -12,6 +12,10 @@ const Vehicles: GenerateSchema = (): CollectionSchema => {
             serverWriteOnly: true,
             operations: {
                 assignable: true,
+                read: ["Office"],
+                create: ["Office"],
+                update: ["Office"],
+                delete: ["Office"],
             },
         },
         enableWriteLog: true,
@@ -27,6 +31,12 @@ const Vehicles: GenerateSchema = (): CollectionSchema => {
                 maxlength: 255,
             },
             {
+                name: "Number",
+                type: "Number",
+                autoIncrement: true,
+                required: true,
+            },
+            {
                 name: "Description",
                 type: "String",
                 access: ["Office", "Area Manager"],
@@ -40,6 +50,8 @@ const Vehicles: GenerateSchema = (): CollectionSchema => {
                 name: "Company",
                 type: "OneToMany",
                 collection: "Companies",
+                includeFields: ["Name"],
+                titleField: "Name",
                 access: ["Office"],
             },
             {

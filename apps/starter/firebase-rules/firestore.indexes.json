@@ -3490,6 +3490,16 @@
         },
         {
             "collectionGroup": "Buildings",
+            "fieldPath": "id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION_GROUP",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Buildings",
             "fieldPath": "Description",
             "indexes": []
         },
@@ -3830,20 +3840,20 @@
         },
         {
             "collectionGroup": "Contacts",
-            "fieldPath": "id",
+            "fieldPath": "User_ID",
             "indexes": [
                 {
-                    "queryScope": "COLLECTION_GROUP",
+                    "queryScope": "COLLECTION",
                     "order": "ASCENDING"
                 }
             ]
         },
         {
             "collectionGroup": "Contacts",
-            "fieldPath": "User_ID",
+            "fieldPath": "id",
             "indexes": [
                 {
-                    "queryScope": "COLLECTION",
+                    "queryScope": "COLLECTION_GROUP",
                     "order": "ASCENDING"
                 }
             ]
@@ -4305,7 +4315,27 @@
         },
         {
             "collectionGroup": "Services",
+            "fieldPath": "id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION_GROUP",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Services",
             "fieldPath": "Contact_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION_GROUP",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Services",
+            "fieldPath": "Vehicle_Array",
             "indexes": [
                 {
                     "queryScope": "COLLECTION_GROUP",
@@ -4725,20 +4755,20 @@
         },
         {
             "collectionGroup": "Users",
-            "fieldPath": "id",
+            "fieldPath": "User_ID",
             "indexes": [
                 {
-                    "queryScope": "COLLECTION_GROUP",
+                    "queryScope": "COLLECTION",
                     "order": "ASCENDING"
                 }
             ]
         },
         {
             "collectionGroup": "Users",
-            "fieldPath": "User_ID",
+            "fieldPath": "id",
             "indexes": [
                 {
-                    "queryScope": "COLLECTION",
+                    "queryScope": "COLLECTION_GROUP",
                     "order": "ASCENDING"
                 }
             ]
@@ -4924,6 +4954,16 @@
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Vehicles",
+            "fieldPath": "id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION_GROUP",
                     "order": "ASCENDING"
                 }
             ]
