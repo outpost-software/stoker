@@ -1,5 +1,13 @@
 # @stoker-platform/cli
 
+## 0.5.60
+
+### Patch Changes
+
+- feat: add live schema update feature
+- fix: fix subcollection function document paths
+- fix: improve project init
+
 ## 0.5.59
 
 ### Patch Changes
