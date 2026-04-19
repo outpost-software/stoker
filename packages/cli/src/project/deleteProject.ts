@@ -12,13 +12,13 @@ export const deleteProject = async (options: { testMode?: boolean }) => {
     })
     console.log("Project deleted.")
 
+    const projectData = JSON.parse(await readFile(join(process.cwd(), "project-data.json"), "utf8"))
+    delete projectData.projects[process.env.GCP_PROJECT]
     if (!options.testMode) {
-        const projectData = JSON.parse(await readFile(join(process.cwd(), "project-data.json"), "utf8"))
-        delete projectData.projects[process.env.GCP_PROJECT]
         projectData.deleted_projects.push(process.env.GCP_PROJECT)
-        await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectData, null, 4))
-        console.log("Project deleted from project data.")
     }
+    await writeFile(join(process.cwd(), "project-data.json"), JSON.stringify(projectData, null, 4))
+    console.log("Project deleted from project data.")
 
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     if (existsSync(join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`))) {
