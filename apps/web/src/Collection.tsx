@@ -424,7 +424,7 @@ function Collection({
     const getKeysLength = useCallback(() => {
         let length = 1
         if (tab === "cards") {
-            length = statusValues.current?.length || 1
+            length = (statusValues.current?.length || 1) - (cardsConfig?.excludeValues?.length || 0)
             if (!isPreloadCacheEnabled && !isServerReadOnly) {
                 length++
             }
