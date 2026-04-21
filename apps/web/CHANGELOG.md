@@ -1,5 +1,13 @@
 # @stoker-platform/web-app
 
+## 0.5.80
+
+### Patch Changes
+
+- fix: improve board card header padding
+- fix: account for excluded status values
+- fix: fix photo upload closure issue
+
 ## 0.5.79
 
 ### Patch Changes
