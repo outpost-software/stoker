@@ -218,7 +218,13 @@ function CardItem({ index, style, data }: CardItemProps) {
                         )}
                         onClick={() => goToRecord(collection, record)}
                     >
-                        <div id={`${statusValue}-${record.id}-header`} className="grid gap-0.5 p-6">
+                        <div
+                            id={`${statusValue}-${record.id}-header`}
+                            className={cn(
+                                "grid gap-0.5 p-6",
+                                ((!isPending && !isDisabled && hasUpdateAccess) || isPending) && "pr-0",
+                            )}
+                        >
                             <button
                                 className={cn(
                                     titleClass,
@@ -255,7 +261,7 @@ function CardItem({ index, style, data }: CardItemProps) {
                                 </div>
                             )
                         ) : (
-                            <div className="ml-auto relative bottom-1.5 p-6">
+                            <div className="ml-auto relative bottom-1.5 p-6 pl-4">
                                 <LoadingSpinner size={7} />
                             </div>
                         )}
