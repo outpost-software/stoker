@@ -2596,8 +2596,13 @@ function RecordForm({
     )
 
     const handlePermissionsConfirm = useCallback(
-        async (selectedPermissions: FilePermissions) => {
-            if (permissionsContext === "files") {
+        async (
+            selectedPermissions: FilePermissions,
+            contextOverride?: "files" | "image-create" | "image-update",
+            imageUpdateOverrides?: { pendingImage: { fieldName: string; file: File }; resolver: () => void },
+        ) => {
+            const context = contextOverride ?? permissionsContext
+            if (context === "files") {
                 if (isMultipleFileUpload) {
                     if (pendingUploadFiles.length > 0) {
                         setQueuedUploads((prev) => [
@@ -2627,7 +2632,7 @@ function RecordForm({
                 return
             }
 
-            if (permissionsContext === "image-create") {
+            if (context === "image-create") {
                 if (!pendingUploadFile || !pendingImageFieldName) return
                 setQueuedImageUploads((prev) => ({
                     ...prev,
@@ -2642,9 +2647,11 @@ function RecordForm({
                 return
             }
 
-            if (permissionsContext === "image-update") {
-                if (!pendingImageForUpdate || !id || !currentUser) return
-                const { fieldName, file } = pendingImageForUpdate
+            if (context === "image-update") {
+                const effectivePendingImage = imageUpdateOverrides?.pendingImage ?? pendingImageForUpdate
+                const effectiveResolver = imageUpdateOverrides?.resolver ?? imageUpdateResolver
+                if (!effectivePendingImage || !id || !currentUser) return
+                const { fieldName, file } = effectivePendingImage
                 const basePath = computeBasePath(id)
                 const filename = file.name.trim()
                 const validationError = validateStorageName(filename)
@@ -2653,9 +2660,9 @@ function RecordForm({
                     setShowPermissionsDialog(false)
                     setPendingImageForUpdate(null)
                     setPermissionsContext("files")
-                    if (imageUpdateResolver) {
+                    if (effectiveResolver) {
                         setIsUploading((prev) => ({ ...prev, [fieldName]: false }))
-                        imageUpdateResolver()
+                        effectiveResolver()
                     }
                     return
                 }
@@ -2689,9 +2696,9 @@ function RecordForm({
                     setShowPermissionsDialog(false)
                     setPendingImageForUpdate(null)
                     setPermissionsContext("files")
-                    if (imageUpdateResolver) {
+                    if (effectiveResolver) {
                         setIsUploading((prev) => ({ ...prev, [fieldName]: false }))
-                        imageUpdateResolver()
+                        effectiveResolver()
                     }
                     return
                 }
@@ -2733,9 +2740,9 @@ function RecordForm({
                 setShowPermissionsDialog(false)
                 setPendingImageForUpdate(null)
                 setPermissionsContext("files")
-                if (imageUpdateResolver) {
+                if (effectiveResolver) {
                     setIsUploading((prev) => ({ ...prev, [fieldName]: false }))
-                    imageUpdateResolver()
+                    effectiveResolver()
                 }
                 return
             }
@@ -2786,7 +2793,10 @@ function RecordForm({
                 setIsMultipleFileUpload(false)
                 setImageUpdateResolver(() => resolve)
                 if (shouldSkipPermissionsDialog()) {
-                    setTimeout(() => handlePermissionsConfirm(getDefaultPermissions()), 0)
+                    handlePermissionsConfirm(getDefaultPermissions(), "image-update", {
+                        pendingImage: { fieldName, file },
+                        resolver: resolve,
+                    })
                 } else {
                     setShowPermissionsDialog(true)
                 }
