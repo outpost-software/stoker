@@ -239,8 +239,8 @@ describe("CLI", async () => {
         dotenv.config({ path: join(process.cwd(), ".env", `.env.${projectName}`), quiet: true })
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
-            ["add-record-prompt", "--tenant", tenantId, "--collection", "Users", "--full-access"],
+            "node",
+            [stokerMain, "add-record-prompt", "--tenant", tenantId, "--collection", "Users", "--full-access"],
             {
                 stdio: ["pipe", "pipe", "pipe"],
                 env: {
@@ -284,8 +284,8 @@ describe("CLI", async () => {
     test("add-record-prompt command adds a Subcontractor user", async () => {
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
-            ["add-record-prompt", "--tenant", tenantId, "--collection", "Users", "--full-access"],
+            "node",
+            [stokerMain, "add-record-prompt", "--tenant", tenantId, "--collection", "Users", "--full-access"],
             {
                 stdio: ["pipe", "pipe", "pipe"],
                 env: {
@@ -329,8 +329,8 @@ describe("CLI", async () => {
     test("add-record-prompt command adds a Cleaner user", async () => {
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
-            ["add-record-prompt", "--tenant", tenantId, "--collection", "Users", "--full-access"],
+            "node",
+            [stokerMain, "add-record-prompt", "--tenant", tenantId, "--collection", "Users", "--full-access"],
             {
                 stdio: ["pipe", "pipe", "pipe"],
                 env: {
@@ -406,8 +406,9 @@ describe("CLI", async () => {
     test("add-record command adds a record", async () => {
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
+            "node",
             [
+                stokerMain,
                 "add-record",
                 "-t",
                 tenantId,
@@ -440,8 +441,9 @@ describe("CLI", async () => {
         await wait(1000)
 
         const child = spawn(
-            "stoker",
+            "node",
             [
+                stokerMain,
                 "update-record",
                 "-t",
                 tenantId,
@@ -471,7 +473,7 @@ describe("CLI", async () => {
     test("get-one command retrieves a record", async () => {
         const userId = await getUserId()
         const tenantId = await getTenantId()
-        const child = spawn("node", [stokerMain, "get-one", "-t", tenantId, "-p", `Users/${userId}`], {
+        const child = spawn("node", [stokerMain, "get-one", "-t", tenantId, "-p", "Users", "-i", userId], {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
                 ...process.env,
@@ -527,8 +529,9 @@ describe("CLI", async () => {
         const adminId = await getAdminId()
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
+            "node",
             [
+                stokerMain,
                 "add-record",
                 "-t",
                 tenantId,
@@ -564,8 +567,9 @@ describe("CLI", async () => {
         await wait(1000)
 
         const child = spawn(
-            "stoker",
+            "node",
             [
+                stokerMain,
                 "update-record",
                 "-t",
                 tenantId,
@@ -598,13 +602,17 @@ describe("CLI", async () => {
         const adminId = await getAdminId()
         const userId = await getUserId()
         const tenantId = await getTenantId()
-        const child = spawn("node", [stokerMain, "get-one", "-t", tenantId, "-p", `Users/${userId}`, "-u", adminId], {
-            stdio: ["pipe", "pipe", "pipe"],
-            env: {
-                ...process.env,
-                GCP_PROJECT: projectName,
+        const child = spawn(
+            "node",
+            [stokerMain, "get-one", "-t", tenantId, "-p", "Users", "-i", userId, "-u", adminId],
+            {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    GCP_PROJECT: projectName,
+                },
             },
-        })
+        )
 
         child.stderr?.on("data", (data) => {
             console.error(data.toString())
@@ -660,8 +668,9 @@ describe("CLI", async () => {
         const contactId = await getContactId()
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
+            "node",
             [
+                stokerMain,
                 "add-record",
                 "-t",
                 tenantId,
@@ -693,8 +702,9 @@ describe("CLI", async () => {
         await wait(1000)
 
         const child = spawn(
-            "stoker",
+            "node",
             [
+                stokerMain,
                 "update-record",
                 "-t",
                 tenantId,
@@ -726,8 +736,8 @@ describe("CLI", async () => {
         const buildingId = await getBuildingId()
         const tenantId = await getTenantId()
         const child = spawn(
-            "stoker",
-            ["get-one", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings/${buildingId}`],
+            "node",
+            [stokerMain, "get-one", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`, "-i", buildingId],
             {
                 stdio: ["pipe", "pipe", "pipe"],
                 env: {
@@ -769,8 +779,8 @@ describe("CLI", async () => {
         await wait(1000)
 
         const child = spawn(
-            "stoker",
-            ["delete-record", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`, "-i", buildingId],
+            "node",
+            [stokerMain, "delete-record", "-t", tenantId, "-p", `Contacts/${contactId}/Buildings`, "-i", buildingId],
             {
                 stdio: ["pipe", "pipe", "pipe"],
                 env: {
