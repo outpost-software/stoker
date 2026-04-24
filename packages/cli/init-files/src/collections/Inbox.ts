@@ -69,7 +69,7 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
             retentionPeriod: 7,
         },
         custom: {
-            async postRead(_context, _refs, record?: StokerRecord) {
+            async postRead({ doc: record }) {
                 if (sdk === "web") {
                     if (record && record.Status === "Unread" && !record.Notified && !toasted.includes(record.id)) {
                         toasted.push(record.id)
