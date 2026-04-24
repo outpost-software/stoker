@@ -12,7 +12,7 @@ export const addSystemFields = (
     serverTimestamp: FirebaseTimestamp,
     retry?: boolean,
 ) => {
-    if (operation == "create") {
+    if (operation === "create") {
         data.Collection_Path = path
         if (!retry) data.Created_At = timestamp
         data.Saved_At = serverTimestamp

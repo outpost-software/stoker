@@ -40,7 +40,7 @@ export const getLineItems = (lineItems: Record<string, any>[]) => {
                 lines.push(prepareLineItem({}, line))
             } else {
                 lineItems.forEach((lineItem) => {
-                    if (lineItem.lineItemID == line.xeroId) {
+                    if (lineItem.lineItemID === line.xeroId) {
                         lines.push(prepareLineItem(lineItem, line))
                     }
                 })

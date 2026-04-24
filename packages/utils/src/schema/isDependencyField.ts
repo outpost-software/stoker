@@ -14,7 +14,7 @@ export const isDependencyField = (
         for (const field of dependencyFields) {
             if (isRelationField(field) && field.collection === labels.collection && field.dependencyFields) {
                 for (const dependencyField of field.dependencyFields) {
-                    if (dependencyField.field == mainField.name) isDependencyField = true
+                    if (dependencyField.field === mainField.name) isDependencyField = true
                 }
             }
         }

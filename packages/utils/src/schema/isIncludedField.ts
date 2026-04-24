@@ -14,7 +14,7 @@ export const isIncludedField = (
         for (const field of includeFields) {
             if (isRelationField(field) && field.collection === labels.collection && field.includeFields) {
                 for (const includeField of field.includeFields) {
-                    if (includeField == mainField.name) isIncludedField = true
+                    if (includeField === mainField.name) isIncludedField = true
                 }
             }
         }
