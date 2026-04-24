@@ -94,11 +94,7 @@ export const securityReport = async () => {
         roles[role] = {}
         for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
             const { fields, access } = collectionSchema
-            if (
-                access.operations.assignable === true ||
-                (typeof access.operations.assignable === "object" && access.operations.assignable.includes(role)) ||
-                access.operations.read?.includes(role)
-            ) {
+            if (access.operations.read?.includes(role)) {
                 for (const field of fields) {
                     if (field.access) continue
                     const path = join(process.cwd(), "lib", "collections", `${collectionName}.js`)
