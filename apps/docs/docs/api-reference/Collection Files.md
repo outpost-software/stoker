@@ -94,7 +94,7 @@ Client-side full text search options. Only relevant for roles with the [preload 
     field: string,
     roles?: string[],
     loadAll?: boolean,
-    constraints: [string, "==" | "in", unknown][]
+    constraints?: [string, "==" | "in", unknown][]
 }[]
 ```
 
