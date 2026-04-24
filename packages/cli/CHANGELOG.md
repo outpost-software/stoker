@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.63
+
+### Patch Changes
+
+- fix: use correct hook pattern in init files
+
 ## 0.5.62
 
 ### Patch Changes

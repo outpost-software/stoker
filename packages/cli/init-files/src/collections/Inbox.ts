@@ -69,13 +69,13 @@ const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
             retentionPeriod: 7,
         },
         custom: {
-            async postRead({ doc: record }) {
+            async postRead({ doc }) {
                 if (sdk === "web") {
-                    if (record && record.Status === "Unread" && !record.Notified && !toasted.includes(record.id)) {
-                        toasted.push(record.id)
+                    if (doc && doc.Status === "Unread" && !doc.Notified && !toasted.includes(doc.id)) {
+                        toasted.push(doc.id)
                         const { updateRecord } = await import("@stoker-platform/web-client")
-                        toast({ title: "New Message", description: record.Subject, duration: 10000000 })
-                        updateRecord(["Inbox"], record.id, {
+                        toast({ title: "New Message", description: doc.Subject, duration: 10000000 })
+                        updateRecord(["Inbox"], doc.id, {
                             Notified: true,
                         })
                     }
