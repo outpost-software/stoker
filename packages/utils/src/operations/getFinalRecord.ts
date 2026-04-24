@@ -1,12 +1,11 @@
-import { HookArgs } from "@stoker-platform/types"
-
-export const getFinalRecord = (args: HookArgs) => {
-    if (!("data" in args)) return
-    if ("originalRecord" in args && args.originalRecord) {
+export const getFinalRecord = (args: IArguments) => {
+    const data = args[0]
+    if (!("data" in data)) return
+    if ("originalRecord" in data && data.originalRecord) {
         return {
-            ...args.originalRecord,
-            ...args.data,
+            ...data.originalRecord,
+            ...data.data,
         }
     }
-    return args.data
+    return data.data
 }
