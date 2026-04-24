@@ -88,7 +88,15 @@ Client-side full text search options. Only relevant for roles with the [preload 
 
 ### relationLists
 
-`{ collection: string, field: string, roles?: string[], loadAll?: boolean }[]`
+```
+{
+    collection: string,
+    field: string,
+    roles?: string[],
+    loadAll?: boolean,
+    constraints: [string, "==" | "in", unknown][]
+}[]
+```
 
 Define "child lists" that will appear in the Admin UI for records in this collection.
 
@@ -101,6 +109,8 @@ For example, a "Clients" collection might have lists of related "Sites", "Quotes
 `roles`: The roles that can see this relation list
 
 `loadAll`: When [preloadCache.range](#range) is enabled, setting this option will ignore the range restrictions and load all records available for the relation list. For this to work, the `field` referenced above must be a one-to-one or one-to-many field.
+
+`constraints`: Firestore constraints to apply to the relation list's query.
 
 ### enableWriteLog
 

@@ -1057,6 +1057,7 @@ export interface RelationList {
     collection: StokerCollection
     field: string
     roles?: StokerRole[]
+    constraints?: [string, "==" | "in", unknown][]
     loadAll?: boolean
 }
 

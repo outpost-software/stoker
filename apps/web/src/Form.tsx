@@ -5312,6 +5312,7 @@ function RecordForm({
                                                     field: formList.sortField || relationCollection.recordTitleField,
                                                     direction: formList.sortDirection,
                                                 }}
+                                                additionalConstraints={relationList.constraints}
                                             />
                                         </FiltersProvider>
                                     </div>
