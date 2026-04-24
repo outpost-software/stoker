@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.38
+
+### Patch Changes
+
+- feat: use single args object for hooks
+- Updated dependencies
+    - @stoker-platform/types@0.5.29
+
 ## 0.5.37
 
 ### Patch Changes

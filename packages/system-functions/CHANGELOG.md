@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.51
+
+### Patch Changes
+
+- feat: use single args object for hooks
+- Updated dependencies
+    - @stoker-platform/types@0.5.29
+    - @stoker-platform/node-client@0.5.46
+    - @stoker-platform/utils@0.5.38
+
 ## 0.5.50
 
 ### Patch Changes

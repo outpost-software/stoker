@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.81
+
+### Patch Changes
+
+- feat: use single args object for hooks
+- feat: add relation list constraints option
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.46
+    - @stoker-platform/utils@0.5.38
+    - @stoker-platform/web-client@0.5.45
+
 ## 0.5.80
 
 ### Patch Changes
