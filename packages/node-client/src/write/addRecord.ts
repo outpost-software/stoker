@@ -138,9 +138,9 @@ export const addRecord = async (
     if (enableWriteLog && !options?.providedTransaction)
         await writeLog("create", "started", record, tenantId, path, docId, collectionSchema)
 
-    const preOperationArgs: PreOperationHookArgs = ["create", record, docId, context]
+    const preOperationArgs: PreOperationHookArgs = { operation: "create", data: record, docId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preWriteArgs: PreWriteHookArgs = ["create", record, docId, context]
+    const preWriteArgs: PreWriteHookArgs = { operation: "create", data: record, docId, context }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 
     addRelationArrays(collectionSchema, record, schema)
@@ -155,7 +155,14 @@ export const addRecord = async (
         }
         if (!options?.providedTransaction) {
             await uniqueValidation("create", tenantId, docId, record, collectionSchema, schema)
-            await validateRecord("create", record, collectionSchema, customization, ["create", record, context], schema)
+            await validateRecord(
+                "create",
+                record,
+                collectionSchema,
+                customization,
+                { operation: "create", record, context },
+                schema,
+            )
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -173,7 +180,14 @@ export const addRecord = async (
     try {
         validateSystemFields("create", record, originalSystemFields)
         validateSoftDelete("create", collectionSchema, record)
-        await validateRecord("create", record, collectionSchema, customization, ["create", record, context], schema)
+        await validateRecord(
+            "create",
+            record,
+            collectionSchema,
+            customization,
+            { operation: "create", record, context },
+            schema,
+        )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         throw new Error(`VALIDATION_ERROR: ${error.message}`)
@@ -420,7 +434,13 @@ export const addRecord = async (
             transaction.set(ref.doc(docId), record)
         } catch (error) {
             if (!options?.providedTransaction) {
-                const postWriteErrorArgs: PostWriteErrorHookArgs = ["create", record, docId, context, error]
+                const postWriteErrorArgs: PostWriteErrorHookArgs = {
+                    operation: "create",
+                    data: record,
+                    docId,
+                    context,
+                    error,
+                }
                 const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
                 if (enableWriteLog) {
                     await new Promise((resolve) => {
@@ -459,8 +479,8 @@ export const addRecord = async (
     }
 
     if (!options?.providedTransaction) {
-        const postWriteArgs: PostWriteHookArgs = ["create", record, docId, context]
-        const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+        const postWriteArgs: PostWriteHookArgs = { operation: "create", data: record, docId, context }
+        const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
         await runHooks("postWrite", globalConfig, customization, postWriteArgs)
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
     }

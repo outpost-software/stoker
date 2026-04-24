@@ -1,11 +1,12 @@
-export const getFinalRecord = (args: IArguments) => {
-    const record = args[1]
-    const originalRecord = Array.from(args).at(-1)
-    if (originalRecord) {
+import { HookArgs } from "@stoker-platform/types"
+
+export const getFinalRecord = (args: HookArgs) => {
+    if (!("data" in args)) return
+    if ("originalRecord" in args && args.originalRecord) {
         return {
-            ...originalRecord,
-            ...record,
+            ...args.originalRecord,
+            ...args.data,
         }
     }
-    return record
+    return args.data
 }

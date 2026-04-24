@@ -100,9 +100,9 @@ export const deleteRecord = async (
 
     if (enableWriteLog) await writeLog("delete", "started", record, tenantId, path, docId, collectionSchema)
 
-    const preOperationArgs: PreOperationHookArgs = ["delete", record, docId, context]
+    const preOperationArgs: PreOperationHookArgs = { operation: "delete", data: record, docId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preWriteArgs: PreWriteHookArgs = ["delete", record, docId, context]
+    const preWriteArgs: PreWriteHookArgs = { operation: "delete", data: record, docId, context }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 
     removeUndefined(record)
@@ -231,7 +231,7 @@ export const deleteRecord = async (
             { maxAttempts: 10 },
         )
     } catch (error) {
-        const postWriteErrorArgs: PostWriteErrorHookArgs = ["delete", record, docId, context, error]
+        const postWriteErrorArgs: PostWriteErrorHookArgs = { operation: "delete", data: record, docId, context, error }
         const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
         if (enableWriteLog) {
             await new Promise((resolve) => {
@@ -261,8 +261,8 @@ export const deleteRecord = async (
         }
     }
 
-    const postWriteArgs: PostWriteHookArgs = ["delete", record, docId, context]
-    const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+    const postWriteArgs: PostWriteHookArgs = { operation: "delete", data: record, docId, context }
+    const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
 

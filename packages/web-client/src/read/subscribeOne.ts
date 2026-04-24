@@ -73,9 +73,9 @@ export const subscribeOne = async (
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
-    const preOperationArgs: PreOperationHookArgs = ["read", undefined, docId, context]
+    const preOperationArgs: PreOperationHookArgs = { operation: "read", docId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preReadArgs: PreReadHookArgs = [context, refs, false, true]
+    const preReadArgs: PreReadHookArgs = { context, refs, multiple: false, listener: true }
     await runHooks("preRead", globalConfig, customization, preReadArgs)
 
     const loaded = new Map()
@@ -246,24 +246,24 @@ export const subscribeOne = async (
                                                 callbackWhenInSync()
 
                                                 if (metadata.fromCache === false) {
-                                                    const postOperationArgs: PostOperationHookArgs = [
-                                                        "read",
-                                                        docData as StokerRecord,
+                                                    const postOperationArgs: PostOperationHookArgs = {
+                                                        operation: "read",
+                                                        data: docData as StokerRecord,
                                                         docId,
                                                         context,
-                                                    ]
+                                                    }
                                                     runHooks(
                                                         "postOperation",
                                                         globalConfig,
                                                         customization,
                                                         postOperationArgs,
                                                     )
-                                                    const postReadArgs: PostReadHookArgs = [
+                                                    const postReadArgs: PostReadHookArgs = {
                                                         context,
                                                         refs,
-                                                        docData as StokerRecord,
-                                                        true,
-                                                    ]
+                                                        doc: docData as StokerRecord,
+                                                        listener: true,
+                                                    }
                                                     runHooks("postRead", globalConfig, customization, postReadArgs)
                                                 }
                                             }
@@ -327,24 +327,24 @@ export const subscribeOne = async (
                                                 callbackWhenInSync()
 
                                                 if (metadata.fromCache === false) {
-                                                    const postOperationArgs: PostOperationHookArgs = [
-                                                        "read",
-                                                        docData as StokerRecord,
+                                                    const postOperationArgs: PostOperationHookArgs = {
+                                                        operation: "read",
+                                                        data: docData as StokerRecord,
                                                         docId,
                                                         context,
-                                                    ]
+                                                    }
                                                     runHooks(
                                                         "postOperation",
                                                         globalConfig,
                                                         customization,
                                                         postOperationArgs,
                                                     )
-                                                    const postReadArgs: PostReadHookArgs = [
+                                                    const postReadArgs: PostReadHookArgs = {
                                                         context,
                                                         refs,
-                                                        docData as StokerRecord,
-                                                        true,
-                                                    ]
+                                                        doc: docData as StokerRecord,
+                                                        listener: true,
+                                                    }
                                                     runHooks("postRead", globalConfig, customization, postReadArgs)
                                                 }
                                             }
@@ -404,14 +404,19 @@ export const subscribeOne = async (
                             callbackWhenInSync()
 
                             if (snapshot.metadata.fromCache === false) {
-                                const postOperationArgs: PostOperationHookArgs = [
-                                    "read",
-                                    docData as StokerRecord,
+                                const postOperationArgs: PostOperationHookArgs = {
+                                    operation: "read",
+                                    data: docData as StokerRecord,
                                     docId,
                                     context,
-                                ]
+                                }
                                 runHooks("postOperation", globalConfig, customization, postOperationArgs)
-                                const postReadArgs: PostReadHookArgs = [context, refs, docData as StokerRecord, true]
+                                const postReadArgs: PostReadHookArgs = {
+                                    context,
+                                    refs,
+                                    doc: docData as StokerRecord,
+                                    listener: true,
+                                }
                                 runHooks("postRead", globalConfig, customization, postReadArgs)
                             }
                         })
@@ -422,9 +427,9 @@ export const subscribeOne = async (
                     callbackWhenInSync()
 
                     if (snapshot.metadata.fromCache === false) {
-                        const postOperationArgs: PostOperationHookArgs = ["read", undefined, docId, context]
+                        const postOperationArgs: PostOperationHookArgs = { operation: "read", docId, context }
                         runHooks("postOperation", globalConfig, customization, postOperationArgs)
-                        const postReadArgs: PostReadHookArgs = [context, refs, undefined, true]
+                        const postReadArgs: PostReadHookArgs = { context, refs, listener: true }
                         runHooks("postRead", globalConfig, customization, postReadArgs)
                     }
                 }

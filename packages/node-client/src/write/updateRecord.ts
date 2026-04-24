@@ -203,16 +203,21 @@ export const updateRecord = async (
     if (enableWriteLog && !options?.providedTransaction)
         await writeLog("update", "started", partial, tenantId, path, docId, collectionSchema, undefined, originalRecord)
 
-    const preOperationArgs: PreOperationHookArgs = [
-        "update",
-        partial,
+    const preOperationArgs: PreOperationHookArgs = {
+        operation: "update",
+        data: partial,
         docId,
         context,
-        undefined,
-        cloneDeep(originalRecord),
-    ]
+        originalRecord: cloneDeep(originalRecord),
+    }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preWriteArgs: PreWriteHookArgs = ["update", partial, docId, context, undefined, cloneDeep(originalRecord)]
+    const preWriteArgs: PreWriteHookArgs = {
+        operation: "update",
+        data: partial,
+        docId,
+        context,
+        originalRecord: cloneDeep(originalRecord),
+    }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 
     addRelationArrays(collectionSchema, partial, schema)
@@ -233,7 +238,7 @@ export const updateRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                ["update", partial, context, undefined, cloneDeep(originalRecord)],
+                { operation: "update", record: partial, context, originalRecord: cloneDeep(originalRecord) },
                 schema,
             )
         }
@@ -262,7 +267,7 @@ export const updateRecord = async (
             record,
             collectionSchema,
             customization,
-            ["update", partial, context, undefined, originalRecord],
+            { operation: "update", record: partial, context, originalRecord },
             schema,
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -573,17 +578,14 @@ export const updateRecord = async (
             transaction.update(ref.doc(docId), partial)
         } catch (error) {
             if (!options?.providedTransaction) {
-                const postWriteErrorArgs: PostWriteErrorHookArgs = [
-                    "update",
-                    partial,
+                const postWriteErrorArgs: PostWriteErrorHookArgs = {
+                    operation: "update",
+                    data: partial,
                     docId,
                     context,
                     error,
-                    undefined,
-                    undefined,
-                    undefined,
-                    cloneDeep(originalRecord),
-                ]
+                    originalRecord: cloneDeep(originalRecord),
+                }
                 const errorHook = await runHooks("postWriteError", globalConfig, customization, postWriteErrorArgs)
                 if (enableWriteLog) {
                     await new Promise((resolve) => {
@@ -681,15 +683,14 @@ export const updateRecord = async (
     }
 
     if (!options?.providedTransaction) {
-        const postWriteArgs: PostWriteHookArgs = [
-            "update",
-            partial,
+        const postWriteArgs: PostWriteHookArgs = {
+            operation: "update",
+            data: partial,
             docId,
             context,
-            undefined,
-            cloneDeep(originalRecord),
-        ]
-        const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+            originalRecord: cloneDeep(originalRecord),
+        }
+        const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
         await runHooks("postWrite", globalConfig, customization, postWriteArgs)
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
     }

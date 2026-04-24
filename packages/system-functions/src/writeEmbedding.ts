@@ -53,7 +53,7 @@ export const writeEmbedding = (
                 const ref = await transaction.get(snapshot.after.ref);
                 const record = ref.data() as StokerRecord;
                 if (!customization.custom?.setEmbedding) return;
-                const input = await tryPromise(customization.custom?.setEmbedding, [record]);
+                const input = await tryPromise(customization.custom?.setEmbedding, [{record}]);
                 const embedding = (await ai.embed({
                     embedder,
                     content: input,

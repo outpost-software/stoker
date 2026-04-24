@@ -322,9 +322,9 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
-    const preOperationArgs: PreOperationHookArgs = ["read", undefined, undefined, context]
+    const preOperationArgs: PreOperationHookArgs = { operation: "read", context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preReadArgs: PreReadHookArgs = [context, constraintRefs, true, false]
+    const preReadArgs: PreReadHookArgs = { context, refs: constraintRefs, multiple: true, listener: false }
     await runHooks("preRead", globalConfig, customization, preReadArgs)
 
     const docs = new Map<string, StokerRecord>()
@@ -440,9 +440,9 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
         }
         await Promise.all(computedFieldPromises)
 
-        const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
+        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: doc, docId: doc.id, context }
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
-        const postReadArgs: PostReadHookArgs = [context, refs, doc, false]
+        const postReadArgs: PostReadHookArgs = { context, refs, doc, listener: false }
         await runHooks("postRead", globalConfig, customization, postReadArgs)
     }
 

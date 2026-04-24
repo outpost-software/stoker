@@ -134,7 +134,12 @@ export const addRecord = async (
                 }
             }
         }
-        const preValidateArgs: PreValidateHookArgs = ["create", data as StokerRecord, context, batch]
+        const preValidateArgs: PreValidateHookArgs = {
+            operation: "create",
+            record: data as StokerRecord,
+            context,
+            batch,
+        }
         await runHooks("preValidate", globalConfig, customization, preValidateArgs)
         if (options?.onValid) {
             options.onValid()
@@ -174,9 +179,9 @@ export const addRecord = async (
     }
 
     if (!retry) {
-        const preOperationArgs: PreOperationHookArgs = ["create", record, docId, context, batch]
+        const preOperationArgs: PreOperationHookArgs = { operation: "create", data: record, docId, context, batch }
         await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-        const preWriteArgs: PreWriteHookArgs = ["create", record, docId, context, batch]
+        const preWriteArgs: PreWriteHookArgs = { operation: "create", data: record, docId, context, batch }
         await runHooks("preWrite", globalConfig, customization, preWriteArgs)
     }
 
@@ -191,7 +196,7 @@ export const addRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                ["create", record, context, batch],
+                { operation: "create", record, context, batch },
                 schema,
             )
             if (offlineDisabled) {
@@ -297,8 +302,8 @@ export const addRecord = async (
         writeLog("create", "success", record, path, docId, collectionSchema, currentUser.uid)
     }
 
-    const postWriteArgs: PostWriteHookArgs = ["create", record, docId, context, !!retry]
-    const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+    const postWriteArgs: PostWriteHookArgs = { operation: "create", data: record, docId, context, retry: !!retry }
+    const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
 

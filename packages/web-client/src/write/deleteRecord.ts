@@ -139,9 +139,9 @@ export const deleteRecord = async (
     if (!retry && enableWriteLog) writeLog("delete", "started", record, path, docId, collectionSchema, currentUser.uid)
 
     if (!retry) {
-        const preOperationArgs: PreOperationHookArgs = ["delete", record, docId, context, batch]
+        const preOperationArgs: PreOperationHookArgs = { operation: "delete", data: record, docId, context, batch }
         await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-        const preWriteArgs: PreWriteHookArgs = ["delete", record, docId, context, batch]
+        const preWriteArgs: PreWriteHookArgs = { operation: "delete", data: record, docId, context, batch }
         await runHooks("preWrite", globalConfig, customization, preWriteArgs)
     }
 
@@ -242,8 +242,8 @@ export const deleteRecord = async (
         )
     }
 
-    const postWriteArgs: PostWriteHookArgs = ["delete", record, docId, context, !!retry]
-    const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+    const postWriteArgs: PostWriteHookArgs = { operation: "delete", data: record, docId, context, retry: !!retry }
+    const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
 

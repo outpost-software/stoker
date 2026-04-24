@@ -268,16 +268,16 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 }
 
                 try {
-                    await runHooks("preFileAdd", globalConfig, customization, [
+                    await runHooks("preFileAdd", globalConfig, customization, {
                         record,
-                        filePath,
+                        fullPath: filePath,
                         filename,
-                        {
+                        permissions: {
                             read: metadata.customMetadata.read,
                             update: metadata.customMetadata.update,
                             delete: metadata.customMetadata.delete,
                         },
-                    ])
+                    })
                 } catch {
                     setUploadProgress((prev) =>
                         prev.map((item) => (item.file === file ? { ...item, status: "error" } : item)),
@@ -320,16 +320,16 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                         })
 
                         try {
-                            await runHooks("postFileAdd", globalConfig, customization, [
+                            await runHooks("postFileAdd", globalConfig, customization, {
                                 record,
-                                filePath,
+                                fullPath: filePath,
                                 filename,
-                                {
+                                permissions: {
                                     read: metadata.customMetadata.read,
                                     update: metadata.customMetadata.update,
                                     delete: metadata.customMetadata.delete,
                                 },
-                            ])
+                            })
                         } catch {
                             return
                         }
@@ -483,9 +483,9 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 }
 
                 try {
-                    await runHooks("preFileUpdate", globalConfig, customization, [
+                    await runHooks("preFileUpdate", globalConfig, customization, {
                         record,
-                        {
+                        update: {
                             type: "permissions",
                             path: selectedFileForPermissions.fullPath,
                             originalPermissions: {
@@ -499,7 +499,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                 delete: updatedMetadata.customMetadata.delete,
                             },
                         },
-                    ])
+                    })
                 } catch {
                     return
                 }
@@ -512,9 +512,9 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 })
 
                 try {
-                    await runHooks("postFileUpdate", globalConfig, customization, [
+                    await runHooks("postFileUpdate", globalConfig, customization, {
                         record,
-                        {
+                        update: {
                             type: "permissions",
                             path: selectedFileForPermissions.fullPath,
                             originalPermissions: {
@@ -528,7 +528,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                 delete: updatedMetadata.customMetadata.delete,
                             },
                         },
-                    ])
+                    })
                 } catch {
                     return
                 }
@@ -690,10 +690,10 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 const metadata = await getMetadata(originalRef)
 
                 try {
-                    await runHooks("preFileUpdate", globalConfig, customization, [
+                    await runHooks("preFileUpdate", globalConfig, customization, {
                         record,
-                        { type: "rename", oldPath: item.fullPath, newPath },
-                    ])
+                        update: { type: "rename", oldPath: item.fullPath, newPath },
+                    })
                 } catch {
                     return
                 }
@@ -712,10 +712,10 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 })
 
                 try {
-                    await runHooks("postFileUpdate", globalConfig, customization, [
+                    await runHooks("postFileUpdate", globalConfig, customization, {
                         record,
-                        { type: "rename", oldPath: item.fullPath, newPath },
-                    ])
+                        update: { type: "rename", oldPath: item.fullPath, newPath },
+                    })
                 } catch {
                     return
                 }

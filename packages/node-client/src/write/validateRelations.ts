@@ -401,7 +401,7 @@ export const validateRelations = async (
                     updatedRecord,
                     relationCollection,
                     customization,
-                    ["update", updatedRecord, {}, undefined, updatedRecord],
+                    { operation: "update", record: updatedRecord, context: {}, originalRecord: updatedRecord },
                     schema,
                 )
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

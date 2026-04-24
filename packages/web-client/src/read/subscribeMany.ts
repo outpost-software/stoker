@@ -270,9 +270,9 @@ export const subscribeMany = async (
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
-    const preOperationArgs: PreOperationHookArgs = ["read", undefined, undefined, context]
+    const preOperationArgs: PreOperationHookArgs = { operation: "read", context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preReadArgs: PreReadHookArgs = [context, constraintRefs, true, true]
+    const preReadArgs: PreReadHookArgs = { context, refs: constraintRefs, multiple: true, listener: true }
     await runHooks("preRead", globalConfig, customization, preReadArgs)
 
     let initialLoad = true
@@ -310,9 +310,14 @@ export const subscribeMany = async (
 
             if (metadata?.fromCache === false) {
                 docs.forEach((doc) => {
-                    const postOperationArgs: PostOperationHookArgs = ["read", doc, doc.id, context]
+                    const postOperationArgs: PostOperationHookArgs = {
+                        operation: "read",
+                        data: doc,
+                        docId: doc.id,
+                        context,
+                    }
                     runHooks("postOperation", globalConfig, customization, postOperationArgs)
-                    const postReadArgs: PostReadHookArgs = [context, refs, doc, true]
+                    const postReadArgs: PostReadHookArgs = { context, refs, doc, listener: true }
                     runHooks("postRead", globalConfig, customization, postReadArgs)
                 })
             }

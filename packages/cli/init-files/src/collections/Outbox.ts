@@ -41,12 +41,12 @@ const Outbox: GenerateSchema = (sdk: "web" | "node"): CollectionSchema => {
             retentionPeriod: 7,
         },
         custom: {
-            async preWrite(operation, data) {
+            async preWrite({ operation, data }) {
                 if (operation === "create") {
                     data.Status = "Sending"
                 }
             },
-            async postWrite(operation, data) {
+            async postWrite({ operation, data }) {
                 if (operation === "create") {
                     if (sdk === "web") {
                         const { addRecord, updateRecord, getCurrentUser } = await import("@stoker-platform/web-client")

@@ -133,17 +133,17 @@ export const saveRecord = async (
 
             const error = uniqueErrors || mainError
 
-            const postWriteErrorArgs: PostWriteErrorHookArgs = [
+            const postWriteErrorArgs: PostWriteErrorHookArgs = {
                 operation,
-                record,
+                data: record,
                 docId,
                 context,
                 error,
                 batch,
                 retry,
                 retries,
-                operation === "update" ? originalRecord : undefined,
-            ]
+                originalRecord: operation === "update" ? originalRecord : undefined,
+            }
 
             const indexedDBConnectionLost = mainError.code === "unavailable"
 

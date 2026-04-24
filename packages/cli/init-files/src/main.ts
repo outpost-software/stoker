@@ -163,7 +163,7 @@ const globalConfig: GenerateGlobalConfig = (sdk, utils, context): GlobalConfig =
                 }
             },
         },
-        async postWriteError(operation, _data, docId, context, error) {
+        async postWriteError({ operation, docId, context, error }) {
             if (sdk === "web") {
                 const { sendAdminEmail } = await import("@stoker-platform/web-client")
                 const { getAuth } = await import("firebase/auth")

@@ -2541,16 +2541,16 @@ function RecordForm({
                 }
 
                 try {
-                    await runHooks("preFileAdd", globalConfig, customization, [
-                        targetRecord,
-                        filePath,
+                    await runHooks("preFileAdd", globalConfig, customization, {
+                        record: targetRecord,
+                        fullPath: filePath,
                         filename,
-                        {
+                        permissions: {
                             read: metadata.customMetadata.read,
                             update: metadata.customMetadata.update,
                             delete: metadata.customMetadata.delete,
                         },
-                    ])
+                    })
                 } catch {
                     continue
                 }
@@ -2572,16 +2572,16 @@ function RecordForm({
                             toast({ title: "Upload successful", description: `${filename} uploaded successfully` })
 
                             try {
-                                await runHooks("postFileAdd", globalConfig, customization, [
-                                    targetRecord,
-                                    filePath,
+                                await runHooks("postFileAdd", globalConfig, customization, {
+                                    record: targetRecord,
+                                    fullPath: filePath,
                                     filename,
-                                    {
+                                    permissions: {
                                         read: metadata.customMetadata.read,
                                         update: metadata.customMetadata.update,
                                         delete: metadata.customMetadata.delete,
                                     },
-                                ])
+                                })
                             } catch {
                                 return
                             }
@@ -2682,16 +2682,16 @@ function RecordForm({
                     ...record,
                 } as StokerRecord
                 try {
-                    await runHooks("preFileAdd", globalConfig, customization, [
-                        targetRecord,
-                        filePath,
+                    await runHooks("preFileAdd", globalConfig, customization, {
+                        record: targetRecord,
+                        fullPath: filePath,
                         filename,
-                        {
+                        permissions: {
                             read: metadata.customMetadata.read,
                             update: metadata.customMetadata.update,
                             delete: metadata.customMetadata.delete,
                         },
-                    ])
+                    })
                 } catch {
                     setShowPermissionsDialog(false)
                     setPendingImageForUpdate(null)
@@ -2717,16 +2717,16 @@ function RecordForm({
                         },
                         async () => {
                             try {
-                                await runHooks("postFileAdd", globalConfig, customization, [
-                                    targetRecord,
-                                    filePath,
+                                await runHooks("postFileAdd", globalConfig, customization, {
+                                    record: targetRecord,
+                                    fullPath: filePath,
                                     filename,
-                                    {
+                                    permissions: {
                                         read: metadata.customMetadata.read,
                                         update: metadata.customMetadata.update,
                                         delete: metadata.customMetadata.delete,
                                     },
-                                ])
+                                })
                             } catch {
                                 resolve()
                                 return
@@ -4368,7 +4368,7 @@ function RecordForm({
         if (!formValues) return
         const record = cloneDeep(originalRecord) as Partial<StokerRecord>
         const globalConfig = getGlobalConfigModule()
-        await runHooks("preDuplicate", globalConfig, customization, [record])
+        await runHooks("preDuplicate", globalConfig, customization, { data: record })
         const recordToDuplicate: Partial<StokerRecord> = {}
         for (const field of fields) {
             const fieldCustomization = getFieldCustomization(field, customization)

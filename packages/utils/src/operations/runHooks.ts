@@ -23,7 +23,7 @@ import { tryPromise } from "../getConfigValue.js"
 
 const hook = async (name: string, callback?: hookType, args?: HookArgs) => {
     if (callback) {
-        const value = await tryPromise(callback, args)
+        const value = await tryPromise(callback, [args])
         if (value === false) throw new Error(`CANCELLED: Operation cancelled by ${name}`)
         return value
     }

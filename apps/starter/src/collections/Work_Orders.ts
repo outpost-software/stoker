@@ -142,7 +142,7 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
         ],
         custom: {
             autoCorrectUnique: true,
-            setEmbedding(record: StokerRecord) {
+            setEmbedding({ record }) {
                 return `This is Work Order ${record.Name} for the Stoker Platform starter project. The job is located in ${record.State}, Australia.${record.Status === "Not Started" ? " Work on this job has not yet commenced." : ""}`
             },
         },

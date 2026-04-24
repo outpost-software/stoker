@@ -527,14 +527,14 @@ Fires when the user has logged out. If an error is encountered during sign out, 
 ### preOperation
 
 ```
-(
-    operation: "read" | "create" | "update" | "delete",
-    data?: StokerRecord,
-    docId?: string,
-    context?: any,
-    batch?: WriteBatch,
+({
+    operation: "read" | "create" | "update" | "delete"
+    data?: StokerRecord
+    docId?: string
+    context?: any
+    batch?: WriteBatch
     originalRecord?: StokerRecord
-) => boolean | void | Promise<boolean | void>
+}) => boolean | void | Promise<boolean | void>
 ```
 
 Fires before all read and write operations.
@@ -544,12 +544,12 @@ Return `false` to cancel the operation.
 ### preRead
 
 ```
-(
-    context: any,
-    refs: unknown[],
-    multiple?: boolean,
-    listener?: boolean,
-) => void | Promise<void>
+({
+    context: any
+    refs: unknown[]
+    multiple?: boolean
+    listener?: boolean
+}) => void | Promise<void>
 ```
 
 Fires before all read operations.
@@ -558,13 +558,13 @@ Fires before all read operations.
 ### preValidate
 
 ```
-(
-    operation: "create" | "update",
-    record: StokerRecord,
-    context: any,
-    batch?: WriteBatch,
-    originalRecord?: StokerRecord,
-) => { valid: boolean; message?: string } | Promise<{ valid: boolean; message?: string }>
+({
+    operation: "create" | "update"
+    record: StokerRecord
+    context: any
+    batch?: WriteBatch
+    originalRecord?: StokerRecord
+}) => { valid: boolean; message?: string } | Promise<{ valid: boolean; message?: string }>
 ```
 
 Fires at write validation time for all write operations. This is where you can define custom validation logic.
@@ -574,14 +574,14 @@ Return an object with a boolean indicating whether validation passed, and a mess
 ### preWrite
 
 ```
-(
-    operation: "create" | "update" | "delete",
-    data: StokerRecord,
-    docId: string,
-    context: any,
-    batch?: WriteBatch,
-    originalRecord?: StokerRecord,
-) => boolean | void | Promise<boolean | void>
+({
+    operation: "create" | "update" | "delete"
+    data: StokerRecord
+    docId: string
+    context: any
+    batch?: WriteBatch
+    originalRecord?: StokerRecord
+}) => boolean | void | Promise<boolean | void>
 ```
 
 Fires before all write operations.
@@ -590,7 +590,7 @@ Return `false` to cancel the operation.
 
 ### preDuplicate
 
-`(data: Partial<StokerRecord>) => boolean | void | Promise<boolean | void>`
+`({ data: Partial<StokerRecord> }) => boolean | void | Promise<boolean | void>`
 
 Fires before all duplicate operations in the Admin UI.
 
@@ -599,14 +599,14 @@ Return `false` to cancel the operation.
 ### postOperation
 
 ```
-(
-    operation: "read" | "create" | "update" | "delete",
-    data?: StokerRecord,
-    docId?: string,
-    context?: any,
-    retry?: boolean,
-    originalRecord?: StokerRecord,
-) => void | Promise<void>
+({
+    operation: "read" | "create" | "update" | "delete"
+    data?: StokerRecord
+    docId?: string
+    context?: any
+    retry?: boolean
+    originalRecord?: StokerRecord
+}) => void | Promise<void>
 ```
 
 Fires after all read and write operations.
@@ -614,12 +614,12 @@ Fires after all read and write operations.
 ### postRead
 
 ```
-(
-    context: any,
-    refs: unknown[],
-    doc: StokerRecord | undefined,
-    listener?: boolean,
-) => void | Promise<void>
+({
+    context: any
+    refs: unknown[]
+    doc: StokerRecord | undefined
+    listener?: boolean
+}) => void | Promise<void>
 ```
 
 Fires after all read operations.
@@ -627,14 +627,14 @@ Fires after all read operations.
 ### postWrite
 
 ```
-(
-    operation: "create" | "update" | "delete",
-    data: StokerRecord,
-    docId: string,
-    context: any,
-    retry?: boolean,
-    originalRecord?: StokerRecord,
-) => void | Promise<void>
+({
+    operation: "create" | "update" | "delete"
+    data: StokerRecord
+    docId: string
+    context: any
+    retry?: boolean
+    originalRecord?: StokerRecord
+}) => void | Promise<void>
 ```
 
 Fires after all write operations.
@@ -642,33 +642,33 @@ Fires after all write operations.
 ### postWriteError
 
 ```
-(
-    operation: "create" | "update" | "delete",
-    data: StokerRecord,
-    docId: string,
-    context: any,
-    error: unknown,
-    retry?: boolean,
-    retries?: number,
-    originalRecord?: StokerRecord,
-) => void | Promise<void>
+({
+    operation: "create" | "update" | "delete"
+    data: StokerRecord
+    docId: string
+    context: any
+    error: unknown
+    retry?: boolean
+    retries?: number
+    originalRecord?: StokerRecord
+}) => void | Promise<void>
 ```
 
 Fires when a write operation encounters an error.
 
 We provide a default function for this hook. The default function sends you an email whenever an error is encountered.
 
-This hook may file multiple times per write, so be sure to write idempotent code.
+This hook may fire multiple times per write, so be sure to write idempotent code.
 
 ### preFileAdd
 
 ```
-(
-    record: StokerRecord,
-    fullPath: string,
-    filename: string,
-    permissions: FilePermissions,
-) => boolean | void | Promise<boolean | void>
+({
+    record: StokerRecord
+    fullPath: string
+    filename: string
+    permissions: FilePermissions
+}) => boolean | void | Promise<boolean | void>
 ```
 
 Fires before a file is uploaded.
@@ -678,8 +678,8 @@ Return `false` to cancel the operation.
 ### preFileUpdate
 
 ```
-(
-    record: StokerRecord,
+({
+    record: StokerRecord
     update:
         { type: "rename"; oldPath: string; newPath: string } |
         {
@@ -687,8 +687,8 @@ Return `false` to cancel the operation.
             path: string
             originalPermissions: FilePermissions
             permissions: FilePermissions
-        },
-) => boolean | void | Promise<boolean | void>
+        }
+}) => boolean | void | Promise<boolean | void>
 ```
 
 Fires before a file is updated.
@@ -698,12 +698,12 @@ Return `false` to cancel the operation.
 ### postFileAdd
 
 ```
-(
-    record: StokerRecord,
-    fullPath: string,
-    filename: string,
-    permissions: FilePermissions,
-) => void | Promise<void>
+({
+    record: StokerRecord
+    fullPath: string
+    filename: string
+    permissions: FilePermissions
+}) => void | Promise<void>
 ```
 
 Fires after a file is uploaded.
@@ -711,8 +711,8 @@ Fires after a file is uploaded.
 ### postFileUpdate
 
 ```
-(
-    record: StokerRecord,
+({
+    record: StokerRecord
     update:
         { type: "rename"; oldPath: string; newPath: string } |
         {
@@ -720,8 +720,8 @@ Fires after a file is uploaded.
             path: string
             originalPermissions: FilePermissions
             permissions: FilePermissions
-        },
-) => void | Promise<void>
+        }
+}) => void | Promise<void>
 ```
 
 Fires after a file is updated.

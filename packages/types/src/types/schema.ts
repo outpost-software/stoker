@@ -222,77 +222,77 @@ export interface CollectionAccess {
     files?: AccessFiles
 }
 
-export type PreOperationHookArgs = [
-    operation: "read" | "create" | "update" | "delete",
-    data?: StokerRecord,
-    docId?: string,
+export type PreOperationHookArgs = {
+    operation: "read" | "create" | "update" | "delete"
+    data?: StokerRecord
+    docId?: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
-    batch?: WriteBatch,
-    originalRecord?: StokerRecord,
-]
-export type PreReadHookArgs = [
+    context?: any
+    batch?: WriteBatch
+    originalRecord?: StokerRecord
+}
+export type PreReadHookArgs = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context: any,
-    refs: unknown[],
-    multiple?: boolean,
-    listener?: boolean,
-]
-export type PostReadHookArgs = [
+    context: any
+    refs: unknown[]
+    multiple?: boolean
+    listener?: boolean
+}
+export type PostReadHookArgs = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context: any,
-    refs: unknown[],
-    doc: StokerRecord | undefined,
-    listener?: boolean,
-]
-export type PreDuplicateHookArgs = [data: Partial<StokerRecord>]
-export type PreValidateHookArgs = [
-    operation: "create" | "update",
-    record: StokerRecord,
+    context: any
+    refs: unknown[]
+    doc?: StokerRecord
+    listener?: boolean
+}
+export type PreDuplicateHookArgs = { data: Partial<StokerRecord> }
+export type PreValidateHookArgs = {
+    operation: "create" | "update"
+    record: StokerRecord
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context: any,
-    batch?: WriteBatch,
-    originalRecord?: StokerRecord,
-]
-export type PreWriteHookArgs = [
-    operation: "create" | "update" | "delete",
-    data: StokerRecord,
-    docId: string,
+    context: any
+    batch?: WriteBatch
+    originalRecord?: StokerRecord
+}
+export type PreWriteHookArgs = {
+    operation: "create" | "update" | "delete"
+    data: StokerRecord
+    docId: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context: any,
-    batch?: WriteBatch,
-    originalRecord?: StokerRecord,
-]
-export type PostWriteHookArgs = [
-    operation: "create" | "update" | "delete",
-    data: StokerRecord,
-    docId: string,
+    context: any
+    batch?: WriteBatch
+    originalRecord?: StokerRecord
+}
+export type PostWriteHookArgs = {
+    operation: "create" | "update" | "delete"
+    data: StokerRecord
+    docId: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context: any,
-    retry?: boolean,
-    originalRecord?: StokerRecord,
-]
-export type PostWriteErrorHookArgs = [
-    operation: "create" | "update" | "delete",
-    data: StokerRecord,
-    docId: string,
+    context: any
+    retry?: boolean
+    originalRecord?: StokerRecord
+}
+export type PostWriteErrorHookArgs = {
+    operation: "create" | "update" | "delete"
+    data: StokerRecord
+    docId: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context: any,
-    error: unknown,
-    batch?: WriteBatch,
-    retry?: boolean,
-    retries?: number,
-    originalRecord?: StokerRecord,
-]
-export type PostOperationHookArgs = [
-    operation: "read" | "create" | "update" | "delete",
-    data?: StokerRecord,
-    docId?: string,
+    context: any
+    error: unknown
+    batch?: WriteBatch
+    retry?: boolean
+    retries?: number
+    originalRecord?: StokerRecord
+}
+export type PostOperationHookArgs = {
+    operation: "read" | "create" | "update" | "delete"
+    data?: StokerRecord
+    docId?: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
-    retry?: boolean,
-    originalRecord?: StokerRecord,
-]
+    context?: any
+    retry?: boolean
+    originalRecord?: StokerRecord
+}
 
 export type FilePermissions = {
     read?: string
@@ -300,15 +300,15 @@ export type FilePermissions = {
     delete?: string
 }
 
-export type PreFileAddHookArgs = [
-    record: StokerRecord,
-    fullPath: string,
-    filename: string,
-    permissions: FilePermissions,
-]
+export type PreFileAddHookArgs = {
+    record: StokerRecord
+    fullPath: string
+    filename: string
+    permissions: FilePermissions
+}
 
-export type PreFileUpdateHookArgs = [
-    record: StokerRecord,
+export type PreFileUpdateHookArgs = {
+    record: StokerRecord
     update:
         | { type: "rename"; oldPath: string; newPath: string }
         | {
@@ -316,18 +316,18 @@ export type PreFileUpdateHookArgs = [
               path: string
               originalPermissions: FilePermissions
               permissions: FilePermissions
-          },
-]
+          }
+}
 
-export type PostFileAddHookArgs = [
-    record: StokerRecord,
-    fullPath: string,
-    filename: string,
-    permissions: FilePermissions,
-]
+export type PostFileAddHookArgs = {
+    record: StokerRecord
+    fullPath: string
+    filename: string
+    permissions: FilePermissions
+}
 
-export type PostFileUpdateHookArgs = [
-    record: StokerRecord,
+export type PostFileUpdateHookArgs = {
+    record: StokerRecord
     update:
         | { type: "rename"; oldPath: string; newPath: string }
         | {
@@ -335,10 +335,10 @@ export type PostFileUpdateHookArgs = [
               path: string
               originalPermissions: FilePermissions
               permissions: FilePermissions
-          },
-]
+          }
+}
 
-export type SetEmbeddingHookArgs = [record: StokerRecord]
+export type SetEmbeddingHookArgs = { record: StokerRecord }
 
 export type HookArgs =
     | PreOperationHookArgs
@@ -356,24 +356,24 @@ export type HookArgs =
     | PostFileUpdateHookArgs
     | SetEmbeddingHookArgs
 
-export type PreOperationHook = (...args: PreOperationHookArgs) => boolean | void | Promise<boolean | void>
-export type PreReadHook = (...args: PreReadHookArgs) => void | Promise<void>
-export type PostReadHook = (...args: PostReadHookArgs) => void | Promise<void>
-export type PreDuplicateHook = (...args: PreDuplicateHookArgs) => boolean | void | Promise<boolean | void>
+export type PreOperationHook = (args: PreOperationHookArgs) => boolean | void | Promise<boolean | void>
+export type PreReadHook = (args: PreReadHookArgs) => void | Promise<void>
+export type PostReadHook = (args: PostReadHookArgs) => void | Promise<void>
+export type PreDuplicateHook = (args: PreDuplicateHookArgs) => boolean | void | Promise<boolean | void>
 export type PreValidateHook = (
-    ...args: PreValidateHookArgs
+    args: PreValidateHookArgs,
 ) => { valid: boolean; message?: string } | Promise<{ valid: boolean; message?: string }>
-export type PreWriteHook = (...args: PreWriteHookArgs) => boolean | void | Promise<boolean | void>
-export type PostWriteHook = (...args: PostWriteHookArgs) => boolean | void | Promise<boolean | void>
-export type PostWriteErrorHook = (...args: PostWriteErrorHookArgs) => boolean | void | Promise<boolean | void>
-export type PostOperationHook = (...args: PostOperationHookArgs) => boolean | void | Promise<boolean | void>
+export type PreWriteHook = (args: PreWriteHookArgs) => boolean | void | Promise<boolean | void>
+export type PostWriteHook = (args: PostWriteHookArgs) => boolean | void | Promise<boolean | void>
+export type PostWriteErrorHook = (args: PostWriteErrorHookArgs) => boolean | void | Promise<boolean | void>
+export type PostOperationHook = (args: PostOperationHookArgs) => boolean | void | Promise<boolean | void>
 
-export type PreFileAddHook = (...args: PreFileAddHookArgs) => boolean | void | Promise<boolean | void>
-export type PreFileUpdateHook = (...args: PreFileUpdateHookArgs) => boolean | void | Promise<boolean | void>
-export type PostFileAddHook = (...args: PostFileAddHookArgs) => boolean | void | Promise<boolean | void>
-export type PostFileUpdateHook = (...args: PostFileUpdateHookArgs) => boolean | void | Promise<boolean | void>
+export type PreFileAddHook = (args: PreFileAddHookArgs) => boolean | void | Promise<boolean | void>
+export type PreFileUpdateHook = (args: PreFileUpdateHookArgs) => boolean | void | Promise<boolean | void>
+export type PostFileAddHook = (args: PostFileAddHookArgs) => boolean | void | Promise<boolean | void>
+export type PostFileUpdateHook = (args: PostFileUpdateHookArgs) => boolean | void | Promise<boolean | void>
 
-export type SetEmbeddingHook = (...args: SetEmbeddingHookArgs) => string | Promise<string>
+export type SetEmbeddingHook = (args: SetEmbeddingHookArgs) => string | Promise<string>
 
 export type Hook =
     | PreOperationHook

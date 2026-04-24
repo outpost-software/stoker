@@ -168,13 +168,13 @@ export const updateRecord = async (
                 }
             }
         }
-        const preValidateArgs: PreValidateHookArgs = [
-            "update",
-            { ...originalRecord, ...data },
+        const preValidateArgs: PreValidateHookArgs = {
+            operation: "update",
+            record: { ...originalRecord, ...data },
             context,
             batch,
-            cloneDeep(originalRecord),
-        ]
+            originalRecord: cloneDeep(originalRecord),
+        }
         await runHooks("preValidate", globalConfig, customization, preValidateArgs)
         const result = await updateRecordServer(
             path,
@@ -224,16 +224,23 @@ export const updateRecord = async (
     }
 
     if (!retry) {
-        const preOperationArgs: PreOperationHookArgs = [
-            "update",
-            partial,
+        const preOperationArgs: PreOperationHookArgs = {
+            operation: "update",
+            data: partial,
             docId,
             context,
             batch,
-            cloneDeep(originalRecord),
-        ]
+            originalRecord: cloneDeep(originalRecord),
+        }
         await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-        const preWriteArgs: PreWriteHookArgs = ["update", partial, docId, context, batch, cloneDeep(originalRecord)]
+        const preWriteArgs: PreWriteHookArgs = {
+            operation: "update",
+            data: partial,
+            docId,
+            context,
+            batch,
+            originalRecord: cloneDeep(originalRecord),
+        }
         await runHooks("preWrite", globalConfig, customization, preWriteArgs)
     }
 
@@ -249,7 +256,7 @@ export const updateRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                ["update", record, context, batch, cloneDeep(originalRecord)],
+                { operation: "update", record, context, batch, originalRecord: cloneDeep(originalRecord) },
                 schema,
             )
             if (offlineDisabled) {
@@ -378,8 +385,15 @@ export const updateRecord = async (
         )
     }
 
-    const postWriteArgs: PostWriteHookArgs = ["update", partial, docId, context, !!retry, cloneDeep(originalRecord)]
-    const postOperationArgs: PostOperationHookArgs = [...postWriteArgs]
+    const postWriteArgs: PostWriteHookArgs = {
+        operation: "update",
+        data: partial,
+        docId,
+        context,
+        retry: !!retry,
+        originalRecord: cloneDeep(originalRecord),
+    }
+    const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
 

@@ -70,7 +70,7 @@ const Users: GenerateSchema = (sdk): CollectionSchema => {
         indexExemption: true,
         seedOrder: 1,
         custom: {
-            async preWrite(operation, data) {
+            async preWrite({ operation, data }) {
                 let userId: string
                 if (sdk === "web") {
                     const { getAuth } = await import("firebase/auth")
