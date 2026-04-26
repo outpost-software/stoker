@@ -308,7 +308,7 @@ export const subscribeMany = async (
         Promise.all(promises).then(() => {
             callback(Array.from(docs.values()), cursor, metadata)
 
-            if (metadata?.fromCache === false) {
+            if (useCache || metadata?.fromCache === false) {
                 docs.forEach((doc) => {
                     const postOperationArgs: PostOperationHookArgs = {
                         operation: "read",

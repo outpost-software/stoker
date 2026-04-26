@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.46
+
+### Patch Changes
+
+- fix: fix postRead hook when preload cache enabled
+
 ## 0.5.45
 
 ### Patch Changes
