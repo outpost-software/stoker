@@ -83,3 +83,4 @@ package-lock.json
 
 apps/docs/docs
 apps/docs/blog
+apps/docs/build

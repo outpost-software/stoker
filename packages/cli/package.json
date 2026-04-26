@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/cli",
-    "version": "0.5.64",
+    "version": "0.5.65",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "./lib/src/main.js",
@@ -23,15 +23,15 @@
         "@google-cloud/bigquery": "^8.1.1",
         "@google-cloud/secret-manager": "^6.1.1",
         "@google-cloud/storage": "^7.19.0",
-        "@inquirer/prompts": "^8.3.2",
-        "@stoker-platform/node-client": "0.5.46",
-        "@stoker-platform/types": "0.5.29",
-        "@stoker-platform/utils": "0.5.38",
-        "algoliasearch": "^5.50.0",
+        "@inquirer/prompts": "^8.4.2",
+        "@stoker-platform/node-client": "0.5.47",
+        "@stoker-platform/types": "0.5.30",
+        "@stoker-platform/utils": "0.5.39",
+        "algoliasearch": "^5.51.0",
         "commander": "^14.0.0",
         "cross-spawn": "^7.0.6",
-        "dotenv": "^17.3.1",
-        "firebase-admin": "^13.7.0"
+        "dotenv": "^17.4.2",
+        "firebase-admin": "^13.8.0"
     },
     "devDependencies": {
         "@types/cross-spawn": "^6.0.6",
