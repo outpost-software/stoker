@@ -939,7 +939,7 @@ export const addProject = async (options: any) => {
         await updateProjectData(35)
     }
 
-    if (getProgress() < 36) {
+    const getRecaptchaKeyId = async () => {
         if (!recaptchaKeyId) {
             const listKeysResponse = await fetch(
                 `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/keys?pageSize=100`,
@@ -966,6 +966,11 @@ export const addProject = async (options: any) => {
                 throw new Error("Failed to recover Recaptcha key ID")
             }
         }
+        return recaptchaKeyId
+    }
+
+    if (getProgress() < 36) {
+        recaptchaKeyId = await getRecaptchaKeyId()
 
         const recaptchaEnterpriseConfig = await fetch(
             `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/apps/${appId}/recaptchaEnterpriseConfig?updateMask=siteKey,tokenTtl,riskAnalysis`,
@@ -1056,6 +1061,10 @@ export const addProject = async (options: any) => {
         await updateProjectData(37)
     }
 
+    if (!recaptchaKeyId) {
+        recaptchaKeyId = await getRecaptchaKeyId()
+    }
+
     const firebaseJson = JSON.parse(await readFile(join(process.cwd(), "firebase.json"), "utf8"))
     const authPort = firebaseJson.emulators.auth.port
     const databasePort = firebaseJson.emulators.database.port
@@ -1074,7 +1083,7 @@ STOKER_FB_FUNCTIONS_REGION="${process.env.FB_FUNCTIONS_REGION}"
 FB_DATABASE="${projectId}-default-rtdb"
 FB_FIRESTORE_EXPORT_BUCKET="${projectId}-export"`
 
-    if (process.env.SENTRY_DSN) {
+    if (process.env.SENTRY_DSN && !options.development) {
         envContent += `\nSTOKER_SENTRY_DSN="${process.env.SENTRY_DSN}"`
     }
 

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.66
+
+### Patch Changes
+
+- fix: retrieve App Check token on retry
+
 ## 0.5.65
 
 ### Patch Changes
