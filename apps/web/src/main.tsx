@@ -27,19 +27,21 @@ import { GlobalLoadingProvider, useGlobalLoading } from "./providers/LoadingProv
 import { useToast } from "./hooks/use-toast"
 import * as Sentry from "@sentry/react"
 
-Sentry.init({
-    dsn: import.meta.env.STOKER_SENTRY_DSN,
-    integrations: [
-        Sentry.reactRouterV7BrowserTracingIntegration({
-            useEffect,
-            useLocation,
-            useNavigationType,
-            createRoutesFromChildren,
-            matchRoutes,
-        }),
-    ],
-    tracesSampleRate: 1.0,
-})
+if (import.meta.env.STOKER_SENTRY_DSN) {
+    Sentry.init({
+        dsn: import.meta.env.STOKER_SENTRY_DSN,
+        integrations: [
+            Sentry.reactRouterV7BrowserTracingIntegration({
+                useEffect,
+                useLocation,
+                useNavigationType,
+                createRoutesFromChildren,
+                matchRoutes,
+            }),
+        ],
+        tracesSampleRate: 1.0,
+    })
+}
 
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter)
 

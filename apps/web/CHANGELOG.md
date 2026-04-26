@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.84
+
+### Patch Changes
+
+- feat: disable Sentry in dev mode
+
 ## 0.5.83
 
 ### Patch Changes
