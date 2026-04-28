@@ -138,9 +138,9 @@ export const addRecord = async (
     if (enableWriteLog && !options?.providedTransaction)
         await writeLog("create", "started", record, tenantId, path, docId, collectionSchema)
 
-    const preOperationArgs: PreOperationHookArgs = { operation: "create", data: record, docId, context }
+    const preOperationArgs: PreOperationHookArgs = { operation: "create", data: record, recordId: docId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preWriteArgs: PreWriteHookArgs = { operation: "create", data: record, docId, context }
+    const preWriteArgs: PreWriteHookArgs = { operation: "create", data: record, recordId: docId, context }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 
     addRelationArrays(collectionSchema, record, schema)
@@ -437,7 +437,7 @@ export const addRecord = async (
                 const postWriteErrorArgs: PostWriteErrorHookArgs = {
                     operation: "create",
                     data: record,
-                    docId,
+                    recordId: docId,
                     context,
                     error,
                 }
@@ -479,7 +479,7 @@ export const addRecord = async (
     }
 
     if (!options?.providedTransaction) {
-        const postWriteArgs: PostWriteHookArgs = { operation: "create", data: record, docId, context }
+        const postWriteArgs: PostWriteHookArgs = { operation: "create", data: record, recordId: docId, context }
         const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
         await runHooks("postWrite", globalConfig, customization, postWriteArgs)
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)

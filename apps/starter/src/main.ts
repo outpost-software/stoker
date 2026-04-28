@@ -192,7 +192,7 @@ const globalConfig: GenerateGlobalConfig = ({ sdk, utils, context }): GlobalConf
                 }
             },
         },
-        async postWriteError({ operation, docId, context, error }) {
+        async postWriteError({ operation, recordId, context, error }) {
             if (sdk === "web") {
                 const { sendAdminEmail } = await import("@stoker-platform/web-client")
                 const { getAuth } = await import("firebase/auth")
@@ -200,7 +200,7 @@ const globalConfig: GenerateGlobalConfig = ({ sdk, utils, context }): GlobalConf
                 if (!currentUser?.uid) throw new Error("Error sending Firestore write operation failure email")
                 await sendAdminEmail(
                     `Stoker Operation Failure`,
-                    `Operation Type: ${operation}\n\nUser: ${currentUser.displayName}\n\nUser ID: ${currentUser.uid}\n\nCollection: ${context.collection}\n\nDocument ID: ${docId}\n\nError Details:\n\n${JSON.stringify(error)}`,
+                    `Operation Type: ${operation}\n\nUser: ${currentUser.displayName}\n\nUser ID: ${currentUser.uid}\n\nCollection: ${context.collection}\n\nDocument ID: ${recordId}\n\nError Details:\n\n${JSON.stringify(error)}`,
                 ).catch(() => {
                     throw new Error("Error sending Firestore write operation failure email")
                 })

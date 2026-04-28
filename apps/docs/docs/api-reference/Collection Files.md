@@ -2199,7 +2199,7 @@ In the Web SDK, postWrite, postError and postOperation hooks will not fire if th
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
-    docId?: string
+    recordId?: string
     context?: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
@@ -2248,7 +2248,7 @@ When [serverWriteOnly](#serverwriteonly) is set to true, this hook will fire in 
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
@@ -2273,7 +2273,7 @@ Return `false` to cancel the operation.
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
-    docId?: string
+    recordId?: string
     context?: any
     retry?: boolean
     originalRecord?: StokerRecord
@@ -2288,7 +2288,7 @@ Fires after a read or write operation.
 ({
     context: any
     refs: unknown[]
-    doc: StokerRecord | undefined
+    record: StokerRecord | undefined
     listener?: boolean
 }) => void | Promise<void>
 ```
@@ -2301,7 +2301,7 @@ Fires after a read operation.
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     context: any
     retry?: boolean
     originalRecord?: StokerRecord
@@ -2316,7 +2316,7 @@ Fires after a write operation.
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     context: any
     error: unknown
     batch?: WriteBatch

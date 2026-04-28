@@ -225,7 +225,7 @@ export interface CollectionAccess {
 export type PreOperationHookArgs = {
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
-    docId?: string
+    recordId?: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: any
     batch?: WriteBatch
@@ -242,7 +242,7 @@ export type PostReadHookArgs = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: any
     refs: unknown[]
-    doc?: StokerRecord
+    record?: StokerRecord
     listener?: boolean
 }
 export type PreDuplicateHookArgs = { data: Partial<StokerRecord> }
@@ -257,7 +257,7 @@ export type PreValidateHookArgs = {
 export type PreWriteHookArgs = {
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: any
     batch?: WriteBatch
@@ -266,7 +266,7 @@ export type PreWriteHookArgs = {
 export type PostWriteHookArgs = {
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: any
     retry?: boolean
@@ -275,7 +275,7 @@ export type PostWriteHookArgs = {
 export type PostWriteErrorHookArgs = {
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: any
     error: unknown
@@ -287,7 +287,7 @@ export type PostWriteErrorHookArgs = {
 export type PostOperationHookArgs = {
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
-    docId?: string
+    recordId?: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: any
     retry?: boolean

@@ -313,11 +313,11 @@ export const subscribeMany = async (
                     const postOperationArgs: PostOperationHookArgs = {
                         operation: "read",
                         data: doc,
-                        docId: doc.id,
+                        recordId: doc.id,
                         context,
                     }
                     runHooks("postOperation", globalConfig, customization, postOperationArgs)
-                    const postReadArgs: PostReadHookArgs = { context, refs, doc, listener: true }
+                    const postReadArgs: PostReadHookArgs = { context, refs, record: doc, listener: true }
                     runHooks("postRead", globalConfig, customization, postReadArgs)
                 })
             }

@@ -530,7 +530,7 @@ Fires when the user has logged out. If an error is encountered during sign out, 
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
-    docId?: string
+    recordId?: string
     context?: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
@@ -577,7 +577,7 @@ Return an object with a boolean indicating whether validation passed, and a mess
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
@@ -602,7 +602,7 @@ Return `false` to cancel the operation.
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
-    docId?: string
+    recordId?: string
     context?: any
     retry?: boolean
     originalRecord?: StokerRecord
@@ -617,7 +617,7 @@ Fires after all read and write operations.
 ({
     context: any
     refs: unknown[]
-    doc: StokerRecord | undefined
+    record: StokerRecord | undefined
     listener?: boolean
 }) => void | Promise<void>
 ```
@@ -630,7 +630,7 @@ Fires after all read operations.
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     context: any
     retry?: boolean
     originalRecord?: StokerRecord
@@ -645,7 +645,7 @@ Fires after all write operations.
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
-    docId: string
+    recordId: string
     context: any
     error: unknown
     retry?: boolean

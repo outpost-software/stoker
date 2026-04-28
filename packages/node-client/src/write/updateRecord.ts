@@ -206,7 +206,7 @@ export const updateRecord = async (
     const preOperationArgs: PreOperationHookArgs = {
         operation: "update",
         data: partial,
-        docId,
+        recordId: docId,
         context,
         originalRecord: cloneDeep(originalRecord),
     }
@@ -214,7 +214,7 @@ export const updateRecord = async (
     const preWriteArgs: PreWriteHookArgs = {
         operation: "update",
         data: partial,
-        docId,
+        recordId: docId,
         context,
         originalRecord: cloneDeep(originalRecord),
     }
@@ -581,7 +581,7 @@ export const updateRecord = async (
                 const postWriteErrorArgs: PostWriteErrorHookArgs = {
                     operation: "update",
                     data: partial,
-                    docId,
+                    recordId: docId,
                     context,
                     error,
                     originalRecord: cloneDeep(originalRecord),
@@ -686,7 +686,7 @@ export const updateRecord = async (
         const postWriteArgs: PostWriteHookArgs = {
             operation: "update",
             data: partial,
-            docId,
+            recordId: docId,
             context,
             originalRecord: cloneDeep(originalRecord),
         }

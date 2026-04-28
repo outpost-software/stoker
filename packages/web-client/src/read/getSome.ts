@@ -440,9 +440,9 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
         }
         await Promise.all(computedFieldPromises)
 
-        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: doc, docId: doc.id, context }
+        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: doc, recordId: doc.id, context }
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
-        const postReadArgs: PostReadHookArgs = { context, refs, doc, listener: false }
+        const postReadArgs: PostReadHookArgs = { context, refs, record: doc, listener: false }
         await runHooks("postRead", globalConfig, customization, postReadArgs)
     }
 

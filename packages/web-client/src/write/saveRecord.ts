@@ -136,7 +136,7 @@ export const saveRecord = async (
             const postWriteErrorArgs: PostWriteErrorHookArgs = {
                 operation,
                 data: record,
-                docId,
+                recordId: docId,
                 context,
                 error,
                 batch,

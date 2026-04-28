@@ -179,9 +179,21 @@ export const addRecord = async (
     }
 
     if (!retry) {
-        const preOperationArgs: PreOperationHookArgs = { operation: "create", data: record, docId, context, batch }
+        const preOperationArgs: PreOperationHookArgs = {
+            operation: "create",
+            data: record,
+            recordId: docId,
+            context,
+            batch,
+        }
         await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-        const preWriteArgs: PreWriteHookArgs = { operation: "create", data: record, docId, context, batch }
+        const preWriteArgs: PreWriteHookArgs = {
+            operation: "create",
+            data: record,
+            recordId: docId,
+            context,
+            batch,
+        }
         await runHooks("preWrite", globalConfig, customization, preWriteArgs)
     }
 
@@ -302,7 +314,13 @@ export const addRecord = async (
         writeLog("create", "success", record, path, docId, collectionSchema, currentUser.uid)
     }
 
-    const postWriteArgs: PostWriteHookArgs = { operation: "create", data: record, docId, context, retry: !!retry }
+    const postWriteArgs: PostWriteHookArgs = {
+        operation: "create",
+        data: record,
+        recordId: docId,
+        context,
+        retry: !!retry,
+    }
     const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)

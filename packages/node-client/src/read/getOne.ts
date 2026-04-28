@@ -249,7 +249,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const context: any = {}
-        const preOperationArgs: PreOperationHookArgs = { operation: "read", docId, context }
+        const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId: docId, context }
         await runHooks("preOperation", globalConfig, customization, preOperationArgs)
         const preReadArgs: PreReadHookArgs = { context, refs, multiple: false, listener: false }
         await runHooks("preRead", globalConfig, customization, preReadArgs)
@@ -360,9 +360,9 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
             }
         }
 
-        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: docData, docId, context }
+        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: docData, recordId: docId, context }
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
-        const postReadArgs: PostReadHookArgs = { context, refs, doc: docData, listener: false }
+        const postReadArgs: PostReadHookArgs = { context, refs, record: docData, listener: false }
         await runHooks("postRead", globalConfig, customization, postReadArgs)
 
         if (options?.userId) {
