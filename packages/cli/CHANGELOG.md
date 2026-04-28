@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.68
+
+### Patch Changes
+
+- fix: rename doc to record in init files
+
 ## 0.5.67
 
 ### Patch Changes
