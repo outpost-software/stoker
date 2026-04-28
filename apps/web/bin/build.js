@@ -407,7 +407,7 @@ try {
     const path = join(process.cwd(), "lib", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigModule = await import(url)
-    const globalConfig = globalConfigModule.default("node")
+    const globalConfig = globalConfigModule.default({ sdk: "web" })
     const appName = await tryPromise(globalConfig.appName)
     const description = await tryPromise(globalConfig.admin?.meta?.description)
 

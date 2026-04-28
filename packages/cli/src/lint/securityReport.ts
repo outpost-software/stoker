@@ -38,7 +38,7 @@ export const securityReport = async () => {
     const path = join(process.cwd(), "lib", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigFile = await import(url)
-    const globalConfig: GlobalConfig = globalConfigFile.default("node")
+    const globalConfig: GlobalConfig = globalConfigFile.default({ sdk: "node" })
 
     for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
         const { auth, fields, access } = collectionSchema
@@ -100,7 +100,7 @@ export const securityReport = async () => {
                     const path = join(process.cwd(), "lib", "collections", `${collectionName}.js`)
                     const url = pathToFileURL(path).href
                     const customizationFile = await import(url)
-                    const customization = customizationFile.default("node")
+                    const customization = customizationFile.default({ sdk: "node" })
                     if (isRelationField(field)) {
                         const relationCollection = schema.collections[field.collection]
                         const relationAccess = relationCollection.access

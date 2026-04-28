@@ -1,7 +1,7 @@
 import type { GenerateSchema, CollectionSchema, StokerRecord } from "@stoker-platform/types"
 import { Users2 } from "lucide-react"
 
-const Users: GenerateSchema = (sdk): CollectionSchema => {
+const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
     return {
         labels: {
             collection: "Users",

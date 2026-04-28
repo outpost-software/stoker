@@ -22,7 +22,7 @@ export const generateSchema = async (includeComputedFields: boolean = false) => 
     const path = join(process.cwd(), "lib", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigFile = await import(url)
-    const globalConfig: GlobalConfig = globalConfigFile.default("node")
+    const globalConfig: GlobalConfig = globalConfigFile.default({ sdk: "node" })
 
     const projectData = await readFile(join(process.cwd(), "project-data.json"), "utf8")
     const projectDataJson = JSON.parse(projectData)
@@ -55,7 +55,7 @@ export const generateSchema = async (includeComputedFields: boolean = false) => 
         const path = join(process.cwd(), "lib", "collections", collection)
         const url = pathToFileURL(path).href
         const schema = await import(url)
-        fullSchema.push(schema.default("node"))
+        fullSchema.push(schema.default({ sdk: "node" }))
     }
 
     newSchema.collections = {}
@@ -64,7 +64,7 @@ export const generateSchema = async (includeComputedFields: boolean = false) => 
         const path = join(process.cwd(), "lib", "collections", collection)
         const url = pathToFileURL(path).href
         const schema = await import(url)
-        const persistSchema: CollectionSchema = schema.default("node")
+        const persistSchema: CollectionSchema = schema.default({ sdk: "node" })
         const { labels, access, preloadCache, admin } = persistSchema
         const { serverReadOnly } = access
 

@@ -44,7 +44,7 @@ export const lintSchema = async (noLog = false) => {
     const path = join(process.cwd(), "lib", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigFile = await import(url)
-    const globalConfig: GlobalConfig = globalConfigFile.default("node")
+    const globalConfig: GlobalConfig = globalConfigFile.default({ sdk: "node" })
     const schema = await generateSchema(true)
     const customizationFiles = await getCustomizationFiles(
         join(process.cwd(), "lib", "collections"),

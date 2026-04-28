@@ -2,7 +2,7 @@ import type { CollectionSchema, GenerateSchema, StokerRecord, StokerRelationObje
 import { parseDate } from "@stoker-platform/utils"
 import { Send } from "lucide-react"
 
-const Outbox: GenerateSchema = (sdk: "web" | "node"): CollectionSchema => {
+const Outbox: GenerateSchema = ({ sdk }): CollectionSchema => {
     return {
         labels: {
             collection: "Outbox",

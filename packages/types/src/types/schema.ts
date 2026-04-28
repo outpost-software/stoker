@@ -1119,12 +1119,13 @@ export interface CollectionsSchema {
     version: number
 }
 
-export type GenerateSchema = (
-    sdk: "web" | "node",
-    config?: WebUtilities | NodeUtilities,
+export interface GenerateSchemaParams {
+    sdk: "web" | "node"
+    utils?: WebUtilities | NodeUtilities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
-) => CollectionSchema
+    context?: any
+}
+export type GenerateSchema = (params: GenerateSchemaParams) => CollectionSchema
 
 export interface RoleGroup {
     key: string

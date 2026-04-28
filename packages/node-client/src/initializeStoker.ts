@@ -83,7 +83,7 @@ export const initializeStoker = async (
     const url = pathToFileURL(configFilePath).href
     const globalConfigFile = await import(/* @vite-ignore */ url)
     const config: GenerateGlobalConfig = globalConfigFile.default
-    globalConfig = config("node", utilities)
+    globalConfig = config({ sdk: "node", utils: utilities })
 
     if (!gcp && modeEnv === "development") {
         process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099"

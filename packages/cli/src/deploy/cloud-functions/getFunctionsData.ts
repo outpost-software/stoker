@@ -11,7 +11,7 @@ export const getFunctionsData = async () => {
     const url = pathToFileURL(path).href
     const globalConfigFile = await import(/* @vite-ignore */ url)
     const config: GenerateGlobalConfig = globalConfigFile.default
-    const globalConfig = config("node")
+    const globalConfig = config({ sdk: "node" })
     const timezone = await tryPromise(globalConfig.timezone)
 
     const schema = await generateSchema()

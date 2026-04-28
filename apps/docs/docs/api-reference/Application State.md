@@ -6,7 +6,7 @@ You have access to application state while working in the global config file and
 
 The global config file works by exporting a `GenerateGlobalConfig` function. Collection config files export a `GenerateSchema` function. 
 
-Below are the parameters available to these functions.
+These functions provide a params object with the following values.
 
 You can also use the [Web](/docs/api-reference/Web%20SDK) and [Node](/docs/api-reference/Node%20SDK) SDKs in your config files.
 
@@ -14,11 +14,11 @@ You can also use the [Web](/docs/api-reference/Web%20SDK) and [Node](/docs/api-r
 
 `"web" | "node"`
 
-The first parameter is the `sdk` that is currently in use. This signals which environment your app is currently running in.
+The `sdk` that is currently in use. This signals which environment your app is currently running in.
 
 ## utils (web)
 
-The second argument is a `utils` object that contains the following helper functions when running in the `web` sdk:
+A `utils` object that contains the following helper functions when running in the `web` sdk:
 
 ### getTenant
 
@@ -148,7 +148,7 @@ Returns the app's maintnenance Firestore instance.
 
 ## utils (node)
 
-The second argument is a `utils` object that contains the following helper functions when running in the `node` sdk:
+A `utils` object that contains the following helper functions when running in the `node` sdk:
 
 ### getMode
 
@@ -210,7 +210,7 @@ Returns the app's current maintenance mode status.
 
 ## context (web sdk only)
 
-The third argument is a `context` object that returns the context provided to `initializeStoker`. The defaults provided when using the Admin UI are:
+A `context` object that returns the context provided to `initializeStoker`. The defaults provided when using the Admin UI are:
 
 ### setMaintenance
 

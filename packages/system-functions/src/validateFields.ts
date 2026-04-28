@@ -96,7 +96,7 @@ export const validateFields = (
                 });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
-                const appName = await tryPromise(globalConfig("node").appName);
+                const appName = await tryPromise(globalConfig({sdk: "node"}).appName);
                 const adminEmail = process.env.ADMIN_EMAIL;
                 if (adminEmail) {
                     await sendMail(adminEmail, `Invalid Stoker Write - ${appName} - ${tenantId} - ${labels.collection} - ${snapshot.after.id}`, error.message).catch((error) => {

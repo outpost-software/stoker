@@ -235,7 +235,7 @@ export const initializeStoker = async (
     }
     registerVersion("stoker-client", version, "web")
     mode = env.MODE as "development" | "production"
-    globalConfig = config.default("web", utilities, context)
+    globalConfig = config.default({ sdk: "web", utils: utilities, context })
 
     timezone = (await getCachedConfigValue(globalConfig, ["global", "timezone"])) as string
 

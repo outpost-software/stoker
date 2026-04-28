@@ -16,7 +16,7 @@ import { parseDate } from "@stoker-platform/utils"
 
 const toasted: string[] = []
 
-const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
+const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
     const { toast } = (context || {}) as {
         toast: ({
             title,

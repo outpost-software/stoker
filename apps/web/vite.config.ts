@@ -13,7 +13,7 @@ export default defineConfig(async ({ mode }) => {
     const path = join(process.cwd(), "src", "assets", "system-custom", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigModule = await import(url)
-    const globalConfig = globalConfigModule.default("node")
+    const globalConfig = globalConfigModule.default({ sdk: "web" })
     const appName = await tryPromise(globalConfig.appName)
     const description = await tryPromise(globalConfig.admin?.meta?.description)
 

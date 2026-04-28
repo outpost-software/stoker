@@ -3,7 +3,7 @@ import { MessageCircle, Send, SquarePen, Timer, TrendingUp, Users } from "lucide
 import { blueField, greenField, redField } from "../utils.js"
 import { parseDate } from "@stoker-platform/utils"
 
-const Outbox: GenerateSchema = (sdk: "web" | "node"): CollectionSchema => {
+const Outbox: GenerateSchema = ({ sdk }): CollectionSchema => {
     return {
         labels: {
             collection: "Outbox",

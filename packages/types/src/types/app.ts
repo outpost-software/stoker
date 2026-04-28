@@ -178,12 +178,14 @@ export interface AdminConfig {
     homePage?: Record<StokerRole, StokerCollection> | (() => Record<StokerRole, StokerCollection>)
 }
 
-export type GenerateGlobalConfig = (
-    sdk: "web" | "node",
-    config?: WebUtilities | NodeUtilities,
+export interface GenerateGlobalConfigParams {
+    sdk: "web" | "node"
+    utils?: WebUtilities | NodeUtilities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    context?: any,
-) => GlobalConfig
+    context?: any
+}
+
+export type GenerateGlobalConfig = (params: GenerateGlobalConfigParams) => GlobalConfig
 
 export type Region =
     | "asia-east1"

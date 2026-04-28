@@ -4,7 +4,7 @@ import { Billing } from "../web/Billing.js"
 import { Title } from "../web/Title.js"
 import { Preview } from "../web/Preview.js"
 
-const Invoices: GenerateSchema = (_sdk, _utils, context): CollectionSchema => {
+const Invoices: GenerateSchema = ({ context }): CollectionSchema => {
     const { setDialogContent } = (context || {}) as {
         setDialogContent: (dialogContent: DialogContent | null) => void
     }

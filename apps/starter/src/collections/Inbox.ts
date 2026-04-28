@@ -2,7 +2,7 @@ import type { CollectionSchema, GenerateSchema, StokerRecord, WebUtilities } fro
 import { parseDate } from "@stoker-platform/utils"
 import { Inbox as InboxIcon, ReplyAllIcon, ReplyIcon } from "lucide-react"
 
-const Inbox: GenerateSchema = (sdk, utils, context): CollectionSchema => {
+const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
     return {
         labels: {
             collection: "Inbox",

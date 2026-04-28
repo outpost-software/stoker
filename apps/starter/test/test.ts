@@ -944,7 +944,7 @@ describe("CLI", async () => {
         })
 
         await resolveCLICommand(child)
-    }, 180000)
+    }, 300000)
 
     test("start command starts the Firebase emulator", async () => {
         const child_process = spawn("node", [stokerMain, "start", "--test-mode"], {

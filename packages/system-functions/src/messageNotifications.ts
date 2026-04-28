@@ -34,7 +34,7 @@ export const messageNotifications = (
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
         const doc = snapshot.data();
-        const appName = globalConfig("node").appName;
+        const appName = globalConfig({sdk: "node"}).appName;
 
         await initializeStoker(
             "production",

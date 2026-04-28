@@ -1,6 +1,6 @@
 import type { DialogContent, GenerateGlobalConfig, GlobalConfig, WebUtilities } from "@stoker-platform/types"
 
-const globalConfig: GenerateGlobalConfig = (sdk, utils, context): GlobalConfig => {
+const globalConfig: GenerateGlobalConfig = ({ sdk, utils, context }): GlobalConfig => {
     const { setDialogContent, setConnectionStatus } = (context || {}) as {
         setDialogContent: (dialogContent: DialogContent | null) => void
         setConnectionStatus: (connectionStatus: "online" | "offline") => void
