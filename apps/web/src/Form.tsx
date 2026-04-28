@@ -2980,6 +2980,14 @@ function RecordForm({
         })
     }
 
+    const hasOperationAccess = (permissionsCollection: CollectionSchema, operation: string) => {
+        const { access } = permissionsCollection
+        const roleForAssignability = record?.Role || formValues.Role
+        return (access.operations[operation.toLowerCase() as keyof AccessOperations] as string[])?.includes(
+            roleForAssignability,
+        )
+    }
+
     const isAssignable = (permissionsCollection: CollectionSchema) => {
         const { access } = permissionsCollection
         const roleForAssignability = record?.Role || formValues.Role
@@ -4588,10 +4596,10 @@ function RecordForm({
                                                     )
 
                                                 if (
-                                                    !isAssignable(permissionsCollection) &&
                                                     !hasEntityRestrictions &&
                                                     operations.every(
-                                                        (operation) => !defaultAccess(permissionsCollection, operation),
+                                                        (operation) =>
+                                                            !hasOperationAccess(permissionsCollection, operation),
                                                     )
                                                 )
                                                     return null

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.86
+
+### Patch Changes
+
+- fix: refactor hidden permissions collections
+
 ## 0.5.85
 
 ### Patch Changes
