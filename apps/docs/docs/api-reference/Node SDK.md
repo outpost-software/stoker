@@ -143,7 +143,7 @@ You can [transactionally increment or decrement a field value](https://firebase.
 ```
 (
     path: string[],
-    docId: string,
+    recordId: string,
     data: Partial<StokerRecord>,
     options?: {
         userId?: string
@@ -165,7 +165,7 @@ You can [transactionally increment or decrement a field value](https://firebase.
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to update.
+`recordId`: The id of the record to update.
 
 `data`: The data to update.
 
@@ -197,7 +197,7 @@ The updated record.
 ```
 (
     path: string[],
-    docId: string,
+    recordId: string,
     options?: {
         userId?: string
         force?: boolean
@@ -210,7 +210,7 @@ The updated record.
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to delete.
+`recordId`: The id of the record to delete.
 
 `options.userId`: A user to impersonate.
 
@@ -229,7 +229,7 @@ Retrieve a record from the database.
 ```
 (
     path: string[],
-    docId: string,
+    recordId: string,
     options?: {
         userId?: string
         relations?: {
@@ -257,7 +257,7 @@ Retrieve a record from the database.
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to retrieve.
+`recordId`: The id of the record to retrieve.
 
 `options.userId`: A user to impersonate.
 

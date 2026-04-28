@@ -3,7 +3,7 @@ import { getCurrentUserPermissions, getSchema, getTenant } from "../initializeSt
 import { collectionAccess, hasDependencyAccess } from "@stoker-platform/utils"
 import { doc, getFirestore } from "firebase/firestore"
 
-export const getDocumentRefs = (path: string[], docId: string, roleGroup: RoleGroup) => {
+export const getDocumentRefs = (path: string[], recordId: string, roleGroup: RoleGroup) => {
     const db = getFirestore()
     const tenantId = getTenant()
     const schema = getSchema()
@@ -32,7 +32,7 @@ export const getDocumentRefs = (path: string[], docId: string, roleGroup: RoleGr
                 "system_fields",
                 labels.collection,
                 `${labels.collection}-${roleGroup.key}`,
-                docId,
+                recordId,
             ),
         )
     } else if (dependencyAccess) {
@@ -45,7 +45,7 @@ export const getDocumentRefs = (path: string[], docId: string, roleGroup: RoleGr
                     "system_fields",
                     labels.collection,
                     `${labels.collection}-${field.field}`,
-                    docId,
+                    recordId,
                 ),
             )
         }

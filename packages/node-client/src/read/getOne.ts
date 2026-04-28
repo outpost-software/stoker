@@ -183,7 +183,7 @@ export interface GetOneOptions {
     noEmbeddingFields?: boolean
 }
 
-export const getOne = async (path: string[], docId: string, options?: GetOneOptions) => {
+export const getOne = async (path: string[], recordId: string, options?: GetOneOptions) => {
     if (options?.subcollections?.depth && options.subcollections.depth > 10) {
         throw new Error("INPUT_ERROR: Subcollections depth cannot exceed 10")
     }
@@ -244,12 +244,12 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
         }
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const refs = getDocumentRefs(tenantId, path, docId, schema, permissions!)
+        const refs = getDocumentRefs(tenantId, path, recordId, schema, permissions!)
         if (refs.length === 0) throw new Error("PERMISSION_DENIED")
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const context: any = {}
-        const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId: docId, context }
+        const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId, context }
         await runHooks("preOperation", globalConfig, customization, preOperationArgs)
         const preReadArgs: PreReadHookArgs = { context, refs, multiple: false, listener: false }
         await runHooks("preRead", globalConfig, customization, preReadArgs)
@@ -269,13 +269,13 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
                 delete docData.Collection_Path_String
             } else {
                 throw new Error(
-                    `NOT_FOUND: Document with ID ${docId} does not exist at location ${path?.join("/") || labels.collection}`,
+                    `NOT_FOUND: Document with ID ${recordId} does not exist at location ${path?.join("/") || labels.collection}`,
                 )
             }
         }
 
         const operations = []
-        const documentPath = path ? [...path, docId] : [labels.collection, docId]
+        const documentPath = path ? [...path, recordId] : [labels.collection, recordId]
         if (options?.subcollections) {
             operations.push(
                 getSubcollections(
@@ -360,7 +360,7 @@ export const getOne = async (path: string[], docId: string, options?: GetOneOpti
             }
         }
 
-        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: docData, recordId: docId, context }
+        const postOperationArgs: PostOperationHookArgs = { operation: "read", data: docData, recordId, context }
         await runHooks("postOperation", globalConfig, customization, postOperationArgs)
         const postReadArgs: PostReadHookArgs = { context, refs, record: docData, listener: false }
         await runHooks("postRead", globalConfig, customization, postReadArgs)

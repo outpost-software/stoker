@@ -1459,7 +1459,7 @@ You can enable an AI chat bot for the collection. The chat bot uses Retrieval Au
 
 `chat.name`: The name for the chat bot. This is not currently used anywhere, but may be in future.
 
-`chat.defaultQueryLimit`: The number of documents the LLM should retrieve for context.
+`chat.defaultQueryLimit`: The number of records the LLM should retrieve for context.
 
 `chat.roles`: The roles that can view the chat bot.
 

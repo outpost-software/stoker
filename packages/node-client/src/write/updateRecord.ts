@@ -55,7 +55,7 @@ import { entityRestrictionAccess } from "./entityRestrictionAccess.js"
 
 export const updateRecord = async (
     path: string[],
-    docId: string,
+    recordId: string,
     data: Partial<StokerRecord>,
     options?: {
         userId?: string
@@ -114,7 +114,7 @@ export const updateRecord = async (
 
     let originalRecord =
         options?.originalRecord ||
-        (await getOne(path, docId, {
+        (await getOne(path, recordId, {
             userId,
             noComputedFields: true,
             noEmbeddingFields: true,
@@ -201,12 +201,22 @@ export const updateRecord = async (
     removeUndefined(originalRecord)
 
     if (enableWriteLog && !options?.providedTransaction)
-        await writeLog("update", "started", partial, tenantId, path, docId, collectionSchema, undefined, originalRecord)
+        await writeLog(
+            "update",
+            "started",
+            partial,
+            tenantId,
+            path,
+            recordId,
+            collectionSchema,
+            undefined,
+            originalRecord,
+        )
 
     const preOperationArgs: PreOperationHookArgs = {
         operation: "update",
         data: partial,
-        recordId: docId,
+        recordId,
         context,
         originalRecord: cloneDeep(originalRecord),
     }
@@ -214,7 +224,7 @@ export const updateRecord = async (
     const preWriteArgs: PreWriteHookArgs = {
         operation: "update",
         data: partial,
-        recordId: docId,
+        recordId,
         context,
         originalRecord: cloneDeep(originalRecord),
     }
@@ -231,7 +241,7 @@ export const updateRecord = async (
         }
         if (!options?.providedTransaction) {
             const record = { ...originalRecord, ...partial }
-            await uniqueValidation("update", tenantId, docId, record, collectionSchema, schema)
+            await uniqueValidation("update", tenantId, recordId, record, collectionSchema, schema)
             removeDeleteSentinels(record)
             await validateRecord(
                 "update",
@@ -290,7 +300,7 @@ export const updateRecord = async (
                     ? transaction.get(db.collection("system_deployment").doc("maintenance_mode"))
                     : Promise.resolve({} as DocumentSnapshot),
                 !options?.providedTransaction
-                    ? getOne(path, docId, {
+                    ? getOne(path, recordId, {
                           userId,
                           providedTransaction: transaction,
                           noComputedFields: true,
@@ -331,7 +341,8 @@ export const updateRecord = async (
             if (!currentUserPermissions.Enabled) throw new Error("PERMISSION_DENIED")
         }
 
-        if (batchSize) batchSize.size += getDocumentRefs(tenantId, path, docId, schema, currentUserPermissions).length
+        if (batchSize)
+            batchSize.size += getDocumentRefs(tenantId, path, recordId, schema, currentUserPermissions).length
 
         if ((createUserRequest && originalRecord.User_ID) || (deleteUserRequest && !originalRecord.User_ID)) {
             throw new Error("USER_ERROR")
@@ -401,7 +412,7 @@ export const updateRecord = async (
                                 .doc(fieldName),
                         )
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        if (unique.exists && !(unique.data()!.id === docId))
+                        if (unique.exists && !(unique.data()!.id === recordId))
                             throw new Error(`VALIDATION_ERROR: ${field.name} "${partial[field.name]}" already exists`)
                     }
                 }
@@ -435,7 +446,7 @@ export const updateRecord = async (
         updateRecordAccessControl(
             partial,
             originalRecord,
-            docId,
+            recordId,
             collectionSchema,
             schema,
             userId,
@@ -460,7 +471,7 @@ export const updateRecord = async (
         updateRecordAccessControl(
             partial,
             originalRecord,
-            docId,
+            recordId,
             collectionSchema,
             schema,
             userId,
@@ -471,7 +482,7 @@ export const updateRecord = async (
         )
 
         if (initial && (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest)) {
-            await lockRecord(transaction, docId, originalRecord.User_ID)
+            await lockRecord(transaction, recordId, originalRecord.User_ID)
         }
     }
 
@@ -499,7 +510,7 @@ export const updateRecord = async (
                 noDelete = await validateRelations(
                     "Update",
                     tenantId,
-                    docId,
+                    recordId,
                     record,
                     partial,
                     collectionSchema,
@@ -517,7 +528,7 @@ export const updateRecord = async (
                 "update",
                 transaction,
                 path,
-                docId,
+                recordId,
                 partial,
                 schema,
                 collectionSchema,
@@ -533,7 +544,7 @@ export const updateRecord = async (
                         .collection("system_fields")
                         .doc(labels.collection)
                         .collection(`${labels.collection}-${field.name}`)
-                        .doc(docId),
+                        .doc(recordId),
                 (field: CollectionField, uniqueValue: string) =>
                     db
                         .collection("tenants")
@@ -549,7 +560,7 @@ export const updateRecord = async (
                         .collection("system_fields")
                         .doc(labels.collection)
                         .collection(`${labels.collection}-${role}`)
-                        .doc(docId),
+                        .doc(recordId),
                 (relationPath: string[], id: string) => {
                     const ref = getFirestorePathRef(db, relationPath, tenantId)
                     return ref.doc(id)
@@ -575,13 +586,13 @@ export const updateRecord = async (
                 batchSize,
             )
 
-            transaction.update(ref.doc(docId), partial)
+            transaction.update(ref.doc(recordId), partial)
         } catch (error) {
             if (!options?.providedTransaction) {
                 const postWriteErrorArgs: PostWriteErrorHookArgs = {
                     operation: "update",
                     data: partial,
-                    recordId: docId,
+                    recordId,
                     context,
                     error,
                     originalRecord: cloneDeep(originalRecord),
@@ -597,7 +608,7 @@ export const updateRecord = async (
                         partial,
                         tenantId,
                         path,
-                        docId,
+                        recordId,
                         collectionSchema,
                         errorHook?.resolved ? undefined : error,
                         originalRecord,
@@ -616,7 +627,7 @@ export const updateRecord = async (
                             .collection("tenants")
                             .doc(tenantId)
                             .collection(labels.collection)
-                            .doc(docId)
+                            .doc(recordId)
                             .update({ User_ID: FieldValue.delete() })
                     }
                     throw error
@@ -624,7 +635,7 @@ export const updateRecord = async (
             } else throw error
         }
         if (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest) {
-            await retryOperation(unlockRecord, [docId, originalRecord.User_ID]).catch(() => {
+            await retryOperation(unlockRecord, [recordId, originalRecord.User_ID]).catch(() => {
                 throw new Error("USER_ERROR")
             })
         }
@@ -645,7 +656,7 @@ export const updateRecord = async (
             const uid = await updateUser(
                 user?.operation || "update",
                 tenantId,
-                docId,
+                recordId,
                 globalConfig,
                 labels.collection,
                 record,
@@ -675,7 +686,7 @@ export const updateRecord = async (
         }
     } catch (error) {
         if (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest) {
-            await retryOperation(unlockRecord, [docId, originalRecord.User_ID]).catch(() => {
+            await retryOperation(unlockRecord, [recordId, originalRecord.User_ID]).catch(() => {
                 throw new Error("USER_ERROR")
             })
         }
@@ -686,7 +697,7 @@ export const updateRecord = async (
         const postWriteArgs: PostWriteHookArgs = {
             operation: "update",
             data: partial,
-            recordId: docId,
+            recordId,
             context,
             originalRecord: cloneDeep(originalRecord),
         }
@@ -697,6 +708,6 @@ export const updateRecord = async (
 
     const finalRecord = { ...originalRecord, ...partial }
     removeDeleteSentinels(finalRecord)
-    const result = { id: docId, ...finalRecord }
+    const result = { id: recordId, ...finalRecord }
     return result
 }

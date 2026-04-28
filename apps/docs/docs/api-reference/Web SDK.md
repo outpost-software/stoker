@@ -179,7 +179,7 @@ The `originalRecord` value provided to hooks in the Web SDK may be stale. If you
 ```
 (
     path: string[],
-    docId: string,
+    recordId: string,
     data: Partial<StokerRecord>,
     options?: {
         user?: {
@@ -197,7 +197,7 @@ The `originalRecord` value provided to hooks in the Web SDK may be stale. If you
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to update.
+`recordId`: The id of the record to update.
 
 `data`: The data to update.
 
@@ -216,7 +216,7 @@ Delete a record from the database.
 ```
 (
     path: string[],
-    docId: string,
+    recordId: string,
 ) => Promise<StokerRecord>
 ```
 
@@ -224,7 +224,7 @@ Delete a record from the database.
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to delete.
+`recordId`: The id of the record to delete.
 
 #### Returns
 
@@ -237,7 +237,7 @@ Retrieve a record from the database.
 ```
 (
     path: string[],
-    docId: string,
+    recordId: string,
     options?: {
         only?: "cache" | "server";
         relations?: {
@@ -264,7 +264,7 @@ Retrieve a record from the database.
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to retrieve.
+`recordId`: The id of the record to retrieve.
 
 `options.only`: Only query the cache or the server.
 
@@ -354,8 +354,8 @@ Add a listener to a record in the database.
 ```
 (
     path: string[],
-    docId: string,
-    callback: (docData: StokerRecord | undefined) => void,
+    recordId: string,
+    callback: (doc: StokerRecord | undefined) => void,
     errorCallback?: (error: Error) => void,
     options?: {
         only?: "cache" | "default";
@@ -372,7 +372,7 @@ Add a listener to a record in the database.
 
 `path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
 
-`docId`: The id of the record to retrieve.
+`recordId`: The id of the record to retrieve.
 
 `callback`: Fires whenever the record or it relations are updated in the database.
 

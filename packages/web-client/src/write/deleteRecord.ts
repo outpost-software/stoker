@@ -48,7 +48,7 @@ import { getAuth } from "firebase/auth"
 
 export const deleteRecord = async (
     path: string[],
-    docId: string,
+    recordId: string,
     options?: { retry?: { type: string; record: StokerRecord } },
 ) => {
     const tenantId = getTenant()
@@ -77,7 +77,7 @@ export const deleteRecord = async (
     if (!permissions) throw new Error("PERMISSION_DENIED")
 
     if (softDelete && !collectionSchema.auth) {
-        const result = await updateRecord(path, docId, {
+        const result = await updateRecord(path, recordId, {
             [softDelete.archivedField]: true,
             [softDelete.timestampField]: serverTimestamp(),
         })
@@ -97,21 +97,21 @@ export const deleteRecord = async (
     }
     checkOnline()
 
-    if (isRetrying(docId)) throw new Error("RECORD_BUSY")
+    if (isRetrying(recordId)) throw new Error("RECORD_BUSY")
 
     let data: StokerRecord
     try {
-        data = await getOne(path, docId)
+        data = await getOne(path, recordId)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         if (enableWriteLog && retry?.record && error.message.indexOf("NOT_FOUND") !== -1) {
-            await writeLog("delete", "failed", retry?.record, path, docId, collectionSchema, currentUser.uid, error)
+            await writeLog("delete", "failed", retry?.record, path, recordId, collectionSchema, currentUser.uid, error)
         }
         throw error
     }
 
     if (serverWriteOnly || (collectionSchema.auth && data.User_ID)) {
-        const result = await deleteRecordServer(path, docId)
+        const result = await deleteRecordServer(path, recordId)
         return result
     }
 
@@ -136,13 +136,14 @@ export const deleteRecord = async (
 
     removeUndefined(record)
 
-    if (!retry && enableWriteLog) writeLog("delete", "started", record, path, docId, collectionSchema, currentUser.uid)
+    if (!retry && enableWriteLog)
+        writeLog("delete", "started", record, path, recordId, collectionSchema, currentUser.uid)
 
     if (!retry) {
         const preOperationArgs: PreOperationHookArgs = {
             operation: "delete",
             data: record,
-            recordId: docId,
+            recordId,
             context,
             batch,
         }
@@ -150,7 +151,7 @@ export const deleteRecord = async (
         const preWriteArgs: PreWriteHookArgs = {
             operation: "delete",
             data: record,
-            recordId: docId,
+            recordId,
             context,
             batch,
         }
@@ -159,7 +160,7 @@ export const deleteRecord = async (
 
     removeUndefined(record)
 
-    deleteRecordAccessControl(record, docId, collectionSchema, schema, currentUser.uid, permissions)
+    deleteRecordAccessControl(record, recordId, collectionSchema, schema, currentUser.uid, permissions)
 
     const uniqueRef = (field: CollectionField, uniqueValue: string) =>
         doc(
@@ -176,7 +177,7 @@ export const deleteRecord = async (
         "delete",
         batch,
         path,
-        docId,
+        recordId,
         record,
         schema,
         collectionSchema,
@@ -193,11 +194,11 @@ export const deleteRecord = async (
                 "system_fields",
                 labels.collection,
                 `${labels.collection}-${field.name}`,
-                docId,
+                recordId,
             ),
         uniqueRef,
         (role: StokerRole) =>
-            doc(db, "tenants", tenantId, "system_fields", labels.collection, `${labels.collection}-${role}`, docId),
+            doc(db, "tenants", tenantId, "system_fields", labels.collection, `${labels.collection}-${role}`, recordId),
         (relationPath: string[], id: string) => doc(db, "tenants", tenantId, relationPath.join("/"), id),
         (field: RelationField, dependencyField: string, id: string) =>
             doc(
@@ -221,16 +222,16 @@ export const deleteRecord = async (
             ),
     )
 
-    batch.delete(doc(db, "tenants", tenantId, path.join("/"), docId))
+    batch.delete(doc(db, "tenants", tenantId, path.join("/"), recordId))
 
     if (!retry && enableWriteLog) {
-        writeLog("delete", "written", record, path, docId, collectionSchema, currentUser.uid)
+        writeLog("delete", "written", record, path, recordId, collectionSchema, currentUser.uid)
     }
 
     await saveRecord(
         "delete",
         path,
-        docId,
+        recordId,
         record,
         context,
         collectionSchema,
@@ -248,7 +249,7 @@ export const deleteRecord = async (
             "success",
             { ...record, ...(retry?.record || {}) },
             path,
-            docId,
+            recordId,
             collectionSchema,
             currentUser.uid,
         )
@@ -257,7 +258,7 @@ export const deleteRecord = async (
     const postWriteArgs: PostWriteHookArgs = {
         operation: "delete",
         data: record,
-        recordId: docId,
+        recordId,
         context,
         retry: !!retry,
     }
@@ -265,6 +266,6 @@ export const deleteRecord = async (
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
 
-    const result = { id: docId, ...record }
+    const result = { id: recordId, ...record }
     return result
 }

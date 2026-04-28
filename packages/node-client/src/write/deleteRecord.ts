@@ -34,7 +34,7 @@ import { fetchCurrentSchema } from "../utils/fetchSchema.js"
 
 export const deleteRecord = async (
     path: string[],
-    docId: string,
+    recordId: string,
     options?: {
         userId?: string
         force?: boolean
@@ -62,7 +62,7 @@ export const deleteRecord = async (
     if (softDelete && !auth && !options?.force) {
         const result = await updateRecord(
             path,
-            docId,
+            recordId,
             { [softDelete.archivedField]: true, [softDelete.timestampField]: FieldValue.serverTimestamp() },
             { userId },
         )
@@ -81,7 +81,7 @@ export const deleteRecord = async (
     context = context || {}
     context.collection = labels.collection
 
-    const data = await getOne(path, docId, { userId })
+    const data = await getOne(path, recordId, { userId })
 
     let record: StokerRecord = addSystemFields(
         "delete",
@@ -98,11 +98,11 @@ export const deleteRecord = async (
 
     removeUndefined(record)
 
-    if (enableWriteLog) await writeLog("delete", "started", record, tenantId, path, docId, collectionSchema)
+    if (enableWriteLog) await writeLog("delete", "started", record, tenantId, path, recordId, collectionSchema)
 
-    const preOperationArgs: PreOperationHookArgs = { operation: "delete", data: record, recordId: docId, context }
+    const preOperationArgs: PreOperationHookArgs = { operation: "delete", data: record, recordId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preWriteArgs: PreWriteHookArgs = { operation: "delete", data: record, recordId: docId, context }
+    const preWriteArgs: PreWriteHookArgs = { operation: "delete", data: record, recordId, context }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 
     removeUndefined(record)
@@ -110,7 +110,7 @@ export const deleteRecord = async (
     const preWriteChecks = async (transaction: Transaction) => {
         const [maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema] = await Promise.all([
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
-            getOne(path, docId, { userId, providedTransaction: transaction }),
+            getOne(path, recordId, { userId, providedTransaction: transaction }),
             userId
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),
@@ -136,7 +136,7 @@ export const deleteRecord = async (
             if (!currentUserPermissions.Role) throw new Error("USER_ERROR")
             if (!currentUserPermissions.Enabled) throw new Error("PERMISSION_DENIED")
 
-            deleteRecordAccessControl(record, docId, collectionSchema, schema, userId, currentUserPermissions)
+            deleteRecordAccessControl(record, recordId, collectionSchema, schema, userId, currentUserPermissions)
         }
 
         if (userId && currentUserPermissions?.Role) {
@@ -171,7 +171,7 @@ export const deleteRecord = async (
                     "delete",
                     transaction,
                     path,
-                    docId,
+                    recordId,
                     record,
                     schema,
                     collectionSchema,
@@ -187,7 +187,7 @@ export const deleteRecord = async (
                             .collection("system_fields")
                             .doc(labels.collection)
                             .collection(`${labels.collection}-${field.name}`)
-                            .doc(docId),
+                            .doc(recordId),
                     (field: CollectionField, uniqueValue: string) =>
                         db
                             .collection("tenants")
@@ -203,7 +203,7 @@ export const deleteRecord = async (
                             .collection("system_fields")
                             .doc(labels.collection)
                             .collection(`${labels.collection}-${role}`)
-                            .doc(docId),
+                            .doc(recordId),
                     (relationPath: string[], id: string) => {
                         const ref = getFirestorePathRef(db, relationPath, tenantId)
                         return ref.doc(id)
@@ -226,7 +226,7 @@ export const deleteRecord = async (
                             .doc(id),
                 )
 
-                transaction.delete(ref.doc(docId))
+                transaction.delete(ref.doc(recordId))
             },
             { maxAttempts: 10 },
         )
@@ -234,7 +234,7 @@ export const deleteRecord = async (
         const postWriteErrorArgs: PostWriteErrorHookArgs = {
             operation: "delete",
             data: record,
-            recordId: docId,
+            recordId,
             context,
             error,
         }
@@ -249,7 +249,7 @@ export const deleteRecord = async (
                 record,
                 tenantId,
                 path,
-                docId,
+                recordId,
                 collectionSchema,
                 errorHook?.resolved ? undefined : error,
             )
@@ -260,18 +260,18 @@ export const deleteRecord = async (
                     .collection("tenants")
                     .doc(tenantId)
                     .collection(labels.collection)
-                    .doc(docId)
+                    .doc(recordId)
                     .update({ User_ID: FieldValue.delete() })
             }
             throw error
         }
     }
 
-    const postWriteArgs: PostWriteHookArgs = { operation: "delete", data: record, recordId: docId, context }
+    const postWriteArgs: PostWriteHookArgs = { operation: "delete", data: record, recordId, context }
     const postOperationArgs: PostOperationHookArgs = { ...postWriteArgs }
     await runHooks("postWrite", globalConfig, customization, postWriteArgs)
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
 
-    const result = { id: docId, ...record }
+    const result = { id: recordId, ...record }
     return result
 }

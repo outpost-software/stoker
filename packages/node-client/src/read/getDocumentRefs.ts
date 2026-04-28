@@ -6,7 +6,7 @@ import { DocumentReference, getFirestore } from "firebase-admin/firestore"
 export const getDocumentRefs = (
     tenantId: string,
     path: string[],
-    docId: string,
+    recordId: string,
     schema: CollectionsSchema,
     permissions?: StokerPermissions,
 ): DocumentReference[] => {
@@ -20,7 +20,7 @@ export const getDocumentRefs = (
     const ref = getFirestorePathRef(db, path, tenantId)
 
     if (!permissions) {
-        return [ref.doc(docId)]
+        return [ref.doc(recordId)]
     } else {
         // eslint-disable-next-line security/detect-object-injection
         const collectionPermissions = permissions.collections?.[labels.collection]
@@ -45,7 +45,7 @@ export const getDocumentRefs = (
                     .collection("system_fields")
                     .doc(labels.collection)
                     .collection(`${labels.collection}-${roleGroup.key}`)
-                    .doc(docId),
+                    .doc(recordId),
             )
         } else if (dependencyAccess) {
             for (const field of dependencyAccess) {
@@ -56,7 +56,7 @@ export const getDocumentRefs = (
                         .collection("system_fields")
                         .doc(labels.collection)
                         .collection(`${labels.collection}-${field.field}`)
-                        .doc(docId),
+                        .doc(recordId),
                 )
             }
         }

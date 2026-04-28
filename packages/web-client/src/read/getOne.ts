@@ -156,7 +156,7 @@ const getRelations = async (
 
 export const getOne = async (
     path: string[],
-    docId: string,
+    recordId: string,
     options?: {
         only?: "cache" | "server"
         relations?: {
@@ -208,16 +208,16 @@ export const getOne = async (
     const currentUserPermissions = getCurrentUserPermissions()
     if (!currentUserPermissions?.Role) throw new Error("PERMISSIONS_DENIED")
     if (serverReadOnly?.includes(currentUserPermissions.Role)) {
-        const result = await getOneServer(path, docId, options)
+        const result = await getOneServer(path, recordId, options)
         return result
     }
 
-    const refs = getDocumentRefs(path, docId, roleGroup)
+    const refs = getDocumentRefs(path, recordId, roleGroup)
     if (refs.length === 0) throw new Error("PERMISSION_DENIED")
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
-    const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId: docId, context }
+    const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
     const preReadArgs: PreReadHookArgs = { context, refs, multiple: false, listener: false }
     await runHooks("preRead", globalConfig, customization, preReadArgs)
@@ -231,7 +231,7 @@ export const getOne = async (
         else snapshot = await getDoc(ref)
         if (!snapshot.exists())
             throw new Error(
-                `NOT_FOUND: Document with ID ${docId} does not exist at location ${path?.join("/") || labels.collection}`,
+                `NOT_FOUND: Document with ID ${recordId} does not exist at location ${path?.join("/") || labels.collection}`,
             )
         return { id: snapshot.id, data: snapshot.data({ serverTimestamps: serverTimestampOptions || "none" }) }
     })
@@ -244,7 +244,7 @@ export const getOne = async (
     }
 
     const operations = []
-    const documentPath = path ? [...path, docId] : [labels.collection, docId]
+    const documentPath = path ? [...path, recordId] : [labels.collection, recordId]
     if (options?.subcollections) {
         operations.push(
             getSubcollections(
@@ -297,7 +297,7 @@ export const getOne = async (
         }
     }
 
-    const postOperationArgs: PostOperationHookArgs = { operation: "read", data: docData, recordId: docId, context }
+    const postOperationArgs: PostOperationHookArgs = { operation: "read", data: docData, recordId, context }
     await runHooks("postOperation", globalConfig, customization, postOperationArgs)
     const postReadArgs: PostReadHookArgs = { context, refs, record: docData, listener: false }
     await runHooks("postRead", globalConfig, customization, postReadArgs)

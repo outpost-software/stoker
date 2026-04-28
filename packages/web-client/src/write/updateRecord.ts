@@ -57,7 +57,7 @@ import { updateRecordServer } from "./updateRecordServer.js"
 
 export const updateRecord = async (
     path: string[],
-    docId: string,
+    recordId: string,
     data: Partial<StokerRecord>,
     options?: {
         user?: {
@@ -97,12 +97,12 @@ export const updateRecord = async (
     if (!currentUser) throw new Error("NOT_AUTHENTICATED")
     if (!permissions) throw new Error("PERMISSION_DENIED")
 
-    if (isRetrying(docId)) throw new Error("RECORD_BUSY")
+    if (isRetrying(recordId)) throw new Error("RECORD_BUSY")
 
     const originalRecord =
         retry?.originalRecord ||
         options?.originalRecord ||
-        (await getOne(path, docId, { noComputedFields: true, noEmbeddingFields: true }))
+        (await getOne(path, recordId, { noComputedFields: true, noEmbeddingFields: true }))
 
     // eslint-disable-next-line security/detect-object-injection
     for (const field of schemaWithComputedFields.collections[collectionName].fields) {
@@ -178,7 +178,7 @@ export const updateRecord = async (
         await runHooks("preValidate", globalConfig, customization, preValidateArgs)
         const result = await updateRecordServer(
             path,
-            docId,
+            recordId,
             data,
             user ? { operation: user.operation, permissions: user.permissions, password: user.password } : undefined,
         )
@@ -215,7 +215,7 @@ export const updateRecord = async (
             "started",
             partial,
             path,
-            docId,
+            recordId,
             collectionSchema,
             currentUser.uid,
             undefined,
@@ -227,7 +227,7 @@ export const updateRecord = async (
         const preOperationArgs: PreOperationHookArgs = {
             operation: "update",
             data: partial,
-            recordId: docId,
+            recordId,
             context,
             batch,
             originalRecord: cloneDeep(originalRecord),
@@ -236,7 +236,7 @@ export const updateRecord = async (
         const preWriteArgs: PreWriteHookArgs = {
             operation: "update",
             data: partial,
-            recordId: docId,
+            recordId,
             context,
             batch,
             originalRecord: cloneDeep(originalRecord),
@@ -261,7 +261,7 @@ export const updateRecord = async (
             )
             if (offlineDisabled) {
                 checkOnline()
-                await uniqueValidation("update", docId, partial, collectionSchema, permissions)
+                await uniqueValidation("update", recordId, partial, collectionSchema, permissions)
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -269,7 +269,7 @@ export const updateRecord = async (
         }
     }
 
-    updateRecordAccessControl(partial, originalRecord, docId, collectionSchema, schema, currentUser.uid, permissions)
+    updateRecordAccessControl(partial, originalRecord, recordId, collectionSchema, schema, currentUser.uid, permissions)
 
     removeUndefined(partial)
 
@@ -277,7 +277,7 @@ export const updateRecord = async (
         "update",
         batch,
         path,
-        docId,
+        recordId,
         partial,
         schema,
         collectionSchema,
@@ -294,7 +294,7 @@ export const updateRecord = async (
                 "system_fields",
                 labels.collection,
                 `${labels.collection}-${field.name}`,
-                docId,
+                recordId,
             ),
         (field: CollectionField, uniqueValue: string) =>
             doc(
@@ -307,7 +307,7 @@ export const updateRecord = async (
                 uniqueValue,
             ),
         (role: StokerRole) =>
-            doc(db, "tenants", tenantId, "system_fields", labels.collection, `${labels.collection}-${role}`, docId),
+            doc(db, "tenants", tenantId, "system_fields", labels.collection, `${labels.collection}-${role}`, recordId),
         (relationPath: string[], id: string) => doc(db, "tenants", tenantId, relationPath.join("/"), id),
         (field: RelationField, dependencyField: string, id: string) =>
             doc(
@@ -332,7 +332,7 @@ export const updateRecord = async (
         originalRecord,
     )
 
-    batch.update(doc(db, "tenants", tenantId, path.join("/"), docId), partial)
+    batch.update(doc(db, "tenants", tenantId, path.join("/"), recordId), partial)
 
     if (!retry && enableWriteLog) {
         writeLog(
@@ -340,7 +340,7 @@ export const updateRecord = async (
             "written",
             partial,
             path,
-            docId,
+            recordId,
             collectionSchema,
             currentUser.uid,
             undefined,
@@ -351,7 +351,7 @@ export const updateRecord = async (
     await saveRecord(
         "update",
         path,
-        docId,
+        recordId,
         partial,
         context,
         collectionSchema,
@@ -367,7 +367,7 @@ export const updateRecord = async (
     if (retry?.type === "unique") {
         const record = { ...originalRecord, ...partial }
         removeDeleteSentinels(record)
-        const result = { id: docId, ...record }
+        const result = { id: recordId, ...record }
         return result
     }
 
@@ -377,7 +377,7 @@ export const updateRecord = async (
             "success",
             partial,
             path,
-            docId,
+            recordId,
             collectionSchema,
             currentUser.uid,
             undefined,
@@ -388,7 +388,7 @@ export const updateRecord = async (
     const postWriteArgs: PostWriteHookArgs = {
         operation: "update",
         data: partial,
-        recordId: docId,
+        recordId,
         context,
         retry: !!retry,
         originalRecord: cloneDeep(originalRecord),
@@ -399,6 +399,6 @@ export const updateRecord = async (
 
     const finalRecord = { ...originalRecord, ...partial }
     removeDeleteSentinels(finalRecord)
-    const result = { id: docId, ...finalRecord }
+    const result = { id: recordId, ...finalRecord }
     return result
 }

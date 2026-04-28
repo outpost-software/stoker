@@ -30,8 +30,8 @@ import { getOne } from "./getOne"
 
 export const subscribeOne = async (
     path: string[],
-    docId: string,
-    callback: (docData: StokerRecord | undefined) => void,
+    recordId: string,
+    callback: (record: StokerRecord | undefined) => void,
     errorCallback?: (error: Error) => void,
     options?: {
         only?: "cache" | "default"
@@ -67,13 +67,13 @@ export const subscribeOne = async (
         "firebase",
         "serverTimestampOptions",
     ])
-    const refs = getDocumentRefs(path, docId, roleGroup)
+    const refs = getDocumentRefs(path, recordId, roleGroup)
     if (refs.length === 0) throw new Error("PERMISSION_DENIED")
     const isPreloadCacheEnabled = preloadCache?.roles?.includes(permissions.Role)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
-    const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId: docId, context }
+    const preOperationArgs: PreOperationHookArgs = { operation: "read", recordId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
     const preReadArgs: PreReadHookArgs = { context, refs, multiple: false, listener: true }
     await runHooks("preRead", globalConfig, customization, preReadArgs)
@@ -249,7 +249,7 @@ export const subscribeOne = async (
                                                     const postOperationArgs: PostOperationHookArgs = {
                                                         operation: "read",
                                                         data: docData as StokerRecord,
-                                                        recordId: docId,
+                                                        recordId,
                                                         context,
                                                     }
                                                     runHooks(
@@ -276,7 +276,7 @@ export const subscribeOne = async (
                                                 if (errorCallback) {
                                                     errorCallback(
                                                         new Error(
-                                                            `Error fetching relation document in collection ${field.collection} with ID ${docId} at location ${(relation as StokerRelation).Collection_Path?.join("/")}`,
+                                                            `Error fetching relation document in collection ${field.collection} with ID ${recordId} at location ${(relation as StokerRelation).Collection_Path?.join("/")}`,
                                                             {
                                                                 cause: error,
                                                             },
@@ -330,7 +330,7 @@ export const subscribeOne = async (
                                                     const postOperationArgs: PostOperationHookArgs = {
                                                         operation: "read",
                                                         data: docData as StokerRecord,
-                                                        recordId: docId,
+                                                        recordId,
                                                         context,
                                                     }
                                                     runHooks(
@@ -356,7 +356,7 @@ export const subscribeOne = async (
                                                 if (errorCallback) {
                                                     errorCallback(
                                                         new Error(
-                                                            `Error fetching relation document in collection ${field.collection} with ID ${docId} at location ${(relation as StokerRelation).Collection_Path?.join("/")}`,
+                                                            `Error fetching relation document in collection ${field.collection} with ID ${recordId} at location ${(relation as StokerRelation).Collection_Path?.join("/")}`,
                                                             {
                                                                 cause: error,
                                                             },
@@ -407,7 +407,7 @@ export const subscribeOne = async (
                                 const postOperationArgs: PostOperationHookArgs = {
                                     operation: "read",
                                     data: docData as StokerRecord,
-                                    recordId: docId,
+                                    recordId,
                                     context,
                                 }
                                 runHooks("postOperation", globalConfig, customization, postOperationArgs)
@@ -429,7 +429,7 @@ export const subscribeOne = async (
                     if (snapshot.metadata.fromCache === false) {
                         const postOperationArgs: PostOperationHookArgs = {
                             operation: "read",
-                            recordId: docId,
+                            recordId,
                             context,
                         }
                         runHooks("postOperation", globalConfig, customization, postOperationArgs)
