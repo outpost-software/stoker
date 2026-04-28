@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.85
+
+### Patch Changes
+
+- feat: use single args object for config functions
+- feat: update doc references to record
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.48
+    - @stoker-platform/utils@0.5.40
+    - @stoker-platform/web-client@0.5.48
+
 ## 0.5.84
 
 ### Patch Changes

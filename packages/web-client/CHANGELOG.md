@@ -1,5 +1,16 @@
 # @stoker-platform/web-client
 
+## 0.5.48
+
+### Patch Changes
+
+- feat: use single args object for config functions
+- feat: update doc references to record
+
+- Updated dependencies
+    - @stoker-platform/types@0.5.31
+    - @stoker-platform/utils@0.5.40
+
 ## 0.5.47
 
 ### Patch Changes

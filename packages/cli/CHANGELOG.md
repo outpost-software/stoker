@@ -1,5 +1,16 @@
 # @stoker-platform/cli
 
+## 0.5.67
+
+### Patch Changes
+
+- feat: use single args object for config functions
+- feat: update doc references to record
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.48
+    - @stoker-platform/types@0.5.31
+    - @stoker-platform/utils@0.5.40
+
 ## 0.5.66
 
 ### Patch Changes

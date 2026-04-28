@@ -1,5 +1,12 @@
 # @stoker-platform/types
 
+## 0.5.31
+
+### Patch Changes
+
+- feat: use single args object for config functions
+- feat: update doc references to record
+
 ## 0.5.30
 
 ### Patch Changes
