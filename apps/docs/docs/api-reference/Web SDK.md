@@ -317,7 +317,7 @@ Retrieve multiple records from the database.
 ) => Promise<{
     cursor: Cursor;
     pages: number | undefined;
-    docs: StokerRecord[];
+    records: StokerRecord[];
 }>
 ```
 
@@ -345,7 +345,7 @@ Retrieve multiple records from the database.
 
 `pages`: The number of pages returned.
 
-`docs`: The results of the query.
+`records`: The results of the query.
 
 ## subscribeOne
 
@@ -355,7 +355,7 @@ Add a listener to a record in the database.
 (
     path: string[],
     recordId: string,
-    callback: (doc: StokerRecord | undefined) => void,
+    callback: (record: StokerRecord | undefined) => void,
     errorCallback?: (error: Error) => void,
     options?: {
         only?: "cache" | "default";
@@ -398,7 +398,7 @@ Add a listener to a collection in the database.
 (
     path: string[],
     callback: (
-        docs: StokerRecord[],
+        records: StokerRecord[],
         cursor: Cursor,
         metadata: SnapshotMetadata | undefined
     ) => void,

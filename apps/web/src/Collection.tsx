@@ -675,8 +675,8 @@ function Collection({
                             ...(additionalConstraintsRef.current || []),
                         ],
                     })
-                    setServerList((prev) => ({ ...prev, [key]: data.docs }))
-                    setOptimisticList(data.docs, key)
+                    setServerList((prev) => ({ ...prev, [key]: data.records }))
+                    setOptimisticList(data.records, key)
                     setIsRouteLoading("-", location.pathname)
                     resolve()
                 }
@@ -734,13 +734,13 @@ function Collection({
                 // TODO: subcollection support
                 const records = await getSome([labels.collection])
 
-                if (records.docs.length > 0) {
+                if (records.records.length > 0) {
                     runViewTransition(() =>
                         navigate(
-                            `${records.docs[0].Collection_Path.join("-").toLowerCase()}/${records.docs[0].id}/edit`,
+                            `${records.records[0].Collection_Path.join("-").toLowerCase()}/${records.records[0].id}/edit`,
                             {
                                 state: {
-                                    record: records.docs[0],
+                                    record: records.records[0],
                                 },
                                 replace: true,
                             },
@@ -1408,8 +1408,8 @@ function Collection({
                           pagination: { orderByField, orderByDirection, number: 10000 },
                       },
             )
-            if (!serverData.docs.length) return
-            const data = await prepareCSVData(collection, serverData.docs)
+            if (!serverData.records.length) return
+            const data = await prepareCSVData(collection, serverData.records)
             if (isServerReadOnly) {
                 data.data = sortList(
                     collection,
@@ -1564,7 +1564,7 @@ function Collection({
 
                 const parentId = relationParent?.id
                 const relationArrayField = `${relationList.field}_Array`
-                const filtered = data.docs.filter((doc) => {
+                const filtered = data.records.filter((doc) => {
                     // eslint-disable-next-line security/detect-object-injection
                     const array = doc[relationArrayField] as string[] | undefined
                     return !array?.includes(parentId)

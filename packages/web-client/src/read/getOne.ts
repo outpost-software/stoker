@@ -72,7 +72,7 @@ const getSubcollections = async (
             throw error
         })
         // eslint-disable-next-line security/detect-object-injection
-        docData[subcollection] = result.docs
+        docData[subcollection] = result.records
         if (depth > 0) {
             await Promise.all(
                 // eslint-disable-next-line security/detect-object-injection

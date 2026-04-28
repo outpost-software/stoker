@@ -301,16 +301,16 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 clearTimeout(pickerDebounceTimeout.current)
 
                 if (isCollectionPreloadCacheEnabled && query) {
-                    const searchResults = localFullTextSearch(collectionSchema, query, data.docs)
+                    const searchResults = localFullTextSearch(collectionSchema, query, data.records)
                     const objectIds = searchResults.map((result) => result.id)
                     setData((prev) => ({
                         ...prev,
-                        [field]: data.docs.filter((doc) => objectIds.includes(doc.id)).slice(0, 10),
+                        [field]: data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, 10),
                     }))
                 } else {
                     setData((prev) => ({
                         ...prev,
-                        [field]: data.docs.slice(0, 10),
+                        [field]: data.records.slice(0, 10),
                     }))
                 }
                 setLoadingImmediate((prev) => ({

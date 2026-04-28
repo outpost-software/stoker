@@ -85,7 +85,7 @@ export const getData = async (
             const data = await getSome([labels.collection], {
                 constraints: query.queries[0].constraints as [string, WhereFilterOp, unknown][],
             })
-            setResults(data.docs)
+            setResults(data.records)
             setLoading(false)
             resolve()
         }

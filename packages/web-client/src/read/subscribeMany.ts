@@ -100,7 +100,7 @@ const validateLastCursor = (cursor: Cursor) => {
 
 export const subscribeMany = async (
     path: string[],
-    callback: (docs: StokerRecord[], cursor: Cursor, metadata: SnapshotMetadata | undefined) => void,
+    callback: (records: StokerRecord[], cursor: Cursor, metadata: SnapshotMetadata | undefined) => void,
     errorCallback?: (error: Error) => void,
     options?: SubscribeManyOptions,
 ) => {

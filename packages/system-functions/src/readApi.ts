@@ -200,7 +200,7 @@ export const readApi = async (
                     errorLogger(error);
                     throw new HttpsError("internal", "Error reading data");
                 });
-                result.docs.forEach((doc) => {
+                result.records.forEach((doc) => {
                     serializeTimestamps(doc);
                 });
                 return result;
@@ -216,12 +216,12 @@ export const readApi = async (
 
                 const chunk = await getDocs(getSomeOptions);
 
-                docs.push(...chunk.docs);
+                docs.push(...chunk.records);
                 if (response) {
-                    response.sendChunk({result: {docs: chunk.docs}});
+                    response.sendChunk({result: {records: chunk.records}});
                 }
 
-                if (chunk.docs.length === 500) {
+                if (chunk.records.length === 500) {
                     await getChunk(chunk.cursor);
                     return;
                 } else {
@@ -229,13 +229,13 @@ export const readApi = async (
                 }
             };
 
-            let result: {docs: StokerRecord[], pages: number};
+            let result: {records: StokerRecord[], pages: number};
             if (!getSomeOptions.pagination && request.data.stream) {
                 await getChunk();
-                return {result: {docs}};
+                return {result: {records: docs}};
             } else {
                 result = await getDocs(getSomeOptions);
-                return {result: {docs: result.docs}};
+                return {result: {records: result.records}};
             }
         }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

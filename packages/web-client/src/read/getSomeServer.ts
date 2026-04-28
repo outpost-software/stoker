@@ -23,7 +23,7 @@ export const getSomeServer = async (path: string[], constraints?: [string, strin
     interface GetSomeResult {
         data: {
             result: {
-                docs: StokerRecord[]
+                records: StokerRecord[]
                 pages: number
                 cursor: Cursor
             }
@@ -45,14 +45,14 @@ export const getSomeServer = async (path: string[], constraints?: [string, strin
             stream: true,
         })
         for await (const chunk of stream) {
-            console.log((chunk as GetSomeResult).data.result.docs.length)
+            console.log((chunk as GetSomeResult).data.result.records.length)
         }
         getSomeResult = { data: await data } as GetSomeResult
     }
 
     const data = getSomeResult.data
 
-    for (const doc of data.result.docs) {
+    for (const doc of data.result.records) {
         deserializeTimestamps(doc)
     }
 

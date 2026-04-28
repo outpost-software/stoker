@@ -95,7 +95,7 @@ const getSubcollections = async (
             throw error
         })
         // eslint-disable-next-line security/detect-object-injection
-        docData[subcollection] = result.docs
+        docData[subcollection] = result.records
         if (relations) {
             await Promise.all(
                 // eslint-disable-next-line security/detect-object-injection
@@ -260,7 +260,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
 
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
     const refs = getCollectionRefs(path, roleGroup)
-    if (refs.length === 0) return { cursor: {}, pages: 0, docs: [] }
+    if (refs.length === 0) return { cursor: {}, pages: 0, records: [] }
     let constraintRefs = refs.map((ref) => query(ref, ...((constraints || []) as QueryConstraint[])))
     const cursor = options?.pagination?.startAfter ||
         options?.pagination?.endBefore || {
@@ -446,5 +446,5 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
         await runHooks("postRead", globalConfig, customization, postReadArgs)
     }
 
-    return { cursor, pages, docs: Array.from(docs.values()) }
+    return { cursor, pages, records: Array.from(docs.values()) }
 }

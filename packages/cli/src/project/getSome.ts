@@ -32,6 +32,6 @@ export const getSome = async (options: any) => {
     }
 
     const result = await getSomeStoker(path, getSomeOptions)
-    console.log(JSON.stringify(result.docs, null, 2))
+    console.log(JSON.stringify(result.records, null, 2))
     process.exit()
 }

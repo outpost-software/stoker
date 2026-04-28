@@ -185,7 +185,7 @@ export const chatFlow = (
             );
             try {
                 const records = await getSome([labels.collection], {userId: context.auth?.uid});
-                return JSON.stringify(records.docs);
+                return JSON.stringify(records.records);
             } catch {
                 return "Error getting records";
             }

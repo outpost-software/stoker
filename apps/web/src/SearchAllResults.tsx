@@ -151,7 +151,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                         number: 5,
                     },
                 })
-                setResults(data.docs)
+                setResults(data.records)
                 setLoading(false)
                 resolve()
             }

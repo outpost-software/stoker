@@ -76,7 +76,7 @@ const getSubcollections = async (
             throw error
         })
         // eslint-disable-next-line security/detect-object-injection
-        docData[subcollection] = result.docs
+        docData[subcollection] = result.records
         if (relations) {
             await Promise.all(
                 // eslint-disable-next-line security/detect-object-injection
@@ -287,7 +287,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         let refs = getCollectionRefs(tenantId, path, schema, options?.userId, permissions!)
-        if (refs.length === 0) return { cursor: {}, pages: 0, docs: [] }
+        if (refs.length === 0) return { cursor: {}, pages: 0, records: [] }
         if (constraints) {
             refs = refs.map((ref) => {
                 constraints.forEach(([field, operator, value]) => {
@@ -547,5 +547,5 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return { cursor: cursor!, pages: pages!, docs: Array.from(docs!.values()) }
+    return { cursor: cursor!, pages: pages!, records: Array.from(docs!.values()) }
 }

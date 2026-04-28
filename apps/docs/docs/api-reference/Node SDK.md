@@ -314,7 +314,7 @@ Retrieve multiple records from the database.
 ) => Promise<{
     cursor: Cursor;
     pages: number;
-    docs: StokerRecord[];
+    records: StokerRecord[];
 }>
 ```
 
@@ -332,7 +332,7 @@ Retrieve multiple records from the database.
 
 `options.pagination`: Specify a number of results per page. Optionally enable sorting of results. Optionally provide a cursor object for `startAfter` or `endBefore`.
 
-`options.transactional`: Set to `true` to include relation and subcollection documents in the main read transaction. Note that there is a limit of 500 read operations per transaction.
+`options.transactional`: Set to `true` to include relation and subcollection records in the main read transaction. Note that there is a limit of 500 read operations per transaction.
 
 `options.providedTransaction`: Provide a Firestore transaction to use for the operation.
 
@@ -346,7 +346,7 @@ Retrieve multiple records from the database.
 
 `pages`: The number of pages returned.
 
-`docs`: The results of the query.
+`records`: The results of the query.
 
 ## sendMail
 

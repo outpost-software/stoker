@@ -1961,17 +1961,17 @@ function RelationField({
                 clearTimeout(pickerDebounceTimeout.current)
 
                 if (isCollectionPreloadCacheEnabled && query) {
-                    const searchResults = localFullTextSearch(relationCollection, query, data.docs, (result) => {
+                    const searchResults = localFullTextSearch(relationCollection, query, data.records, (result) => {
                         if (!fieldCustomization.admin?.filterResults) return true
                         return !!fieldCustomization.admin?.filterResults?.(result, collection, record)
                     })
                     const objectIds = searchResults.map((result) => result.id)
-                    orderData(data.docs.filter((doc) => objectIds.includes(doc.id)).slice(0, 10)).then((data) => {
+                    orderData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, 10)).then((data) => {
                         setData(data)
                     })
                 } else {
                     orderData(
-                        data.docs
+                        data.records
                             .filter((doc) => {
                                 if (!isCollectionPreloadCacheEnabled) return true
                                 if (!fieldCustomization.admin?.filterResults) return true
