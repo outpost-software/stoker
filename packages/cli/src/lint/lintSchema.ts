@@ -198,6 +198,17 @@ export const lintSchema = async (noLog = false) => {
             ai,
         } = collectionSchema
 
+        const {
+            auth: authAccess,
+            operations,
+            attributeRestrictions,
+            entityRestrictions,
+            permissionWriteRestrictions,
+            serverReadOnly,
+            serverWriteOnly,
+            files,
+        } = access
+
         // eslint-disable-next-line security/detect-object-injection
         const customization = customizationModules[collectionName]
 
@@ -574,10 +585,22 @@ export const lintSchema = async (noLog = false) => {
             | { field: string; direction: "asc" | "desc" }
             | undefined
         if (defaultSort) {
-            if (!fieldNames.includes(defaultSort.field)) {
+            const fieldSchema = getField(fields, defaultSort.field)
+            if (!fieldSchema) {
                 errors.push(
                     `Collection ${collectionName} has a default sort field ${defaultSort.field} that does not exist`,
                 )
+            } else {
+                for (const role of readRoles) {
+                    if (
+                        !(preloadCache?.roles.includes(role) || serverReadOnly?.includes(role)) &&
+                        !(fieldSchema.name === recordTitleField || fieldSchema.sorting)
+                    ) {
+                        errors.push(
+                            `Collection ${collectionName} has a default sort field ${defaultSort.field} that must have sorting enabled.`,
+                        )
+                    }
+                }
             }
         }
 
@@ -916,17 +939,6 @@ export const lintSchema = async (noLog = false) => {
                 }
             }
         }
-
-        const {
-            auth: authAccess,
-            operations,
-            attributeRestrictions,
-            entityRestrictions,
-            permissionWriteRestrictions,
-            serverReadOnly,
-            serverWriteOnly,
-            files,
-        } = access
 
         if (authAccess) {
             for (const role of authAccess) {

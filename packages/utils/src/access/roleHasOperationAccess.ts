@@ -6,10 +6,6 @@ export const roleHasOperationAccess = (
     operation: "read" | "create" | "update" | "delete",
 ) => {
     const { access } = collection
-    return (
-        access.operations.assignable === true ||
-        (typeof access.operations.assignable === "object" && access.operations.assignable.includes(role)) ||
-        // eslint-disable-next-line security/detect-object-injection
-        access.operations[operation]?.includes(role)
-    )
+    // eslint-disable-next-line security/detect-object-injection
+    return access.operations[operation]?.includes(role)
 }

@@ -1,5 +1,14 @@
 # @stoker-platform/cli
 
+## 0.5.70
+
+### Patch Changes
+
+- feat: improve sorting field linting
+- Updated dependencies
+    - @stoker-platform/utils@0.5.42
+    - @stoker-platform/node-client@0.5.50
+
 ## 0.5.69
 
 ### Patch Changes

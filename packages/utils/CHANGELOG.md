@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.42
+
+### Patch Changes
+
+- feat: improve sorting field linting
+
 ## 0.5.41
 
 ### Patch Changes
