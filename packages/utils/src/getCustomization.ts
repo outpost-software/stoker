@@ -14,7 +14,7 @@ export const getCustomization = (
     for (const collection of collections) {
         // eslint-disable-next-line security/detect-object-injection
         const module = modules[collection]
-        const collectionFile: CollectionCustomization = module.default({ sdk, utilities, context })
+        const collectionFile: CollectionCustomization = module.default({ sdk, utils: utilities, context })
         for (const key in collectionFile) {
             // eslint-disable-next-line security/detect-object-injection
             if (!(key === "custom" || key === "admin" || key === "fields"))

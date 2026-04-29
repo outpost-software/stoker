@@ -1,5 +1,13 @@
 # @stoker-platform/system-functions
 
+## 0.5.54
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/utils@0.5.41
+    - @stoker-platform/node-client@0.5.49
+
 ## 0.5.53
 
 ### Patch Changes

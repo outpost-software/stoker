@@ -1,5 +1,13 @@
 # @stoker-platform/cli
 
+## 0.5.69
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/utils@0.5.41
+    - @stoker-platform/node-client@0.5.49
+
 ## 0.5.68
 
 ### Patch Changes

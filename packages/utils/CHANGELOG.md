@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.41
+
+### Patch Changes
+
+- fix: pass utilities as utils
+
 ## 0.5.40
 
 ### Patch Changes
