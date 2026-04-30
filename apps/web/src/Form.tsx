@@ -578,7 +578,11 @@ function StringField({
                                         ?.filter(
                                             (option) =>
                                                 !fieldCustomization.admin?.filterValues ||
-                                                fieldCustomization.admin?.filterValues?.(option, collection, record),
+                                                fieldCustomization.admin?.filterValues?.(
+                                                    option,
+                                                    collection,
+                                                    record || (form.getValues() as StokerRecord),
+                                                ),
                                         )
                                         .map((option) => (
                                             <div key={option} className="flex items-center space-x-2">
@@ -630,7 +634,11 @@ function StringField({
                                         ?.filter(
                                             (option) =>
                                                 !fieldCustomization.admin?.filterValues ||
-                                                fieldCustomization.admin?.filterValues?.(option, collection, record),
+                                                fieldCustomization.admin?.filterValues?.(
+                                                    option,
+                                                    collection,
+                                                    record || (form.getValues() as StokerRecord),
+                                                ),
                                         )
                                         .map((option) => {
                                             return (
@@ -688,7 +696,11 @@ function StringField({
                                         ?.filter(
                                             (option) =>
                                                 !fieldCustomization.admin?.filterValues ||
-                                                fieldCustomization.admin?.filterValues?.(option, collection, record),
+                                                fieldCustomization.admin?.filterValues?.(
+                                                    option,
+                                                    collection,
+                                                    record || (form.getValues() as StokerRecord),
+                                                ),
                                         )
                                         .map((option) => (
                                             <SelectItem key={option} value={option}>
@@ -1041,7 +1053,11 @@ function NumberField({
                                         ?.filter(
                                             (option) =>
                                                 !fieldCustomization.admin?.filterValues ||
-                                                fieldCustomization.admin?.filterValues?.(option, collection, record),
+                                                fieldCustomization.admin?.filterValues?.(
+                                                    option,
+                                                    collection,
+                                                    record || (form.getValues() as StokerRecord),
+                                                ),
                                         )
                                         .map((option) => (
                                             <SelectItem key={option} value={option.toString()}>
