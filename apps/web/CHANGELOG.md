@@ -1,5 +1,13 @@
 # @stoker-platform/web-app
 
+## 0.5.90
+
+### Patch Changes
+
+- fix: provide form values to filterValues
+- fix: show title field in relation field
+- feat: use list label for CSV column name
+
 ## 0.5.89
 
 ### Patch Changes
