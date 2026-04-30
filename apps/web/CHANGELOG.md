@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.89
+
+### Patch Changes
+
+- feat: keep all list metrics when no chart present
+
 ## 0.5.88
 
 ### Patch Changes

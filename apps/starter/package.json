@@ -1,7 +1,7 @@
 {
     "name": "stoker",
     "private": true,
-    "version": "0.4.104",
+    "version": "0.4.105",
     "type": "module",
     "license": "UNLICENSED",
     "scripts": {
@@ -22,7 +22,7 @@
         "@stoker-platform/node-client": "0.5.50",
         "@stoker-platform/types": "0.5.31",
         "@stoker-platform/utils": "0.5.42",
-        "@stoker-platform/web-app": "0.5.88",
+        "@stoker-platform/web-app": "0.5.89",
         "@stoker-platform/web-client": "0.5.50",
         "algoliasearch": "^5.51.0",
         "firebase-admin": "^13.8.0",

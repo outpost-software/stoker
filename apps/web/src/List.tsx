@@ -1304,6 +1304,19 @@ export function List({
         )
     }, [metrics])
 
+    const hasChart = useMemo(() => {
+        return (
+            metrics &&
+            metrics.filter((metric: Metric | Chart) => {
+                return (
+                    metric.type === "area" &&
+                    permissions?.Role &&
+                    (!metric.roles || metric.roles.includes(permissions?.Role))
+                )
+            }).length > 0
+        )
+    }, [metrics])
+
     return (
         <>
             {!formList && (
@@ -1325,7 +1338,7 @@ export function List({
                         {metrics && hasMetrics && !relationList && (
                             <div className="hidden lg:flex flex-row gap-4 mb-4 mt-4 max-w-[calc(100vw-96px)]">
                                 {metrics.map((metric: Metric | Chart, index: number) => {
-                                    const hideThirdMetric = index >= 2 ? "hidden xl:grid" : undefined
+                                    const hideThirdMetric = index >= 2 && hasChart ? "hidden xl:grid" : undefined
                                     if (
                                         permissions?.Role &&
                                         (!metric.roles || metric.roles.includes(permissions?.Role))
