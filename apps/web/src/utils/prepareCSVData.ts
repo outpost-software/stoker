@@ -38,7 +38,10 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
         if (field.name === softDelete?.timestampField) continue
         if (collection.auth && field.name === "User_ID") continue
         const fieldCustomization = getFieldCustomization(field, customization)
-        const label = tryFunction(fieldCustomization.admin?.label) || field.name
+        const label =
+            tryFunction(fieldCustomization.admin?.listLabel) ||
+            tryFunction(fieldCustomization.admin?.label) ||
+            field.name
         const noExport = tryFunction(fieldCustomization.admin?.noExport) || false
         if (noExport) continue
         CSVData.headers.push({ label: escapeCSVField(label), key: field.name })
