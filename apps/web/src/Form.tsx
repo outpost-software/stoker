@@ -1816,7 +1816,10 @@ function RelationField({
                     if (fieldCustomization.admin?.modifyResultTitle) {
                         setDisplay(fieldCustomization.admin.modifyResultTitle(relationRecord, collection, record))
                     } else {
-                        setDisplay(relationRecord[relationCollection.recordTitleField || "id"] || relationId)
+                        setDisplay(
+                            relationRecord[field.titleField || relationCollection.recordTitleField || "id"] ||
+                                relationId,
+                        )
                     }
                 } else {
                     setDisplay(relationId)
