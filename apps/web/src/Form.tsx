@@ -2266,7 +2266,11 @@ function RelationField({
                                                               collection,
                                                               record,
                                                           )
-                                                        : relation[relationCollection.recordTitleField || "id"]}
+                                                        : relation[
+                                                              (field as RelationFieldType).titleField ||
+                                                                  relationCollection.recordTitleField ||
+                                                                  "id"
+                                                          ]}
                                                 </span>
                                             </Button>
                                             <Button
@@ -3212,7 +3216,7 @@ function RecordForm({
                 (restriction) => restriction.userRole === permissions.Role && restriction.recordRole.includes(role),
             )
         )
-    }, [permissions, record])
+    }, [permissions, record, form.watch("Role")])
 
     useEffect(() => {
         const load = async () => {

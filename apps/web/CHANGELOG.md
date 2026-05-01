@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.91
+
+### Patch Changes
+
+- fix: minor fixes to Dashboard and Form
+
 ## 0.5.90
 
 ### Patch Changes

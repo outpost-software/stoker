@@ -15,7 +15,7 @@ import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { DashboardReminder } from "./DashboardReminder"
 import { cn } from "./lib/utils"
 import { Helmet } from "react-helmet"
-import { getField } from "@stoker-platform/utils"
+import { collectionAccess, getField } from "@stoker-platform/utils"
 
 export const Dashboard = () => {
     const globalConfig = getGlobalConfigModule()
@@ -43,7 +43,13 @@ export const Dashboard = () => {
                 setCollectionTitles((prev) => ({ ...prev, [labels.collection]: titles?.collection }))
             }
             const metrics = await getCachedConfigValue(globalConfig, ["global", "admin", "dashboard"])
-            setMetrics(metrics)
+            setMetrics(
+                metrics.filter((metric: DashboardItem) => {
+                    const collectionPermissions = permissions?.collections?.[metric.collection]
+                    if (!collectionPermissions) return false
+                    return collectionAccess("Read", collectionPermissions)
+                }),
+            )
         }
         initialize()
     }, [])
