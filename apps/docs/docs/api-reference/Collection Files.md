@@ -1833,9 +1833,11 @@ Use this method to load data for use in your [computed fields](#computed-field-p
 
 ![List](./img/list-light.png)
 
-`{ title?: string } | (() => { title?: string } | Promise<{ title?: string }>)`
+`{ roles?: string[], title?: string } | (() => { title?: string } | Promise<{ title?: string }>)`
 
-Customise the title for list tab. Defaults to "List".
+`title`: Customise the title for the list tab. Defaults to "List".
+
+`roles`: Limit which user roles can view the list
 
 ### cards
 
@@ -1871,7 +1873,7 @@ type CardsConfig = {
 
 `title`: Customise the title for the board tab. Defaults to "Board".
 
-`roles`: The user roles that can view the board
+`roles`: Limit which user roles can view the board
 
 `statusField`: The field that will define the columns for the board. Must be a String or Number field with `values` set, or a Boolean field. Not required if [`admin.statusField`](#statusfield) has already been set.
 
@@ -1932,7 +1934,7 @@ Show a list of image cards with infinite scroll.
 
 `title`: Customise the title for the images tab. Defaults to "Pics".
 
-`roles`: The user roles that can view the images page
+`roles`: Limit which user roles can view the images page
 
 `imageField`: The field that contains the image URL for the record. Must be a String field.
 
@@ -1971,7 +1973,7 @@ type MapConfig = {
 
 `title`: Customise the title for the map tab. Defaults to "Map".
 
-`roles`: The user roles that can view the map page
+`roles`: Limit which user roles can view the map page
 
 `coordinatesField`: The field that contains coordinate values for the record. Must be an Array field.
 
@@ -2017,7 +2019,7 @@ Show a calendar view.
 
 `title`: Customise the title for the calendar tab. Defaults to "Calendar".
 
-`roles`: The user roles that can view the calendar page
+`roles`: Limit which user roles can view the calendar page
 
 `startField`: A Timestamp field that specifies the start date for records on the calendar.
 

@@ -466,8 +466,8 @@ export interface CollectionCustomCache {
     disableOfflineDelete?: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ListConfig {
+    roles?: StokerRole[]
     title?: string
 }
 

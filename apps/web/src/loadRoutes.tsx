@@ -20,10 +20,14 @@ export const loadRoutes = (): RouteObject[] => {
     const homePages = tryFunction(globalConfig.admin?.homePage)
     const dashboard = tryFunction(globalConfig.admin?.dashboard)
     const homePage = homePages?.[permissions.Role]
-    const hasDashboard = dashboard?.some(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        (item: DashboardItem) => !item.roles || item.roles?.includes(permissions.Role!),
-    )
+    const hasDashboard = dashboard?.some((item: DashboardItem) => {
+        const collectionPermissions = permissions.collections?.[item.collection]
+        if (!collectionPermissions) return false
+        return (
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            (!item.roles || item.roles?.includes(permissions.Role!)) && collectionAccess("Read", collectionPermissions)
+        )
+    })
 
     const dynamicRoutes: RouteObject[] = []
 

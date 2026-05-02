@@ -220,6 +220,11 @@ function Collection({
     const [imagesConfig, setImagesConfig] = useState<ImagesConfig | undefined>(undefined)
     const [mapConfig, setMapConfig] = useState<MapConfig | undefined>(undefined)
     const [calendarConfig, setCalendarConfig] = useState<CalendarConfig | undefined>(undefined)
+    const [showList, setShowList] = useState(false)
+    const [showCards, setShowCards] = useState(false)
+    const [showImages, setShowImages] = useState(false)
+    const [showMap, setShowMap] = useState(false)
+    const [showCalendar, setShowCalendar] = useState(false)
 
     const [search, setSearch] = useState("")
     const [tab, setTab] = useState<string | undefined>("list")
@@ -758,54 +763,6 @@ function Collection({
             const cacheState = state[`collection-range-field-${labels.collection.toLowerCase()}`]
             const rangeState = state[`collection-range-${labels.collection.toLowerCase()}`]
             const defaultView = tryFunction(customization.admin?.defaultView, [relationCollection, relationParent])
-            if (!relationList) {
-                if (tabState) {
-                    setTab(tabState)
-                    tabRef.current = tabState
-                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", tabState)
-                } else if (defaultView) {
-                    setTab(defaultView)
-                    tabRef.current = defaultView
-                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", defaultView)
-                } else {
-                    setTab("list")
-                    tabRef.current = "list"
-                }
-                if (searchState) {
-                    setSearch(searchState)
-                    setState(`collection-search-${labels.collection.toLowerCase()}`, "search", searchState)
-                }
-                if (statusFilterState) {
-                    setStatusFilter(statusFilterState as "active" | "archived" | "all" | "trash")
-                    setState(
-                        `collection-status-filter-${labels.collection.toLowerCase()}`,
-                        "status-filter",
-                        statusFilterState,
-                    )
-                }
-                if (tabState === "cards") {
-                    setFirstTabLoadCards(true)
-                }
-                if (cacheState) {
-                    setState(`collection-range-field-${labels.collection.toLowerCase()}`, "field", cacheState)
-                }
-                if (rangeState) {
-                    setState(`collection-range-${labels.collection.toLowerCase()}`, "range", rangeState)
-                }
-            } else {
-                if (defaultView) {
-                    setTab(defaultView)
-                    tabRef.current = defaultView
-                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", defaultView)
-                } else {
-                    setTab("list")
-                    tabRef.current = "list"
-                }
-            }
-            if (rangeSelectorState) {
-                setRangeSelector(rangeSelectorState as "range" | "week" | "month" | undefined)
-                setState(`collection-range-selector-${labels.collection.toLowerCase()}`, "selector", rangeSelectorState)
-            }
 
             const offlineDisabled = await getCachedConfigValue(customization, [
                 "collections",
@@ -832,6 +789,7 @@ function Collection({
             }
             const icon = await getCachedConfigValue(customization, [...collectionAdminPath, "icon"])
             setIcon(icon)
+
             const listConfig = (await getCachedConfigValue(customization, [...collectionAdminPath, "list"])) as
                 | ListConfig
                 | undefined
@@ -852,6 +810,53 @@ function Collection({
                 | CalendarConfig
                 | undefined
             setCalendarConfig(calendarConfig)
+
+            const showListConfig =
+                !!permissions.Role && (!listConfig?.roles || listConfig.roles.includes(permissions.Role))
+            setShowList(showListConfig)
+            const showCardsConfig =
+                !!cardsConfig &&
+                !!permissions.Role &&
+                (!cardsConfig.roles || cardsConfig.roles.includes(permissions.Role))
+            setShowCards(showCardsConfig)
+            const showImagesConfig =
+                !!imagesConfig &&
+                !!permissions.Role &&
+                (!imagesConfig.roles || imagesConfig.roles.includes(permissions.Role)) &&
+                !!imagesConfig.imageField &&
+                fields.map((field) => field.name).includes(imagesConfig.imageField)
+            setShowImages(showImagesConfig)
+            const showMapConfig =
+                !!mapConfig &&
+                !!permissions.Role &&
+                (!mapConfig.roles || mapConfig.roles.includes(permissions.Role)) &&
+                ((!!mapConfig.addressField && fields.map((field) => field.name).includes(mapConfig.addressField)) ||
+                    (!!mapConfig.coordinatesField &&
+                        fields.map((field) => field.name).includes(mapConfig.coordinatesField)))
+            setShowMap(showMapConfig)
+            const systemFieldsSchema = getSystemFieldsSchema()
+            const resourceField = getField(fields, calendarConfig?.resourceField)
+            const showCalendarConfig =
+                !!calendarConfig &&
+                !!permissions.Role &&
+                (!calendarConfig.roles || calendarConfig.roles.includes(permissions.Role)) &&
+                !!calendarConfig.startField &&
+                fields
+                    .concat(systemFieldsSchema)
+                    .map((field) => field.name)
+                    .includes(calendarConfig.startField) &&
+                (!calendarConfig.endField ||
+                    fields
+                        .concat(systemFieldsSchema)
+                        .map((field) => field.name)
+                        .includes(calendarConfig.endField)) &&
+                (!calendarConfig.allDayField ||
+                    fields.map((field) => field.name).includes(calendarConfig.allDayField)) &&
+                (!calendarConfig.resourceField ||
+                    (resourceField &&
+                        (!isRelationField(resourceField) || !!schema.collections[resourceField.collection])))
+            setShowCalendar(showCalendarConfig)
+
             const restrictExport = await getCachedConfigValue(customization, [...collectionAdminPath, "restrictExport"])
             setRestrictExport(restrictExport)
             const disableCreate = await getCachedConfigValue(
@@ -969,6 +974,69 @@ function Collection({
                 } else {
                     filtersClone.push({ type: "status", value: "all" })
                 }
+            }
+
+            if (!relationList) {
+                if (tabState) {
+                    setTab(tabState)
+                    tabRef.current = tabState
+                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", tabState)
+                } else if (defaultView) {
+                    setTab(defaultView)
+                    tabRef.current = defaultView
+                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", defaultView)
+                } else {
+                    if (showListConfig) {
+                        setTab("list")
+                        tabRef.current = "list"
+                    } else if (showCardsConfig) {
+                        setTab("cards")
+                        tabRef.current = "cards"
+                    } else if (showImagesConfig) {
+                        setTab("images")
+                        tabRef.current = "images"
+                    } else if (showMapConfig) {
+                        setTab("map")
+                        tabRef.current = "map"
+                    } else if (showCalendarConfig) {
+                        setTab("calendar")
+                        tabRef.current = "calendar"
+                    }
+                }
+                if (searchState) {
+                    setSearch(searchState)
+                    setState(`collection-search-${labels.collection.toLowerCase()}`, "search", searchState)
+                }
+                if (statusFilterState) {
+                    setStatusFilter(statusFilterState as "active" | "archived" | "all" | "trash")
+                    setState(
+                        `collection-status-filter-${labels.collection.toLowerCase()}`,
+                        "status-filter",
+                        statusFilterState,
+                    )
+                }
+                if (tabState === "cards") {
+                    setFirstTabLoadCards(true)
+                }
+                if (cacheState) {
+                    setState(`collection-range-field-${labels.collection.toLowerCase()}`, "field", cacheState)
+                }
+                if (rangeState) {
+                    setState(`collection-range-${labels.collection.toLowerCase()}`, "range", rangeState)
+                }
+            } else {
+                if (defaultView) {
+                    setTab(defaultView)
+                    tabRef.current = defaultView
+                    setState(`collection-tab-${labels.collection.toLowerCase()}`, "tab", defaultView)
+                } else {
+                    setTab("list")
+                    tabRef.current = "list"
+                }
+            }
+            if (rangeSelectorState) {
+                setRangeSelector(rangeSelectorState as "range" | "week" | "month" | undefined)
+                setState(`collection-range-selector-${labels.collection.toLowerCase()}`, "selector", rangeSelectorState)
             }
 
             const rangeFilter = filtersClone.find((filter: Filter) => filter.type === "range") as
@@ -1312,49 +1380,6 @@ function Collection({
     const autoUpdateStatusFilter = useMemo(() => {
         return !(isPreloadCacheEnabled && cardsConfig?.statusField && cardsConfig.statusField !== statusField?.field)
     }, [isPreloadCacheEnabled, cardsConfig, statusField])
-
-    const showCards = useMemo(() => {
-        if (!cardsConfig || !permissions.Role) return false
-        if (cardsConfig.roles && !cardsConfig.roles.includes(permissions.Role)) return false
-        return true
-    }, [cardsConfig, permissions.Role])
-
-    const showImages = useMemo(() => {
-        if (!imagesConfig || !permissions.Role) return false
-        if (imagesConfig.roles && !imagesConfig.roles.includes(permissions.Role)) return false
-        return imagesConfig?.imageField && fields.map((field) => field.name).includes(imagesConfig.imageField)
-    }, [imagesConfig, permissions.Role])
-
-    const showMap = useMemo(() => {
-        if (!mapConfig || !permissions.Role) return false
-        if (mapConfig.roles && !mapConfig.roles.includes(permissions.Role)) return false
-        return (
-            (mapConfig?.addressField && fields.map((field) => field.name).includes(mapConfig.addressField)) ||
-            (mapConfig?.coordinatesField && fields.map((field) => field.name).includes(mapConfig.coordinatesField))
-        )
-    }, [mapConfig])
-
-    const showCalendar = useMemo(() => {
-        if (!calendarConfig || !permissions.Role) return false
-        if (calendarConfig.roles && !calendarConfig.roles.includes(permissions.Role)) return false
-        const systemFieldsSchema = getSystemFieldsSchema()
-        const resourceField = getField(fields, calendarConfig?.resourceField)
-        return (
-            calendarConfig?.startField &&
-            fields
-                .concat(systemFieldsSchema)
-                .map((field) => field.name)
-                .includes(calendarConfig.startField) &&
-            (!calendarConfig?.endField ||
-                fields
-                    .concat(systemFieldsSchema)
-                    .map((field) => field.name)
-                    .includes(calendarConfig.endField)) &&
-            (!calendarConfig?.allDayField || fields.map((field) => field.name).includes(calendarConfig.allDayField)) &&
-            (!calendarConfig?.resourceField ||
-                (resourceField && (!isRelationField(resourceField) || schema.collections[resourceField.collection])))
-        )
-    }, [calendarConfig, schema])
 
     const canAddRecords =
         permissions.collections?.[labels.collection]?.operations.includes("Create") &&
@@ -1801,29 +1826,36 @@ function Collection({
                                         </Badge>
                                     )}
                                     <div className="lg:h-9">
-                                        {!formList && (showCards || showImages || showMap || showCalendar) && (
-                                            <TabsList>
-                                                <TabsTrigger value="list">{listConfig?.title || "List"}</TabsTrigger>
-                                                {showCards && cardsStatusField.current && (
-                                                    <TabsTrigger value="cards">
-                                                        {cardsConfig?.title || "Board"}
-                                                    </TabsTrigger>
-                                                )}
-                                                {showImages && (
-                                                    <TabsTrigger value="images">
-                                                        {imagesConfig?.title || "Pics"}
-                                                    </TabsTrigger>
-                                                )}
-                                                {showMap && (
-                                                    <TabsTrigger value="map">{mapConfig?.title || "Map"}</TabsTrigger>
-                                                )}
-                                                {showCalendar && (
-                                                    <TabsTrigger value="calendar">
-                                                        {calendarConfig?.title || "Calendar"}
-                                                    </TabsTrigger>
-                                                )}
-                                            </TabsList>
-                                        )}
+                                        {!formList &&
+                                            (showList || showCards || showImages || showMap || showCalendar) && (
+                                                <TabsList>
+                                                    {showList && (
+                                                        <TabsTrigger value="list">
+                                                            {listConfig?.title || "List"}
+                                                        </TabsTrigger>
+                                                    )}
+                                                    {showCards && cardsStatusField.current && (
+                                                        <TabsTrigger value="cards">
+                                                            {cardsConfig?.title || "Board"}
+                                                        </TabsTrigger>
+                                                    )}
+                                                    {showImages && (
+                                                        <TabsTrigger value="images">
+                                                            {imagesConfig?.title || "Pics"}
+                                                        </TabsTrigger>
+                                                    )}
+                                                    {showMap && (
+                                                        <TabsTrigger value="map">
+                                                            {mapConfig?.title || "Map"}
+                                                        </TabsTrigger>
+                                                    )}
+                                                    {showCalendar && (
+                                                        <TabsTrigger value="calendar">
+                                                            {calendarConfig?.title || "Calendar"}
+                                                        </TabsTrigger>
+                                                    )}
+                                                </TabsList>
+                                            )}
                                     </div>
                                     {!formList &&
                                         !relationList?.loadAll &&
