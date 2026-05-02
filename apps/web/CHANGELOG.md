@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.95
+
+### Patch Changes
+
+- fix: delay record sidebar display until initialised
+
 ## 0.5.94
 
 ### Patch Changes

@@ -45,6 +45,7 @@ export const RecordSidebar = ({
     const [relationTitles, setRelationTitles] = useState<Record<string, string>>({})
     const [relationIcons, setRelationIcons] = useState<Record<string, React.FC>>({})
     const [assignable, setAssignable] = useState<Assignable[]>([])
+    const [isInitialized, setIsInitialized] = useState(false)
 
     useEffect(() => {
         ;(async () => {
@@ -68,6 +69,7 @@ export const RecordSidebar = ({
                 const assignable = await tryPromise(customization.admin?.assignable)
                 setAssignable(assignable)
             }
+            setIsInitialized(true)
         })()
     }, [])
 
@@ -125,6 +127,8 @@ export const RecordSidebar = ({
 
     const anyCustomActive = customItems.some((item) => location.pathname.includes(item.page))
     const anyRelationActive = relationItems.some((item) => location.pathname.includes(item.page))
+
+    if (!isInitialized) return null
 
     return (
         <Sidebar
