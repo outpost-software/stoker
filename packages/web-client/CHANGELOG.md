@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.51
+
+### Patch Changes
+
+- feat: add addToUserToken option to fields
+- Updated dependencies
+    - @stoker-platform/types@0.5.32
+    - @stoker-platform/utils@0.5.43
+
 ## 0.5.50
 
 ### Patch Changes

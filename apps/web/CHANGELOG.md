@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.92
+
+### Patch Changes
+
+- feat: add addToUserToken option to fields
+- feat: add ability to restrict list view access
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.51
+    - @stoker-platform/utils@0.5.43
+    - @stoker-platform/web-client@0.5.51
+
 ## 0.5.91
 
 ### Patch Changes

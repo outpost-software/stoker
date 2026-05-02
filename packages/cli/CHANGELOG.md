@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.71
+
+### Patch Changes
+
+- feat: add addToUserToken option to fields
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.51
+    - @stoker-platform/types@0.5.32
+    - @stoker-platform/utils@0.5.43
+
 ## 0.5.70
 
 ### Patch Changes

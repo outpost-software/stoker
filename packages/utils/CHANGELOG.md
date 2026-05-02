@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.43
+
+### Patch Changes
+
+- feat: add addToUserToken option to fields
+- Updated dependencies
+    - @stoker-platform/types@0.5.32
+
 ## 0.5.42
 
 ### Patch Changes

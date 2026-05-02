@@ -1,6 +1,14 @@
 {
   "projects": {},
-  "targets": {},
+  "targets": {
+    "test-project-1777710942670": {
+      "storage": {
+        "default": [
+          "test-project-1777710942670"
+        ]
+      }
+    }
+  },
   "etags": {},
   "dataconnectEmulatorConfig": {}
 }
