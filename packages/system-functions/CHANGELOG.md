@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.58
+
+### Patch Changes
+
+- fix: fix relation single field update issue
+
 ## 0.5.57
 
 ### Patch Changes

@@ -145,7 +145,7 @@ export const updateIncludeFields = (
                                 if (cancelled) return;
                                 await db.runTransaction(async (transaction) => {
                                     const updateData: Record<string, FieldValue> = {};
-                                    let updateDataWithSingle: Record<string, FieldValue> = {};
+                                    const updateDataWithSingle: Record<string, FieldValue> = {};
                                     const mainRef = await transaction.get(snapshot.after.ref);
                                     const dataRef = await transaction.get(record.ref);
                                     if (dataRef.exists) {
@@ -177,7 +177,7 @@ export const updateIncludeFields = (
                                                         `${field.name}.${snapshot.after.id}.${includeField}_Lowercase`
                                                     ] = lowercaseValue !== undefined ? lowercaseValue : FieldValue.delete();
                                                 }
-                                                updateDataWithSingle = {...updateData};
+                                                Object.assign(updateDataWithSingle, updateData);
                                                 if (singleFieldRelationsNames.includes(field.name)) {
                                                     updateDataWithSingle[
                                                         `${field.name}_Single.${includeField}`
