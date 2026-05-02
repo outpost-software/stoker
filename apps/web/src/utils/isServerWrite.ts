@@ -9,7 +9,7 @@ export const isServerCreate = (collection: CollectionSchema, user?: UserData) =>
 export const isServerUpdate = (collection: CollectionSchema, record: Partial<StokerRecord>, user?: UserData) => {
     const { auth, access, fields } = collection
     const { serverWriteOnly } = access
-    const tokenFields = fields.filter((field) => field.addToAuthToken)
+    const tokenFields = fields.filter((field) => field.saveToAuthToken)
     return !!(
         serverWriteOnly ||
         (auth && user?.operation) ||

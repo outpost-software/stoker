@@ -151,7 +151,7 @@ export const updateRecord = async (
     }
 
     const tokenFields = collectionSchema.fields.filter(
-        (field) => field.addToAuthToken && !isReservedClaimKey(field.name),
+        (field) => field.saveToAuthToken && !isReservedClaimKey(field.name),
     )
 
     const createUserRequest = collectionSchema.auth && user?.operation === "create"

@@ -414,7 +414,7 @@ const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
                 admin: {
                     label: "Coffee Preference",
                 },
-                addToAuthToken: true,
+                saveToAuthToken: true,
             },
         ],
     }

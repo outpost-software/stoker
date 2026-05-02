@@ -1,5 +1,12 @@
 # @stoker-platform/utils
 
+## 0.5.44
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/types@0.5.33
+
 ## 0.5.43
 
 ### Patch Changes

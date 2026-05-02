@@ -116,7 +116,7 @@ export const updateRecord = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
 
-    const tokenFields = collectionSchema.fields.filter((field) => field.addToAuthToken)
+    const tokenFields = collectionSchema.fields.filter((field) => field.saveToAuthToken)
 
     const createUserRequest = collectionSchema.auth && user?.operation === "create"
     const deleteUserRequest = collectionSchema.auth && user?.operation === "delete"

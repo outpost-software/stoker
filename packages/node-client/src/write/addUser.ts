@@ -47,7 +47,7 @@ export const addUser = async (
 
     const authToken: Record<string, unknown> = {}
     for (const field of fields) {
-        if (field.addToAuthToken && !isReservedClaimKey(field.name)) {
+        if (field.saveToAuthToken && !isReservedClaimKey(field.name)) {
             if (
                 record[field.name] !== undefined &&
                 field.type !== "Timestamp" &&

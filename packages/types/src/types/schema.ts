@@ -940,7 +940,7 @@ export interface StandardField {
     required?: boolean
     nullable?: boolean
 
-    addToAuthToken?: boolean
+    saveToAuthToken?: boolean
 
     access?: StokerRole[]
     restrictCreate?: StokerRole[] | boolean

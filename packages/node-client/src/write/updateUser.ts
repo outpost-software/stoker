@@ -26,7 +26,7 @@ export const updateUser = async (
 
     const authToken: Record<string, unknown> = {}
     for (const field of collection.fields) {
-        if (field.addToAuthToken && !isReservedClaimKey(field.name)) {
+        if (field.saveToAuthToken && !isReservedClaimKey(field.name)) {
             if (
                 record[field.name] !== undefined &&
                 field.type !== "Timestamp" &&

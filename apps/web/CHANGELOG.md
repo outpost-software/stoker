@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.94
+
+### Patch Changes
+
+- feat: rename addToAuthToken option to saveToAuthToken
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.52
+    - @stoker-platform/web-client@0.5.53
+    - @stoker-platform/utils@0.5.44
+
 ## 0.5.93
 
 ### Patch Changes
