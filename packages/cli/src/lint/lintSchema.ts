@@ -591,13 +591,19 @@ export const lintSchema = async (noLog = false) => {
                     `Collection ${collectionName} has a default sort field ${defaultSort.field} that does not exist`,
                 )
             } else {
-                for (const role of readRoles) {
-                    if (
-                        !(preloadCache?.roles.includes(role) || serverReadOnly?.includes(role)) &&
-                        !(fieldSchema.name === recordTitleField || fieldSchema.sorting)
-                    ) {
+                if (
+                    !preloadCache?.roles.every(
+                        (role) => preloadCache?.roles.includes(role) || serverReadOnly?.includes(role),
+                    )
+                ) {
+                    if (!(fieldSchema.name === recordTitleField || fieldSchema.sorting)) {
                         errors.push(
                             `Collection ${collectionName} has a default sort field ${defaultSort.field} that must have sorting enabled.`,
+                        )
+                    }
+                    if (!(fieldSchema.required || fieldSchema.nullable)) {
+                        errors.push(
+                            `Collection ${collectionName} has a default sort field ${defaultSort.field} that must be required or nullable.`,
                         )
                     }
                 }

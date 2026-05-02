@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.73
+
+### Patch Changes
+
+- feat: detect sorting fields with nullable requirement
+
 ## 0.5.72
 
 ### Patch Changes
