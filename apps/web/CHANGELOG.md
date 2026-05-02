@@ -1,5 +1,13 @@
 # @stoker-platform/web-app
 
+## 0.5.93
+
+### Patch Changes
+
+- feat: improve addToAuthToken option
+- Updated dependencies
+    - @stoker-platform/web-client@0.5.52
+
 ## 0.5.92
 
 ### Patch Changes

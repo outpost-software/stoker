@@ -116,6 +116,8 @@ export const updateRecord = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context: any = { collection: labels.collection }
 
+    const tokenFields = collectionSchema.fields.filter((field) => field.addToAuthToken)
+
     const createUserRequest = collectionSchema.auth && user?.operation === "create"
     const deleteUserRequest = collectionSchema.auth && user?.operation === "delete"
     const updateUserRequest =
@@ -127,7 +129,8 @@ export const updateRecord = async (
             data.Enabled !== undefined ||
             data.Name ||
             data.Email ||
-            data.Photo_URL)
+            data.Photo_URL ||
+            tokenFields.some((field) => data[field.name] !== undefined))
 
     const offlineDisabled = await getCachedConfigValue(customization, [
         "collections",
@@ -148,7 +151,7 @@ export const updateRecord = async (
     checkOnline()
 
     if (serverWriteOnly || createUserRequest || updateUserRequest || deleteUserRequest) {
-        if (createUserRequest) {
+        if (createUserRequest || (updateUserRequest && user?.password)) {
             if (!user.password) throw new Error("VALIDATION_ERROR: Password is required")
             if (!user.passwordConfirm) throw new Error("VALIDATION_ERROR: Password Confirm is required")
             if (user.password !== user.passwordConfirm) {
