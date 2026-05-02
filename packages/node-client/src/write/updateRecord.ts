@@ -52,6 +52,7 @@ import { validateSoftDelete } from "./validateSoftDelete.js"
 import { fetchCurrentSchema } from "../utils/fetchSchema.js"
 import { getDocumentRefs } from "../read/getDocumentRefs.js"
 import { entityRestrictionAccess } from "./entityRestrictionAccess.js"
+import { isReservedClaimKey } from "../utils/reservedAuthClaims.js"
 
 export const updateRecord = async (
     path: string[],
@@ -149,6 +150,10 @@ export const updateRecord = async (
         throw new Error("VALIDATION_ERROR: Permissions are not allowed for delete operations")
     }
 
+    const tokenFields = collectionSchema.fields.filter(
+        (field) => field.addToAuthToken && !isReservedClaimKey(field.name),
+    )
+
     const createUserRequest = collectionSchema.auth && user?.operation === "create"
     const deleteUserRequest = collectionSchema.auth && user?.operation === "delete"
     const updateUserRequest =
@@ -160,7 +165,9 @@ export const updateRecord = async (
             data.Enabled !== undefined ||
             data.Name ||
             data.Email ||
-            data.Photo_URL)
+            data.Photo_URL ||
+            // eslint-disable-next-line security/detect-object-injection
+            tokenFields.some((field) => data[field.name] !== undefined))
     const updateUserRequired = (originalRecord: StokerRecord) => {
         return (
             originalRecord.User_ID &&
@@ -169,7 +176,11 @@ export const updateRecord = async (
                 (data.Enabled !== undefined && data.Enabled !== originalRecord.Enabled) ||
                 (data.Name && data.Name !== originalRecord.Name) ||
                 (data.Email && data.Email !== originalRecord.Email) ||
-                (data.Photo_URL && data.Photo_URL !== originalRecord.Photo_URL))
+                (data.Photo_URL && data.Photo_URL !== originalRecord.Photo_URL) ||
+                tokenFields.some(
+                    // eslint-disable-next-line security/detect-object-injection
+                    (field) => data[field.name] !== undefined && data[field.name] !== originalRecord[field.name],
+                ))
         )
     }
 
@@ -658,7 +669,7 @@ export const updateRecord = async (
                 tenantId,
                 recordId,
                 globalConfig,
-                labels.collection,
+                collectionSchema,
                 record,
                 originalRecord,
                 originalUser,

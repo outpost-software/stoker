@@ -408,6 +408,14 @@ const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
                 type: "Timestamp",
                 required: true,
             },
+            {
+                name: "Coffee_Preference",
+                type: "String",
+                admin: {
+                    label: "Coffee Preference",
+                },
+                addToAuthToken: true,
+            },
         ],
     }
 }

@@ -1,21 +1,23 @@
-import { GlobalConfig, StokerCollection, StokerPermissions, StokerRecord } from "@stoker-platform/types"
-import { tryPromise } from "@stoker-platform/utils"
+import { CollectionSchema, GlobalConfig, StokerPermissions, StokerRecord } from "@stoker-platform/types"
+import { isDeleteSentinel, tryPromise } from "@stoker-platform/utils"
 import { getFirestore } from "firebase-admin/firestore"
 import { deleteUser } from "./deleteUser"
 import { getAuth } from "firebase-admin/auth"
 import { sendMail } from "../utils/sendMail"
+import { isReservedClaimKey } from "../utils/reservedAuthClaims.js"
 
 export const addUser = async (
     tenantId: string,
     docId: string,
     globalConfig: GlobalConfig,
-    collection: StokerCollection,
+    collection: CollectionSchema,
     record: StokerRecord,
     permissions: StokerPermissions,
     password: string,
 ) => {
     const auth = getAuth()
     const db = getFirestore()
+    const { labels, fields } = collection
 
     const message = "USER_ERROR"
 
@@ -43,11 +45,30 @@ export const addUser = async (
         throw new Error(message)
     }
 
+    const authToken: Record<string, unknown> = {}
+    for (const field of fields) {
+        if (field.addToAuthToken && !isReservedClaimKey(field.name)) {
+            if (
+                record[field.name] !== undefined &&
+                field.type !== "Timestamp" &&
+                field.type !== "Computed" &&
+                field.type !== "Embedding"
+            ) {
+                if (!isDeleteSentinel(record[field.name])) {
+                    authToken[field.name] = record[field.name]
+                } else {
+                    authToken[field.name] = null
+                }
+            }
+        }
+    }
+
     try {
         await auth.setCustomUserClaims(user.uid, {
+            ...authToken,
             tenant: tenantId,
             role: record.Role,
-            collection,
+            collection: labels.collection,
             doc: docId,
         })
     } catch {
@@ -65,7 +86,7 @@ export const addUser = async (
                 ...permissions,
                 Role: record.Role,
                 Enabled: record.Enabled ?? false,
-                Collection: collection,
+                Collection: labels.collection,
                 Doc_ID: docId,
             })
     } catch {

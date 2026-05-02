@@ -794,6 +794,12 @@ If you have set `indexExemption` at the collection level, this option will re-en
 
 You should consider exempting [incrementally increasing monotonic fields](/docs/advanced-google-cloud/Limitations#no-support-for-high-collection-write-rates-for-collections-with-sequential-indexed-values), large String fields, Map fields and Array fields. 
 
+#### addToAuthToken
+
+`boolean`
+
+In auth collections, set to `true` to add the field to the linked user's auth token.
+
 #### custom.initialValue
 
 `unknown | ((record?: StokerRecord) => unknown | Promise<unknown>)`

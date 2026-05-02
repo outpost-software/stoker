@@ -339,7 +339,7 @@ export const addRecord = async (
             tenantId,
             docId,
             globalConfig,
-            labels.collection,
+            collectionSchema,
             record,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             user.permissions!,

@@ -200,6 +200,7 @@ describe("CLI", async () => {
             { match: "Users- IP_Address", input: "\n" },
             { match: "Users- Contact", input: "\n" },
             { match: "Users- Start", input: `${Date.now()}\n` },
+            { match: "Users- Coffee_Preference", input: "Latte\n" },
             { match: "Users- Password", input: `${process.env.TEST_PASSWORD}\n` },
         ]
 
@@ -260,6 +261,7 @@ describe("CLI", async () => {
             { match: "Users- IP_Address", input: "\n" },
             { match: "Users- Contact", input: "\n" },
             { match: "Users- Start", input: `${Date.now()}\n` },
+            { match: "Users- Coffee_Preference", input: "Latte\n" },
             { match: "Users- Password", input: `${process.env.TEST_PASSWORD}\n` },
         ]
 
@@ -305,6 +307,7 @@ describe("CLI", async () => {
             { match: "Users- IP_Address", input: "\n" },
             { match: "Users- Contact", input: "\n" },
             { match: "Users- Start", input: `${Date.now()}\n` },
+            { match: "Users- Coffee_Preference", input: "Latte\n" },
             { match: "Users- Password", input: `${process.env.TEST_PASSWORD}\n` },
         ]
 
@@ -350,6 +353,7 @@ describe("CLI", async () => {
             { match: "Users- IP_Address", input: "\n" },
             { match: "Users- Contact", input: "\n" },
             { match: "Users- Start", input: `${Date.now()}\n` },
+            { match: "Users- Coffee_Preference", input: "Latte\n" },
             { match: "Users- Password", input: `${process.env.TEST_PASSWORD}\n` },
         ]
 
@@ -415,7 +419,7 @@ describe("CLI", async () => {
                 "-p",
                 "Users",
                 "-d",
-                '{"Name": "Test User", "Enabled": true, "Role": "Cleaner", "Email": "another@getoutpost.com", "Start": {"_seconds": 1736484988, "_nanoseconds": 0}, "ID": "ee210af5-8449-4adf-b221-f80d2d631bb5"}',
+                '{"Name": "Test User", "Enabled": true, "Role": "Cleaner", "Email": "another@getoutpost.com", "Start": {"_seconds": 1736484988, "_nanoseconds": 0}, "ID": "ee210af5-8449-4adf-b221-f80d2d631bb5", "Coffee_Preference": "Latte"}',
                 "-a",
                 `{"password": "${process.env.TEST_PASSWORD}", "passwordConfirm": "${process.env.TEST_PASSWORD}", "permissions": {"collections": {"Inbox": {"operations": ["Read", "Create", "Update"], "recordUser": {"active": true}}, "Outbox": {"operations": ["Read", "Create", "Update"], "recordOwner": {"active": true}}, "Sites": {"operations": ["Read"], "restrictEntities": true, "parentEntities": []}, "Work_Orders": {"operations": ["Read"], "recordProperty": {"active": true}}}}}`,
             ],
@@ -450,7 +454,7 @@ describe("CLI", async () => {
                 "-p",
                 "Users",
                 "-d",
-                '{"Name": "Test User 2", "Photo_URL": "_DELETE_FIELD"}',
+                '{"Name": "Test User 2", "Photo_URL": "_DELETE_FIELD", "Coffee_Preference": "Espresso"}',
                 "-i",
                 userId,
             ],
@@ -1119,24 +1123,6 @@ describe("Cloud Functions", async () => {
             .doc(functionsVehicleId)
             .get()
         expect(dependency1.data()?.Number).toBe(snapshot.data()?.Number)
-        const dependency2 = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("system_fields")
-            .doc("Vehicles")
-            .collection("Vehicles-2")
-            .doc(functionsVehicleId)
-            .get()
-        expect(dependency2.data()?.Number).toBe(snapshot.data()?.Number)
-        const dependency3 = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("system_fields")
-            .doc("Vehicles")
-            .collection("Vehicles-3")
-            .doc(functionsVehicleId)
-            .get()
-        expect(dependency3.data()?.Number).toBe(snapshot.data()?.Number)
     })
 
     test("fullTextSearch adds a record to the search index", async () => {

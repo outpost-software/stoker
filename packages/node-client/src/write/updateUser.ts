@@ -1,18 +1,19 @@
-import { GlobalConfig, StokerCollection, StokerPermissions, StokerRecord } from "@stoker-platform/types"
-import { tryPromise } from "@stoker-platform/utils"
+import { CollectionSchema, GlobalConfig, StokerPermissions, StokerRecord } from "@stoker-platform/types"
+import { isDeleteSentinel, tryPromise } from "@stoker-platform/utils"
 import { getAuth, UserRecord } from "firebase-admin/auth"
 import { getFirestore } from "firebase-admin/firestore"
 import { addUser } from "./addUser.js"
 import { rollbackUser } from "./rollbackUser.js"
 import { deleteUser } from "./deleteUser.js"
 import { sendMail } from "../utils/sendMail.js"
+import { isReservedClaimKey, omitReservedClaims } from "../utils/reservedAuthClaims.js"
 
 export const updateUser = async (
     operation: "create" | "update" | "delete",
     tenantId: string,
     docId: string,
     globalConfig: GlobalConfig,
-    collection: StokerCollection,
+    collection: CollectionSchema,
     record: StokerRecord,
     originalRecord: StokerRecord,
     originalUser?: UserRecord,
@@ -23,7 +24,23 @@ export const updateUser = async (
     const auth = getAuth()
     const db = getFirestore()
 
-    const claims = originalUser?.customClaims || {}
+    const authToken: Record<string, unknown> = {}
+    for (const field of collection.fields) {
+        if (field.addToAuthToken && !isReservedClaimKey(field.name)) {
+            if (
+                record[field.name] !== undefined &&
+                field.type !== "Timestamp" &&
+                field.type !== "Computed" &&
+                field.type !== "Embedding"
+            ) {
+                if (!isDeleteSentinel(record[field.name])) {
+                    authToken[field.name] = record[field.name]
+                } else {
+                    authToken[field.name] = null
+                }
+            }
+        }
+    }
 
     const message = "USER_ERROR"
 
@@ -76,11 +93,18 @@ export const updateUser = async (
             }
         }
 
-        if (record.Role && record.Role !== originalRecord.Role) {
+        if ((record.Role && record.Role !== originalRecord.Role) || Object.keys(authToken).length) {
             try {
+                const claims = {
+                    ...omitReservedClaims(originalUser.customClaims),
+                    ...authToken,
+                }
                 await auth.setCustomUserClaims(originalRecord.User_ID, {
                     ...claims,
+                    tenant: tenantId,
                     role: record.Role,
+                    collection: collection.labels.collection,
+                    doc: docId,
                 })
                 await auth.revokeRefreshTokens(originalRecord.User_ID)
             } catch {
@@ -97,8 +121,8 @@ export const updateUser = async (
                 .doc(originalRecord.User_ID)
                 .set({
                     ...(permissions || originalPermissions),
-                    Collection: claims.collection,
-                    Doc_ID: claims.doc,
+                    Collection: collection.labels.collection,
+                    Doc_ID: docId,
                     Role: record.Role,
                     Enabled: record.Enabled ?? originalRecord.Enabled ?? false,
                 })
