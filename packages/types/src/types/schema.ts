@@ -909,6 +909,7 @@ export interface FieldAdmin {
           }
         | undefined
     queryFullRecord?: boolean | (() => boolean)
+    asRichText?: boolean | (() => boolean)
 }
 
 export interface DependencyField {

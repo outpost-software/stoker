@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.34
+
+### Patch Changes
+
+- feat: add Computed field asRichText option
+
 ## 0.5.33
 
 ### Patch Changes

@@ -416,6 +416,18 @@ const RecordFormField = (props: FieldProps) => {
                 isUpdateDisabled))
 
     if (isReadOnly && !isRichText) {
+        if (field.type === "Computed" && tryFunction(customization.admin?.asRichText)) {
+            return (
+                <MapField
+                    {...props}
+                    label={label}
+                    description={description}
+                    isRichText={true}
+                    readOnly={true}
+                    icon={icon}
+                />
+            )
+        }
         return <ComputedField {...props} label={label} description={description} icon={icon} />
     }
 
@@ -506,6 +518,18 @@ const RecordFormField = (props: FieldProps) => {
                 />
             )
         case "Computed":
+            if (field.type === "Computed" && tryFunction(customization.admin?.asRichText)) {
+                return (
+                    <MapField
+                        {...props}
+                        label={label}
+                        description={description}
+                        isRichText={true}
+                        readOnly={true}
+                        icon={icon}
+                    />
+                )
+            }
             return <ComputedField {...props} label={label} description={description} icon={icon} />
         default:
             if (isRelationField(field) && schema.collections[field.collection]) {

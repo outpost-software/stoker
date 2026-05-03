@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.97
+
+### Patch Changes
+
+- feat: add Computed field asRichText option
+    - @stoker-platform/node-client@0.5.54
+    - @stoker-platform/utils@0.5.46
+    - @stoker-platform/web-client@0.5.55
+
 ## 0.5.96
 
 ### Patch Changes

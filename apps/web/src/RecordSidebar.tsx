@@ -75,7 +75,7 @@ export const RecordSidebar = ({
 
     const editItem = [
         {
-            title: "Edit",
+            title: "Details",
             page: "edit",
             icon: EditIcon,
         },

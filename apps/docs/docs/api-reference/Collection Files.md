@@ -1352,6 +1352,12 @@ Set on a String field to make it a badge. Return a Tailwind class specifying the
 
 For Array fields. Provide an array of Tailwind classes to have values appear as colored badges. The order of the Tailwind classes array must be the same as the field's values array.
 
+#### asRichText
+
+`boolean | (() => boolean)`
+
+Display a [Computed](#computed-field-properties) field value as rich text
+
 #### noExport
 
 `boolean | (() => boolean)`
