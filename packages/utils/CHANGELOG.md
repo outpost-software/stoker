@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.45
+
+### Patch Changes
+
+- fix: improve Form null handling
+
 ## 0.5.44
 
 ### Patch Changes

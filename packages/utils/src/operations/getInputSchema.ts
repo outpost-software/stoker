@@ -57,9 +57,10 @@ const isTimestamp = () => {
     return z.any().refine(
         (data) => {
             return (
-                data &&
-                ((data.seconds !== undefined && data.nanoseconds !== undefined) ||
-                    (data._seconds !== undefined && data._nanoseconds !== undefined))
+                data === null ||
+                (data &&
+                    ((data.seconds !== undefined && data.nanoseconds !== undefined) ||
+                        (data._seconds !== undefined && data._nanoseconds !== undefined)))
             )
         },
         {

@@ -3836,6 +3836,14 @@ function RecordForm({
                 ) {
                     delete values[field.name]
                 }
+
+                if (values[field.name] === null) {
+                    if (originalRecord?.[field.name]) {
+                        values[field.name] = deleteField()
+                    } else {
+                        delete values[field.name]
+                    }
+                }
             }
 
             let userData: UserData | undefined
@@ -5113,12 +5121,6 @@ function RecordForm({
                                                                         ) {
                                                                             form.setValue(field.name, 0)
                                                                         }
-                                                                        if (
-                                                                            field.nullable &&
-                                                                            form.getValues(field.name) === null
-                                                                        ) {
-                                                                            form.setValue(field.name, undefined)
-                                                                        }
                                                                     }
                                                                     form.handleSubmit(handleSubmit, (errors) => {
                                                                         console.error(errors)
@@ -5633,9 +5635,6 @@ function RecordForm({
                                                     form.getValues(field.name) === null
                                                 ) {
                                                     form.setValue(field.name, 0)
-                                                }
-                                                if (field.nullable && form.getValues(field.name) === null) {
-                                                    form.setValue(field.name, undefined)
                                                 }
                                             }
                                             form.handleSubmit(handleSubmit, (errors) => {

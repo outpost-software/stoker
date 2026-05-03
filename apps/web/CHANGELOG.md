@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.96
+
+### Patch Changes
+
+- fix: improve Form null handling
+- Updated dependencies
+    - @stoker-platform/utils@0.5.45
+    - @stoker-platform/node-client@0.5.53
+    - @stoker-platform/web-client@0.5.54
+
 ## 0.5.95
 
 ### Patch Changes
