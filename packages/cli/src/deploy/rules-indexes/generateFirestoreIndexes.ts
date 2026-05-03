@@ -37,6 +37,26 @@ export const generateFirestoreIndexes = async () => {
         indexes.fieldOverrides = [...indexes.fieldOverrides, ...customIndexes.fieldOverrides]
     }
 
+    for (const fieldOverride of indexes.fieldOverrides) {
+        const mainOverride = fieldOverride
+        if (fieldOverride.indexes.length === 0) continue
+        const mainQueryScope = fieldOverride.indexes[0].queryScope
+        const mainPath = `${fieldOverride.collectionGroup}:${fieldOverride.fieldPath}:${mainQueryScope}`
+        for (const fieldOverride of indexes.fieldOverrides) {
+            if (fieldOverride.indexes.length === 0) continue
+            const queryScope = fieldOverride.indexes[0].queryScope
+            const path = `${fieldOverride.collectionGroup}:${fieldOverride.fieldPath}:${queryScope}`
+            if (
+                fieldOverride.collectionGroup === mainOverride.collectionGroup &&
+                fieldOverride.fieldPath === mainOverride.fieldPath &&
+                mainPath !== path
+            ) {
+                mainOverride.indexes.push(...fieldOverride.indexes)
+                indexes.fieldOverrides.splice(indexes.fieldOverrides.indexOf(fieldOverride), 1)
+            }
+        }
+    }
+
     writeFileSync(
         resolve(__dirname, process.cwd(), "firebase-rules", "firestore.indexes.json"),
         JSON.stringify(indexes, null, 4),

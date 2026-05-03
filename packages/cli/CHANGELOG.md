@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.74
+
+### Patch Changes
+
+- feat: combine field overrides for same path
+
 ## 0.5.73
 
 ### Patch Changes
