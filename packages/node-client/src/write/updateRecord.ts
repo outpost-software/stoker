@@ -124,6 +124,7 @@ export const updateRecord = async (
     for (const field of fields) {
         if (field.type === "Computed") {
             delete data[field.name]
+            delete originalRecord[field.name]
         }
     }
 
