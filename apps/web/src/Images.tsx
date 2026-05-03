@@ -522,7 +522,7 @@ export const Images = memo(
                 const imagesConfig = await getCachedConfigValue(customization, [...collectionAdminPath, "images"])
                 setImagesConfig(imagesConfig)
                 const titles = await getCachedConfigValue(customization, [...collectionAdminPath, "titles"])
-                setCollectionTitle(titles?.collection)
+                setCollectionTitle(titles?.collection || labels.collection)
                 const meta = await getCachedConfigValue(customization, [...collectionAdminPath, "meta"])
                 setMeta(meta)
                 setCursor({})
@@ -780,7 +780,7 @@ export const Images = memo(
 
         const Meta = () => (
             <Helmet>
-                <title>{`${meta?.title || collectionTitle || labels.collection} - Photos`}</title>
+                <title>{`${meta?.title || collectionTitle || ""} - Photos`}</title>
                 {meta?.description && <meta name="description" content={meta.description} />}
             </Helmet>
         )
@@ -811,7 +811,7 @@ export const Images = memo(
                               : "",
                     )}
                 >
-                    {!formList && <Meta />}
+                    {!formList && (meta?.title || collectionTitle) && <Meta />}
                     <List
                         height={height}
                         width="100%"
@@ -836,7 +836,7 @@ export const Images = memo(
                               : "",
                     )}
                 >
-                    {!formList && <Meta />}
+                    {!formList && (meta?.title || collectionTitle) && <Meta />}
                     <InfiniteLoader
                         isItemLoaded={(index) => index < itemCount}
                         itemCount={100000}

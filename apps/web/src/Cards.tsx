@@ -1371,7 +1371,7 @@ export function Cards({
             ])
             setIsOfflineDisabled(offlineDisabled)
             const titles = await getCachedConfigValue(customization, [...collectionAdminPath, "titles"])
-            setCollectionTitle(titles?.collection)
+            setCollectionTitle(titles?.collection || labels.collection)
             const meta = await getCachedConfigValue(customization, [...collectionAdminPath, "meta"])
             setMeta(meta)
             const cardsConfig = await getCachedConfigValue(customization, [...collectionAdminPath, "cards"])
@@ -1510,9 +1510,9 @@ export function Cards({
 
     return (
         <>
-            {!formList && (
+            {!formList && (meta?.title || collectionTitle) && (
                 <Helmet>
-                    <title>{`${meta?.title || collectionTitle || labels.collection} - Board`}</title>
+                    <title>{`${meta?.title || collectionTitle || ""} - Board`}</title>
                     {meta?.description && <meta name="description" content={meta.description} />}
                 </Helmet>
             )}

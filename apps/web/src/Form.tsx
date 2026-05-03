@@ -56,7 +56,17 @@ import {
     getFiles,
     getTenant,
 } from "@stoker-platform/web-client"
-import { createElement, forwardRef, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+    createElement,
+    forwardRef,
+    startTransition,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { useNavigate, useParams } from "react-router"
 import { createPortal } from "react-dom"
 import isEqual from "lodash/isEqual.js"
@@ -337,7 +347,6 @@ const RecordFormField = (props: FieldProps) => {
                 tryPromise(admin?.icon),
             ])
 
-            setReadOnly(!!readOnly)
             setLabel(label || field.name)
             if (!(admin?.description?.condition && !descriptionCondition)) {
                 setDescription(description)
@@ -354,6 +363,8 @@ const RecordFormField = (props: FieldProps) => {
             setIsButtonGroup(!!isButtonGroup)
             setIcon(icon)
             // Prevent button and rich text editor from flickering
+            const initialReadOnly = tryFunction(admin?.readOnly, [operation, record])
+            setReadOnly(!!initialReadOnly)
             setTimeout(() => {
                 setIsFormReady((prevState) => prevState + 1)
             }, 100)
@@ -1660,7 +1671,7 @@ const RichTextEditor = forwardRef<
     const containerRef = useRef<HTMLDivElement>(null)
     const initializedRef = useRef(false)
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!initializedRef.current) return
         if (ref && typeof ref === "object" && ref.current) {
             const quill = ref.current
@@ -1673,7 +1684,7 @@ const RichTextEditor = forwardRef<
         }
     }, [ref, formField.value])
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const container = containerRef.current
         if (!container) return
         initializedRef.current = false
@@ -1736,7 +1747,7 @@ const RichTextEditor = forwardRef<
         }
     }, [ref])
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (ref && typeof ref === "object" && ref.current) {
             ref.current.enable(!readOnly && !isDisabled)
             const container = containerRef.current
@@ -2431,6 +2442,7 @@ function RecordForm({
     const [hidden, setHidden] = useState(false)
     const [collectionTitle, setCollectionTitle] = useState("")
     const [allTitles, setAllTitles] = useState<Record<StokerCollection, string>>({})
+    const [permissionsTitles, setPermissionsTitles] = useState<Record<StokerCollection, string>>({})
     const [allRecordTitles, setAllRecordTitles] = useState<Record<StokerCollection, string>>({})
     const [recordTitle, setRecordTitle] = useState(undefined)
     const [meta, setMeta] = useState<CollectionMeta | undefined>(undefined)
@@ -3570,8 +3582,15 @@ function RecordForm({
                 ])
                 return { collection, titles: collectionTitles }
             })
+            const permissionTitlePromises = Object.values(schema.collections).map(async (collection) => {
+                const collectionCustomization = getCollectionConfigModule(collection.labels.collection)
+                const collectionTitles = await tryPromise(collectionCustomization.admin?.titles, ["permissions"])
+                return { collection, titles: collectionTitles }
+            })
 
             const collectionTitleResults = await Promise.all(collectionTitlePromises)
+            const permissionTitleResults = await Promise.all(permissionTitlePromises)
+
             collectionTitleResults.forEach(({ collection, titles: collectionTitles }) => {
                 setAllTitles((prev) => ({
                     ...prev,
@@ -3587,6 +3606,12 @@ function RecordForm({
                         [collection.labels.collection]: !disableCreate,
                     }))
                 }
+            })
+            permissionTitleResults.forEach(({ collection, titles: collectionTitles }) => {
+                setPermissionsTitles((prev) => ({
+                    ...prev,
+                    [collection.labels.collection]: collectionTitles?.collection || collection.labels.collection,
+                }))
             })
 
             if (operation === "create" && offlinePersistenceType && ["ALL", "WRITE"].includes(offlinePersistenceType)) {
@@ -4478,10 +4503,12 @@ function RecordForm({
 
     return (
         <>
-            <Helmet>
-                <title>{`${meta?.title || collectionTitle || labels.collection} - Edit`}</title>
-                {meta?.description && <meta name="description" content={meta.description} />}
-            </Helmet>
+            {(meta?.title || collectionTitle) && (
+                <Helmet>
+                    <title>{`${meta?.title || collectionTitle || ""} - Edit`}</title>
+                    {meta?.description && <meta name="description" content={meta.description} />}
+                </Helmet>
+            )}
             {operation === "update" && record && hasBreadcrumbs && (
                 <>
                     <Breadcrumbs breadcrumbs={breadcrumbs} collection={collection} record={record} />
@@ -4667,7 +4694,7 @@ function RecordForm({
                                                         }
                                                     >
                                                         <FormLabel className="text-primary">
-                                                            {allTitles[permissionsCollection.labels.collection]}
+                                                            {permissionsTitles[permissionsCollection.labels.collection]}
                                                         </FormLabel>
                                                         <div className="flex flex-row gap-3 mt-2">
                                                             {permissionsCollection.access.auth?.includes(role) &&
@@ -4844,12 +4871,12 @@ function RecordForm({
                                                                                         restriction.type ===
                                                                                         "Record_Owner"
                                                                                     ) {
-                                                                                        label = `Can only access own ${allTitles[permissionsCollection.labels.collection]}`
+                                                                                        label = `Can only access own ${permissionsTitles[permissionsCollection.labels.collection]}`
                                                                                     } else if (
                                                                                         restriction.type ===
                                                                                         "Record_User"
                                                                                     ) {
-                                                                                        label = `Can only access assigned ${allTitles[permissionsCollection.labels.collection]}`
+                                                                                        label = `Can only access assigned ${permissionsTitles[permissionsCollection.labels.collection]}`
                                                                                     } else if (
                                                                                         restriction.type ===
                                                                                         "Record_Property"

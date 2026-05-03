@@ -232,7 +232,7 @@ export function List({
         const metrics = await getCachedConfigValue(customization, [...collectionAdminPath, "metrics"])
         setMetrics(metrics)
         const titles = await getCachedConfigValue(customization, [...collectionAdminPath, "titles"])
-        setCollectionTitle(titles?.collection)
+        setCollectionTitle(titles?.collection || labels.collection)
         const meta = await getCachedConfigValue(customization, [...collectionAdminPath, "meta"])
         setMeta(meta)
         const rowHighlight = await getCachedConfigValue(customization, [...collectionAdminPath, "rowHighlight"])
@@ -1319,9 +1319,9 @@ export function List({
 
     return (
         <>
-            {!formList && (
+            {!formList && (meta?.title || collectionTitle) && (
                 <Helmet>
-                    <title>{`${meta?.title || collectionTitle || labels.collection} - List`}</title>
+                    <title>{`${meta?.title || collectionTitle || ""} - List`}</title>
                     {meta?.description && <meta name="description" content={meta.description} />}
                 </Helmet>
             )}
@@ -1349,8 +1349,7 @@ export function List({
                                             metric.type === "count" ||
                                             metric.type === "custom"
                                         ) {
-                                            const metricTitle =
-                                                metric.title || `Total ${collectionTitle || labels.collection}`
+                                            const metricTitle = metric.title || `Total ${collectionTitle}`
                                             return (
                                                 <div
                                                     key={`metric-${index}`}
@@ -1385,8 +1384,7 @@ export function List({
                                             )
                                         }
                                         if (metric.type === "area") {
-                                            const metricTitle =
-                                                metric.title || `${collectionTitle || labels.collection} Over Time`
+                                            const metricTitle = metric.title || `${collectionTitle} Over Time`
                                             const metricField1 = metric.metricField1
                                                 ? getField(fields, metric.metricField1)
                                                 : undefined
@@ -1635,7 +1633,7 @@ export function List({
                                                     <div className="space-y-2">
                                                         <div className="flex justify-between items-center mb-4">
                                                             <h4 id="dialog-title" className="font-medium leading-none">
-                                                                Update {collectionTitle || labels.collection}
+                                                                Update {collectionTitle}
                                                             </h4>
                                                             <Button
                                                                 type="button"

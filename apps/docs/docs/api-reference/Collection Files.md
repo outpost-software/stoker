@@ -1230,7 +1230,7 @@ The screen size at which the field should be hidden from the list view. This is 
 
 #### readOnly
 
-`boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean | Promise<boolean>)`
+`boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)`
 
 Return `true` to set this as a read-only field in the Admin UI
 
@@ -1497,7 +1497,7 @@ The collection's position in the navbar.
 
 ### titles
 
-`{ collection: string, record: string } | (() => { collection: string; record: string } | Promise<{ collection: string; record: string }>)`
+`{ collection: string, record: string } | ((context?: "permissions") => { collection: string; record: string } | Promise<{ collection: string; record: string }>)`
 
 Human-readable labels for the collection. Only necessary if the root `labels` are not human-readable.
 

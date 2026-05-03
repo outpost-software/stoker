@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.98
+
+### Patch Changes
+
+- feat: add titles context parameter
+    - @stoker-platform/node-client@0.5.55
+    - @stoker-platform/utils@0.5.47
+    - @stoker-platform/web-client@0.5.56
+
 ## 0.5.97
 
 ### Patch Changes

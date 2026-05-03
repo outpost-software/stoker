@@ -701,7 +701,9 @@ export interface CollectionAdmin {
               collection: string
               record: string
           }
-        | (() => { collection: string; record: string } | Promise<{ collection: string; record: string }>)
+        | ((
+              context?: "permissions",
+          ) => { collection: string; record: string } | Promise<{ collection: string; record: string }>)
     icon?: React.FC | (() => React.FC | Promise<React.FC>)
     duplicate?: boolean | (() => boolean | Promise<boolean>)
     convert?: Convert[] | (() => Convert[] | Promise<Convert[]>)
@@ -865,7 +867,7 @@ export interface FieldAdmin {
         list?: boolean | ((parentCollection?: CollectionSchema, parentRecord?: StokerRecord) => boolean)
         form?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)
     }
-    readOnly?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean | Promise<boolean>)
+    readOnly?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)
     description?: FieldDescription
     textarea?: boolean | (() => boolean | Promise<boolean>)
     radio?: boolean | (() => boolean | Promise<boolean>)

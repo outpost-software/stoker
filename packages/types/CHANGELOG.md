@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.35
+
+### Patch Changes
+
+- feat: add titles context parameter
+
 ## 0.5.34
 
 ### Patch Changes

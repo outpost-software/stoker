@@ -847,10 +847,12 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
     return (
         <>
-            <Helmet>
-                <title>{`${meta?.title || collectionTitle || labels.collection} - Files`}</title>
-                {meta?.description && <meta name="description" content={meta.description} />}
-            </Helmet>
+            {(meta?.title || collectionTitle) && (
+                <Helmet>
+                    <title>{`${meta?.title || collectionTitle || ""} - Files`}</title>
+                    {meta?.description && <meta name="description" content={meta.description} />}
+                </Helmet>
+            )}
 
             <div className="flex items-center space-x-2 mb-4">
                 {currentPath && (

@@ -201,7 +201,7 @@ export function Map({
             const recordTitle = await getCachedConfigValue(customization, [...collectionAdminPath, "titles", "record"])
             setRecordTitle(recordTitle || labels.record)
             const titles = await getCachedConfigValue(customization, [...collectionAdminPath, "titles"])
-            setCollectionTitle(titles?.collection)
+            setCollectionTitle(titles?.collection || labels.collection)
             const mapConfig = await getCachedConfigValue(customization, [...collectionAdminPath, "map"])
             setMapConfig(mapConfig)
             const meta = await getCachedConfigValue(customization, [...collectionAdminPath, "meta"])
@@ -559,9 +559,9 @@ export function Map({
 
     return (
         <>
-            {!formList && (
+            {!formList && (meta?.title || collectionTitle) && (
                 <Helmet>
-                    <title>{`${meta?.title || collectionTitle || labels.collection} - Map`}</title>
+                    <title>{`${meta?.title || collectionTitle || ""} - Map`}</title>
                     {meta?.description && <meta name="description" content={meta.description} />}
                 </Helmet>
             )}
