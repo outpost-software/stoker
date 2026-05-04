@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.101
+
+### Patch Changes
+
+- fix: hide Dashboard menu item when not needed
+
 ## 0.5.100
 
 ### Patch Changes

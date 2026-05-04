@@ -129,6 +129,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                         async (data) => {
                             if (!data) {
                                 setRecord(undefined)
+                                setIsRouteLoading("-", location.pathname)
                                 return
                             }
                             if (!recordInitialised.current || liveUpdate || fieldLiveUpdate) {
@@ -160,6 +161,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                     })
                     if (!data) {
                         setRecord(undefined)
+                        setIsRouteLoading("-", location.pathname)
                         return
                     }
                     deserializeTimestamps(data)

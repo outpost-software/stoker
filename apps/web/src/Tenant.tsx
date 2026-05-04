@@ -12,7 +12,14 @@ import "./App.css"
 import { createElement, Suspense, useMemo, useEffect, useState, useCallback, useRef } from "react"
 import { Outlet, useNavigate, useLocation } from "react-router"
 import { collectionAccess, tryFunction } from "@stoker-platform/utils"
-import { Background, CollectionSchema, MenuGroup, MetaIcon, StokerCollection } from "@stoker-platform/types"
+import {
+    Background,
+    CollectionSchema,
+    DashboardItem,
+    MenuGroup,
+    MetaIcon,
+    StokerCollection,
+} from "@stoker-platform/types"
 import { useMode } from "./providers/ModeProvider"
 import {
     DropdownMenu,
@@ -107,6 +114,16 @@ function Tenant() {
         isGlobalCachePendingRef.current = isGlobalCachePending.size
     }, [isGlobalCachePending.size])
 
+    const dashboard = tryFunction(globalConfig.admin?.dashboard)
+    const hasDashboard = dashboard?.some((item: DashboardItem) => {
+        const collectionPermissions = permissions?.collections?.[item.collection]
+        if (!collectionPermissions) return false
+        return (
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            (!item.roles || item.roles?.includes(permissions.Role!)) && collectionAccess("Read", collectionPermissions)
+        )
+    })
+
     useEffect(() => {
         const getConfig = async () => {
             const appName = await getCachedConfigValue(globalConfig, ["global", "appName"])
@@ -166,6 +183,7 @@ function Tenant() {
                 ])
                 if (hidden) continue
                 if (collection.parentCollection) continue
+                if (!hasCollectionAccess(collection)) continue
 
                 sidebarMenu.push({
                     title: collectionName,
@@ -174,7 +192,6 @@ function Tenant() {
                 })
 
                 if (!collectionsGrouped.includes(collectionName)) {
-                    if (!hasCollectionAccess(collection)) continue
                     navbarMenu.push({
                         title: collectionName,
                         collections: [collectionName],
@@ -636,17 +653,19 @@ function Tenant() {
                         </SheetTrigger>
                         <SheetContent side="left" className="sm:max-w-xs overflow-y-auto">
                             <nav className="grid gap-6 text-lg font-medium pt-12">
-                                <button
-                                    className={
-                                        window.location.pathname === "/"
-                                            ? "flex items-center gap-4 px-2.5 text-foreground"
-                                            : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                                    }
-                                    onClick={() => runViewTransition(() => navigate("/"))}
-                                >
-                                    <ChartBar className="h-5 w-5" />
-                                    Dashboard
-                                </button>
+                                {hasDashboard && (
+                                    <button
+                                        className={
+                                            window.location.pathname === "/"
+                                                ? "flex items-center gap-4 px-2.5 text-foreground"
+                                                : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                                        }
+                                        onClick={() => runViewTransition(() => navigate("/"))}
+                                    >
+                                        <ChartBar className="h-5 w-5" />
+                                        Dashboard
+                                    </button>
+                                )}
                                 {sidebarMenu.map((group) => {
                                     if (group.collections.length === 1) {
                                         const className = "flex items-center gap-4 px-2.5 text-primary"
