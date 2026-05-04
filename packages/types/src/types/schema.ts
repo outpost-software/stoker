@@ -702,7 +702,7 @@ export interface CollectionAdmin {
               record: string
           }
         | ((
-              context?: "permissions",
+              context?: "permissions" | "search-all",
           ) => { collection: string; record: string } | Promise<{ collection: string; record: string }>)
     icon?: React.FC | (() => React.FC | Promise<React.FC>)
     duplicate?: boolean | (() => boolean | Promise<boolean>)

@@ -11,6 +11,7 @@ import {
     getLoadingState,
     getSome,
     subscribeMany,
+    tryPromise,
 } from "@stoker-platform/web-client"
 import { Query } from "./Collection"
 import { QueryConstraint, where, WhereFilterOp } from "firebase/firestore"
@@ -166,12 +167,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
 
     useEffect(() => {
         const initialize = async () => {
-            const collectionTitles = await getCachedConfigValue(customization, [
-                "collections",
-                labels.collection,
-                "admin",
-                "titles",
-            ])
+            const collectionTitles = await tryPromise(customization.admin?.titles, ["search-all"])
             setTitle(collectionTitles?.collection || labels.collection)
             const icon = await getCachedConfigValue(customization, ["collections", labels.collection, "admin", "icon"])
             setIcon(icon)

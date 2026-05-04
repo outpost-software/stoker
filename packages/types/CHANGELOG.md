@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.36
+
+### Patch Changes
+
+- feat(web-app): add search-all to titles context parameter
+
 ## 0.5.35
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.100
+
+### Patch Changes
+
+- feat: add search-all to titles context parameter
+    - @stoker-platform/node-client@0.5.57
+    - @stoker-platform/utils@0.5.48
+    - @stoker-platform/web-client@0.5.57
+
 ## 0.5.99
 
 ### Patch Changes
