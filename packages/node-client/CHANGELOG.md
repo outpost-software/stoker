@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.56
+
+### Patch Changes
+
+- fix: use full document for updateRecord validation
+
 ## 0.5.55
 
 ### Patch Changes

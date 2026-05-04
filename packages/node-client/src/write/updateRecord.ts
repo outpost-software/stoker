@@ -120,6 +120,13 @@ export const updateRecord = async (
             noComputedFields: true,
             noEmbeddingFields: true,
         }))
+    let fullOriginalRecord = originalRecord
+    if (userId) {
+        fullOriginalRecord = await getOne(path, recordId, {
+            noComputedFields: true,
+            noEmbeddingFields: true,
+        })
+    }
 
     for (const field of fields) {
         if (field.type === "Computed") {
@@ -252,7 +259,7 @@ export const updateRecord = async (
             if (!user.password) throw new Error("Password is required")
         }
         if (!options?.providedTransaction) {
-            const record = { ...originalRecord, ...partial }
+            const record = { ...fullOriginalRecord, ...partial }
             await uniqueValidation("update", tenantId, recordId, record, collectionSchema, schema)
             removeDeleteSentinels(record)
             await validateRecord(
@@ -280,7 +287,7 @@ export const updateRecord = async (
         }
     }
     try {
-        const record = { ...originalRecord, ...partial }
+        const record = { ...fullOriginalRecord, ...partial }
         removeDeleteSentinels(record)
         validateSoftDelete("update", collectionSchema, partial, originalRecord)
         validateSystemFields("update", partial, originalSystemFields)
@@ -289,7 +296,7 @@ export const updateRecord = async (
             record,
             collectionSchema,
             customization,
-            { operation: "update", record: partial, context, originalRecord },
+            { operation: "update", record: partial, context, originalRecord: cloneDeep(originalRecord) },
             schema,
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

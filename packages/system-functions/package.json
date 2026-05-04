@@ -1,7 +1,7 @@
 {
     "name": "@stoker-platform/system-functions",
     "type": "module",
-    "version": "0.5.61",
+    "version": "0.5.62",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "lib/main.js",
     "types": "lib/main.d.ts",
@@ -19,7 +19,7 @@
         "@genkit-ai/firebase": "^1.33.0",
         "@genkit-ai/google-genai": "^1.33.0",
         "@google-cloud/storage": "^7.19.0",
-        "@stoker-platform/node-client": "0.5.55",
+        "@stoker-platform/node-client": "0.5.56",
         "@stoker-platform/types": "0.5.35",
         "@stoker-platform/utils": "0.5.47",
         "dotenv": "^17.4.2",
