@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.80
+
+### Patch Changes
+
+- feat: add showMetrics option to relation lists
+- Updated dependencies
+    - @stoker-platform/types@0.5.37
+    - @stoker-platform/node-client@0.5.58
+    - @stoker-platform/utils@0.5.49
+
 ## 0.5.79
 
 ### Patch Changes

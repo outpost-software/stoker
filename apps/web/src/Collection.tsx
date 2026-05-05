@@ -2440,7 +2440,7 @@ function Collection({
                                                 search={search}
                                                 defaultSort={defaultSort}
                                                 setOptimisticList={setOptimisticList}
-                                                relationList={!!relationList}
+                                                relationList={relationList}
                                                 relationCollection={relationCollection}
                                                 relationParent={relationParent}
                                                 formList={formList}

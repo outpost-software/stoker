@@ -13,7 +13,9 @@ export const setDeploymentStatus = async (status: "idle" | "in_progress") => {
             const deploymentStatus = await transaction.get(db.collection("system_deployment").doc("status"))
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             if (deploymentStatus.exists && deploymentStatus.data()!.status === "in_progress") {
-                throw new Error("Deployment already in progress. Please try again later.")
+                throw new Error(
+                    "Deployment already in progress. Please try again later or run 'stoker deployment --status idle' to reset the deployment status.",
+                )
             }
         }
         transaction.set(db.collection("system_deployment").doc("status"), { status })

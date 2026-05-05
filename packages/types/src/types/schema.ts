@@ -1064,6 +1064,7 @@ export interface RelationList {
     roles?: StokerRole[]
     constraints?: [string, "==" | "in", unknown][]
     loadAll?: boolean
+    showMetrics?: boolean
 }
 
 export interface CollectionSchema {

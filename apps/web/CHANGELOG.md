@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.102
+
+### Patch Changes
+
+- feat: add showMetrics option to relation lists
+    - @stoker-platform/node-client@0.5.58
+    - @stoker-platform/utils@0.5.49
+    - @stoker-platform/web-client@0.5.58
+
 ## 0.5.101
 
 ### Patch Changes

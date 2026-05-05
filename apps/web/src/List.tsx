@@ -6,6 +6,7 @@ import {
     CollectionSchema,
     FormList,
     Metric,
+    RelationList,
     RowHighlight,
     StokerCollection,
     StokerPermissions,
@@ -121,7 +122,7 @@ interface ListProps {
           }
         | undefined
     setOptimisticList: () => void
-    relationList?: boolean
+    relationList?: RelationList
     relationCollection?: CollectionSchema
     relationParent?: StokerRecord
     formList?: FormList
@@ -1329,13 +1330,13 @@ export function List({
                 <ScrollArea
                     className={cn(
                         !relationList && !formList && "min-h-screen xl:min-h-full xl:h-[calc(100vh-252px)]",
-                        relationList && hasBreadcrumbs && "xl:h-[calc(100vh-352px-73px)]",
-                        relationList && !hasBreadcrumbs && "xl:h-[calc(100vh-352px)]",
+                        !!relationList && hasBreadcrumbs && "xl:h-[calc(100vh-352px-73px)]",
+                        !!relationList && !hasBreadcrumbs && "xl:h-[calc(100vh-352px)]",
                         formList && "h-[264px] xl:h-[316px]",
                     )}
                 >
                     <CardContent>
-                        {metrics && hasMetrics && !relationList && (
+                        {metrics && hasMetrics && !formList && (!relationList || relationList.showMetrics) && (
                             <div className="hidden lg:flex flex-row gap-4 mb-4 mt-4 max-w-[calc(100vw-96px)]">
                                 {metrics.map((metric: Metric | Chart, index: number) => {
                                     const hideThirdMetric = index >= 2 && hasChart ? "hidden xl:grid" : undefined
