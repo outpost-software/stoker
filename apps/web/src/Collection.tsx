@@ -1742,7 +1742,7 @@ function Collection({
                                                     fullTextSearch &&
                                                     !hasEntityRestrictions?.length &&
                                                     !hasEntityParentFilters?.length)) && (
-                                                <div className="relative flex-1">
+                                                <search className="relative flex-1">
                                                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                                     <Input
                                                         type="search"
@@ -1754,7 +1754,7 @@ function Collection({
                                                     {search && (
                                                         <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
                                                     )}
-                                                </div>
+                                                </search>
                                             )}
                                         {ai?.chat && ai.chat.roles.includes(permissions.Role) && (
                                             <Sheet>

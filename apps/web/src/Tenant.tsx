@@ -590,7 +590,7 @@ function Tenant() {
                             <div className="ml-auto flex-1 lg:flex-initial text-primary dark">
                                 <Popover open={searchFocused && Boolean(search)}>
                                     <PopoverTrigger asChild>
-                                        <div className="relative">
+                                        <search className="relative">
                                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 type="search"
@@ -612,7 +612,7 @@ function Tenant() {
                                                     }
                                                 }}
                                             />
-                                        </div>
+                                        </search>
                                     </PopoverTrigger>
                                     {search && showSearchAll && <SearchAll query={search} />}
                                 </Popover>
