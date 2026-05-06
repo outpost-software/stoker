@@ -53,8 +53,8 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
 
     const constraints = useMemo(() => {
         const existingConstraints = [...(metric.constraints || [])]
-        if (softDelete) {
-            existingConstraints.push(["Archived", "==", false])
+        if (softDelete?.archivedField) {
+            existingConstraints.push([softDelete.archivedField, "==", false])
         }
         return existingConstraints
     }, [])

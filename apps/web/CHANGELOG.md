@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.104
+
+### Patch Changes
+
+- fix: use soft delete archivedField instead of literal field name
+
 ## 0.5.103
 
 ### Patch Changes

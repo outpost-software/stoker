@@ -68,8 +68,8 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
 
     const constraints = useMemo(() => {
         const existingConstraints = [...(reminder.constraints || [])]
-        if (softDelete) {
-            existingConstraints.push(["Archived", "==", false])
+        if (softDelete?.archivedField) {
+            existingConstraints.push([softDelete.archivedField, "==", false])
         }
         return existingConstraints
     }, [])

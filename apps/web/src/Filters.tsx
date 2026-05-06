@@ -254,12 +254,15 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 newConstraints = constraints.map((constraint) => where(constraint[0], constraint[1], constraint[2]))
             }
             if (isCollectionServerReadOnly) {
-                if (softDelete) {
-                    newConstraints.push(["Archived", "==", false] as QueryConstraint & [string, string, unknown])
+                if (softDelete?.archivedField) {
+                    newConstraints.push([softDelete.archivedField, "==", false] as QueryConstraint &
+                        [string, string, unknown])
                 }
             } else {
-                if (softDelete) {
-                    newConstraints.push(where("Archived", "==", false) as QueryConstraint & [string, string, unknown])
+                if (softDelete?.archivedField) {
+                    newConstraints.push(
+                        where(softDelete.archivedField, "==", false) as QueryConstraint & [string, string, unknown],
+                    )
                 }
             }
 

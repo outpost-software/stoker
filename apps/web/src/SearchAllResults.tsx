@@ -64,13 +64,13 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
             if (objectIDs.length > 0) {
                 if (isServerReadOnly) {
                     query.queries[0].constraints = [["id", "in", objectIDs]]
-                    if (softDelete) {
-                        query.queries[0].constraints.push(["Archived", "==", false])
+                    if (softDelete?.archivedField) {
+                        query.queries[0].constraints.push([softDelete.archivedField, "==", false])
                     }
                 } else {
                     query.queries[0].constraints = [where("id", "in", objectIDs)]
-                    if (softDelete) {
-                        query.queries[0].constraints.push(where("Archived", "==", false))
+                    if (softDelete?.archivedField) {
+                        query.queries[0].constraints.push(where(softDelete.archivedField, "==", false))
                     }
                 }
             } else if (search) {

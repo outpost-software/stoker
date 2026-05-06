@@ -63,8 +63,8 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
 
     const constraints = useMemo(() => {
         const existingConstraints = [...(chart.constraints || [])]
-        if (softDelete) {
-            existingConstraints.push(["Archived", "==", false])
+        if (softDelete?.archivedField) {
+            existingConstraints.push([softDelete.archivedField, "==", false])
         }
         return existingConstraints
     }, [])

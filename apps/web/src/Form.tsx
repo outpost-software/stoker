@@ -1942,13 +1942,15 @@ function RelationField({
                 newConstraints = constraints.map((constraint) => where(constraint[0], constraint[1], constraint[2]))
             }
             if (isCollectionServerReadOnly) {
-                if (softDelete) {
-                    newConstraints.push(["Archived", "==", false] as QueryConstraint & [string, WhereFilterOp, unknown])
+                if (softDelete?.archivedField) {
+                    newConstraints.push([softDelete.archivedField, "==", false] as QueryConstraint &
+                        [string, WhereFilterOp, unknown])
                 }
             } else {
-                if (softDelete) {
+                if (softDelete?.archivedField) {
                     newConstraints.push(
-                        where("Archived", "==", false) as QueryConstraint & [string, WhereFilterOp, unknown],
+                        where(softDelete.archivedField, "==", false) as QueryConstraint &
+                            [string, WhereFilterOp, unknown],
                     )
                 }
             }
