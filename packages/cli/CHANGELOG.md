@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.82
+
+### Patch Changes
+
+- fix: update Google Anayltics domain in CSP
+
 ## 0.5.81
 
 ### Patch Changes
