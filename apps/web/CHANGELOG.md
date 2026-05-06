@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.103
+
+### Patch Changes
+
+- feat: add message and error output for index generation
+
 ## 0.5.102
 
 ### Patch Changes

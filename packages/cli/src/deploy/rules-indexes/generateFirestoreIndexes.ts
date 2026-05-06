@@ -24,7 +24,13 @@ export const generateFirestoreIndexes = async () => {
         body: JSON.stringify({ schema }),
         method: "POST",
     })
-    const indexes = await indexesResponse.json()
+    const { indexes, message, error } = await indexesResponse.json()
+
+    if (error) {
+        throw new Error(error)
+    } else {
+        console.info(message)
+    }
 
     const customIndexesPath = resolve(__dirname, process.cwd(), "firebase-rules", "firestore.custom.indexes.json")
     if (existsSync(customIndexesPath)) {

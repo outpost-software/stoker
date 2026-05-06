@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.81
+
+### Patch Changes
+
+- feat: add message and error output for index generation
+
 ## 0.5.80
 
 ### Patch Changes
