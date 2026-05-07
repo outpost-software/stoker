@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.38
+
+### Patch Changes
+
+- feat: add collection TypeScript types generation
+
 ## 0.5.37
 
 ### Patch Changes

@@ -1,5 +1,6 @@
 import type { CollectionSchema, GenerateSchema, StokerRecord } from "@stoker-platform/types"
 import { Title } from "../web/Title.js"
+import { Work_OrdersRecord } from "../types.js"
 
 const Work_Orders: GenerateSchema = (): CollectionSchema => {
     return {
@@ -143,7 +144,8 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
         custom: {
             autoCorrectUnique: true,
             setEmbedding({ record }) {
-                return `This is Work Order ${record.Name} for the Stoker Platform starter project. The job is located in ${record.State}, Australia.${record.Status === "Not Started" ? " Work on this job has not yet commenced." : ""}`
+                const typedRecord = record as Work_OrdersRecord
+                return `This is Work Order ${typedRecord.Name} for the Stoker Platform starter project. The job is located in ${typedRecord.State}, Australia.${typedRecord.Status === "Not Started" ? " Work on this job has not yet commenced." : ""}`
             },
         },
         admin: {

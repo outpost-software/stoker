@@ -18,7 +18,7 @@ You can use [application state](/docs/api-reference/Application%20State) and the
 
 `{ collection: string, record: string }`
 
-These are the names for the collection. They cannot contains spaces (use underscores), but you can provide a user-friendly set of labels in [`admin.titles`](#titles).
+These are the names for the collection. Collection names must start with a capital letter and contain only letters, digits, and underscores. You can provide a user-friendly set of labels in [`admin.titles`](#titles).
 
 `collection`: The name for the collection, i.e. "Clients".
 

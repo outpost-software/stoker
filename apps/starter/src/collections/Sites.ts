@@ -1,5 +1,6 @@
 import type { CollectionSchema, GenerateSchema } from "@stoker-platform/types"
 import { Store } from "lucide-react"
+import { SitesRecord } from "../types"
 
 const Sites: GenerateSchema = (): CollectionSchema => {
     return {
@@ -60,7 +61,8 @@ const Sites: GenerateSchema = (): CollectionSchema => {
         custom: {
             autoCorrectUnique: true,
             setEmbedding({ record }) {
-                return `This is Site ${record.Name} for the Stoker Platform starter project. The site is located in ${record.State}, Australia.`
+                const typedRecord = record as SitesRecord
+                return `This is Site ${typedRecord.Name} for the Stoker Platform starter project. The site is located in ${typedRecord.State}, Australia.`
             },
         },
         admin: {

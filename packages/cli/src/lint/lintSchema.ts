@@ -184,6 +184,7 @@ export const lintSchema = async (noLog = false) => {
 
     for (const [collectionName, collectionSchema] of collectionSchemas) {
         const {
+            labels,
             auth,
             fields,
             access,
@@ -216,24 +217,21 @@ export const lintSchema = async (noLog = false) => {
 
         const fieldNames = fields.map((field) => field.name)
 
-        const regex = /^(?!\/)(?!.*\/)(?!\.$)(?!\.\.$)(?!__.*__)[^/\s]{1,1500}$/
-        if (!regex.test(collectionName)) {
+        const firestoreRegex = /^(?!\/)(?!.*\/)(?!\.$)(?!\.\.$)(?!__.*__)[^/\s]{1,1500}$/
+        if (!firestoreRegex.test(collectionName)) {
             errors.push(`Invalid collection name: ${collectionName}. Must be a valid Firestore collection ID.`)
         }
 
-        if (collectionName.includes("?")) {
-            errors.push(`Invalid collection name: ${collectionName}. Collection names cannot contain question marks.`)
-        }
-
-        const formattedCollectionName = collectionName.replace(/\s+/g, "").replace(/^\w/, (c) => c.toUpperCase())
-        if (formattedCollectionName !== collectionName) {
+        const tsIdentifierRegex = /^[A-Z][A-Za-z0-9_]*$/
+        if (!tsIdentifierRegex.test(collectionName)) {
             errors.push(
-                `Invalid collection name: ${collectionName}. Collection names should not have spaces and should start with a capital letter.`,
+                `Invalid collection name: ${collectionName}. Must start with a capital letter and contain only letters, digits, and underscores.`,
             )
         }
-        if (collectionName.includes("-")) {
+
+        if (labels.collection !== collectionName) {
             errors.push(
-                `Invalid collection name: ${collectionName}. Collection names cannot have dashes. Use underscores instead.`,
+                `Invalid collection label: collection label "${labels.collection}" must match collection file name "${collectionName}".`,
             )
         }
 

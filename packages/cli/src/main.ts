@@ -22,6 +22,7 @@ if (
         "generate-firestore-indexes",
         "generate-firestore-rules",
         "generate-storage-rules",
+        "generate-types",
         "add-project",
         "list-projects",
     ].includes(process.argv[2])
@@ -88,6 +89,7 @@ import { applySchema } from "./deploy/schema/applySchema.js"
 import { addTenant } from "./project/addTenant.js"
 import { deleteTenant } from "./project/deleteTenant.js"
 import { updateLiveSchema } from "./deploy/schema/updateLiveSchema.js"
+import { generateTypes } from "./types/generateTypes.js"
 
 const program = new Command()
 
@@ -218,6 +220,13 @@ program
     .description("generate Cloud Storage security rules")
     .action(() => {
         generateStorageRules()
+    })
+
+program
+    .command("generate-types")
+    .description("generate TypeScript collection types")
+    .action(() => {
+        generateTypes()
     })
 
 program

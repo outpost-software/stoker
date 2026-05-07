@@ -21,7 +21,7 @@ export interface StokerRelationObject {
 }
 export type StokerRelationArray = string[]
 
-export interface StokerRecord {
+export interface SystemFields {
     Collection_Path: string[]
     Last_Write_At: Timestamp | FieldValue
     Last_Save_At: Timestamp | FieldValue
@@ -32,6 +32,9 @@ export interface StokerRecord {
     Created_At: Timestamp | FieldValue
     Saved_At: Timestamp | FieldValue
     Created_By: string
+}
+
+export interface StokerRecord extends SystemFields {
     [key: string]: any
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
