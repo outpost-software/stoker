@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CollectionSchema, StokerRecord } from "@stoker-platform/types"
-import { createElement, Suspense, useCallback, useEffect, useRef, useState } from "react"
+import { createElement, Suspense, useCallback, useEffect, useState } from "react"
 import { LoadingSpinner } from "./components/ui/loading-spinner"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { serverReadOnly } from "./utils/serverReadOnly"
@@ -37,9 +37,10 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
     const [loading, setLoading] = useState(true)
     const [isCacheLoading, setIsCacheLoading] = useState(false)
     const [unsubscribe, setUnsubscribe] = useState<Unsubscribe[] | undefined>(undefined)
-    const searchResults = useRef<string[] | undefined>(undefined)
     const [title, setTitle] = useState<string | undefined>(undefined)
     const [icon, setIcon] = useState<string | undefined>(undefined)
+
+    const MAX_RESULTS = 5
 
     const getData = useCallback(async () => {
         if (!isPreloadCacheEnabled) {
@@ -59,19 +60,16 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
         if (fullTextSearch && !isPreloadCacheEnabled) {
             const disjunctions = getFilterDisjunctions(collection)
             const hitsPerPage = disjunctions === 0 ? 5 : Math.min(5, Math.max(1, Math.floor(30 / disjunctions)))
-            const objectIDs = await performFullTextSearch(collection, search, hitsPerPage)
-            searchResults.current = objectIDs
+            const algoliaConstraints: [string, "==" | "in", unknown][] = []
+            if (softDelete?.archivedField) {
+                algoliaConstraints.push([softDelete.archivedField, "==", false])
+            }
+            const objectIDs = await performFullTextSearch(collection, search, hitsPerPage, algoliaConstraints)
             if (objectIDs.length > 0) {
                 if (isServerReadOnly) {
                     query.queries[0].constraints = [["id", "in", objectIDs]]
-                    if (softDelete?.archivedField) {
-                        query.queries[0].constraints.push([softDelete.archivedField, "==", false])
-                    }
                 } else {
                     query.queries[0].constraints = [where("id", "in", objectIDs)]
-                    if (softDelete?.archivedField) {
-                        query.queries[0].constraints.push(where(softDelete.archivedField, "==", false))
-                    }
                 }
             } else if (search) {
                 setResults([])
@@ -91,11 +89,14 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
 
                     const load = () => {
                         if (isPreloadCacheEnabled) {
-                            const searchResults = localFullTextSearch(collection, search, loadedDocs)
-                            const searchRecords = loadedDocs.filter((doc) =>
-                                searchResults.map((result) => result.id).includes(doc.id),
+                            const activeRecords = softDelete?.archivedField
+                                ? loadedDocs.filter((doc) => !doc[softDelete.archivedField])
+                                : loadedDocs
+                            const miniSearchResults = localFullTextSearch(collection, search, activeRecords)
+                            const searchRecords = activeRecords.filter((doc) =>
+                                miniSearchResults.map((result) => result.id).includes(doc.id),
                             )
-                            setResults(searchRecords)
+                            setResults(searchRecords.slice(0, MAX_RESULTS))
                             setLoading(false)
                         } else {
                             setResults(loadedDocs)
@@ -127,9 +128,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                         },
                         {
                             constraints: currentQuery.constraints as QueryConstraint[],
-                            pagination: {
-                                number: 5,
-                            },
+                            pagination: isPreloadCacheEnabled ? undefined : { number: MAX_RESULTS },
                         },
                     )
                     const { unsubscribe: newUnsubscribe } = result
@@ -149,7 +148,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                 const data = await getSome([labels.collection], {
                     constraints: query.queries[0].constraints as [string, WhereFilterOp, unknown][],
                     pagination: {
-                        number: 5,
+                        number: MAX_RESULTS,
                     },
                 })
                 setResults(data.records)
@@ -163,7 +162,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                 subscribe()
             }
         })
-    }, [isPreloadCacheEnabled, isServerReadOnly, unsubscribe, location, search])
+    }, [isPreloadCacheEnabled, isServerReadOnly, unsubscribe, search])
 
     useEffect(() => {
         const initialize = async () => {

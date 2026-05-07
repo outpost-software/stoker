@@ -89,9 +89,11 @@ export const searchResults = async (
     if (!schema.collections[collection]) {
         throw new HttpsError("invalid-argument", "Collection not found");
     }
-    if (typeof hitsPerPage !== "number") {
-        throw new HttpsError("invalid-argument", "hitsPerPage must be a number");
+    if (typeof hitsPerPage !== "number" || !Number.isFinite(hitsPerPage)) {
+        throw new HttpsError("invalid-argument", "hitsPerPage must be a finite number");
     }
+    const MAX_HITS_PER_PAGE = 100;
+    const clampedHitsPerPage = Math.min(Math.max(Math.floor(hitsPerPage), 1), MAX_HITS_PER_PAGE);
     if (typeof query !== "string") {
         throw new HttpsError("invalid-argument", "query must be a string");
     }
@@ -213,7 +215,7 @@ export const searchResults = async (
     const client = algoliasearch(process.env.STOKER_ALGOLIA_ID, algoliaAdminKey.value());
     const searchResults = await client.searchSingleIndex({
         indexName: collection,
-        searchParams: {query, hitsPerPage, filters: filters.join(" AND ")},
+        searchParams: {query, hitsPerPage: clampedHitsPerPage, filters: filters.join(" AND ")},
     });
 
     return searchResults.hits.map((hit) => hit.objectID);

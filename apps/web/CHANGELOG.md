@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.105
+
+### Patch Changes
+
+- fix: improve search all querying
+
 ## 0.5.104
 
 ### Patch Changes

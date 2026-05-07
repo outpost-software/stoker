@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.65
+
+### Patch Changes
+
+- fix: improve search all querying
+
 ## 0.5.64
 
 ### Patch Changes
