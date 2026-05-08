@@ -37,10 +37,10 @@ export const deployProject = async (options: any) => {
             }
         }
 
-        await runChildProcess("npx", ["stoker", "generate-types"])
         await runChildProcess("npm", ["run", "format"])
         await runChildProcess("npm", ["run", "lint"])
         await runChildProcess("npm", ["run", "build"])
+        await runChildProcess("npx", ["stoker", "generate-types"])
         await runChildProcess("npm", ["run", "test"])
         await runChildProcess("npx", ["stoker", "build-web-app"])
 

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.84
+
+### Patch Changes
+
+- fix: prevent circular dependency in TypeScript types generation
+
 ## 0.5.83
 
 ### Patch Changes

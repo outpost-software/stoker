@@ -132,7 +132,7 @@ const buildOutput = (collections: CollectionSchema[]): string => {
 }
 
 export const generateTypes = async () => {
-    const schema: CollectionsSchema = await generateSchema(true)
+    const schema: CollectionsSchema = await generateSchema(true, true)
     const collections = Object.values(schema.collections).sort((a, b) =>
         a.labels.collection.localeCompare(b.labels.collection),
     )
