@@ -1,4 +1,4 @@
-import { CollectionsSchema, FirebaseTimestamp, StokerRecord } from "@stoker-platform/types"
+import { CollectionsSchema, InputTimestamp, StokerRecord } from "@stoker-platform/types"
 
 export const addSystemFields = (
     operation: "create" | "update" | "delete",
@@ -8,8 +8,8 @@ export const addSystemFields = (
     appName: string,
     connection: "Online" | "Offline",
     userId: string,
-    timestamp: FirebaseTimestamp,
-    serverTimestamp: FirebaseTimestamp,
+    timestamp: InputTimestamp,
+    serverTimestamp: InputTimestamp,
     retry?: boolean,
 ) => {
     if (operation === "create") {

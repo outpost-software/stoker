@@ -1,4 +1,4 @@
-import { FieldValue } from "firebase-admin/firestore"
+import { Timestamp as AdminTimestamp, FieldValue } from "firebase-admin/firestore"
 import { Timestamp, WhereFilterOp, WriteBatch } from "firebase/firestore"
 import { NodeUtilities, WebUtilities } from "./app"
 import { CalendarOptions } from "@fullcalendar/core"
@@ -7,7 +7,8 @@ import { SearchResult } from "minisearch"
 export type StokerRole = string
 export type StokerCollection = string
 
-export type FirebaseTimestamp = Timestamp | FieldValue
+export type FirestoreTimestamp = Timestamp | AdminTimestamp
+export type InputTimestamp = Timestamp | FieldValue
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

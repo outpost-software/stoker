@@ -23,7 +23,7 @@ const fieldType = (field: CollectionField, mode: "record" | "input"): string => 
             }
             return "number"
         case "Timestamp":
-            return "FirebaseTimestamp"
+            return "FirestoreTimestamp"
         case "Array":
             return field.values?.length ? `(${literalUnion(field.values)})[]` : "unknown[]"
         case "Map":
@@ -91,7 +91,7 @@ const buildMap = (
 const buildOutput = (collections: CollectionSchema[]): string => {
     const sections: string[] = [
         "import type {",
-        `${INDENT}FirebaseTimestamp,`,
+        `${INDENT}FirestoreTimestamp,`,
         `${INDENT}SystemFields,`,
         `${INDENT}StokerRelationArray,`,
         `${INDENT}StokerRelationObject,`,

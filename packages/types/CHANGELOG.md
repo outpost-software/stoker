@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.39
+
+### Patch Changes
+
+- fix: use Firestore timestamps for timestamp field types
+
 ## 0.5.38
 
 ### Patch Changes

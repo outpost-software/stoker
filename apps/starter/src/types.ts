@@ -1,4 +1,9 @@
-import type { FirebaseTimestamp, SystemFields, StokerRelationArray, StokerRelationObject } from "@stoker-platform/types"
+import type {
+    FirestoreTimestamp,
+    SystemFields,
+    StokerRelationArray,
+    StokerRelationObject,
+} from "@stoker-platform/types"
 
 export type CollectionName =
     | "Buildings"
@@ -29,20 +34,20 @@ export type BuildingsUpdateInput = Partial<BuildingsCreateInput>
 export type CompaniesRecord = SystemFields & {
     Name: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Address?: string
     Number: number | "Pending"
     Active?: boolean
     ABN?: string
     Revenue?: number
-    Established?: FirebaseTimestamp
+    Established?: FirestoreTimestamp
     Contacts?: StokerRelationObject
     Contacts_Array?: StokerRelationArray
     Sites?: StokerRelationObject
     Sites_Array?: StokerRelationArray
     Work_Orders?: StokerRelationObject
     Work_Orders_Array?: StokerRelationArray
-    Start: FirebaseTimestamp
+    Start: FirestoreTimestamp
     Coordinates?: string | number
     Location?: unknown[] | null
 }
@@ -50,17 +55,17 @@ export type CompaniesRecord = SystemFields & {
 export type CompaniesCreateInput = {
     Name: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Address?: string
     Number?: number
     Active?: boolean
     ABN?: string
     Revenue?: number
-    Established?: FirebaseTimestamp
+    Established?: FirestoreTimestamp
     Contacts?: StokerRelationObject
     Sites?: StokerRelationObject
     Work_Orders?: StokerRelationObject
-    Start: FirebaseTimestamp
+    Start: FirestoreTimestamp
     Location?: unknown[] | null
 }
 
@@ -111,7 +116,7 @@ export type InboxRecord = SystemFields & {
     Recipients_Array: StokerRelationArray
     Subject: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Status: "Unread" | "Read" | "Archived"
     Message: Record<string, unknown>
     Work_Order?: StokerRelationObject
@@ -125,7 +130,7 @@ export type InboxCreateInput = {
     Recipients: StokerRelationObject
     Subject: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Status: "Unread" | "Read" | "Archived"
     Message: Record<string, unknown>
     Work_Order?: StokerRelationObject
@@ -138,14 +143,14 @@ export type InvoicesRecord = SystemFields & {
     Number: number | "Pending"
     Ref: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Company: StokerRelationObject
     Company_Array: StokerRelationArray
     Site: StokerRelationObject
     Site_Array: StokerRelationArray
     Status: "Draft" | "Sent" | "Paid" | "Archived"
-    Issued_Date: FirebaseTimestamp | null
-    Due_Date: FirebaseTimestamp
+    Issued_Date: FirestoreTimestamp | null
+    Due_Date: FirestoreTimestamp
     Message?: string
     To?: StokerRelationObject
     To_Array?: StokerRelationArray
@@ -165,12 +170,12 @@ export type InvoicesCreateInput = {
     Number?: number
     Ref: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Company: StokerRelationObject
     Site: StokerRelationObject
     Status: "Draft" | "Sent" | "Paid" | "Archived"
-    Issued_Date: FirebaseTimestamp | null
-    Due_Date: FirebaseTimestamp
+    Issued_Date: FirestoreTimestamp | null
+    Due_Date: FirestoreTimestamp
     Message?: string
     To?: StokerRelationObject
     CC?: StokerRelationObject
@@ -192,7 +197,7 @@ export type OutboxRecord = SystemFields & {
     Recipients_Array: StokerRelationArray
     Subject: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Status: "Sending" | "Success" | "Failed"
     Message: Record<string, unknown>
     Work_Order?: StokerRelationObject
@@ -203,7 +208,7 @@ export type OutboxCreateInput = {
     Recipients: StokerRelationObject
     Subject: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Status: "Sending" | "Success" | "Failed"
     Message: Record<string, unknown>
     Work_Order?: StokerRelationObject
@@ -246,17 +251,17 @@ export type SettingsUpdateInput = Partial<SettingsCreateInput>
 export type SitesRecord = SystemFields & {
     Name: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Company: StokerRelationObject
     Company_Array: StokerRelationArray
     Contacts?: StokerRelationObject
     Contacts_Array?: StokerRelationArray
     State: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
     Active?: boolean
-    Expire_At: FirebaseTimestamp
+    Expire_At: FirestoreTimestamp
     Work_Orders?: StokerRelationObject
     Work_Orders_Array?: StokerRelationArray
-    Start: FirebaseTimestamp | null
+    Start: FirestoreTimestamp | null
     User?: StokerRelationObject
     User_Array?: StokerRelationArray
     Location?: unknown[] | null
@@ -265,14 +270,14 @@ export type SitesRecord = SystemFields & {
 export type SitesCreateInput = {
     Name: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Company: StokerRelationObject
     Contacts?: StokerRelationObject
     State: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
     Active?: boolean
-    Expire_At: FirebaseTimestamp
+    Expire_At: FirestoreTimestamp
     Work_Orders?: StokerRelationObject
-    Start: FirebaseTimestamp | null
+    Start: FirestoreTimestamp | null
     User?: StokerRelationObject
     Location?: unknown[] | null
 }
@@ -299,7 +304,7 @@ export type UsersRecord = SystemFields & {
     Work_Orders_Array?: StokerRelationArray
     Users?: StokerRelationObject
     Users_Array?: StokerRelationArray
-    Start: FirebaseTimestamp
+    Start: FirestoreTimestamp
     Coffee_Preference?: string
 }
 
@@ -319,7 +324,7 @@ export type UsersCreateInput = {
     Contact?: StokerRelationObject
     Work_Orders?: StokerRelationObject
     Users?: StokerRelationObject
-    Start: FirebaseTimestamp
+    Start: FirestoreTimestamp
     Coffee_Preference?: string
 }
 
@@ -354,7 +359,7 @@ export type VehiclesUpdateInput = Partial<VehiclesCreateInput>
 export type Work_OrdersRecord = SystemFields & {
     Name: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Establishment: StokerRelationObject
     Establishment_Array: StokerRelationArray
     Users?: StokerRelationObject
@@ -367,8 +372,8 @@ export type Work_OrdersRecord = SystemFields & {
     Contact_Array?: StokerRelationArray
     State: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
     Status: "Not Started" | "In Progress" | "Completed"
-    Start: FirebaseTimestamp | null
-    End?: FirebaseTimestamp | null
+    Start: FirestoreTimestamp | null
+    End?: FirestoreTimestamp | null
     Price?: number
     Area?: 1 | 3 | 5
     Month: (
@@ -386,7 +391,7 @@ export type Work_OrdersRecord = SystemFields & {
         | "December"
     )[]
     Signatures?: Record<string, unknown>
-    Expire_At: FirebaseTimestamp
+    Expire_At: FirestoreTimestamp
     Photo_URL?: string
     Coordinates?: string | number
     Description?: Record<string, unknown>
@@ -396,7 +401,7 @@ export type Work_OrdersRecord = SystemFields & {
 export type Work_OrdersCreateInput = {
     Name: string
     Archived?: boolean
-    Archived_At?: FirebaseTimestamp
+    Archived_At?: FirestoreTimestamp
     Establishment: StokerRelationObject
     Users?: StokerRelationObject
     User?: StokerRelationObject
@@ -404,8 +409,8 @@ export type Work_OrdersCreateInput = {
     Contact?: StokerRelationObject
     State: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
     Status: "Not Started" | "In Progress" | "Completed"
-    Start: FirebaseTimestamp | null
-    End?: FirebaseTimestamp | null
+    Start: FirestoreTimestamp | null
+    End?: FirestoreTimestamp | null
     Price?: number
     Area?: 1 | 3 | 5
     Month: (
@@ -423,7 +428,7 @@ export type Work_OrdersCreateInput = {
         | "December"
     )[]
     Signatures?: Record<string, unknown>
-    Expire_At: FirebaseTimestamp
+    Expire_At: FirestoreTimestamp
     Photo_URL?: string
     Description?: Record<string, unknown>
     Location?: unknown[] | null
