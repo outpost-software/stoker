@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.85
+
+### Patch Changes
+
+- feat: run type generation before build
+
 ## 0.5.84
 
 ### Patch Changes
