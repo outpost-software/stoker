@@ -37,7 +37,6 @@ import {
     memoryEagerGarbageCollector,
     persistentSingleTabManager,
     clearIndexedDbPersistence,
-    getFirestore,
 } from "firebase/firestore"
 import { connectStorageEmulator, getStorage } from "firebase/storage"
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from "firebase/functions"
@@ -73,6 +72,24 @@ declare global {
     // eslint-disable-next-line no-var
     var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined
 }
+
+const getFirestoreWebChannelWorkaround = (): { experimentalForceLongPolling?: true } => {
+    if (typeof navigator === "undefined") {
+        return {}
+    }
+    const ua = navigator.userAgent
+    const isIOSDevice =
+        /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    if (isIOSDevice) {
+        return { experimentalForceLongPolling: true }
+    }
+    const isDesktopWebKitSafari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|EdgiOS|Edg\/|OPR|FxiOS/i.test(ua)
+    if (isDesktopWebKitSafari) {
+        return { experimentalForceLongPolling: true }
+    }
+    return {}
+}
+
 interface Apps {
     firestoreWriteApp: FirebaseApp
 }
@@ -264,7 +281,7 @@ export const initializeStoker = async (
     const { firestoreWriteApp } = apps
 
     const maintenanceApp = initializeApp(firebaseConfig, "maintenance")
-    firestoreInstances.maintenance = getFirestore(maintenanceApp)
+    firestoreInstances.maintenance = initializeFirestore(maintenanceApp, getFirestoreWebChannelWorkaround())
 
     const remoteConfig = getRemoteConfig()
     remoteConfig.settings.minimumFetchIntervalMillis = 3600000
@@ -584,11 +601,21 @@ export const initializeStoker = async (
                     }),
                 }
             }
-            firestoreInstances.main = initializeFirestore(app, cacheSettings)
+            const firestoreWebChannelWorkaround = getFirestoreWebChannelWorkaround()
+            firestoreInstances.main = initializeFirestore(app, {
+                ...cacheSettings,
+                ...firestoreWebChannelWorkaround,
+            })
             if (["ALL", "WRITE"].includes(offlinePersistence)) {
-                firestoreInstances.firestoreWrite = initializeFirestore(firestoreWriteApp, persistentWriteCache)
+                firestoreInstances.firestoreWrite = initializeFirestore(firestoreWriteApp, {
+                    ...persistentWriteCache,
+                    ...firestoreWebChannelWorkaround,
+                })
             } else {
-                firestoreInstances.firestoreWrite = initializeFirestore(firestoreWriteApp, cacheSettings)
+                firestoreInstances.firestoreWrite = initializeFirestore(firestoreWriteApp, {
+                    ...cacheSettings,
+                    ...firestoreWebChannelWorkaround,
+                })
             }
             if (mode === "development" && enableEmulators) {
                 if (!disableIndividualEmulators?.includes("Firestore")) {

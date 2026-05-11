@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.61
+
+### Patch Changes
+
+- fix: force long polling for Safari
+
 ## 0.5.60
 
 ### Patch Changes

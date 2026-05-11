@@ -12,7 +12,6 @@ const Settings: GenerateSchema = (): CollectionSchema => {
                 read: ["Office", "Client"],
                 create: ["Office"],
                 update: ["Office"],
-                delete: ["Office"],
             },
         },
         indexExemption: true,

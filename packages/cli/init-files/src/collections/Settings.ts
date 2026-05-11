@@ -15,7 +15,6 @@ const Settings: GenerateSchema = (): CollectionSchema => {
                 read: ["Admin"],
                 create: ["Admin"],
                 update: ["Admin"],
-                delete: ["Admin"],
             },
         },
         indexExemption: true,
