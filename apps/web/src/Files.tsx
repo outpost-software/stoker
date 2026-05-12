@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet"
 import {
     CollectionMeta,
     CollectionSchema,
+    FileOptions,
     StokerCollection,
     StokerRecord,
     StorageItem,
@@ -68,6 +69,7 @@ import {
     AlertDialogTitle,
 } from "./components/ui/alert-dialog"
 import { FilePermissionsDialog, FilePermissions } from "./FilePermissions"
+import { prepareFile } from "./utils/prepareFile"
 
 interface FilesProps {
     collection: CollectionSchema
@@ -88,6 +90,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
     const [collectionTitle, setCollectionTitle] = useState("")
     const [meta, setMeta] = useState<CollectionMeta | undefined>(undefined)
+    const [fileOptions, setFileOptions] = useState<FileOptions | undefined>(undefined)
     const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
     const [isDragOver, setIsDragOver] = useState(false)
     const [currentPath, setCurrentPath] = useState("")
@@ -168,6 +171,8 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             setCollectionTitle(titles?.collection || labels.collection)
             const meta = await getCachedConfigValue(customization, [...collectionAdminPath, "meta"])
             setMeta(meta)
+            const fileOptions = await getCachedConfigValue(customization, [...collectionAdminPath, "fileOptions"])
+            setFileOptions(fileOptions)
         }
         initialize()
     }, [])
@@ -238,7 +243,15 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             const fileArray = Array.from(files)
 
             for (const file of fileArray) {
-                const filename = (customFilename || file.name).trim()
+                let preferredFilename = (customFilename || file.name).trim()
+                let uploadFile = file
+                if (fileOptions?.maxImageWidth) {
+                    const prepared = await prepareFile(file, preferredFilename, fileOptions)
+                    uploadFile = prepared.file
+                    preferredFilename = prepared.filename
+                }
+
+                const filename = preferredFilename
                 const validationError = validateStorageName(filename)
                 if (validationError) {
                     toast({
@@ -251,7 +264,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 const filePath = currentPath ? `${basePath}/${currentPath}/${filename}` : `${basePath}/${filename}`
                 const storageRef = ref(storage, filePath)
                 const uploadItem: UploadProgress = {
-                    file,
+                    file: uploadFile,
                     progress: 0,
                     status: "uploading",
                 }
@@ -280,46 +293,62 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                     })
                 } catch {
                     setUploadProgress((prev) =>
-                        prev.map((item) => (item.file === file ? { ...item, status: "error" } : item)),
+                        prev.map((item) => (item.file === uploadFile ? { ...item, status: "error" } : item)),
                     )
                     continue
                 }
 
-                const uploadTask = uploadBytesResumable(storageRef, file, metadata)
+                const uploadTask = uploadBytesResumable(storageRef, uploadFile, metadata)
 
-                uploadTask.on(
-                    "state_changed",
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                        setUploadProgress((prev) =>
-                            prev.map((item) => (item.file === file ? { ...item, progress } : item)),
-                        )
-                    },
-                    (error) => {
-                        setUploadProgress((prev) =>
-                            prev.map((item) =>
-                                item.file === file ? { ...item, status: "error", error: error.message } : item,
-                            ),
-                        )
-                        console.error(error.message)
-                        toast({
-                            title: "Upload failed",
-                            description: `Failed to upload ${filename}`,
-                            variant: "destructive",
-                        })
-                    },
-                    async () => {
-                        setUploadProgress((prev) =>
-                            prev.map((item) =>
-                                item.file === file ? { ...item, status: "completed", completedAt: Date.now() } : item,
-                            ),
-                        )
-                        toast({
-                            title: "Upload successful",
-                            description: `${filename} uploaded successfully`,
-                        })
+                await new Promise<void>((resolve) => {
+                    uploadTask.on(
+                        "state_changed",
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                            setUploadProgress((prev) =>
+                                prev.map((item) => (item.file === uploadFile ? { ...item, progress } : item)),
+                            )
+                        },
+                        (error) => {
+                            void runHooks("postFileAddError", globalConfig, customization, {
+                                record,
+                                fullPath: filePath,
+                                filename,
+                                permissions: {
+                                    read: metadata.customMetadata.read,
+                                    update: metadata.customMetadata.update,
+                                    delete: metadata.customMetadata.delete,
+                                },
+                                error,
+                            }).catch(() => {})
+                            setUploadProgress((prev) =>
+                                prev.map((item) =>
+                                    item.file === uploadFile
+                                        ? { ...item, status: "error", error: error.message }
+                                        : item,
+                                ),
+                            )
+                            console.error(error.message)
+                            toast({
+                                title: "Upload failed",
+                                description: `Failed to upload ${filename}`,
+                                variant: "destructive",
+                            })
+                            resolve()
+                        },
+                        async () => {
+                            setUploadProgress((prev) =>
+                                prev.map((item) =>
+                                    item.file === uploadFile
+                                        ? { ...item, status: "completed", completedAt: Date.now() }
+                                        : item,
+                                ),
+                            )
+                            toast({
+                                title: "Upload successful",
+                                description: `${filename} uploaded successfully`,
+                            })
 
-                        try {
                             await runHooks("postFileAdd", globalConfig, customization, {
                                 record,
                                 fullPath: filePath,
@@ -329,14 +358,13 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                     update: metadata.customMetadata.update,
                                     delete: metadata.customMetadata.delete,
                                 },
-                            })
-                        } catch {
-                            return
-                        }
+                            }).catch(() => {})
 
-                        loadDirectory(currentPath)
-                    },
-                )
+                            loadDirectory(currentPath)
+                            resolve()
+                        },
+                    )
+                })
             }
 
             setShowFilenameDialog(false)
@@ -346,7 +374,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             setPendingUploadFiles([])
             setIsMultipleFileUpload(false)
         },
-        [record, currentPath, basePath, currentUser],
+        [record, currentPath, basePath, currentUser, fileOptions],
     )
 
     const handleFileUpload = useCallback(

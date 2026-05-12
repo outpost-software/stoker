@@ -111,6 +111,9 @@ const Sites: GenerateSchema = (): CollectionSchema => {
                     selector: "week",
                 },
             ],
+            fileOptions: {
+                maxImageWidth: 500,
+            },
         },
         indexExemption: true,
         fields: [

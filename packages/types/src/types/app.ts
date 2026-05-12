@@ -3,6 +3,7 @@ import type {
     CollectionCustomCache,
     CollectionCustomization,
     CollectionsSchema,
+    PostFileAddErrorHook,
     PostFileAddHook,
     PostFileUpdateHook,
     PostOperationHook,
@@ -256,6 +257,7 @@ export type GlobalConfig = {
     preFileAdd?: PreFileAddHook
     preFileUpdate?: PreFileUpdateHook
     postFileAdd?: PostFileAddHook
+    postFileAddError?: PostFileAddErrorHook
     postFileUpdate?: PostFileUpdateHook
     admin?: AdminConfig
 }

@@ -147,6 +147,9 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
                 const typedRecord = record as Work_OrdersRecord
                 return `This is Work Order ${typedRecord.Name} for the Stoker Platform starter project. The job is located in ${typedRecord.State}, Australia.${typedRecord.Status === "Not Started" ? " Work on this job has not yet commenced." : ""}`
             },
+            postFileAddError({ error }) {
+                console.error(error)
+            },
         },
         admin: {
             navbarPosition: 4,

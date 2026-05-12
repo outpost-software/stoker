@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.52
+
+### Patch Changes
+
+- feat: add file options
+- Updated dependencies
+    - @stoker-platform/types@0.5.40
+
 ## 0.5.51
 
 ### Patch Changes

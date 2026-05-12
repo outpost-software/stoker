@@ -708,6 +708,20 @@ Return `false` to cancel the operation.
 
 Fires after a file is uploaded.
 
+### postFileAddError
+
+```
+({
+    record: StokerRecord
+    fullPath: string
+    filename: string
+    permissions: FilePermissions
+    error: unknown
+}) => void | Promise<void>
+```
+
+Fires when a file upload fails.
+
 ### postFileUpdate
 
 ```

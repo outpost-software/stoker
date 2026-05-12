@@ -342,6 +342,10 @@ export type PostFileUpdateHookArgs = {
           }
 }
 
+export type PostFileAddErrorHookArgs = PostFileAddHookArgs & {
+    error: unknown
+}
+
 export type SetEmbeddingHookArgs = { record: StokerRecord }
 
 export type HookArgs =
@@ -357,6 +361,7 @@ export type HookArgs =
     | PreFileAddHookArgs
     | PreFileUpdateHookArgs
     | PostFileAddHookArgs
+    | PostFileAddErrorHookArgs
     | PostFileUpdateHookArgs
     | SetEmbeddingHookArgs
 
@@ -376,6 +381,7 @@ export type PreFileAddHook = (args: PreFileAddHookArgs) => boolean | void | Prom
 export type PreFileUpdateHook = (args: PreFileUpdateHookArgs) => boolean | void | Promise<boolean | void>
 export type PostFileAddHook = (args: PostFileAddHookArgs) => boolean | void | Promise<boolean | void>
 export type PostFileUpdateHook = (args: PostFileUpdateHookArgs) => boolean | void | Promise<boolean | void>
+export type PostFileAddErrorHook = (args: PostFileAddErrorHookArgs) => void | Promise<void>
 
 export type SetEmbeddingHook = (args: SetEmbeddingHookArgs) => string | Promise<string>
 
@@ -392,6 +398,7 @@ export type Hook =
     | PreFileAddHook
     | PreFileUpdateHook
     | PostFileAddHook
+    | PostFileAddErrorHook
     | PostFileUpdateHook
     | SetEmbeddingHook
 
@@ -408,6 +415,7 @@ export type Hooks = {
     preFileAdd?: PreFileAddHook
     preFileUpdate?: PreFileUpdateHook
     postFileAdd?: PostFileAddHook
+    postFileAddError?: PostFileAddErrorHook
     postFileUpdate?: PostFileUpdateHook
     setEmbedding?: SetEmbeddingHook
 }
@@ -697,6 +705,10 @@ export interface CustomListAction {
     condition?: () => boolean
 }
 
+export interface FileOptions {
+    maxImageWidth?: number
+}
+
 export interface CollectionAdmin {
     hidden?: boolean | (() => boolean | Promise<boolean>)
     navbarPosition?: number | (() => number)
@@ -786,6 +798,7 @@ export interface CollectionAdmin {
     retriever?: () => any | Promise<any>
     assignable?: Assignable[] | (() => Assignable[] | Promise<Assignable[]>)
     customListActions?: CustomListAction[] | (() => CustomListAction[] | Promise<CustomListAction[]>)
+    fileOptions?: FileOptions | (() => FileOptions | Promise<FileOptions>)
 }
 export interface CollectionAdminCache {
     hidden?: boolean
@@ -834,6 +847,7 @@ export interface CollectionAdminCache {
     disableRangeSelector?: boolean
     assignable?: Assignable[]
     customListActions?: CustomListAction[]
+    fileOptions?: FileOptions
 }
 
 export interface FieldCustom extends Hooks {

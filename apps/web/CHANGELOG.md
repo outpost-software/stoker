@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.109
+
+### Patch Changes
+
+- feat: add file options
+- Updated dependencies
+    - @stoker-platform/utils@0.5.52
+    - @stoker-platform/node-client@0.5.61
+    - @stoker-platform/web-client@0.5.62
+
 ## 0.5.108
 
 ### Patch Changes

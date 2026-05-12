@@ -2621,7 +2621,18 @@ function RecordForm({
                     uploadTask.on(
                         "state_changed",
                         undefined,
-                        () => {
+                        (error) => {
+                            void runHooks("postFileAddError", globalConfig, customization, {
+                                record: targetRecord,
+                                fullPath: filePath,
+                                filename,
+                                permissions: {
+                                    read: metadata.customMetadata.read,
+                                    update: metadata.customMetadata.update,
+                                    delete: metadata.customMetadata.delete,
+                                },
+                                error,
+                            }).catch(() => {})
                             toast({
                                 title: "Upload failed",
                                 description: `Failed to upload ${filename}`,
@@ -2768,7 +2779,18 @@ function RecordForm({
                     uploadTask.on(
                         "state_changed",
                         undefined,
-                        () => {
+                        (error) => {
+                            void runHooks("postFileAddError", globalConfig, customization, {
+                                record: targetRecord,
+                                fullPath: filePath,
+                                filename,
+                                permissions: {
+                                    read: metadata.customMetadata.read,
+                                    update: metadata.customMetadata.update,
+                                    delete: metadata.customMetadata.delete,
+                                },
+                                error,
+                            }).catch(() => {})
                             setIsUploading((prev) => ({ ...prev, [fieldName]: false }))
                             toast({
                                 title: "Upload failed",

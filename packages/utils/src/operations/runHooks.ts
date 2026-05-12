@@ -14,6 +14,7 @@ import {
     GlobalConfig,
     PreFileAddHookArgs,
     PreFileUpdateHookArgs,
+    PostFileAddErrorHookArgs,
     PostFileAddHookArgs,
     PostFileUpdateHookArgs,
     SetEmbeddingHookArgs,
@@ -106,6 +107,12 @@ export function runHooks(
     globalConfig: GlobalConfig,
     customization: CollectionCustomization,
     args?: PostFileAddHookArgs,
+): Promise<void>
+export function runHooks(
+    hookName: "postFileAddError",
+    globalConfig: GlobalConfig,
+    customization: CollectionCustomization,
+    args?: PostFileAddErrorHookArgs,
 ): Promise<void>
 export function runHooks(
     hookName: "postFileUpdate",

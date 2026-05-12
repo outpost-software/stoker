@@ -1781,6 +1781,18 @@ Show [relation lists](#relationlists) directly on the edit record form page.
 
 `label`: The title for the relation list
 
+### fileOptions
+
+```
+type FileOptions {
+    maxImageWidth?: number
+}
+```
+
+`FileOptions[] | (() => FileOptions[] | Promise<FileOptions[]>)`
+
+`maxImageWidth`: The maximum width for uploaded image files. Images above this size will be downscaled.
+
 ### customFields
 
 ```
@@ -2394,6 +2406,20 @@ Return `false` to cancel the operation.
 ```
 
 Fires after a file is uploaded.
+
+### postFileAddError
+
+```
+({
+    record: StokerRecord
+    fullPath: string
+    filename: string
+    permissions: FilePermissions
+    error: unknown
+}) => void | Promise<void>
+```
+
+Fires when a file upload fails.
 
 ### postFileUpdate
 

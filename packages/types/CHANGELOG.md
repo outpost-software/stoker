@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.40
+
+### Patch Changes
+
+- feat: add file options
+
 ## 0.5.39
 
 ### Patch Changes
