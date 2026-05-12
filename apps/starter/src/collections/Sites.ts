@@ -113,6 +113,7 @@ const Sites: GenerateSchema = (): CollectionSchema => {
             ],
             fileOptions: {
                 maxImageWidth: 500,
+                thumbnails: true,
             },
         },
         indexExemption: true,

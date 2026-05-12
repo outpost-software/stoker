@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.110
+
+### Patch Changes
+
+- feat: add image thumbnails option
+    - @stoker-platform/node-client@0.5.62
+    - @stoker-platform/utils@0.5.53
+    - @stoker-platform/web-client@0.5.63
+
 ## 0.5.109
 
 ### Patch Changes

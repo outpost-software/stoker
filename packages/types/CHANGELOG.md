@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.41
+
+### Patch Changes
+
+- feat: add image thumbnails option
+
 ## 0.5.40
 
 ### Patch Changes

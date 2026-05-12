@@ -1786,12 +1786,15 @@ Show [relation lists](#relationlists) directly on the edit record form page.
 ```
 type FileOptions {
     maxImageWidth?: number
+    thumbnails: boolean
 }
 ```
 
 `FileOptions[] | (() => FileOptions[] | Promise<FileOptions[]>)`
 
 `maxImageWidth`: The maximum width for uploaded image files. Images above this size will be downscaled.
+
+`thumbnails`: Set to true to show thumbnails for images in the files list.
 
 ### customFields
 

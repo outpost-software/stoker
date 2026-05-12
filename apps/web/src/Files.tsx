@@ -27,6 +27,7 @@ import {
     getMetadata,
     updateMetadata,
 } from "firebase/storage"
+import type { FirebaseStorage } from "firebase/storage"
 import { getAuth } from "firebase/auth"
 import { Progress } from "./components/ui/progress"
 import { Button } from "./components/ui/button"
@@ -70,6 +71,83 @@ import {
 } from "./components/ui/alert-dialog"
 import { FilePermissionsDialog, FilePermissions } from "./FilePermissions"
 import { prepareFile } from "./utils/prepareFile"
+
+const IMAGE_FILE_EXTENSIONS = new Set([
+    "avif",
+    "bmp",
+    "gif",
+    "heic",
+    "heif",
+    "ico",
+    "jpeg",
+    "jpg",
+    "png",
+    "svg",
+    "webp",
+])
+
+const isImageFile = (name: string): boolean => {
+    const dot = name.lastIndexOf(".")
+    if (dot <= 0) return false
+    return IMAGE_FILE_EXTENSIONS.has(name.slice(dot + 1).toLowerCase())
+}
+
+interface FileImageThumbnailProps {
+    storage: FirebaseStorage
+    fullPath: string
+    fileName: string
+    pathPrefix: string
+}
+
+const FileImageThumbnail = ({ storage, fullPath, fileName, pathPrefix }: FileImageThumbnailProps) => {
+    const [phase, setPhase] = useState<"loading" | "display" | "fallback">("loading")
+    const [url, setUrl] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (!pathPrefix || !fullPath.startsWith(pathPrefix)) {
+            setPhase("fallback")
+            return
+        }
+        let cancelled = false
+        setPhase("loading")
+        setUrl(null)
+        const load = async () => {
+            try {
+                const fileRef = ref(storage, fullPath)
+                const downloadUrl = await getDownloadURL(fileRef)
+                if (!cancelled) {
+                    setUrl(downloadUrl)
+                    setPhase("display")
+                }
+            } catch {
+                if (!cancelled) {
+                    setPhase("fallback")
+                }
+            }
+        }
+        void load()
+        return () => {
+            cancelled = true
+        }
+    }, [storage, fullPath, pathPrefix])
+
+    if (phase === "loading") {
+        return <div className="h-12 w-12 shrink-0 rounded-md border bg-muted animate-pulse" aria-hidden />
+    }
+    if (phase === "fallback" || !url) {
+        return <File className="h-5 w-5 shrink-0 text-gray-500" aria-hidden />
+    }
+    return (
+        <img
+            src={url}
+            alt={`Thumbnail for ${fileName}`}
+            className="max-h-12 w-12 shrink-0 rounded-md object-contain"
+            loading="lazy"
+            decoding="async"
+            onError={() => setPhase("fallback")}
+        />
+    )
+}
 
 interface FilesProps {
     collection: CollectionSchema
@@ -1038,9 +1116,20 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                         >
                                             <div className="flex items-center space-x-3 flex-1 min-w-0">
                                                 {item.isFolder ? (
-                                                    <Folder className="h-5 w-5 text-blue-500" />
+                                                    <Folder className="h-5 w-5 shrink-0 text-blue-500" />
+                                                ) : fileOptions?.thumbnails === true && isImageFile(item.name) ? (
+                                                    <FileImageThumbnail
+                                                        storage={storage}
+                                                        fullPath={item.fullPath}
+                                                        fileName={item.name}
+                                                        pathPrefix={
+                                                            record
+                                                                ? `${tenantId}/${labels.collection}/${record.id}`
+                                                                : ""
+                                                        }
+                                                    />
                                                 ) : (
-                                                    <File className="h-5 w-5 text-gray-500" />
+                                                    <File className="h-5 w-5 shrink-0 text-gray-500" />
                                                 )}
 
                                                 {editingFile === item.name && !isDisabled ? (

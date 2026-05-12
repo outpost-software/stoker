@@ -707,6 +707,7 @@ export interface CustomListAction {
 
 export interface FileOptions {
     maxImageWidth?: number
+    thumbnails?: boolean
 }
 
 export interface CollectionAdmin {
