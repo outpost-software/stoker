@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.111
+
+### Patch Changes
+
+- fix: hide convert button when target collection create access not granted
+
 ## 0.5.110
 
 ### Patch Changes

@@ -2477,7 +2477,6 @@ function RecordForm({
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
     const [duplicateRecordData, setDuplicateRecordData] = useState<Partial<StokerRecord> | undefined>(undefined)
     const [convert, setConvert] = useState<Convert[] | undefined>(undefined)
-    const [convertAllowed, setConvertAllowed] = useState<Record<string, boolean>>({})
     const [showConvertModal, setShowConvertModal] = useState(false)
     const [convertRecordData, setConvertRecordData] = useState<Partial<StokerRecord> | undefined>(undefined)
     const [convertTargetCollection, setConvertTargetCollection] = useState<CollectionSchema | undefined>(undefined)
@@ -2503,6 +2502,21 @@ function RecordForm({
     const hasDeleteAccess = useMemo(() => {
         return collectionAccess("Delete", collectionPermissions)
     }, [collection, permissions])
+
+    const convertMenuItems = useMemo(() => {
+        if (!convert?.length || !permissions?.Role) return []
+        const role = permissions.Role
+        return convert.filter((convertConfig) => {
+            const targetPermissions = permissions.collections?.[convertConfig.collection] as
+                | CollectionPermissions
+                | undefined
+            if (!collectionAccess("Create", targetPermissions as CollectionPermissions)) return false
+            if (convertConfig.roles && convertConfig.roles.length > 0) {
+                return convertConfig.roles.includes(role)
+            }
+            return true
+        })
+    }, [convert, permissions])
 
     const isPending = !!(id && isGlobalLoading.has(id))
     const isPendingServer = !!(id && isGlobalLoading.get(id)?.server)
@@ -3624,12 +3638,6 @@ function RecordForm({
                     ...prev,
                     [collection.labels.collection]: collectionTitles?.record || collection.labels.record,
                 }))
-                if (convert && convert.length > 0) {
-                    setConvertAllowed((prev) => ({
-                        ...prev,
-                        [collection.labels.collection]: !disableCreate,
-                    }))
-                }
             })
             permissionTitleResults.forEach(({ collection, titles: collectionTitles }) => {
                 setPermissionsTitles((prev) => ({
@@ -4502,10 +4510,17 @@ function RecordForm({
     const convertRecord = useCallback(
         async (targetCollection: CollectionSchema) => {
             if (!formValues || !originalRecord) return
+            const targetPermissions = permissions?.collections?.[targetCollection.labels.collection] as
+                | CollectionPermissions
+                | undefined
+            if (!collectionAccess("Create", targetPermissions as CollectionPermissions)) return
             const record = cloneDeep(originalRecord) as Partial<StokerRecord>
 
             const convertConfig = convert?.find((convert) => convert.collection === targetCollection.labels.collection)
             if (!convertConfig) return
+            if (convertConfig.roles && convertConfig.roles.length > 0 && permissions?.Role) {
+                if (!convertConfig.roles.includes(permissions.Role)) return
+            }
 
             const convertedRecord = await convertConfig.convert(record as StokerRecord)
 
@@ -4513,7 +4528,7 @@ function RecordForm({
             setConvertTargetCollection(targetCollection)
             setShowConvertModal(true)
         },
-        [formValues, originalRecord, permissions],
+        [formValues, originalRecord, permissions, convert],
     )
 
     const hasBreadcrumbs = useMemo(() => {
@@ -5651,7 +5666,7 @@ function RecordForm({
                                                 Duplicate
                                             </Button>
                                         )}
-                                        {convert && convert.length > 0 && (
+                                        {convertMenuItems.length > 0 && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="outline" disabled={isCreateDisabled}>
@@ -5660,36 +5675,19 @@ function RecordForm({
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    {convert
-                                                        .filter((convertConfig) => {
-                                                            if (!permissions?.Role) return false
-                                                            if (!convertAllowed[convertConfig.collection]) return false
-                                                            if (
-                                                                convertConfig.roles &&
-                                                                convertConfig.roles.length > 0 &&
-                                                                permissions.collections?.[convertConfig.collection] &&
-                                                                collectionAccess(
-                                                                    "Create",
-                                                                    permissions.collections[convertConfig.collection],
-                                                                )
-                                                            ) {
-                                                                return convertConfig.roles.includes(permissions?.Role)
-                                                            }
-                                                            return true
-                                                        })
-                                                        .map((convertConfig) => {
-                                                            const targetCollection =
-                                                                schema.collections[convertConfig.collection]
-                                                            if (!targetCollection) return null
-                                                            return (
-                                                                <DropdownMenuItem
-                                                                    key={convertConfig.collection}
-                                                                    onClick={() => convertRecord(targetCollection)}
-                                                                >
-                                                                    {allRecordTitles[convertConfig.collection]}
-                                                                </DropdownMenuItem>
-                                                            )
-                                                        })}
+                                                    {convertMenuItems.map((convertConfig) => {
+                                                        const targetCollection =
+                                                            schema.collections[convertConfig.collection]
+                                                        if (!targetCollection) return null
+                                                        return (
+                                                            <DropdownMenuItem
+                                                                key={convertConfig.collection}
+                                                                onClick={() => convertRecord(targetCollection)}
+                                                            >
+                                                                {allRecordTitles[convertConfig.collection]}
+                                                            </DropdownMenuItem>
+                                                        )
+                                                    })}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         )}

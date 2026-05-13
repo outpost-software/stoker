@@ -59,7 +59,7 @@ export const Breadcrumbs = ({
                 const titleField = field.titleField
                 if (titleField && field.includeFields?.includes(titleField)) {
                     const relationCollection = schema.collections[field.collection]
-                    if (!record[breadcrumb]) continue
+                    if (!(record[breadcrumb] && Object.values(record[breadcrumb])[0])) continue
                     recordMap[breadcrumb] = {
                         title: (Object.values(record[breadcrumb])[0] as StokerRelation)[titleField],
                         collection: relationCollection,
