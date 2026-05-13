@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.112
+
+### Patch Changes
+
+- fix: fix role group issue
+
 ## 0.5.111
 
 ### Patch Changes

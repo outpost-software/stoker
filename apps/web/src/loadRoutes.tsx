@@ -89,7 +89,7 @@ export const loadRoutes = (): RouteObject[] => {
             element: <Dashboard />,
             errorElement: <ErrorPage />,
         })
-    } else if (homePage) {
+    } else if (homePage && collectionAccess("Read", permissions.collections?.[homePage])) {
         routes[0].children.unshift({
             index: true,
             element: <Navigate to={`/${homePage.toLowerCase()}`} replace />,

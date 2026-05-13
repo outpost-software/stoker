@@ -1,6 +1,7 @@
 import { CollectionSchema } from "@stoker-platform/types"
-import { getFieldCustomization, getRoleGroup, isRelationField, tryFunction } from "@stoker-platform/utils"
+import { getFieldCustomization, isRelationField, tryFunction } from "@stoker-platform/utils"
 import {
+    getAllRoleGroups,
     getCollectionConfigModule,
     getCollectionRefs,
     getCurrentUserPermissions,
@@ -13,14 +14,16 @@ export const getRelationFields = (collection: CollectionSchema) => {
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
     const customization = getCollectionConfigModule(labels.collection)
-    const collectionSchema = schema.collections[labels.collection]
     const relationFields: string[] = []
     for (const field of fields) {
         const fieldCustomization = getFieldCustomization(field, customization)
         if (!isRelationField(field)) continue
         const queryFullRecord = tryFunction(fieldCustomization.admin?.queryFullRecord)
         const condition = tryFunction(fieldCustomization.admin?.condition?.form, ["update"])
-        const roleGroup = getRoleGroup(permissions.Role, collectionSchema, schema)
+        const roleGroups = getAllRoleGroups()
+        const roleGroup = Array.from(roleGroups[labels.collection]).find(
+            (roleGroup) => permissions.Role && roleGroup.roles.includes(permissions.Role),
+        )
         if (!roleGroup) throw new Error("PERMISSION_DENIED")
         if (!schema.collections[field.collection]) continue
         const refs = getCollectionRefs([field.collection], roleGroup)
