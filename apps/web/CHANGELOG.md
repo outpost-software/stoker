@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.114
+
+### Patch Changes
+
+- fix: hide file name dialog on upload
+
 ## 0.5.113
 
 ### Patch Changes

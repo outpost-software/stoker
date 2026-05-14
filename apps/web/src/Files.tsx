@@ -520,7 +520,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         [uploadFiles, shouldSkipPermissionsDialog, getDefaultPermissions],
     )
 
-    const handleConfirmFilename = useCallback(async () => {
+    const handleConfirmFilename = useCallback(() => {
         if (!pendingUploadFile) return
         const trimmedName = editingFilename.trim()
         const validationError = validateStorageName(trimmedName)
@@ -531,12 +531,12 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         if (shouldSkipPermissionsDialog()) {
             if (uploadLockRef.current) return
             uploadLockRef.current = true
-            try {
-                await uploadFiles([pendingUploadFile], getDefaultPermissions(), trimmedName)
-            } finally {
+            setShowFilenameDialog(false)
+            uploadFiles([pendingUploadFile], getDefaultPermissions(), trimmedName).finally(() => {
                 uploadLockRef.current = false
-            }
+            })
         } else {
+            setShowFilenameDialog(false)
             setShowPermissionsDialog(true)
         }
     }, [pendingUploadFile, editingFilename, shouldSkipPermissionsDialog, uploadFiles, getDefaultPermissions])
