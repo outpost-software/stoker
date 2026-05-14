@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.113
+
+### Patch Changes
+
+- feat: prevent file upload button re-click
+
 ## 0.5.112
 
 ### Patch Changes

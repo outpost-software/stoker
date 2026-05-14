@@ -4623,8 +4623,8 @@ function RecordForm({
                                         <FormItem>
                                             <FormDescription className="pb-2">
                                                 {originalRecord?.User_ID
-                                                    ? `Enter a password below to change the password for this ${labels.record}`
-                                                    : `Add system access for this ${labels.record} by entering a password below`}
+                                                    ? `Enter a password below to change the password for this ${recordTitle}`
+                                                    : `Add system access for this ${recordTitle} by entering a password below`}
                                             </FormDescription>
                                             <FormLabel className="text-primary">
                                                 {record?.User_ID ? "New Password" : "Password"}

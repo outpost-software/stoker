@@ -8,7 +8,7 @@ import {
     StorageItem,
     UploadProgress,
 } from "@stoker-platform/types"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { getCachedConfigValue, runHooks, sanitizeDownloadFilename, validateStorageName } from "@stoker-platform/utils"
 import {
     getCollectionConfigModule,
@@ -183,6 +183,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
     const { setIsRouteLoading } = useRouteLoading()
 
     const [showFilenameDialog, setShowFilenameDialog] = useState(false)
+    const uploadLockRef = useRef(false)
     const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null)
     const [editingFilename, setEditingFilename] = useState("")
 
@@ -528,7 +529,13 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             return
         }
         if (shouldSkipPermissionsDialog()) {
-            await uploadFiles([pendingUploadFile], getDefaultPermissions(), trimmedName)
+            if (uploadLockRef.current) return
+            uploadLockRef.current = true
+            try {
+                await uploadFiles([pendingUploadFile], getDefaultPermissions(), trimmedName)
+            } finally {
+                uploadLockRef.current = false
+            }
         } else {
             setShowPermissionsDialog(true)
         }
@@ -1349,6 +1356,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                 className="mt-1"
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") {
+                                        if (!editingFilename.trim()) return
                                         handleConfirmFilename()
                                     } else if (e.key === "Escape") {
                                         handleCancelFilename()

@@ -89,6 +89,7 @@ export const loadRoutes = (): RouteObject[] => {
             element: <Dashboard />,
             errorElement: <ErrorPage />,
         })
+        // eslint-disable-next-line security/detect-object-injection
     } else if (homePage && collectionAccess("Read", permissions.collections?.[homePage])) {
         routes[0].children.unshift({
             index: true,
