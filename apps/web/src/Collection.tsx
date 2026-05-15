@@ -1687,17 +1687,20 @@ function Collection({
         [recordTitle],
     )
 
-    const [showCollection, setShowCollection] = useState(false)
+    const [showCollection, setShowCollection] = useState(window.innerWidth > 1280)
     useEffect(() => {
         if (isInitialized) {
-            setShowCollection(true)
+            setTimeout(() => {
+                setShowCollection(true)
+            }, 150)
         }
     }, [isInitialized])
 
     if (!permissions.collections?.[labels.collection]) return null
 
     return (
-        !collection.singleton && (
+        !collection.singleton &&
+        showCollection && (
             <>
                 <div
                     ref={mainContentRef}
@@ -2417,7 +2420,7 @@ function Collection({
                                         )}
                                     </div>
                                 </div>
-                                {tab && showCollection ? (
+                                {tab && isInitialized ? (
                                     <>
                                         <TabsContent
                                             value="list"

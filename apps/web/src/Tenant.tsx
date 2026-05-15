@@ -60,7 +60,7 @@ import { getFunctions, httpsCallable } from "firebase/functions"
 import { getApp } from "firebase/app"
 import { useTheme } from "./components/theme-provider"
 
-const MOBILE_SHEET_CLOSE_MS = 320
+const MOBILE_SHEET_CLOSE_MS = 400
 
 function Tenant() {
     const [dialogContent, setDialogContent] = useDialog()
@@ -104,6 +104,10 @@ function Tenant() {
     const [search, setSearch] = useState<string>("")
     const [searchFocused, setSearchFocused] = useState(false)
     const [background, setBackground] = useState<Background | undefined>(undefined)
+    const [backgroundStyle, setBackgroundStyle] = useState<{
+        backgroundColor: string
+        backgroundImage: string
+    }>({ backgroundColor: "transparent", backgroundImage: "none" })
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     const { unsubscribe } = useCache()
@@ -242,29 +246,18 @@ function Tenant() {
 
     useEffect(() => {
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+        const resolveTheme = theme === "system" || theme === undefined ? (prefersDark ? "dark" : "light") : theme
         if (background) {
-            if (theme === "light") {
-                document.body.style.backgroundColor = background?.light?.color || "transparent"
-                document.body.style.backgroundImage = background?.light?.image || "none"
-            } else if (theme === "dark") {
-                document.body.style.backgroundColor = background?.dark?.color || "transparent"
-                document.body.style.backgroundImage = background?.dark?.image || "none"
-            } else if (prefersDark) {
-                document.body.style.backgroundColor = background?.dark?.color || "transparent"
-                document.body.style.backgroundImage = background?.dark?.image || "none"
-            } else {
-                document.body.style.backgroundColor = background?.light?.color || "transparent"
-                document.body.style.backgroundImage = background?.light?.image || "none"
-            }
+            const variant = resolveTheme === "dark" ? background.dark : background.light
+            setBackgroundStyle({
+                backgroundColor: variant?.color || "transparent",
+                backgroundImage: variant?.image || "none",
+            })
         } else {
-            if (theme === "dark") {
-                document.body.style.backgroundColor = "#000000"
-            } else if (theme === "light") {
-                document.body.style.backgroundColor = "#ffffff"
-            } else {
-                document.body.style.backgroundColor = prefersDark ? "#000000" : "#ffffff"
-            }
-            document.body.style.backgroundImage = "none"
+            setBackgroundStyle({
+                backgroundColor: resolveTheme === "dark" ? "#000000" : "#ffffff",
+                backgroundImage: "none",
+            })
         }
     }, [background, theme])
 
@@ -297,9 +290,9 @@ function Tenant() {
 
     const navigateFromSidebar = useCallback(
         (path: string) => {
-            setSidebarOpen(false)
+            runViewTransition(() => navigate(path))
             window.setTimeout(() => {
-                runViewTransition(() => navigate(path))
+                setSidebarOpen(false)
             }, MOBILE_SHEET_CLOSE_MS)
         },
         [navigate],
@@ -504,269 +497,283 @@ function Tenant() {
     return (
         appName &&
         collectionTitles && (
-            <>
-                <Helmet>
-                    {meta?.description && <meta name="description" content={meta.description} />}
-                    {meta?.icons ? (
-                        meta.icons.map((icon) => (
-                            <link key={icon.rel} rel={icon.rel} type={icon.type} href={icon.url} />
-                        ))
-                    ) : (
-                        <link key="favicon" rel="icon" type="image/png" href="./favicon.ico" />
-                    )}
-                </Helmet>
+            <div className="relative isolate min-h-dvh">
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-0 z-0 pointer-events-none print:hidden"
+                    style={backgroundStyle}
+                />
+                <div className="relative z-10 flex min-h-dvh flex-col">
+                    <Helmet>
+                        {meta?.description && <meta name="description" content={meta.description} />}
+                        {meta?.icons ? (
+                            meta.icons.map((icon) => (
+                                <link key={icon.rel} rel={icon.rel} type={icon.type} href={icon.url} />
+                            ))
+                        ) : (
+                            <link key="favicon" rel="icon" type="image/png" href="./favicon.ico" />
+                        )}
+                    </Helmet>
 
-                <Dialog
-                    open={dialogContent !== null}
-                    onOpenChange={() => {
-                        if (!dialogContent?.disableClose) {
-                            setDialogContent(null)
-                        }
-                    }}
-                >
-                    <DialogContent
-                        onEscapeKeyDown={(e) => {
-                            if (dialogContent?.disableClose) {
-                                e.preventDefault()
+                    <Dialog
+                        open={dialogContent !== null}
+                        onOpenChange={() => {
+                            if (!dialogContent?.disableClose) {
+                                setDialogContent(null)
                             }
                         }}
-                        hideCloseButton={dialogContent?.disableClose}
                     >
-                        <DialogHeader>
-                            <DialogTitle>{dialogContent?.title}</DialogTitle>
-                            <DialogDescription>{dialogContent?.description}</DialogDescription>
-                        </DialogHeader>
-
-                        {mfaDialog && (
-                            <div className="flex flex-col gap-4 items-center">
-                                <QRCodeSVG value={mfaDialog.totpUri} size={180} />
-                                <div className="w-full flex flex-col items-center">
-                                    <label htmlFor="mfa-code" className="mb-1">
-                                        Enter 6-digit code
-                                    </label>
-                                    <Input
-                                        id="mfa-code"
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]{6}"
-                                        maxLength={6}
-                                        value={mfaCode}
-                                        onChange={(e) => {
-                                            const value = e.target.value.replace(/[^0-9]/g, "")
-                                            setMfaCode(value)
-                                            mfaCodeRef.current = value
-                                            setMfaError("")
-                                        }}
-                                        className="text-center w-32"
-                                    />
-                                    {mfaError && <div className="text-destructive text-xs mt-1">{mfaError}</div>}
-                                </div>
-                            </div>
-                        )}
-
-                        {(!dialogContent?.disableClose || dialogContent?.buttons) && (
-                            <DialogFooter>
-                                <div className="flex gap-2 justify-end">
-                                    {dialogContent?.buttons?.map((button) => (
-                                        <Button key={button.label} onClick={button.onClick}>
-                                            {button.label}
-                                        </Button>
-                                    ))}
-                                    {!dialogContent?.disableClose && (
-                                        <Button onClick={() => setDialogContent(null)} variant="outline">
-                                            Close
-                                        </Button>
-                                    )}
-                                </div>
-                            </DialogFooter>
-                        )}
-                    </DialogContent>
-                </Dialog>
-
-                <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-[rgb(39,39,42)] bg-black px-4 lg:px-6 print:hidden select-none">
-                    <nav className="hidden h-full flex-col gap-6 text-lg font-medium lg:flex lg:flex-row lg:items-center lg:text-sm lg:gap-6 dark">
-                        <button
-                            className="flex h-full items-center gap-2"
-                            key="home"
-                            onClick={() => {
-                                runViewTransition(() => navigate("/"))
+                        <DialogContent
+                            onEscapeKeyDown={(e) => {
+                                if (dialogContent?.disableClose) {
+                                    e.preventDefault()
+                                }
                             }}
+                            hideCloseButton={dialogContent?.disableClose}
                         >
-                            <img src={logo || defaultLogo} alt="Logo" className="h-8 mr-2" />
-                        </button>
-                        {links}
-                    </nav>
-                    <div className="hidden items-center text-sm font-medium gap-4 lg:ml-auto lg:flex lg:gap-4">
-                        {isLoading && connectionStatus === "online" && <LoadingSpinner size={7} dark />}
-                        {connectionStatus === "offline" && <Badge variant="destructive">Offline</Badge>}
-                        {showSearchAll && (
-                            <div className="ml-auto flex-1 lg:flex-initial text-primary dark">
-                                <Popover open={searchFocused && Boolean(search)}>
-                                    <PopoverTrigger asChild>
-                                        <search className="relative">
-                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                type="search"
-                                                value={search}
-                                                onChange={(e) => setSearch(e.target.value)}
-                                                placeholder="Search all..."
-                                                className="pl-8 lg:w-[195px] xl:w-[275px]"
-                                                onFocus={() => {
-                                                    setTimeout(() => {
-                                                        setSearchFocused(true)
-                                                    }, 100)
-                                                }}
-                                                onBlur={() => setSearchFocused(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Escape") {
-                                                        setSearchFocused(false)
-                                                    } else {
-                                                        setSearchFocused(true)
-                                                    }
-                                                }}
-                                            />
-                                        </search>
-                                    </PopoverTrigger>
-                                    {search && showSearchAll && <SearchAll query={search} />}
-                                </Popover>
-                            </div>
-                        )}
-                        <ModeToggle />
-                        {enableMfa && (mfaActive || mfaEnabled) && !mfaRevoked && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="icon">
-                                        <User />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56 dark print:hidden">
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem
-                                            onClick={() => {
-                                                revokeMfa()
-                                            }}
-                                        >
-                                            Revoke MFA
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                        <button className="text-muted-foreground hover:text-foreground dark" onClick={signOutUser}>
-                            Sign Out
-                        </button>
-                    </div>
+                            <DialogHeader>
+                                <DialogTitle>{dialogContent?.title}</DialogTitle>
+                                <DialogDescription>{dialogContent?.description}</DialogDescription>
+                            </DialogHeader>
 
-                    <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                        <SheetTrigger asChild>
-                            <Button size="icon" variant="outline" className="absolute left-4 lg:hidden dark">
-                                <PanelLeft className="h-5 w-5 text-primary" />
-                                <span className="sr-only">Toggle Menu</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="sm:max-w-xs overflow-y-auto">
-                            <nav className="grid gap-6 text-lg font-medium pt-12">
-                                {hasDashboard && (
-                                    <button
-                                        className={
-                                            window.location.pathname === "/"
-                                                ? "flex items-center gap-4 px-2.5 text-foreground"
-                                                : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                                        }
-                                        onClick={() => navigateFromSidebar("/")}
-                                    >
-                                        <ChartBar className="h-5 w-5" />
-                                        Dashboard
-                                    </button>
-                                )}
-                                {sidebarMenu.map((group) => {
-                                    if (group.collections.length === 1) {
-                                        const className = "flex items-center gap-4 px-2.5 text-primary"
-                                        return (
-                                            <button
-                                                key={group.collections[0]}
-                                                className={
-                                                    isMatch(group.collections[0])
-                                                        ? cn(className, "text-foreground")
-                                                        : cn(className, "text-muted-foreground hover:text-foreground")
-                                                }
-                                                onClick={() =>
-                                                    navigateFromSidebar(`/${group.collections[0].toLowerCase()}`)
-                                                }
+                            {mfaDialog && (
+                                <div className="flex flex-col gap-4 items-center">
+                                    <QRCodeSVG value={mfaDialog.totpUri} size={180} />
+                                    <div className="w-full flex flex-col items-center">
+                                        <label htmlFor="mfa-code" className="mb-1">
+                                            Enter 6-digit code
+                                        </label>
+                                        <Input
+                                            id="mfa-code"
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]{6}"
+                                            maxLength={6}
+                                            value={mfaCode}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/[^0-9]/g, "")
+                                                setMfaCode(value)
+                                                mfaCodeRef.current = value
+                                                setMfaError("")
+                                            }}
+                                            className="text-center w-32"
+                                        />
+                                        {mfaError && <div className="text-destructive text-xs mt-1">{mfaError}</div>}
+                                    </div>
+                                </div>
+                            )}
+
+                            {(!dialogContent?.disableClose || dialogContent?.buttons) && (
+                                <DialogFooter>
+                                    <div className="flex gap-2 justify-end">
+                                        {dialogContent?.buttons?.map((button) => (
+                                            <Button key={button.label} onClick={button.onClick}>
+                                                {button.label}
+                                            </Button>
+                                        ))}
+                                        {!dialogContent?.disableClose && (
+                                            <Button onClick={() => setDialogContent(null)} variant="outline">
+                                                Close
+                                            </Button>
+                                        )}
+                                    </div>
+                                </DialogFooter>
+                            )}
+                        </DialogContent>
+                    </Dialog>
+
+                    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-[rgb(39,39,42)] bg-black px-4 lg:px-6 print:hidden select-none">
+                        <nav className="hidden h-full flex-col gap-6 text-lg font-medium lg:flex lg:flex-row lg:items-center lg:text-sm lg:gap-6 dark">
+                            <button
+                                className="flex h-full items-center gap-2"
+                                key="home"
+                                onClick={() => {
+                                    runViewTransition(() => navigate("/"))
+                                }}
+                            >
+                                <img src={logo || defaultLogo} alt="Logo" className="h-8 mr-2" />
+                            </button>
+                            {links}
+                        </nav>
+                        <div className="hidden items-center text-sm font-medium gap-4 lg:ml-auto lg:flex lg:gap-4">
+                            {isLoading && connectionStatus === "online" && <LoadingSpinner size={7} dark />}
+                            {connectionStatus === "offline" && <Badge variant="destructive">Offline</Badge>}
+                            {showSearchAll && (
+                                <div className="ml-auto flex-1 lg:flex-initial text-primary dark">
+                                    <Popover open={searchFocused && Boolean(search)}>
+                                        <PopoverTrigger asChild>
+                                            <search className="relative">
+                                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    type="search"
+                                                    value={search}
+                                                    onChange={(e) => setSearch(e.target.value)}
+                                                    placeholder="Search all..."
+                                                    className="pl-8 lg:w-[195px] xl:w-[275px]"
+                                                    onFocus={() => {
+                                                        setTimeout(() => {
+                                                            setSearchFocused(true)
+                                                        }, 100)
+                                                    }}
+                                                    onBlur={() => setSearchFocused(false)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Escape") {
+                                                            setSearchFocused(false)
+                                                        } else {
+                                                            setSearchFocused(true)
+                                                        }
+                                                    }}
+                                                />
+                                            </search>
+                                        </PopoverTrigger>
+                                        {search && showSearchAll && <SearchAll query={search} />}
+                                    </Popover>
+                                </div>
+                            )}
+                            <ModeToggle />
+                            {enableMfa && (mfaActive || mfaEnabled) && !mfaRevoked && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon">
+                                            <User />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56 dark print:hidden">
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    revokeMfa()
+                                                }}
                                             >
-                                                {/* eslint-disable security/detect-object-injection */}
-                                                {iconNames[group.collections[0]]
-                                                    ? createElement(iconNames[group.collections[0]], {
-                                                          className: "h-5 w-5",
-                                                      })
-                                                    : null}
-                                                {collectionTitles[group.collections[0]]}
-                                                {/* eslint-enable security/detect-object-injection */}
-                                            </button>
-                                        )
-                                    } else {
-                                        return group.collections.map((collection) => {
+                                                Revoke MFA
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+                            <button className="text-muted-foreground hover:text-foreground dark" onClick={signOutUser}>
+                                Sign Out
+                            </button>
+                        </div>
+
+                        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                            <SheetTrigger asChild>
+                                <Button size="icon" variant="outline" className="absolute left-4 lg:hidden dark">
+                                    <PanelLeft className="h-5 w-5 text-primary" />
+                                    <span className="sr-only">Toggle Menu</span>
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="sm:max-w-xs overflow-y-auto">
+                                <nav className="grid gap-6 text-lg font-medium pt-12">
+                                    {hasDashboard && (
+                                        <button
+                                            className={
+                                                window.location.pathname === "/"
+                                                    ? "flex items-center gap-4 px-2.5 text-foreground"
+                                                    : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                                            }
+                                            onClick={() => navigateFromSidebar("/")}
+                                        >
+                                            <ChartBar className="h-5 w-5" />
+                                            Dashboard
+                                        </button>
+                                    )}
+                                    {sidebarMenu.map((group) => {
+                                        if (group.collections.length === 1) {
                                             const className = "flex items-center gap-4 px-2.5 text-primary"
                                             return (
                                                 <button
-                                                    key={collection}
+                                                    key={group.collections[0]}
                                                     className={
-                                                        isMatch(collection)
+                                                        isMatch(group.collections[0])
                                                             ? cn(className, "text-foreground")
                                                             : cn(
                                                                   className,
                                                                   "text-muted-foreground hover:text-foreground",
                                                               )
                                                     }
-                                                    onClick={() => navigateFromSidebar(`/${collection.toLowerCase()}`)}
+                                                    onClick={() =>
+                                                        navigateFromSidebar(`/${group.collections[0].toLowerCase()}`)
+                                                    }
                                                 >
                                                     {/* eslint-disable security/detect-object-injection */}
-                                                    {iconNames[collection]
-                                                        ? createElement(iconNames[collection], { className: "h-5 w-5" })
+                                                    {iconNames[group.collections[0]]
+                                                        ? createElement(iconNames[group.collections[0]], {
+                                                              className: "h-5 w-5",
+                                                          })
                                                         : null}
-                                                    {collectionTitles[collection]}
+                                                    {collectionTitles[group.collections[0]]}
                                                     {/* eslint-enable security/detect-object-injection */}
                                                 </button>
                                             )
-                                        })
-                                    }
-                                })}
-                                {enableMfa && ((!mfaActive && !mfaEnabled) || mfaRevoked) && (
+                                        } else {
+                                            return group.collections.map((collection) => {
+                                                const className = "flex items-center gap-4 px-2.5 text-primary"
+                                                return (
+                                                    <button
+                                                        key={collection}
+                                                        className={
+                                                            isMatch(collection)
+                                                                ? cn(className, "text-foreground")
+                                                                : cn(
+                                                                      className,
+                                                                      "text-muted-foreground hover:text-foreground",
+                                                                  )
+                                                        }
+                                                        onClick={() =>
+                                                            navigateFromSidebar(`/${collection.toLowerCase()}`)
+                                                        }
+                                                    >
+                                                        {/* eslint-disable security/detect-object-injection */}
+                                                        {iconNames[collection]
+                                                            ? createElement(iconNames[collection], {
+                                                                  className: "h-5 w-5",
+                                                              })
+                                                            : null}
+                                                        {collectionTitles[collection]}
+                                                        {/* eslint-enable security/detect-object-injection */}
+                                                    </button>
+                                                )
+                                            })
+                                        }
+                                    })}
+                                    {enableMfa && ((!mfaActive && !mfaEnabled) || mfaRevoked) && (
+                                        <button
+                                            key="mfa-enroll-mobile"
+                                            className="flex items-center gap-4 px-2.5 bg-destructive p-4 rounded-md text-white"
+                                            onClick={() => multiFactorEnroll(user, getMultiFactorCode)}
+                                        >
+                                            Enable MFA
+                                        </button>
+                                    )}
+                                </nav>
+                                <div className="grid gap-6 text-lg mt-6 font-medium">
                                     <button
-                                        key="mfa-enroll-mobile"
-                                        className="flex items-center gap-4 px-2.5 bg-destructive p-4 rounded-md text-white"
-                                        onClick={() => multiFactorEnroll(user, getMultiFactorCode)}
+                                        className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                                        onClick={signOutUser}
                                     >
-                                        Enable MFA
+                                        Sign Out
                                     </button>
-                                )}
-                            </nav>
-                            <div className="grid gap-6 text-lg mt-6 font-medium">
-                                <button
-                                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                                    onClick={signOutUser}
-                                >
-                                    Sign Out
-                                </button>
-                                <div>
-                                    <ModeToggle />
+                                    <div>
+                                        <ModeToggle />
+                                    </div>
                                 </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
-                    <div className="flex justify-center items-center w-full lg:hidden">
-                        <img src={logo || defaultLogo} alt="Logo" className="h-8" />
-                    </div>
-                    <div className="absolute right-4 flex justify-center items-center gap-4 ml-auto lg:hidden">
-                        {isLoading && connectionStatus === "online" && <LoadingSpinner size={7} dark />}
-                        {connectionStatus === "offline" && <Badge variant="destructive">Offline</Badge>}
-                    </div>
-                </header>
-                <main className="flex w-full flex-col">
-                    <Outlet />
-                </main>
-                <Toaster />
-            </>
+                            </SheetContent>
+                        </Sheet>
+                        <div className="flex justify-center items-center w-full lg:hidden">
+                            <img src={logo || defaultLogo} alt="Logo" className="h-8" />
+                        </div>
+                        <div className="absolute right-4 flex justify-center items-center gap-4 ml-auto lg:hidden">
+                            {isLoading && connectionStatus === "online" && <LoadingSpinner size={7} dark />}
+                            {connectionStatus === "offline" && <Badge variant="destructive">Offline</Badge>}
+                        </div>
+                    </header>
+                    <main className="flex w-full flex-col">
+                        <Outlet />
+                    </main>
+                    <Toaster />
+                </div>
+            </div>
         )
     )
 }
