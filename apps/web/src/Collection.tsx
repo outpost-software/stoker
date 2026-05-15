@@ -1687,6 +1687,13 @@ function Collection({
         [recordTitle],
     )
 
+    const [showCollection, setShowCollection] = useState(false)
+    useEffect(() => {
+        if (isInitialized) {
+            setShowCollection(true)
+        }
+    }, [isInitialized])
+
     if (!permissions.collections?.[labels.collection]) return null
 
     return (
@@ -2410,7 +2417,7 @@ function Collection({
                                         )}
                                     </div>
                                 </div>
-                                {tab && isInitialized ? (
+                                {tab && showCollection ? (
                                     <>
                                         <TabsContent
                                             value="list"
@@ -2535,17 +2542,17 @@ function Collection({
                                 ) : (
                                     !relationList &&
                                     (tab === "list" ? (
-                                        <div className="py-2">
-                                            <Card className="h-[calc(100vh-250px)]"></Card>
+                                        <div className="pb-2 pt-[88px] lg:py-2">
+                                            <Card className="min-h-[calc(100vh-88px)] lg:min-h-full lg:h-[calc(100vh-250px)]"></Card>
                                         </div>
                                     ) : tab === "map" ? (
-                                        <div className="py-2">
-                                            <Card className="h-[calc(100vh-204px)]"></Card>
+                                        <div className="pb-2 pt-[88px] lg:py-2">
+                                            <Card className="min-h-[calc(100vh-88px)] lg:min-h-full lg:h-[calc(100vh-204px)]"></Card>
                                         </div>
                                     ) : (
                                         tab === "calendar" && (
-                                            <div className="py-2">
-                                                <Card className="h-[calc(100vh-186px)]"></Card>
+                                            <div className="pb-2 pt-[44px] lg:py-2">
+                                                <Card className="min-h-[calc(100vh-44px)] lg:min-h-full lg:h-[calc(100vh-204px)]"></Card>
                                             </div>
                                         )
                                     ))

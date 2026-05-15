@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.119
+
+### Patch Changes
+
+- fix: fix UI flicker when changing collection on mobile
+
 ## 0.5.118
 
 ### Patch Changes
