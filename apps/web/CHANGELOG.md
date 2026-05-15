@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.123
+
+### Patch Changes
+
+- fix: correct maintenance alert colours
+
 ## 0.5.122
 
 ### Patch Changes
