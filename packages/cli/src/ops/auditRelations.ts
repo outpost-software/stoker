@@ -1,6 +1,6 @@
 import { fetchCurrentSchema, getFirestorePathRef, initializeStoker } from "@stoker-platform/node-client"
 import { CollectionField, StokerRecord, StokerRelation } from "@stoker-platform/types"
-import { CollectionReference, getFirestore } from "firebase-admin/firestore"
+import { CollectionReference, getFirestore, QueryDocumentSnapshot } from "firebase-admin/firestore"
 import { join } from "node:path"
 import isEqual from "lodash/isEqual.js"
 import { getField, getLowercaseFields, getSingleFieldRelations } from "@stoker-platform/utils"
@@ -15,31 +15,42 @@ export const auditRelations = async (options: any) => {
     )
     const schema = await fetchCurrentSchema()
     const db = getFirestore()
+    const tenantPrefix = `tenants/${options.tenant}`
 
-    for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const collectionData: Record<string, Record<string, any>> = {}
+    const recordByDocumentPath = new Map<string, StokerRecord>()
+    const collectionDocsByName = new Map<string, QueryDocumentSnapshot[]>()
+
+    for (const [collectionName] of Object.entries(schema.collections)) {
         console.log(`Loading ${collectionName}...`)
         const collectionSnapshot = await db.collectionGroup(collectionName).get()
+        const tenantDocs = collectionSnapshot.docs.filter((doc) => doc.ref.path.includes(tenantPrefix))
+        collectionDocsByName.set(collectionName, tenantDocs)
+        for (const doc of tenantDocs) {
+            recordByDocumentPath.set(doc.ref.path, doc.data() as StokerRecord)
+        }
+    }
+
+    for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
+        const collectionDocs = collectionDocsByName.get(collectionName) || []
         console.log(`Auditing ${collectionName}...`)
-        collectionSnapshot.forEach((doc) => {
-            if (!doc.ref.path.includes(`tenants/${options.tenant}`)) {
-                return
+        for (const field of collectionSchema.fields) {
+            if ("collection" in field) {
+                field.includeFields ||= []
+                if (!field.includeFields.includes("Collection_Path")) {
+                    field.includeFields.push("Collection_Path")
+                }
+                if (!field.includeFields.includes("deleted")) {
+                    field.includeFields.push("deleted")
+                }
             }
-            collectionData[doc.id] = doc.data()
-        })
+        }
         const singleFieldRelations = getSingleFieldRelations(collectionSchema, collectionSchema.fields)
         const singleFieldRelationNames = Array.from(singleFieldRelations).map((field) => field.name)
-        for (const doc of collectionSnapshot.docs) {
-            if (!doc.ref.path.includes(`tenants/${options.tenant}`)) {
-                continue
-            }
+        for (const doc of collectionDocs) {
             const record = doc.data() as StokerRecord
             for (const field of collectionSchema.fields) {
                 if ("collection" in field) {
                     field.includeFields ||= []
-                    field.includeFields.push("Collection_Path")
-                    field.includeFields.push("deleted")
                     const relationCollection = schema.collections[field.collection]
                     if (record[field.name]) {
                         for (const relationRecord of Object.entries(record[field.name])) {
@@ -50,8 +61,8 @@ export const auditRelations = async (options: any) => {
                                 mainRelation.Collection_Path,
                                 options.tenant,
                             )
-                            const sourceRef = await ref.doc(id).get()
-                            const source = sourceRef.data() as StokerRecord
+                            const sourceDocRef = ref.doc(id)
+                            const source = recordByDocumentPath.get(sourceDocRef.path)
                             if (!source) {
                                 if (field.preserve) {
                                     for (const includeField of field.includeFields) {

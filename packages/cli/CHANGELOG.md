@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.91
+
+### Patch Changes
+
+- fix: optimise audit-relations command
+
 ## 0.5.90
 
 ### Patch Changes
