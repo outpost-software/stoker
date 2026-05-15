@@ -149,7 +149,7 @@ export const auditRelations = async (options: any) => {
                                 continue
                             }
                             if (singleFieldRelationNames.includes(field.name)) {
-                                if (!isEqual(record[`${field.name}_Single`], mainRelation)) {
+                                if (!isEqual(record[`${field.name}_Single`], { ...mainRelation, id })) {
                                     console.log(
                                         `${collectionName} ${doc.id} - Field ${field.name} does not have a single relation`,
                                     )

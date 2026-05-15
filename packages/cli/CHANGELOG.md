@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.90
+
+### Patch Changes
+
+- feat: dismiss navigation sidebar on collection selection
+
 ## 0.5.89
 
 ### Patch Changes

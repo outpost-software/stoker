@@ -102,6 +102,7 @@ function Tenant() {
     const [search, setSearch] = useState<string>("")
     const [searchFocused, setSearchFocused] = useState(false)
     const [background, setBackground] = useState<Background | undefined>(undefined)
+    const [sidebarOpen, setSidebarOpen] = useState(false)
 
     const { unsubscribe } = useCache()
 
@@ -644,7 +645,7 @@ function Tenant() {
                         </button>
                     </div>
 
-                    <Sheet>
+                    <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                         <SheetTrigger asChild>
                             <Button size="icon" variant="outline" className="absolute left-4 lg:hidden dark">
                                 <PanelLeft className="h-5 w-5 text-primary" />
@@ -677,11 +678,12 @@ function Tenant() {
                                                         ? cn(className, "text-foreground")
                                                         : cn(className, "text-muted-foreground hover:text-foreground")
                                                 }
-                                                onClick={() =>
+                                                onClick={() => {
+                                                    setSidebarOpen(false)
                                                     runViewTransition(() =>
                                                         navigate(`/${group.collections[0].toLowerCase()}`),
                                                     )
-                                                }
+                                                }}
                                             >
                                                 {/* eslint-disable security/detect-object-injection */}
                                                 {iconNames[group.collections[0]]
@@ -707,11 +709,12 @@ function Tenant() {
                                                                   "text-muted-foreground hover:text-foreground",
                                                               )
                                                     }
-                                                    onClick={() =>
+                                                    onClick={() => {
+                                                        setSidebarOpen(false)
                                                         runViewTransition(() =>
                                                             navigate(`/${collection.toLowerCase()}`),
                                                         )
-                                                    }
+                                                    }}
                                                 >
                                                     {/* eslint-disable security/detect-object-injection */}
                                                     {iconNames[collection]
