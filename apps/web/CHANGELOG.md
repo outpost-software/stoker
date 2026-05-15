@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.121
+
+### Patch Changes
+
+- fix: correct login background colour
+
 ## 0.5.120
 
 ### Patch Changes
