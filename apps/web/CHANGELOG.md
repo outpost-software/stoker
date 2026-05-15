@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.118
+
+### Patch Changes
+
+- fix: delay navigation when closing sidebar
+
 ## 0.5.117
 
 ### Patch Changes

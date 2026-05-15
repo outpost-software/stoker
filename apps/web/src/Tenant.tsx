@@ -60,6 +60,8 @@ import { getFunctions, httpsCallable } from "firebase/functions"
 import { getApp } from "firebase/app"
 import { useTheme } from "./components/theme-provider"
 
+const MOBILE_SHEET_CLOSE_MS = 320
+
 function Tenant() {
     const [dialogContent, setDialogContent] = useDialog()
     const location = useLocation()
@@ -291,6 +293,16 @@ function Tenant() {
             )
         },
         [location.pathname, schema.collections],
+    )
+
+    const navigateFromSidebar = useCallback(
+        (path: string) => {
+            setSidebarOpen(false)
+            window.setTimeout(() => {
+                runViewTransition(() => navigate(path))
+            }, MOBILE_SHEET_CLOSE_MS)
+        },
+        [navigate],
     )
 
     const [mfaDialog, setMfaDialog] = useState<null | {
@@ -661,7 +673,7 @@ function Tenant() {
                                                 ? "flex items-center gap-4 px-2.5 text-foreground"
                                                 : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                                         }
-                                        onClick={() => runViewTransition(() => navigate("/"))}
+                                        onClick={() => navigateFromSidebar("/")}
                                     >
                                         <ChartBar className="h-5 w-5" />
                                         Dashboard
@@ -678,12 +690,9 @@ function Tenant() {
                                                         ? cn(className, "text-foreground")
                                                         : cn(className, "text-muted-foreground hover:text-foreground")
                                                 }
-                                                onClick={() => {
-                                                    setSidebarOpen(false)
-                                                    runViewTransition(() =>
-                                                        navigate(`/${group.collections[0].toLowerCase()}`),
-                                                    )
-                                                }}
+                                                onClick={() =>
+                                                    navigateFromSidebar(`/${group.collections[0].toLowerCase()}`)
+                                                }
                                             >
                                                 {/* eslint-disable security/detect-object-injection */}
                                                 {iconNames[group.collections[0]]
@@ -709,12 +718,7 @@ function Tenant() {
                                                                   "text-muted-foreground hover:text-foreground",
                                                               )
                                                     }
-                                                    onClick={() => {
-                                                        setSidebarOpen(false)
-                                                        runViewTransition(() =>
-                                                            navigate(`/${collection.toLowerCase()}`),
-                                                        )
-                                                    }}
+                                                    onClick={() => navigateFromSidebar(`/${collection.toLowerCase()}`)}
                                                 >
                                                     {/* eslint-disable security/detect-object-injection */}
                                                     {iconNames[collection]
