@@ -138,14 +138,16 @@ const FileImageThumbnail = ({ storage, fullPath, fileName, pathPrefix }: FileIma
         return <File className="h-5 w-5 shrink-0 text-gray-500" aria-hidden />
     }
     return (
-        <img
-            src={url}
-            alt={`Thumbnail for ${fileName}`}
-            className="max-h-12 w-12 shrink-0 rounded-md object-contain"
-            loading="lazy"
-            decoding="async"
-            onError={() => setPhase("fallback")}
-        />
+        <div className="h-12 w-12 shrink-0 rounded-md flex items-center justify-center">
+            <img
+                src={url}
+                alt={`Thumbnail for ${fileName}`}
+                className="rounded-md max-h-12 max-w-12 object-contain"
+                loading="lazy"
+                decoding="async"
+                onError={() => setPhase("fallback")}
+            />
+        </div>
     )
 }
 

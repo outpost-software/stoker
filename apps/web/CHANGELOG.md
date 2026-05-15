@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.116
+
+### Patch Changes
+
+- fix: prevent file thumbnail layout shift
+
 ## 0.5.115
 
 ### Patch Changes
