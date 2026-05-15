@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.117
+
+### Patch Changes
+
+- feat: re-enable parallel file uploads
+
 ## 0.5.116
 
 ### Patch Changes

@@ -381,71 +381,65 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
                 const uploadTask = uploadBytesResumable(storageRef, uploadFile, metadata)
 
-                await new Promise<void>((resolve) => {
-                    uploadTask.on(
-                        "state_changed",
-                        (snapshot) => {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                            setUploadProgress((prev) =>
-                                prev.map((item) => (item.file === uploadFile ? { ...item, progress } : item)),
-                            )
-                        },
-                        (error) => {
-                            void runHooks("postFileAddError", globalConfig, customization, {
-                                record,
-                                fullPath: filePath,
-                                filename,
-                                permissions: {
-                                    read: metadata.customMetadata.read,
-                                    update: metadata.customMetadata.update,
-                                    delete: metadata.customMetadata.delete,
-                                },
-                                error,
-                            }).catch(() => {})
-                            setUploadProgress((prev) =>
-                                prev.map((item) =>
-                                    item.file === uploadFile
-                                        ? { ...item, status: "error", error: error.message }
-                                        : item,
-                                ),
-                            )
-                            console.error(error.message)
-                            toast({
-                                title: "Upload failed",
-                                description: `Failed to upload ${filename}`,
-                                variant: "destructive",
-                            })
-                            resolve()
-                        },
-                        async () => {
-                            setUploadProgress((prev) =>
-                                prev.map((item) =>
-                                    item.file === uploadFile
-                                        ? { ...item, status: "completed", completedAt: Date.now() }
-                                        : item,
-                                ),
-                            )
-                            toast({
-                                title: "Upload successful",
-                                description: `${filename} uploaded successfully`,
-                            })
+                uploadTask.on(
+                    "state_changed",
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                        setUploadProgress((prev) =>
+                            prev.map((item) => (item.file === uploadFile ? { ...item, progress } : item)),
+                        )
+                    },
+                    (error) => {
+                        void runHooks("postFileAddError", globalConfig, customization, {
+                            record,
+                            fullPath: filePath,
+                            filename,
+                            permissions: {
+                                read: metadata.customMetadata.read,
+                                update: metadata.customMetadata.update,
+                                delete: metadata.customMetadata.delete,
+                            },
+                            error,
+                        }).catch(() => {})
+                        setUploadProgress((prev) =>
+                            prev.map((item) =>
+                                item.file === uploadFile ? { ...item, status: "error", error: error.message } : item,
+                            ),
+                        )
+                        console.error(error.message)
+                        toast({
+                            title: "Upload failed",
+                            description: `Failed to upload ${filename}`,
+                            variant: "destructive",
+                        })
+                    },
+                    async () => {
+                        setUploadProgress((prev) =>
+                            prev.map((item) =>
+                                item.file === uploadFile
+                                    ? { ...item, status: "completed", completedAt: Date.now() }
+                                    : item,
+                            ),
+                        )
+                        toast({
+                            title: "Upload successful",
+                            description: `${filename} uploaded successfully`,
+                        })
 
-                            await runHooks("postFileAdd", globalConfig, customization, {
-                                record,
-                                fullPath: filePath,
-                                filename,
-                                permissions: {
-                                    read: metadata.customMetadata.read,
-                                    update: metadata.customMetadata.update,
-                                    delete: metadata.customMetadata.delete,
-                                },
-                            }).catch(() => {})
+                        await runHooks("postFileAdd", globalConfig, customization, {
+                            record,
+                            fullPath: filePath,
+                            filename,
+                            permissions: {
+                                read: metadata.customMetadata.read,
+                                update: metadata.customMetadata.update,
+                                delete: metadata.customMetadata.delete,
+                            },
+                        }).catch(() => {})
 
-                            loadDirectory(currentPath)
-                            resolve()
-                        },
-                    )
-                })
+                        loadDirectory(currentPath)
+                    },
+                )
             }
 
             setShowFilenameDialog(false)
