@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.122
+
+### Patch Changes
+
+- fix: correct loading spinner colours
+
 ## 0.5.121
 
 ### Patch Changes

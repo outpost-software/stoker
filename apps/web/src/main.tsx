@@ -134,8 +134,8 @@ function Main() {
         return <RouterProvider router={router} />
     } else {
         return (
-            <div className="flex justify-center items-center h-screen relative bottom-8 bg-background">
-                <LoadingSpinner size={16} />
+            <div className="flex justify-center items-center h-screen bg-white">
+                <LoadingSpinner size={16} className="relative bottom-8 text-black" />
             </div>
         )
     }
