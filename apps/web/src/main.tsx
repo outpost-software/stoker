@@ -90,6 +90,15 @@ function Main() {
     const { toast } = useToast()
 
     useEffect(() => {
+        const root = document.documentElement
+        if (mode === "app" && !maintenance) {
+            root.dataset.mode = "app"
+        } else {
+            delete root.dataset.mode
+        }
+    }, [mode, maintenance])
+
+    useEffect(() => {
         if (mode === "maintenance") return
         const getRoutes = () => {
             const routes = loadRoutes()

@@ -1687,20 +1687,23 @@ function Collection({
         [recordTitle],
     )
 
-    const [showCollection, setShowCollection] = useState(window.innerWidth > 1280)
-    useEffect(() => {
-        if (isInitialized) {
-            setTimeout(() => {
-                setShowCollection(true)
-            }, 150)
-        }
-    }, [isInitialized])
+    const willHaveRangeRow = useMemo(() => {
+        return (
+            !formList &&
+            !relationList?.loadAll &&
+            tab !== "calendar" &&
+            (hasRangeFilter ||
+                (isPreloadCacheEnabled && !!preloadCache?.range) ||
+                filters.some((filter) => filter.type === "range") ||
+                (Array.isArray(collection.admin?.filters) &&
+                    collection.admin.filters.some((filter) => filter.type === "range")))
+        )
+    }, [formList, relationList, tab, hasRangeFilter, isPreloadCacheEnabled, filters, collection])
 
     if (!permissions.collections?.[labels.collection]) return null
 
     return (
-        !collection.singleton &&
-        showCollection && (
+        !collection.singleton && (
             <>
                 <div
                     ref={mainContentRef}
@@ -1826,7 +1829,9 @@ function Collection({
                             <Tabs defaultValue="list" onValueChange={onTabChange} value={tab}>
                                 <div
                                     className={cn(
-                                        "flex flex-col items-center print:hidden select-none",
+                                        "flex flex-col items-center justify-between print:hidden select-none",
+                                        willHaveRangeRow ? "h-[116px]" : "h-[72px]",
+                                        "lg:h-auto",
                                         relationList ? "xl:flex-row" : "lg:flex-row",
                                     )}
                                 >
@@ -2545,17 +2550,17 @@ function Collection({
                                 ) : (
                                     !relationList &&
                                     (tab === "list" ? (
-                                        <div className="pb-2 pt-[88px] lg:py-2">
-                                            <Card className="min-h-[calc(100vh-88px)] lg:min-h-full lg:h-[calc(100vh-250px)]"></Card>
+                                        <div className="py-2">
+                                            <Card className="min-h-screen lg:min-h-full lg:h-[calc(100vh-250px)]"></Card>
                                         </div>
                                     ) : tab === "map" ? (
-                                        <div className="pb-2 pt-[88px] lg:py-2">
-                                            <Card className="min-h-[calc(100vh-88px)] lg:min-h-full lg:h-[calc(100vh-204px)]"></Card>
+                                        <div className="py-2">
+                                            <Card className="min-h-screen lg:min-h-full lg:h-[calc(100vh-204px)]"></Card>
                                         </div>
                                     ) : (
                                         tab === "calendar" && (
-                                            <div className="pb-2 pt-[44px] lg:py-2">
-                                                <Card className="min-h-[calc(100vh-44px)] lg:min-h-full lg:h-[calc(100vh-204px)]"></Card>
+                                            <div className="py-2">
+                                                <Card className="min-h-screen lg:min-h-full lg:h-[calc(100vh-204px)]"></Card>
                                             </div>
                                         )
                                     ))

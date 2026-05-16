@@ -1,5 +1,11 @@
 html,
 body {
+    background-color: #ffffff !important;
+    background-image: none !important;
+}
+
+html[data-mode="app"],
+html[data-mode="app"] body {
     background-color: #000000 !important;
     background-image: none !important;
 }

@@ -60,7 +60,7 @@ import { getFunctions, httpsCallable } from "firebase/functions"
 import { getApp } from "firebase/app"
 import { useTheme } from "./components/theme-provider"
 
-const MOBILE_SHEET_CLOSE_MS = 400
+const MOBILE_SHEET_CLOSE_MS = 320
 
 function Tenant() {
     const [dialogContent, setDialogContent] = useDialog()
@@ -290,9 +290,9 @@ function Tenant() {
 
     const navigateFromSidebar = useCallback(
         (path: string) => {
-            runViewTransition(() => navigate(path))
+            setSidebarOpen(false)
             window.setTimeout(() => {
-                setSidebarOpen(false)
+                runViewTransition(() => navigate(path))
             }, MOBILE_SHEET_CLOSE_MS)
         },
         [navigate],
