@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.126
+
+### Patch Changes
+
+- fix: fix preload cache spinner issue
+
 ## 0.5.125
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useRef, useState } from "react"
 import debounce from "lodash/debounce.js"
 import { serverReadOnly } from "@/utils/serverReadOnly"
 import { useLocation } from "react-router"
@@ -91,25 +91,33 @@ export const RouteLoadingProvider: React.FC<RouteLoadingProviderProps> = ({ chil
     const [isRouteLoading, setLoading] = useState<Set<string>>(new Set<string>())
     const [isRouteLoadingImmediate, setLoadingImmediate] = useState<Set<string>>(new Set<string>())
 
-    const setIsRouteLoadingDebounced = useMemo(() => {
-        const debouncedSet = debounce((operation: "+" | "-", route: string) => {
-            if (operation === "+") {
-                setLoading((prev) => {
-                    const newSet = new Set(prev)
-                    newSet.add(route)
-                    return newSet
-                })
-            } else {
-                setLoading((prev) => {
-                    const newSet = new Set(prev)
-                    newSet.delete(route)
-                    return newSet
-                })
-            }
-        }, 500)
+    const debouncedByRouteRef = useRef(new Map<string, ReturnType<typeof debounce>>())
 
-        return (operation: "+" | "-", route: string) => {
-            debouncedSet(operation, route)
+    const setIsRouteLoadingDebounced = useCallback((operation: "+" | "-", route: string) => {
+        let debounced = debouncedByRouteRef.current.get(route)
+        if (!debounced) {
+            debounced = debounce((op: "+" | "-") => {
+                if (op === "+") {
+                    setLoading((prev) => {
+                        const newSet = new Set(prev)
+                        newSet.add(route)
+                        return newSet
+                    })
+                } else {
+                    setLoading((prev) => {
+                        const newSet = new Set(prev)
+                        newSet.delete(route)
+                        return newSet
+                    })
+                }
+            }, 500)
+            debouncedByRouteRef.current.set(route, debounced)
+        }
+        debounced(operation)
+        if (operation === "-") {
+            debounced.flush()
+            debounced.cancel()
+            debouncedByRouteRef.current.delete(route)
         }
     }, [])
 
@@ -153,6 +161,8 @@ export const RouteLoadingProvider: React.FC<RouteLoadingProviderProps> = ({ chil
         // eslint-disable-next-line security/detect-object-injection
         const collection = schema.collections[collectionName]
         if ((collection && serverReadOnly(collection)) || immediate) {
+            debouncedByRouteRef.current.get(route)?.cancel()
+            debouncedByRouteRef.current.delete(route)
             setIsRouteLoadingImmediate(operation, route)
         } else {
             setIsRouteLoadingDebounced(operation, route)

@@ -710,15 +710,15 @@ function Collection({
     const cacheLoading = useCallback(() => {
         if (!cacheLoadingStarted.current) {
             isCacheLoading.current = true
-            setIsRouteLoading("+", location.pathname)
+            setIsRouteLoading("+", location.pathname, true)
             cacheLoadingStarted.current = true
         }
-    }, [location, isCacheLoading.current, cacheLoadingStarted.current])
+    }, [location.pathname, setIsRouteLoading])
     const cacheLoaded = useCallback(() => {
         isCacheLoading.current = false
-        setIsRouteLoading("-", location.pathname)
+        setIsRouteLoading("-", location.pathname, true)
         setCacheLoadingCompleted(true)
-    }, [location, isCacheLoading.current])
+    }, [location.pathname, setIsRouteLoading])
 
     const hasRunSingleton = useRef(false)
 
@@ -727,7 +727,6 @@ function Collection({
             const isPreloading = getLoadingState()[labels.collection]
             if (!isPreloading || isPreloading === "Loading") {
                 cacheLoading()
-                cacheLoadingStarted.current = true
             }
             document.addEventListener(`stoker:loading:${labels.collection}`, cacheLoading)
             // Prevent UI flicker
