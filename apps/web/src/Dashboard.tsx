@@ -62,7 +62,7 @@ export const Dashboard = () => {
                 <title>Dashboard</title>
                 <meta name="description" content={`Dashboard for ${appName}`} />
             </Helmet>
-            <div className="h-[100vh] xl:overflow-y-auto">
+            <div className="xl:h-[100vh] xl:overflow-y-auto">
                 <div className="flex flex-col lg:pt-4">
                     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 py-1 lg:static lg:h-auto lg:border-0 lg:bg-transparent lg:px-6 lg:py-0 print:border-none select-none">
                         <Card className="flex items-center gap-2 h-12 sm:min-w-[300px] p-5">

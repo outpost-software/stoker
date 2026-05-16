@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.127
+
+### Patch Changes
+
+- fix: fix Dashboard background cutoff issue
+
 ## 0.5.126
 
 ### Patch Changes
