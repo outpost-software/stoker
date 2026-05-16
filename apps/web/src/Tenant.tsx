@@ -664,13 +664,13 @@ function Tenant() {
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="sm:max-w-xs overflow-y-auto">
-                                <nav className="grid gap-6 text-lg font-medium pt-12">
+                                <nav className="grid text-lg font-medium pt-9">
                                     {hasDashboard && (
                                         <button
                                             className={
                                                 window.location.pathname === "/"
-                                                    ? "flex items-center gap-4 px-2.5 text-foreground"
-                                                    : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                                                    ? "flex items-center gap-4 px-2.5 text-foreground py-3"
+                                                    : "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground py-3"
                                             }
                                             onClick={() => navigateFromSidebar("/")}
                                         >
@@ -686,10 +686,10 @@ function Tenant() {
                                                     key={group.collections[0]}
                                                     className={
                                                         isMatch(group.collections[0])
-                                                            ? cn(className, "text-foreground")
+                                                            ? cn(className, "text-foreground py-3")
                                                             : cn(
                                                                   className,
-                                                                  "text-muted-foreground hover:text-foreground",
+                                                                  "text-muted-foreground hover:text-foreground py-3",
                                                               )
                                                     }
                                                     onClick={() =>
@@ -714,10 +714,10 @@ function Tenant() {
                                                         key={collection}
                                                         className={
                                                             isMatch(collection)
-                                                                ? cn(className, "text-foreground")
+                                                                ? cn(className, "text-foreground py-3")
                                                                 : cn(
                                                                       className,
-                                                                      "text-muted-foreground hover:text-foreground",
+                                                                      "text-muted-foreground hover:text-foreground py-3",
                                                                   )
                                                         }
                                                         onClick={() =>
@@ -740,7 +740,7 @@ function Tenant() {
                                     {enableMfa && ((!mfaActive && !mfaEnabled) || mfaRevoked) && (
                                         <button
                                             key="mfa-enroll-mobile"
-                                            className="flex items-center gap-4 px-2.5 bg-destructive p-4 rounded-md text-white"
+                                            className="flex items-center gap-4 px-2.5 bg-destructive p-4 mt-2 rounded-md text-white"
                                             onClick={() => multiFactorEnroll(user, getMultiFactorCode)}
                                         >
                                             Enable MFA

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.128
+
+### Patch Changes
+
+- feat: enlarge sidebar tap targets
+
 ## 0.5.127
 
 ### Patch Changes
