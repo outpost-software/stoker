@@ -85,6 +85,21 @@ import { useConnection } from "./providers/ConnectionProvider"
 import { SortingState } from "@tanstack/react-table"
 import { cn } from "./lib/utils"
 
+function getExclusiveEnd(inclusiveEnd: Date, timezone: string): Date {
+    return DateTime.fromJSDate(inclusiveEnd).setZone(timezone).startOf("day").plus({ days: 1 }).toJSDate()
+}
+
+function getInclusiveEnd(exclusiveEnd: Date, timezone: string): Date {
+    return DateTime.fromJSDate(exclusiveEnd).setZone(timezone).startOf("day").minus({ days: 1 }).toJSDate()
+}
+
+function isAllDayEvent(record: StokerRecord, calendarConfig: CalendarConfig): boolean {
+    if (calendarConfig.allDayField !== undefined) {
+        return !!record[calendarConfig.allDayField]
+    }
+    return !!(calendarConfig.fullCalendarLarge?.defaultAllDay || calendarConfig.fullCalendarSmall?.defaultAllDay)
+}
+
 function Row({
     collection,
     record,
@@ -655,10 +670,13 @@ export function Calendar({
                     resourceEditable: !isPendingServer && !isUpdateDisabled && hasReourceUpdateAccess,
                 }
                 if (calendarConfig.endField && record[calendarConfig.endField]) {
-                    event.end = record[calendarConfig.endField].toDate()
+                    const rawEnd = record[calendarConfig.endField].toDate()
+                    event.end = isAllDayEvent(record, calendarConfig) ? getExclusiveEnd(rawEnd, timezone) : rawEnd
                 }
                 if (calendarConfig.allDayField !== undefined) {
                     event.allDay = record[calendarConfig.allDayField]
+                } else if (isAllDayEvent(record, calendarConfig)) {
+                    event.allDay = true
                 }
                 if (calendarConfig.resourceField && record[calendarConfig.resourceField] !== undefined) {
                     const resource = getResource(labels.collection, record, calendarConfig.resourceField)
@@ -722,6 +740,7 @@ export function Calendar({
         hasEndUpdateAccess,
         hasReourceUpdateAccess,
         isGlobalLoading,
+        timezone,
     ])
 
     const updateEvent = useCallback(
@@ -733,10 +752,23 @@ export function Calendar({
 
             const updatedFields: Partial<StokerRecord> = {}
             if (calendarConfig.startField && info.event.start) {
-                updatedFields[calendarConfig.startField] = Timestamp.fromDate(info.event.start)
+                const startDate = info.event.allDay
+                    ? DateTime.fromJSDate(info.event.start).setZone(timezone).startOf("day").toJSDate()
+                    : info.event.start
+                updatedFields[calendarConfig.startField] = Timestamp.fromDate(startDate)
             }
             if (calendarConfig.endField && info.event.start) {
-                updatedFields[calendarConfig.endField] = Timestamp.fromDate(info.event.end || info.event.start)
+                let endDate: Date
+                if (info.event.allDay) {
+                    if (info.event.end) {
+                        endDate = getInclusiveEnd(info.event.end, timezone)
+                    } else {
+                        endDate = DateTime.fromJSDate(info.event.start).setZone(timezone).startOf("day").toJSDate()
+                    }
+                } else {
+                    endDate = info.event.end ?? info.event.start
+                }
+                updatedFields[calendarConfig.endField] = Timestamp.fromDate(endDate)
             }
             if (calendarConfig.allDayField !== undefined) {
                 updatedFields[calendarConfig.allDayField] = info.event.allDay
@@ -816,7 +848,7 @@ export function Calendar({
                 })
             }
         },
-        [calendarConfig, list, unscheduledRecords, recordTitleField, recordTitle],
+        [calendarConfig, list, unscheduledRecords, recordTitleField, recordTitle, timezone],
     )
 
     const createEvent = useCallback(
@@ -1021,7 +1053,14 @@ export function Calendar({
             createEvent({ start: info.date })
         },
         select(info: DateSelectArg) {
-            createEvent({ start: info.start, end: info.end })
+            if (info.allDay && info.end) {
+                createEvent({
+                    start: info.start,
+                    end: getInclusiveEnd(info.end, timezone),
+                })
+            } else {
+                createEvent({ start: info.start, end: info.end })
+            }
         },
         eventInteractive: true,
         height: "auto",

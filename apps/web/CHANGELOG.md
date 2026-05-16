@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.124
+
+### Patch Changes
+
+- feat: use inclusive dates for all day events
+
 ## 0.5.123
 
 ### Patch Changes
