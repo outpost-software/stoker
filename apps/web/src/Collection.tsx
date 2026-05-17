@@ -1834,595 +1834,635 @@ function Collection({
                                         relationList ? "xl:flex-row" : "lg:flex-row",
                                     )}
                                 >
-                                    {formList && (
-                                        <Badge variant="outline" className="py-2 px-4 text-md whitespace-nowrap">
-                                            {formList.label || collectionTitle || formList.collection}
-                                        </Badge>
-                                    )}
-                                    <div className="lg:h-9">
-                                        {!formList &&
-                                            (showList || showCards || showImages || showMap || showCalendar) && (
-                                                <TabsList>
-                                                    {showList && (
-                                                        <TabsTrigger value="list">
-                                                            {listConfig?.title || "List"}
-                                                        </TabsTrigger>
-                                                    )}
-                                                    {showCards && cardsStatusField.current && (
-                                                        <TabsTrigger value="cards">
-                                                            {cardsConfig?.title || "Board"}
-                                                        </TabsTrigger>
-                                                    )}
-                                                    {showImages && (
-                                                        <TabsTrigger value="images">
-                                                            {imagesConfig?.title || "Pics"}
-                                                        </TabsTrigger>
-                                                    )}
-                                                    {showMap && (
-                                                        <TabsTrigger value="map">
-                                                            {mapConfig?.title || "Map"}
-                                                        </TabsTrigger>
-                                                    )}
-                                                    {showCalendar && (
-                                                        <TabsTrigger value="calendar">
-                                                            {calendarConfig?.title || "Calendar"}
-                                                        </TabsTrigger>
-                                                    )}
-                                                </TabsList>
+                                    {isInitialized && (
+                                        <>
+                                            {formList && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="py-2 px-4 text-md whitespace-nowrap"
+                                                >
+                                                    {formList.label || collectionTitle || formList.collection}
+                                                </Badge>
                                             )}
-                                    </div>
-                                    {!formList &&
-                                        !relationList?.loadAll &&
-                                        tab !== "calendar" &&
-                                        (hasRangeFilter || currentField) && (
+                                            <div className="lg:h-9">
+                                                {!formList &&
+                                                    (showList ||
+                                                        showCards ||
+                                                        showImages ||
+                                                        showMap ||
+                                                        showCalendar) && (
+                                                        <TabsList>
+                                                            {showList && (
+                                                                <TabsTrigger value="list">
+                                                                    {listConfig?.title || "List"}
+                                                                </TabsTrigger>
+                                                            )}
+                                                            {showCards && cardsStatusField.current && (
+                                                                <TabsTrigger value="cards">
+                                                                    {cardsConfig?.title || "Board"}
+                                                                </TabsTrigger>
+                                                            )}
+                                                            {showImages && (
+                                                                <TabsTrigger value="images">
+                                                                    {imagesConfig?.title || "Pics"}
+                                                                </TabsTrigger>
+                                                            )}
+                                                            {showMap && (
+                                                                <TabsTrigger value="map">
+                                                                    {mapConfig?.title || "Map"}
+                                                                </TabsTrigger>
+                                                            )}
+                                                            {showCalendar && (
+                                                                <TabsTrigger value="calendar">
+                                                                    {calendarConfig?.title || "Calendar"}
+                                                                </TabsTrigger>
+                                                            )}
+                                                        </TabsList>
+                                                    )}
+                                            </div>
+                                            {!formList &&
+                                                !relationList?.loadAll &&
+                                                tab !== "calendar" &&
+                                                (hasRangeFilter || currentField) && (
+                                                    <div
+                                                        className={cn(
+                                                            relationList
+                                                                ? "xl:hidden 2xl:flex xl:absolute xl:left-[calc(50%+128px)] xl:transform xl:-translate-x-[calc(50%+98px)] xl:mt-0 mt-2"
+                                                                : "lg:hidden 2xl:flex lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:mt-0 mt-2",
+                                                        )}
+                                                    >
+                                                        <DateRangeSelector
+                                                            collection={collection}
+                                                            rangeSelector={rangeSelector}
+                                                            setRangeSelector={setRangeSelector}
+                                                            relationList={!!relationList}
+                                                        />
+                                                    </div>
+                                                )}
                                             <div
                                                 className={cn(
+                                                    "ml-auto flex items-center gap-2 justify-center w-full",
                                                     relationList
-                                                        ? "xl:hidden 2xl:flex xl:absolute xl:left-[calc(50%+128px)] xl:transform xl:-translate-x-[calc(50%+98px)] xl:mt-0 mt-2"
-                                                        : "lg:hidden 2xl:flex lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:mt-0 mt-2",
+                                                        ? "xl:justify-end xl:mt-0 mt-2"
+                                                        : "lg:justify-end lg:mt-0 mt-2",
                                                 )}
                                             >
-                                                <DateRangeSelector
-                                                    collection={collection}
-                                                    rangeSelector={rangeSelector}
-                                                    setRangeSelector={setRangeSelector}
-                                                    relationList={!!relationList}
-                                                />
-                                            </div>
-                                        )}
-                                    <div
-                                        className={cn(
-                                            "ml-auto flex items-center gap-2 justify-center w-full",
-                                            relationList
-                                                ? "xl:justify-end xl:mt-0 mt-2"
-                                                : "lg:justify-end lg:mt-0 mt-2",
-                                        )}
-                                    >
-                                        {(statusField || softDeleteField) && (
-                                            <ToggleGroup
-                                                onValueChange={onStatusFilterChange}
-                                                value={statusFilter}
-                                                defaultValue="active"
-                                                size="sm"
-                                                type="single"
-                                                variant="outline"
-                                                className="text-muted-foreground font-medium mr-2 gap-2"
-                                            >
-                                                {statusField?.active &&
-                                                    (tab !== "cards" || !autoUpdateStatusFilter) && (
-                                                        <ToggleGroupItem
-                                                            className="h-7 bg-muted data-[state=on]:bg-background"
-                                                            value="active"
-                                                            aria-label="Toggle active"
-                                                            disabled={isRouteLoading.has(location.pathname)}
-                                                        >
-                                                            Active
-                                                        </ToggleGroupItem>
-                                                    )}
-                                                {statusField?.archived &&
-                                                    (tab !== "cards" || !autoUpdateStatusFilter) && (
-                                                        <ToggleGroupItem
-                                                            className="hidden sm:flex h-7 bg-muted data-[state=on]:bg-background relative"
-                                                            value="archived"
-                                                            aria-label="Toggle archived"
-                                                            disabled={isRouteLoading.has(location.pathname)}
-                                                        >
-                                                            Archived
-                                                            {statusFilter === "archived" && (
-                                                                <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
-                                                            )}
-                                                        </ToggleGroupItem>
-                                                    )}
-                                                <ToggleGroupItem
-                                                    className="h-7 bg-muted data-[state=on]:bg-background relative"
-                                                    value="all"
-                                                    aria-label="Toggle all"
-                                                    disabled={isRouteLoading.has(location.pathname)}
-                                                >
-                                                    All
-                                                    {statusField &&
-                                                        statusFilter === "all" &&
-                                                        tab !== "cards" &&
-                                                        !revertingStatusFilter && (
-                                                            <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
-                                                        )}
-                                                </ToggleGroupItem>
-                                                {softDeleteField && (
-                                                    <ToggleGroupItem
-                                                        className="h-7 bg-muted data-[state=on]:bg-background relative"
-                                                        value="trash"
-                                                        aria-label="Toggle trash"
-                                                        disabled={isRouteLoading.has(location.pathname)}
+                                                {(statusField || softDeleteField) && (
+                                                    <ToggleGroup
+                                                        onValueChange={onStatusFilterChange}
+                                                        value={statusFilter}
+                                                        defaultValue="active"
+                                                        size="sm"
+                                                        type="single"
+                                                        variant="outline"
+                                                        className="text-muted-foreground font-medium mr-2 gap-2"
                                                     >
-                                                        Trash
-                                                        {statusFilter === "trash" && (
-                                                            <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
+                                                        {statusField?.active &&
+                                                            (tab !== "cards" || !autoUpdateStatusFilter) && (
+                                                                <ToggleGroupItem
+                                                                    className="h-7 bg-muted data-[state=on]:bg-background"
+                                                                    value="active"
+                                                                    aria-label="Toggle active"
+                                                                    disabled={isRouteLoading.has(location.pathname)}
+                                                                >
+                                                                    Active
+                                                                </ToggleGroupItem>
+                                                            )}
+                                                        {statusField?.archived &&
+                                                            (tab !== "cards" || !autoUpdateStatusFilter) && (
+                                                                <ToggleGroupItem
+                                                                    className="hidden sm:flex h-7 bg-muted data-[state=on]:bg-background relative"
+                                                                    value="archived"
+                                                                    aria-label="Toggle archived"
+                                                                    disabled={isRouteLoading.has(location.pathname)}
+                                                                >
+                                                                    Archived
+                                                                    {statusFilter === "archived" && (
+                                                                        <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
+                                                                    )}
+                                                                </ToggleGroupItem>
+                                                            )}
+                                                        <ToggleGroupItem
+                                                            className="h-7 bg-muted data-[state=on]:bg-background relative"
+                                                            value="all"
+                                                            aria-label="Toggle all"
+                                                            disabled={isRouteLoading.has(location.pathname)}
+                                                        >
+                                                            All
+                                                            {statusField &&
+                                                                statusFilter === "all" &&
+                                                                tab !== "cards" &&
+                                                                !revertingStatusFilter && (
+                                                                    <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
+                                                                )}
+                                                        </ToggleGroupItem>
+                                                        {softDeleteField && (
+                                                            <ToggleGroupItem
+                                                                className="h-7 bg-muted data-[state=on]:bg-background relative"
+                                                                value="trash"
+                                                                aria-label="Toggle trash"
+                                                                disabled={isRouteLoading.has(location.pathname)}
+                                                            >
+                                                                Trash
+                                                                {statusFilter === "trash" && (
+                                                                    <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
+                                                                )}
+                                                            </ToggleGroupItem>
                                                         )}
-                                                    </ToggleGroupItem>
+                                                    </ToggleGroup>
                                                 )}
-                                            </ToggleGroup>
-                                        )}
-                                        {!formList && tab === "list" && (
-                                            <>
-                                                {customListActions &&
-                                                customListActions.some(
-                                                    (action) => !action.condition || action.condition(),
-                                                ) ? (
+                                                {!formList && tab === "list" && (
+                                                    <>
+                                                        {customListActions &&
+                                                        customListActions.some(
+                                                            (action) => !action.condition || action.condition(),
+                                                        ) ? (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="hidden sm:flex h-7 gap-1"
+                                                                    >
+                                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                            Actions
+                                                                        </span>
+                                                                        <ChevronsUpDown className="h-3.5 w-3.5" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent>
+                                                                    {(!restrictExport ||
+                                                                        restrictExport.includes(permissions.Role)) && (
+                                                                        <DropdownMenuItem
+                                                                            key="export"
+                                                                            onClick={handleExport}
+                                                                            disabled={
+                                                                                !list.default?.length ||
+                                                                                isRouteLoading.has(location.pathname)
+                                                                            }
+                                                                        >
+                                                                            <File className="h-3.5 w-3.5 shrink-0 mr-1" />
+                                                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                                Export
+                                                                            </span>
+                                                                        </DropdownMenuItem>
+                                                                    )}
+                                                                    {customListActions
+                                                                        .filter(
+                                                                            (action) =>
+                                                                                !action.condition || action.condition(),
+                                                                        )
+                                                                        .map((action) => (
+                                                                            <DropdownMenuItem
+                                                                                key={action.title}
+                                                                                onClick={action.action}
+                                                                            >
+                                                                                {action.icon &&
+                                                                                    createElement(action.icon, {
+                                                                                        className:
+                                                                                            "h-3.5 w-3.5 shrink-0 mr-1",
+                                                                                    })}
+                                                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                                    {action.title}
+                                                                                </span>
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        ) : (
+                                                            (!restrictExport ||
+                                                                restrictExport.includes(permissions.Role)) && (
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    disabled={
+                                                                        !list.default?.length ||
+                                                                        isRouteLoading.has(location.pathname)
+                                                                    }
+                                                                    className="hidden sm:flex h-7 gap-1"
+                                                                    onClick={handleExport}
+                                                                >
+                                                                    <File className="h-3.5 w-3.5" />
+                                                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                        Export
+                                                                    </span>
+                                                                </Button>
+                                                            )
+                                                        )}
+                                                        {(!restrictExport ||
+                                                            restrictExport.includes(permissions.Role)) && (
+                                                            <CSVLink
+                                                                ref={csvLinkRef}
+                                                                className="hidden"
+                                                                data={csvData?.data || []}
+                                                                headers={csvData?.headers || []}
+                                                                filename={`${collectionTitle}.csv`}
+                                                                target="_blank"
+                                                            />
+                                                        )}
+                                                    </>
+                                                )}
+                                                {(tab === "cards" || tab === "images") && (
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <Button
                                                                 type="button"
                                                                 size="sm"
                                                                 variant="outline"
-                                                                className="hidden sm:flex h-7 gap-1"
+                                                                className="h-7 gap-1"
+                                                                disabled={isRouteLoading.has(location.pathname)}
                                                             >
-                                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                                    Actions
-                                                                </span>
                                                                 <ChevronsUpDown className="h-3.5 w-3.5" />
+                                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                    Sort
+                                                                </span>
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent>
-                                                            {(!restrictExport ||
-                                                                restrictExport.includes(permissions.Role)) && (
-                                                                <DropdownMenuItem
-                                                                    key="export"
-                                                                    onClick={handleExport}
-                                                                    disabled={
-                                                                        !list.default?.length ||
-                                                                        isRouteLoading.has(location.pathname)
-                                                                    }
-                                                                >
-                                                                    <File className="h-3.5 w-3.5 shrink-0 mr-1" />
-                                                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                                        Export
-                                                                    </span>
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                            {customListActions
-                                                                .filter(
-                                                                    (action) => !action.condition || action.condition(),
-                                                                )
-                                                                .map((action) => (
-                                                                    <DropdownMenuItem
-                                                                        key={action.title}
-                                                                        onClick={action.action}
-                                                                    >
-                                                                        {action.icon &&
-                                                                            createElement(action.icon, {
-                                                                                className: "h-3.5 w-3.5 shrink-0 mr-1",
-                                                                            })}
-                                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                                            {action.title}
-                                                                        </span>
-                                                                    </DropdownMenuItem>
-                                                                ))}
+                                                            <ScrollArea className={sortingHeight}>
+                                                                <div>
+                                                                    {sortingFields.map((field: CollectionField) => {
+                                                                        const fieldCustomization =
+                                                                            getFieldCustomization(field, customization)
+                                                                        const label =
+                                                                            tryFunction(
+                                                                                fieldCustomization.admin?.label,
+                                                                            ) || field.name
+                                                                        const condition =
+                                                                            fieldCustomization.admin?.condition?.list
+                                                                        if (
+                                                                            condition !== undefined &&
+                                                                            !tryFunction(condition)
+                                                                        )
+                                                                            return null
+                                                                        return (
+                                                                            <DropdownMenuItem
+                                                                                key={field.name}
+                                                                                onClick={() => {
+                                                                                    if (preventChange) return
+                                                                                    if (
+                                                                                        typeof field.sorting ===
+                                                                                            "object" &&
+                                                                                        field.sorting.direction ===
+                                                                                            "desc"
+                                                                                    ) {
+                                                                                        setOrder({
+                                                                                            field: field.name,
+                                                                                            direction: "desc",
+                                                                                        })
+                                                                                    } else {
+                                                                                        setOrder({
+                                                                                            field: field.name,
+                                                                                            direction: "asc",
+                                                                                        })
+                                                                                    }
+                                                                                    setState(
+                                                                                        `collection-sort-${labels.collection.toLowerCase()}`,
+                                                                                        "sort",
+                                                                                        JSON.stringify([
+                                                                                            {
+                                                                                                id: field.name,
+                                                                                                desc:
+                                                                                                    typeof field.sorting ===
+                                                                                                        "object" &&
+                                                                                                    field.sorting
+                                                                                                        .direction ===
+                                                                                                        "desc",
+                                                                                            },
+                                                                                        ]),
+                                                                                    )
+                                                                                }}
+                                                                            >
+                                                                                {order?.field === field.name && (
+                                                                                    <Check className="absolute h-3.5 w-3.5 mr-1" />
+                                                                                )}
+                                                                                <span className="ml-5">{label}</span>
+                                                                            </DropdownMenuItem>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            </ScrollArea>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                ) : (
-                                                    (!restrictExport || restrictExport.includes(permissions.Role)) && (
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="outline"
-                                                            disabled={
-                                                                !list.default?.length ||
-                                                                isRouteLoading.has(location.pathname)
-                                                            }
-                                                            className="hidden sm:flex h-7 gap-1"
-                                                            onClick={handleExport}
-                                                        >
-                                                            <File className="h-3.5 w-3.5" />
-                                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                                Export
-                                                            </span>
-                                                        </Button>
-                                                    )
                                                 )}
-                                                {(!restrictExport || restrictExport.includes(permissions.Role)) && (
-                                                    <CSVLink
-                                                        ref={csvLinkRef}
-                                                        className="hidden"
-                                                        data={csvData?.data || []}
-                                                        headers={csvData?.headers || []}
-                                                        filename={`${collectionTitle}.csv`}
-                                                        target="_blank"
-                                                    />
-                                                )}
-                                            </>
-                                        )}
-                                        {(tab === "cards" || tab === "images") && (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-7 gap-1"
-                                                        disabled={isRouteLoading.has(location.pathname)}
-                                                    >
-                                                        <ChevronsUpDown className="h-3.5 w-3.5" />
-                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                            Sort
-                                                        </span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <ScrollArea className={sortingHeight}>
-                                                        <div>
-                                                            {sortingFields.map((field: CollectionField) => {
-                                                                const fieldCustomization = getFieldCustomization(
-                                                                    field,
-                                                                    customization,
-                                                                )
-                                                                const label =
-                                                                    tryFunction(fieldCustomization.admin?.label) ||
-                                                                    field.name
-                                                                const condition =
-                                                                    fieldCustomization.admin?.condition?.list
-                                                                if (condition !== undefined && !tryFunction(condition))
-                                                                    return null
-                                                                return (
-                                                                    <DropdownMenuItem
-                                                                        key={field.name}
-                                                                        onClick={() => {
-                                                                            if (preventChange) return
-                                                                            if (
-                                                                                typeof field.sorting === "object" &&
-                                                                                field.sorting.direction === "desc"
-                                                                            ) {
-                                                                                setOrder({
-                                                                                    field: field.name,
-                                                                                    direction: "desc",
-                                                                                })
-                                                                            } else {
-                                                                                setOrder({
-                                                                                    field: field.name,
-                                                                                    direction: "asc",
-                                                                                })
-                                                                            }
-                                                                            setState(
-                                                                                `collection-sort-${labels.collection.toLowerCase()}`,
-                                                                                "sort",
-                                                                                JSON.stringify([
-                                                                                    {
-                                                                                        id: field.name,
-                                                                                        desc:
-                                                                                            typeof field.sorting ===
-                                                                                                "object" &&
-                                                                                            field.sorting.direction ===
-                                                                                                "desc",
-                                                                                    },
-                                                                                ]),
-                                                                            )
-                                                                        }}
-                                                                    >
-                                                                        {order?.field === field.name && (
-                                                                            <Check className="absolute h-3.5 w-3.5 mr-1" />
-                                                                        )}
-                                                                        <span className="ml-5">{label}</span>
-                                                                    </DropdownMenuItem>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </ScrollArea>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        )}
-                                        {hasFiltersToShow && (
-                                            <Sheet>
-                                                <SheetTrigger asChild>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-7 gap-1 relative"
-                                                    >
-                                                        <ListFilter className="h-3.5 w-3.5" />
-                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                            Filter
-                                                        </span>
-                                                        {filtersActive && (
-                                                            <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
-                                                        )}
-                                                    </Button>
-                                                </SheetTrigger>
-                                                <SheetContent className="overflow-y-auto">
-                                                    <SheetHeader>
-                                                        <SheetTitle className="mb-4">Filters</SheetTitle>
-                                                        <SheetDescription className="hidden">
-                                                            Filter records in the list view.
-                                                        </SheetDescription>
-                                                    </SheetHeader>
-                                                    <Filters
-                                                        collection={collection}
-                                                        excluded={excludedFilters}
-                                                        relationList={relationList}
-                                                    />
-                                                </SheetContent>
-                                            </Sheet>
-                                        )}
-                                        {canAddRecords && (
-                                            <>
-                                                {(() => {
-                                                    const relationFieldSchema = relationList
-                                                        ? getField(fields, relationList.field)
-                                                        : undefined
-                                                    const isManyToMany =
-                                                        relationFieldSchema && relationFieldSchema.type === "ManyToMany"
-                                                    if (relationList && isManyToMany) {
-                                                        return (
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button
-                                                                        type="button"
-                                                                        ref={addButtonRef}
-                                                                        size="sm"
-                                                                        className="h-7 gap-1"
-                                                                        disabled={isCreateDisabled}
-                                                                    >
-                                                                        <PlusCircle className="h-3.5 w-3.5" />
-                                                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                                            Add {recordTitle}
-                                                                        </span>
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => {
-                                                                            ;(async () => {
-                                                                                const customization =
-                                                                                    getCollectionConfigModule(
-                                                                                        labels.collection,
-                                                                                    )
-                                                                                const override =
-                                                                                    customization.admin
-                                                                                        ?.addRecordButtonOverride
-                                                                                if (
-                                                                                    override &&
-                                                                                    typeof override === "function"
-                                                                                ) {
-                                                                                    await tryPromise(() =>
-                                                                                        override(
-                                                                                            createPrePopulatedRecord(),
-                                                                                        ),
-                                                                                    )
-                                                                                    return
-                                                                                }
-                                                                                setSelectedDateRange(null)
-                                                                                setIsCreateDialogOpen(true)
-                                                                            })()
-                                                                        }}
-                                                                    >
-                                                                        Add new
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => {
-                                                                            setShowSelectExisting(true)
-                                                                            fetchSelectableRecords()
-                                                                        }}
-                                                                    >
-                                                                        Select existing
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        )
-                                                    }
-                                                    return (
-                                                        <Button
-                                                            type="button"
-                                                            ref={addButtonRef}
-                                                            size="sm"
-                                                            className="h-7 gap-1"
-                                                            disabled={isCreateDisabled}
-                                                            onClick={() => {
-                                                                ;(async () => {
-                                                                    const customization = getCollectionConfigModule(
-                                                                        labels.collection,
-                                                                    )
-                                                                    const override =
-                                                                        customization.admin?.addRecordButtonOverride
-                                                                    if (override && typeof override === "function") {
-                                                                        await tryPromise(() =>
-                                                                            override(createPrePopulatedRecord()),
-                                                                        )
-                                                                        return
-                                                                    }
-                                                                    setSelectedDateRange(null)
-                                                                    setIsCreateDialogOpen(true)
-                                                                })()
-                                                            }}
-                                                        >
-                                                            <PlusCircle className="h-3.5 w-3.5" />
-                                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                                Add {recordTitle}
-                                                            </span>
-                                                        </Button>
-                                                    )
-                                                })()}
-                                                {isCreateDialogOpen &&
-                                                    createPortal(
-                                                        <div
-                                                            id="create-record-modal"
-                                                            className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                                            aria-modal="true"
-                                                            aria-live="polite"
-                                                            role="dialog"
-                                                        >
-                                                            <div className="fixed inset-0 bg-black/50" />
-                                                            <div
-                                                                className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
-                                                                aria-labelledby="dialog-title"
+                                                {hasFiltersToShow && (
+                                                    <Sheet>
+                                                        <SheetTrigger asChild>
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-7 gap-1 relative"
                                                             >
-                                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                                                    <div className="space-y-2">
-                                                                        <div className="flex justify-between items-center mb-4">
-                                                                            <h4
-                                                                                id="dialog-title"
-                                                                                className="font-medium leading-none"
-                                                                            >
-                                                                                Add {recordTitle}
-                                                                            </h4>
+                                                                <ListFilter className="h-3.5 w-3.5" />
+                                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                    Filter
+                                                                </span>
+                                                                {filtersActive && (
+                                                                    <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
+                                                                )}
+                                                            </Button>
+                                                        </SheetTrigger>
+                                                        <SheetContent className="overflow-y-auto">
+                                                            <SheetHeader>
+                                                                <SheetTitle className="mb-4">Filters</SheetTitle>
+                                                                <SheetDescription className="hidden">
+                                                                    Filter records in the list view.
+                                                                </SheetDescription>
+                                                            </SheetHeader>
+                                                            <Filters
+                                                                collection={collection}
+                                                                excluded={excludedFilters}
+                                                                relationList={relationList}
+                                                            />
+                                                        </SheetContent>
+                                                    </Sheet>
+                                                )}
+                                                {canAddRecords && (
+                                                    <>
+                                                        {(() => {
+                                                            const relationFieldSchema = relationList
+                                                                ? getField(fields, relationList.field)
+                                                                : undefined
+                                                            const isManyToMany =
+                                                                relationFieldSchema &&
+                                                                relationFieldSchema.type === "ManyToMany"
+                                                            if (relationList && isManyToMany) {
+                                                                return (
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
                                                                             <Button
                                                                                 type="button"
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                className="right-4 top-4"
+                                                                                ref={addButtonRef}
+                                                                                size="sm"
+                                                                                className="h-7 gap-1"
+                                                                                disabled={isCreateDisabled}
+                                                                            >
+                                                                                <PlusCircle className="h-3.5 w-3.5" />
+                                                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                                    Add {recordTitle}
+                                                                                </span>
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end">
+                                                                            <DropdownMenuItem
                                                                                 onClick={() => {
-                                                                                    setIsCreateDialogOpen(false)
-                                                                                    setSelectedDateRange(null)
-                                                                                    setTimeout(() => {
-                                                                                        addButtonRef.current?.focus()
-                                                                                    }, 0)
-
-                                                                                    localStorage.removeItem(
-                                                                                        `stoker-draft-${labels.collection}`,
-                                                                                    )
+                                                                                    ;(async () => {
+                                                                                        const customization =
+                                                                                            getCollectionConfigModule(
+                                                                                                labels.collection,
+                                                                                            )
+                                                                                        const override =
+                                                                                            customization.admin
+                                                                                                ?.addRecordButtonOverride
+                                                                                        if (
+                                                                                            override &&
+                                                                                            typeof override ===
+                                                                                                "function"
+                                                                                        ) {
+                                                                                            await tryPromise(() =>
+                                                                                                override(
+                                                                                                    createPrePopulatedRecord(),
+                                                                                                ),
+                                                                                            )
+                                                                                            return
+                                                                                        }
+                                                                                        setSelectedDateRange(null)
+                                                                                        setIsCreateDialogOpen(true)
+                                                                                    })()
                                                                                 }}
                                                                             >
-                                                                                <X className="h-4 w-4" />
-                                                                                <span className="sr-only">Close</span>
-                                                                            </Button>
-                                                                        </div>
-                                                                        <RecordForm
-                                                                            collection={collection}
-                                                                            operation="create"
-                                                                            path={[labels.collection]}
-                                                                            record={createPrePopulatedRecord()}
-                                                                            draft={true}
-                                                                            parentCollection={
-                                                                                relationCollection?.labels.collection
-                                                                            }
-                                                                            parentRecord={relationParent}
-                                                                            onSuccess={() => {
-                                                                                setIsCreateDialogOpen(false)
-                                                                                setSelectedDateRange(null)
-                                                                                setTimeout(() => {
-                                                                                    addButtonRef.current?.focus()
-                                                                                }, 0)
-                                                                                if (isServerReadOnly) {
-                                                                                    setBackToStartKey(
-                                                                                        (prev) => prev + 1,
-                                                                                    )
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>,
-                                                        document.body,
-                                                    )}
-                                                {showSelectExisting &&
-                                                    relationList &&
-                                                    relationParent &&
-                                                    createPortal(
-                                                        <div
-                                                            id="select-existing-modal"
-                                                            className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                                            aria-modal="true"
-                                                            aria-live="polite"
-                                                            role="dialog"
-                                                        >
-                                                            <div className="fixed inset-0 bg-black/50" />
-                                                            <div className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[50vh] overflow-hidden border border-border">
-                                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                                                    <div className="flex items-center justify-between mb-4">
-                                                                        <h4 className="font-medium leading-none">
-                                                                            Select {recordTitle}
-                                                                        </h4>
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            onClick={() => {
-                                                                                setShowSelectExisting(false)
-                                                                                setSelectableSearch("")
-                                                                                setSelectableData([])
-                                                                            }}
-                                                                        >
-                                                                            <X className="h-4 w-4" />
-                                                                            <span className="sr-only">Close</span>
-                                                                        </Button>
-                                                                    </div>
-                                                                    <div>
-                                                                        <Command filter={() => 1}>
-                                                                            <CommandInput
-                                                                                placeholder={`Search ${collectionTitle}...`}
-                                                                                className="h-9"
-                                                                                value={selectableSearch}
-                                                                                onValueChange={(value) => {
-                                                                                    setSelectableSearch(value)
-                                                                                    fetchSelectableRecords(value)
+                                                                                Add new
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    setShowSelectExisting(true)
+                                                                                    fetchSelectableRecords()
                                                                                 }}
-                                                                            />
-                                                                            <CommandList className="max-h-full sm:max-h-[calc(50vh-138px)]">
-                                                                                <CommandEmpty>
-                                                                                    {selectLoading ? (
-                                                                                        <LoadingSpinner
-                                                                                            size={7}
-                                                                                            className="m-auto"
-                                                                                        />
-                                                                                    ) : !selectLoadingImmediate ? (
-                                                                                        `No ${collectionTitle} found.`
-                                                                                    ) : null}
-                                                                                </CommandEmpty>
-                                                                                {(!selectLoading ||
-                                                                                    isPreloadCacheEnabled) && (
-                                                                                    <CommandGroup>
-                                                                                        {selectableData.map(
-                                                                                            (record) => (
-                                                                                                <CommandItem
-                                                                                                    key={record.id}
-                                                                                                    value={record.id}
-                                                                                                    onSelect={() => {
-                                                                                                        linkExistingRecord(
-                                                                                                            record,
-                                                                                                        )
-                                                                                                    }}
-                                                                                                >
-                                                                                                    {
-                                                                                                        record[
-                                                                                                            recordTitleField ||
-                                                                                                                "id"
-                                                                                                        ]
-                                                                                                    }
-                                                                                                </CommandItem>
-                                                                                            ),
-                                                                                        )}
-                                                                                    </CommandGroup>
-                                                                                )}
-                                                                            </CommandList>
-                                                                        </Command>
+                                                                            >
+                                                                                Select existing
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
+                                                                )
+                                                            }
+                                                            return (
+                                                                <Button
+                                                                    type="button"
+                                                                    ref={addButtonRef}
+                                                                    size="sm"
+                                                                    className="h-7 gap-1"
+                                                                    disabled={isCreateDisabled}
+                                                                    onClick={() => {
+                                                                        ;(async () => {
+                                                                            const customization =
+                                                                                getCollectionConfigModule(
+                                                                                    labels.collection,
+                                                                                )
+                                                                            const override =
+                                                                                customization.admin
+                                                                                    ?.addRecordButtonOverride
+                                                                            if (
+                                                                                override &&
+                                                                                typeof override === "function"
+                                                                            ) {
+                                                                                await tryPromise(() =>
+                                                                                    override(
+                                                                                        createPrePopulatedRecord(),
+                                                                                    ),
+                                                                                )
+                                                                                return
+                                                                            }
+                                                                            setSelectedDateRange(null)
+                                                                            setIsCreateDialogOpen(true)
+                                                                        })()
+                                                                    }}
+                                                                >
+                                                                    <PlusCircle className="h-3.5 w-3.5" />
+                                                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                                                        Add {recordTitle}
+                                                                    </span>
+                                                                </Button>
+                                                            )
+                                                        })()}
+                                                        {isCreateDialogOpen &&
+                                                            createPortal(
+                                                                <div
+                                                                    id="create-record-modal"
+                                                                    className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
+                                                                    aria-modal="true"
+                                                                    aria-live="polite"
+                                                                    role="dialog"
+                                                                >
+                                                                    <div className="fixed inset-0 bg-black/50" />
+                                                                    <div
+                                                                        className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
+                                                                        aria-labelledby="dialog-title"
+                                                                    >
+                                                                        <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                                            <div className="space-y-2">
+                                                                                <div className="flex justify-between items-center mb-4">
+                                                                                    <h4
+                                                                                        id="dialog-title"
+                                                                                        className="font-medium leading-none"
+                                                                                    >
+                                                                                        Add {recordTitle}
+                                                                                    </h4>
+                                                                                    <Button
+                                                                                        type="button"
+                                                                                        variant="ghost"
+                                                                                        size="icon"
+                                                                                        className="right-4 top-4"
+                                                                                        onClick={() => {
+                                                                                            setIsCreateDialogOpen(false)
+                                                                                            setSelectedDateRange(null)
+                                                                                            setTimeout(() => {
+                                                                                                addButtonRef.current?.focus()
+                                                                                            }, 0)
+
+                                                                                            localStorage.removeItem(
+                                                                                                `stoker-draft-${labels.collection}`,
+                                                                                            )
+                                                                                        }}
+                                                                                    >
+                                                                                        <X className="h-4 w-4" />
+                                                                                        <span className="sr-only">
+                                                                                            Close
+                                                                                        </span>
+                                                                                    </Button>
+                                                                                </div>
+                                                                                <RecordForm
+                                                                                    collection={collection}
+                                                                                    operation="create"
+                                                                                    path={[labels.collection]}
+                                                                                    record={createPrePopulatedRecord()}
+                                                                                    draft={true}
+                                                                                    parentCollection={
+                                                                                        relationCollection?.labels
+                                                                                            .collection
+                                                                                    }
+                                                                                    parentRecord={relationParent}
+                                                                                    onSuccess={() => {
+                                                                                        setIsCreateDialogOpen(false)
+                                                                                        setSelectedDateRange(null)
+                                                                                        setTimeout(() => {
+                                                                                            addButtonRef.current?.focus()
+                                                                                        }, 0)
+                                                                                        if (isServerReadOnly) {
+                                                                                            setBackToStartKey(
+                                                                                                (prev) => prev + 1,
+                                                                                            )
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>,
-                                                        document.body,
-                                                    )}
-                                            </>
-                                        )}
-                                    </div>
+                                                                </div>,
+                                                                document.body,
+                                                            )}
+                                                        {showSelectExisting &&
+                                                            relationList &&
+                                                            relationParent &&
+                                                            createPortal(
+                                                                <div
+                                                                    id="select-existing-modal"
+                                                                    className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
+                                                                    aria-modal="true"
+                                                                    aria-live="polite"
+                                                                    role="dialog"
+                                                                >
+                                                                    <div className="fixed inset-0 bg-black/50" />
+                                                                    <div className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[50vh] overflow-hidden border border-border">
+                                                                        <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                                            <div className="flex items-center justify-between mb-4">
+                                                                                <h4 className="font-medium leading-none">
+                                                                                    Select {recordTitle}
+                                                                                </h4>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="ghost"
+                                                                                    size="icon"
+                                                                                    onClick={() => {
+                                                                                        setShowSelectExisting(false)
+                                                                                        setSelectableSearch("")
+                                                                                        setSelectableData([])
+                                                                                    }}
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                    <span className="sr-only">
+                                                                                        Close
+                                                                                    </span>
+                                                                                </Button>
+                                                                            </div>
+                                                                            <div>
+                                                                                <Command filter={() => 1}>
+                                                                                    <CommandInput
+                                                                                        placeholder={`Search ${collectionTitle}...`}
+                                                                                        className="h-9"
+                                                                                        value={selectableSearch}
+                                                                                        onValueChange={(value) => {
+                                                                                            setSelectableSearch(value)
+                                                                                            fetchSelectableRecords(
+                                                                                                value,
+                                                                                            )
+                                                                                        }}
+                                                                                    />
+                                                                                    <CommandList className="max-h-full sm:max-h-[calc(50vh-138px)]">
+                                                                                        <CommandEmpty>
+                                                                                            {selectLoading ? (
+                                                                                                <LoadingSpinner
+                                                                                                    size={7}
+                                                                                                    className="m-auto"
+                                                                                                />
+                                                                                            ) : !selectLoadingImmediate ? (
+                                                                                                `No ${collectionTitle} found.`
+                                                                                            ) : null}
+                                                                                        </CommandEmpty>
+                                                                                        {(!selectLoading ||
+                                                                                            isPreloadCacheEnabled) && (
+                                                                                            <CommandGroup>
+                                                                                                {selectableData.map(
+                                                                                                    (record) => (
+                                                                                                        <CommandItem
+                                                                                                            key={
+                                                                                                                record.id
+                                                                                                            }
+                                                                                                            value={
+                                                                                                                record.id
+                                                                                                            }
+                                                                                                            onSelect={() => {
+                                                                                                                linkExistingRecord(
+                                                                                                                    record,
+                                                                                                                )
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            {
+                                                                                                                record[
+                                                                                                                    recordTitleField ||
+                                                                                                                        "id"
+                                                                                                                ]
+                                                                                                            }
+                                                                                                        </CommandItem>
+                                                                                                    ),
+                                                                                                )}
+                                                                                            </CommandGroup>
+                                                                                        )}
+                                                                                    </CommandList>
+                                                                                </Command>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>,
+                                                                document.body,
+                                                            )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                                 {tab && isInitialized ? (
                                     <>

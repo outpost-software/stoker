@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.134
+
+### Patch Changes
+
+- feat: improve transitions
+
 ## 0.5.133
 
 ### Patch Changes

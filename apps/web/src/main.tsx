@@ -92,7 +92,10 @@ function Main() {
     useEffect(() => {
         const root = document.documentElement
         if (mode === "app" && !maintenance) {
-            root.dataset.mode = "app"
+            // Prevent black screen flash due to black background
+            setTimeout(() => {
+                root.dataset.mode = "app"
+            }, 500)
         } else {
             delete root.dataset.mode
         }
@@ -103,7 +106,7 @@ function Main() {
         const getRoutes = () => {
             const routes = loadRoutes()
             setRoutes(routes)
-            runViewTransition(() => setMode("app"))
+            setMode("app")
         }
 
         const initialize = async () => {
