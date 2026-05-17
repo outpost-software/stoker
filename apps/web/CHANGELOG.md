@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.135
+
+### Patch Changes
+
+- feat: restore initial load transition for desktop
+
 ## 0.5.134
 
 ### Patch Changes

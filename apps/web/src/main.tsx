@@ -106,7 +106,11 @@ function Main() {
         const getRoutes = () => {
             const routes = loadRoutes()
             setRoutes(routes)
-            setMode("app")
+            if (window.innerWidth >= 1024) {
+                runViewTransition(() => setMode("app"))
+            } else {
+                setMode("app")
+            }
         }
 
         const initialize = async () => {
