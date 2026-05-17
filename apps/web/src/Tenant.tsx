@@ -582,7 +582,7 @@ function Tenant() {
                         </DialogContent>
                     </Dialog>
 
-                    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-[rgb(39,39,42)] bg-black px-4 lg:px-6 print:hidden select-none">
+                    <header className="sticky top-0 z-50 flex h-[calc(4rem+env(safe-area-inset-top))] items-center gap-4 border-b border-[rgb(39,39,42)] bg-black px-4 pt-[env(safe-area-inset-top)] lg:px-6 print:hidden select-none">
                         <nav className="hidden h-full flex-col gap-6 text-lg font-medium lg:flex lg:flex-row lg:items-center lg:text-sm lg:gap-6 dark">
                             <button
                                 className="flex h-full items-center gap-2"
@@ -663,7 +663,7 @@ function Tenant() {
                                     <span className="sr-only">Toggle Menu</span>
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="left" className="sm:max-w-xs overflow-y-auto">
+                            <SheetContent side="right" className="sm:max-w-xs overflow-y-auto">
                                 <nav className="grid text-lg font-medium pt-9">
                                     {hasDashboard && (
                                         <button

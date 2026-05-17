@@ -1,5 +1,35 @@
 # @stoker-platform/web-app
 
+## 0.5.133
+
+### Patch Changes
+
+- feat: move navigation sidebar to RHS
+
+## 0.5.132
+
+### Patch Changes
+
+- fix: improve sidebar touch in landscape orientation
+
+## 0.5.131
+
+### Patch Changes
+
+- fix: improve sidebar touch in landscape orientation
+
+## 0.5.130
+
+### Patch Changes
+
+- fix: improve sidebar scrolling
+
+## 0.5.129
+
+### Patch Changes
+
+- fix: improve sidebar scrolling
+
 ## 0.5.128
 
 ### Patch Changes
