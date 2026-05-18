@@ -1722,11 +1722,11 @@ function Collection({
                                 {icon ? createElement(icon) : null}
                                 <h1>{collectionTitle}</h1>
                             </Card>
-                            {(connectionStatus === "online" || isPreloadCacheEnabled) && (
+                            {isInitialized && (connectionStatus === "online" || isPreloadCacheEnabled) && (
                                 <>
                                     {tab !== "calendar" &&
                                         !relationList?.loadAll &&
-                                        (hasRangeFilter || currentField) && (
+                                        (hasRangeFilter || currentField || willHaveRangeRow) && (
                                             <div
                                                 className={cn(
                                                     "hidden",
@@ -1736,12 +1736,22 @@ function Collection({
                                                     "transform -translate-x-1/2",
                                                 )}
                                             >
-                                                <DateRangeSelector
-                                                    collection={collection}
-                                                    rangeSelector={rangeSelector}
-                                                    setRangeSelector={setRangeSelector}
-                                                    relationList={!!relationList}
-                                                />
+                                                {hasRangeFilter || currentField ? (
+                                                    <DateRangeSelector
+                                                        collection={collection}
+                                                        rangeSelector={rangeSelector}
+                                                        setRangeSelector={setRangeSelector}
+                                                        relationList={!!relationList}
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        className={cn(
+                                                            "h-9 rounded-md border border-input bg-background shadow-sm",
+                                                            relationList ? "w-[220px]" : "w-[300px]",
+                                                        )}
+                                                        aria-hidden="true"
+                                                    />
+                                                )}
                                             </div>
                                         )}
                                     <div className="relative ml-auto flex-1 md:grow-0 print:hidden flex items-center">
@@ -1883,7 +1893,7 @@ function Collection({
                                             {!formList &&
                                                 !relationList?.loadAll &&
                                                 tab !== "calendar" &&
-                                                (hasRangeFilter || currentField) && (
+                                                (hasRangeFilter || currentField || willHaveRangeRow) && (
                                                     <div
                                                         className={cn(
                                                             relationList
@@ -1891,12 +1901,22 @@ function Collection({
                                                                 : "lg:hidden 2xl:flex lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:mt-0 mt-2",
                                                         )}
                                                     >
-                                                        <DateRangeSelector
-                                                            collection={collection}
-                                                            rangeSelector={rangeSelector}
-                                                            setRangeSelector={setRangeSelector}
-                                                            relationList={!!relationList}
-                                                        />
+                                                        {hasRangeFilter || currentField ? (
+                                                            <DateRangeSelector
+                                                                collection={collection}
+                                                                rangeSelector={rangeSelector}
+                                                                setRangeSelector={setRangeSelector}
+                                                                relationList={!!relationList}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                className={cn(
+                                                                    "h-9 rounded-md border border-input bg-background shadow-sm",
+                                                                    relationList ? "w-[220px]" : "w-[300px]",
+                                                                )}
+                                                                aria-hidden="true"
+                                                            />
+                                                        )}
                                                     </div>
                                                 )}
                                             <div

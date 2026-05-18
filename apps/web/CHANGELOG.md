@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.140
+
+### Patch Changes
+
+- feat: improve collection page transition
+
 ## 0.5.139
 
 ### Patch Changes
