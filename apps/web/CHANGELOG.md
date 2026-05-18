@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.138
+
+### Patch Changes
+
+- fix: improve list selection
+
 ## 0.5.137
 
 ### Patch Changes

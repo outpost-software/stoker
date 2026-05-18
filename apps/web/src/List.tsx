@@ -4,6 +4,7 @@ import {
     Chart,
     CollectionMeta,
     CollectionSchema,
+    Filter,
     FormList,
     Metric,
     RelationList,
@@ -552,9 +553,18 @@ export function List({
         return list || []
     }, [isPreloadCacheEnabled, isServerReadOnly, list, search])
 
+    const selectedRecords = useMemo(() => {
+        const selectedIds = Object.keys(rowSelection)
+        if (selectedIds.length === 0) return []
+        return selectedIds
+            .map((id) => searchList.find((record) => record.id === id))
+            .filter((record): record is StokerRecord => record !== undefined)
+    }, [rowSelection, searchList])
+
     const table = useReactTable<StokerRecord>({
         data: searchList,
         columns,
+        getRowId: (row) => row.id,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: (sortingUpdater) => {
@@ -1080,11 +1090,7 @@ export function List({
         const titles = await getCachedConfigValue(customization, ["collections", labels.collection, "admin", "titles"])
         const recordTitle = titles?.record || labels.record
 
-        Object.keys(rowSelection).forEach((row) => {
-            const key = row as unknown as number
-            if (!list) return
-            // eslint-disable-next-line security/detect-object-injection
-            const record = list[key]
+        selectedRecords.forEach((record) => {
             if (isGlobalLoading.get(record.id)?.server) {
                 alert(
                     `Record ${record.id} is currently being written to the server. Please wait for it to finish before deleting.`,
@@ -1121,10 +1127,19 @@ export function List({
                 removeOptimisticDelete(labels.collection, record.id)
             }
         })
+        setRowSelection({})
         toast({
-            description: `Deleting ${Object.keys(rowSelection).length} ${Object.keys(rowSelection).length > 1 ? "records" : "record"}.`,
+            description: `Deleting ${selectedRecords.length} ${selectedRecords.length > 1 ? "records" : "record"}.`,
         })
-    }, [collection, rowSelection, list, isGlobalLoading, softDeleteField, softDeleteTimestampField, recordTitleField])
+    }, [
+        collection,
+        selectedRecords,
+        isGlobalLoading,
+        softDeleteField,
+        softDeleteTimestampField,
+        recordTitleField,
+        isServerReadOnly,
+    ])
 
     const sortingField = getField(fields, sorting[0]?.id)
 
@@ -1317,6 +1332,10 @@ export function List({
             }).length > 0
         )
     }, [metrics])
+
+    const statusFilter = useMemo(() => {
+        return filters?.find((filter: Filter) => filter.type === "status")
+    }, [filters])
 
     return (
         <>
@@ -1662,6 +1681,7 @@ export function List({
                                                             path={[labels.collection]}
                                                             onSuccess={() => {
                                                                 setIsUpdateDialogOpen(false)
+                                                                setRowSelection({})
                                                                 setTimeout(() => {
                                                                     updateButtonRef.current?.focus()
                                                                 }, 0)
@@ -1672,17 +1692,7 @@ export function List({
                                                             onSaveRecord={() => {
                                                                 setOptimisticList()
                                                             }}
-                                                            rowSelection={Object.keys(rowSelection)
-                                                                .map((row) => {
-                                                                    const key = row as unknown as number
-                                                                    if (!list) return undefined
-                                                                    // eslint-disable-next-line security/detect-object-injection
-                                                                    return list[key]
-                                                                })
-                                                                .filter(
-                                                                    (record): record is StokerRecord =>
-                                                                        record !== undefined,
-                                                                )}
+                                                            rowSelection={selectedRecords}
                                                         />
                                                     </div>
                                                 </div>
@@ -1690,36 +1700,37 @@ export function List({
                                         </div>,
                                         document.body,
                                     )}
-                                {collectionAccess("Delete", collectionPermissions) && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                disabled={
-                                                    connectionStatus === "offline" &&
-                                                    (disableOfflineDelete || serverWriteOnly || collection.auth)
-                                                }
-                                            >
-                                                Delete Selected
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                <AlertDialogDescription className="hidden">
-                                                    This action delete the selected records.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleDelete}>
-                                                    Delete selected
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                )}
+                                {collectionAccess("Delete", collectionPermissions) &&
+                                    !(statusFilter?.value === "trash") && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    disabled={
+                                                        connectionStatus === "offline" &&
+                                                        (disableOfflineDelete || serverWriteOnly || collection.auth)
+                                                    }
+                                                >
+                                                    Delete Selected
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription className="hidden">
+                                                        This action delete the selected records.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={handleDelete}>
+                                                        Delete selected
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
                             </div>
                         )}
                         {pagesLoaded && list && (
