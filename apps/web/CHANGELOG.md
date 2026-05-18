@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.136
+
+### Patch Changes
+
+- fix: pin web app Vite version
+
 ## 0.5.135
 
 ### Patch Changes
