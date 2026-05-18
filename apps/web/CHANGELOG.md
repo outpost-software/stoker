@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.137
+
+### Patch Changes
+
+- chore: revert pinned web app Vite version
+
 ## 0.5.136
 
 ### Patch Changes

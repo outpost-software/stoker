@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-app",
-    "version": "0.5.136",
+    "version": "0.5.137",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "scripts": {
@@ -87,7 +87,6 @@
         "remark-gfm": "^4.0.1",
         "tailwind-merge": "^2.6.1",
         "tailwindcss-animate": "^1.0.7",
-        "vite": "^7.3.3",
         "vite-plugin-eslint": "^1.8.1",
         "zod": "^3.25.76"
     },
