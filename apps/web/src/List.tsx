@@ -101,6 +101,96 @@ import { getSortingValue } from "./utils/getSortingValue"
 
 export const description = "A list of records in a table. The content area has a search bar in the header."
 
+type AreaChartData = { date: string; metric1: number; metric2?: number }
+
+interface AreaMetricChartProps {
+    chartConfig: ChartConfig
+    chartData: AreaChartData[]
+    timeRange: string | undefined
+    timezone: string
+    showMetric2: boolean
+    showLegend: boolean
+}
+
+const AreaMetricChart = ({
+    chartConfig,
+    chartData,
+    timeRange,
+    timezone,
+    showMetric2,
+    showLegend,
+}: AreaMetricChartProps) => {
+    const filteredData = useMemo(() => {
+        return chartData?.filter((item) => {
+            const date = new Date(item.date)
+            let daysToSubtract = 90
+            if (timeRange === "30d") {
+                daysToSubtract = 30
+            } else if (timeRange === "7d") {
+                daysToSubtract = 7
+            }
+            const startDate = DateTime.now().setZone(timezone).toJSDate()
+            const endDate = DateTime.now().setZone(timezone).toJSDate()
+            startDate.setDate(startDate.getDate() - daysToSubtract)
+            return date >= startDate && date <= endDate
+        })
+    }, [chartData, timeRange, timezone])
+
+    return (
+        <ChartContainer config={chartConfig} className="aspect-auto h-[173px] w-full">
+            <AreaChart data={filteredData}>
+                <defs>
+                    <linearGradient id="fill1" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--chart-dark)" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="var(--chart-light)" stopOpacity={0.1} />
+                    </linearGradient>
+                    <linearGradient id="fill2" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--chart-dark)" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="var(--chart-light)" stopOpacity={0.1} />
+                    </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} className="last:opacity-0" />
+                <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={32}
+                    tickFormatter={(value) => {
+                        const date = new Date(value)
+                        return date.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                        })
+                    }}
+                />
+                <YAxis hide padding={{ top: 16 }} />
+                <ChartTooltip
+                    cursor={false}
+                    content={
+                        <ChartTooltipContent
+                            labelFormatter={(value) => {
+                                return new Date(value).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                })
+                            }}
+                            indicator="dot"
+                        />
+                    }
+                />
+                <Area dataKey="metric1" type="natural" fill="url(#fill1)" stroke="var(--chart-dark)" stackId="a" />
+                {showMetric2 && (
+                    <Area dataKey="metric2" type="natural" fill="url(#fill2)" stroke="var(--chart-light)" stackId="a" />
+                )}
+                {showLegend && <ChartLegend className="pb-3" content={<ChartLegendContent />} />}
+            </AreaChart>
+        </ChartContainer>
+    )
+}
+
+const AreaMetricChartMemo = memo(AreaMetricChart)
+
 interface ListProps {
     collection: CollectionSchema
     list: StokerRecord[] | undefined
@@ -1427,11 +1517,7 @@ export function List({
 
                                             const chartData =
                                                 // eslint-disable-next-line security/detect-object-injection
-                                                (metricsValues[index] as {
-                                                    date: string
-                                                    metric1: number
-                                                    metric2?: number
-                                                }[]) || []
+                                                (metricsValues[index] as AreaChartData[]) || []
 
                                             const chartConfig = {
                                                 visitors: {
@@ -1446,22 +1532,6 @@ export function List({
                                                     color: "var(--chart-2)",
                                                 },
                                             } satisfies ChartConfig
-
-                                            const filteredData = chartData?.filter((item) => {
-                                                const date = new Date(item.date)
-                                                let daysToSubtract = 90
-                                                // eslint-disable-next-line security/detect-object-injection
-                                                if (timeRange[metricTitle] === "30d") {
-                                                    daysToSubtract = 30
-                                                    // eslint-disable-next-line security/detect-object-injection
-                                                } else if (timeRange[metricTitle] === "7d") {
-                                                    daysToSubtract = 7
-                                                }
-                                                const startDate = DateTime.now().setZone(timezone).toJSDate()
-                                                const endDate = DateTime.now().setZone(timezone).toJSDate()
-                                                startDate.setDate(startDate.getDate() - daysToSubtract)
-                                                return date >= startDate && date <= endDate
-                                            })
 
                                             return (
                                                 <div key={`metric-${index}`} className="grid gap-3 flex-1 min-w-0">
@@ -1504,111 +1574,15 @@ export function List({
                                                                 </Select>
                                                             </CardHeader>
                                                             <CardContent className="flex-1 px-2 sm:px-6 pb-0">
-                                                                <ChartContainer
-                                                                    config={chartConfig}
-                                                                    className="aspect-auto h-[173px] w-full"
-                                                                >
-                                                                    <AreaChart data={filteredData}>
-                                                                        <defs>
-                                                                            <linearGradient
-                                                                                id="fill1"
-                                                                                x1="0"
-                                                                                y1="0"
-                                                                                x2="0"
-                                                                                y2="1"
-                                                                            >
-                                                                                <stop
-                                                                                    offset="5%"
-                                                                                    stopColor="var(--chart-dark)"
-                                                                                    stopOpacity={0.8}
-                                                                                />
-                                                                                <stop
-                                                                                    offset="95%"
-                                                                                    stopColor="var(--chart-light)"
-                                                                                    stopOpacity={0.1}
-                                                                                />
-                                                                            </linearGradient>
-                                                                            <linearGradient
-                                                                                id="fill2"
-                                                                                x1="0"
-                                                                                y1="0"
-                                                                                x2="0"
-                                                                                y2="1"
-                                                                            >
-                                                                                <stop
-                                                                                    offset="5%"
-                                                                                    stopColor="var(--chart-dark)"
-                                                                                    stopOpacity={0.8}
-                                                                                />
-                                                                                <stop
-                                                                                    offset="95%"
-                                                                                    stopColor="var(--chart-light)"
-                                                                                    stopOpacity={0.1}
-                                                                                />
-                                                                            </linearGradient>
-                                                                        </defs>
-                                                                        <CartesianGrid
-                                                                            vertical={false}
-                                                                            className="last:opacity-0"
-                                                                        />
-                                                                        <XAxis
-                                                                            dataKey="date"
-                                                                            tickLine={false}
-                                                                            axisLine={false}
-                                                                            tickMargin={8}
-                                                                            minTickGap={32}
-                                                                            tickFormatter={(value) => {
-                                                                                const date = new Date(value)
-                                                                                return date.toLocaleDateString(
-                                                                                    "en-US",
-                                                                                    {
-                                                                                        month: "short",
-                                                                                        day: "numeric",
-                                                                                    },
-                                                                                )
-                                                                            }}
-                                                                        />
-                                                                        <YAxis hide padding={{ top: 16 }} />
-                                                                        <ChartTooltip
-                                                                            cursor={false}
-                                                                            content={
-                                                                                <ChartTooltipContent
-                                                                                    labelFormatter={(value) => {
-                                                                                        return new Date(
-                                                                                            value,
-                                                                                        ).toLocaleDateString("en-US", {
-                                                                                            month: "short",
-                                                                                            day: "numeric",
-                                                                                        })
-                                                                                    }}
-                                                                                    indicator="dot"
-                                                                                />
-                                                                            }
-                                                                        />
-                                                                        <Area
-                                                                            dataKey="metric1"
-                                                                            type="natural"
-                                                                            fill="url(#fill1)"
-                                                                            stroke="var(--chart-dark)"
-                                                                            stackId="a"
-                                                                        />
-                                                                        {metricField2 && (
-                                                                            <Area
-                                                                                dataKey="metric2"
-                                                                                type="natural"
-                                                                                fill="url(#fill2)"
-                                                                                stroke="var(--chart-light)"
-                                                                                stackId="a"
-                                                                            />
-                                                                        )}
-                                                                        {metricField1 && metricField2 && (
-                                                                            <ChartLegend
-                                                                                className="pb-3"
-                                                                                content={<ChartLegendContent />}
-                                                                            />
-                                                                        )}
-                                                                    </AreaChart>
-                                                                </ChartContainer>
+                                                                <AreaMetricChartMemo
+                                                                    chartConfig={chartConfig}
+                                                                    chartData={chartData}
+                                                                    // eslint-disable-next-line security/detect-object-injection
+                                                                    timeRange={timeRange[metricTitle]}
+                                                                    timezone={timezone}
+                                                                    showMetric2={!!metricField2}
+                                                                    showLegend={!!(metricField1 && metricField2)}
+                                                                />
                                                             </CardContent>
                                                         </div>
                                                     </Card>

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.139
+
+### Patch Changes
+
+- fix: improve list chart animation
+
 ## 0.5.138
 
 ### Patch Changes
