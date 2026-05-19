@@ -74,6 +74,8 @@ export const PermissionPicker = ({
 
     const pickerDebounceTimeout = useRef<NodeJS.Timeout>()
 
+    const isMobile = useIsMobile()
+
     const getData = useCallback(
         async (query: string | undefined, constraints: [string, "==" | "in", unknown][] = []) => {
             setIsLoadingImmediate(true)
@@ -149,7 +151,7 @@ export const PermissionPicker = ({
                 setIsLoading(false)
             })
         },
-        [],
+        [isMobile],
     )
 
     const debounceTimeout = useRef<NodeJS.Timeout>()
@@ -334,7 +336,6 @@ export const PermissionPicker = ({
         popoverHeight = "h-48"
     }
 
-    const isMobile = useIsMobile()
     const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && isOpen)
     const sheetHeight = Math.max(240, Math.min(viewportHeight - 16, viewportHeight * 0.9))
 

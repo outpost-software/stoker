@@ -1926,6 +1926,8 @@ function RelationField({
         initialize()
     }, [])
 
+    const isMobile = useIsMobile()
+
     const getData = useCallback(
         async (query: string | undefined, constraints: [string, "==" | "in", unknown][] = []) => {
             setIsLoadingImmediate(true)
@@ -2052,7 +2054,7 @@ function RelationField({
                 setIsLoading(false)
             })
         },
-        [record, form],
+        [record, form, isMobile],
     )
 
     const handleOneToChange = useCallback(
@@ -2114,7 +2116,6 @@ function RelationField({
         popoverHeight = "h-48"
     }
 
-    const isMobile = useIsMobile()
     const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && isOpen)
     const sheetHeight = Math.max(240, Math.min(viewportHeight - 16, viewportHeight * 0.9))
 

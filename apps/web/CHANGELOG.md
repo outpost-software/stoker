@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.148
+
+### Patch Changes
+
+- fix: add isMobile to data retrieval function dependency arrays
+
 ## 0.5.147
 
 ### Patch Changes

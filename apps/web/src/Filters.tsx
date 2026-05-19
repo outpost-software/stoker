@@ -335,7 +335,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 }))
             })
         },
-        [],
+        [isMobile],
     )
 
     const debounceTimeout = useRef<NodeJS.Timeout>()
