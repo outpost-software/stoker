@@ -139,13 +139,13 @@ export const PermissionPicker = ({
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 
+                const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(collection, query, data.records)
                     const objectIds = searchResults.map((result) => result.id)
-                    const numberOfResults = isMobile ? 20 : 10
                     setData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults))
                 } else {
-                    setData(data.records.slice(0, 10))
+                    setData(data.records.slice(0, numberOfResults))
                 }
                 setIsLoadingImmediate(false)
                 setIsLoading(false)

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.149
+
+### Patch Changes
+
+- fix: apply isMobile condition on intial retrieval
+
 ## 0.5.148
 
 ### Patch Changes

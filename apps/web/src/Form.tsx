@@ -2021,13 +2021,13 @@ function RelationField({
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 
+                const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(relationCollection, query, data.records, (result) => {
                         if (!fieldCustomization.admin?.filterResults) return true
                         return !!fieldCustomization.admin?.filterResults?.(result, collection, record)
                     })
                     const objectIds = searchResults.map((result) => result.id)
-                    const numberOfResults = isMobile ? 20 : 10
                     orderData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults)).then(
                         (data) => {
                             setData(data)
@@ -2045,7 +2045,7 @@ function RelationField({
                                     record,
                                 )
                             })
-                            .slice(0, 10),
+                            .slice(0, numberOfResults),
                     ).then((data) => {
                         setData(data)
                     })

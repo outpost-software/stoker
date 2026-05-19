@@ -311,10 +311,10 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 
+                const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(collectionSchema, query, data.records)
                     const objectIds = searchResults.map((result) => result.id)
-                    const numberOfResults = isMobile ? 20 : 10
                     setData((prev) => ({
                         ...prev,
                         [field]: data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults),
@@ -322,7 +322,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 } else {
                     setData((prev) => ({
                         ...prev,
-                        [field]: data.records.slice(0, 10),
+                        [field]: data.records.slice(0, numberOfResults),
                     }))
                 }
                 setLoadingImmediate((prev) => ({
