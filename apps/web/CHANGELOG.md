@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- fix: apply isMobile condition on intial retrieval
+- fix: apply isMobile condition on initial retrieval
 
 ## 0.5.148
 
