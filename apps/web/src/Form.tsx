@@ -409,7 +409,7 @@ const RecordFormField = (props: FieldProps) => {
     if (operation === "update-many") {
         if ("unique" in field && field.unique) return null
         if (customization?.admin && "readOnly" in customization.admin) return null
-        if ("restrictUpdate" in field) return null
+        if ("restrictUpdate" in field && !restrictUpdateAccess(field, permissions)) return null
 
         if (collection.auth && field.name === "Role") return null
         if (connectionStatus === "offline" && collection.auth) return null

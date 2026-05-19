@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.145
+
+### Patch Changes
+
+- feat: allow bulk update of restricted fields
+
 ## 0.5.144
 
 ### Patch Changes
