@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.143
+
+### Patch Changes
+
+- fix: fix renaming files created by a different user
+
 ## 0.5.142
 
 ### Patch Changes

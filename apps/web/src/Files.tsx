@@ -892,8 +892,15 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                     return
                 }
 
+                if (!currentUser?.uid) return
                 const newRef = ref(storage, newPath)
-                await uploadBytesResumable(newRef, uploadContent, { customMetadata: metadata.customMetadata })
+                await uploadBytesResumable(newRef, uploadContent, {
+                    contentType: metadata.contentType,
+                    customMetadata: {
+                        ...metadata.customMetadata,
+                        createdBy: currentUser?.uid,
+                    },
+                })
 
                 await deleteObject(originalRef)
 
