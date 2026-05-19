@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.142
+
+### Patch Changes
+
+- feat: add bulk file rename feature
+
 ## 0.5.141
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-app",
-    "version": "0.5.141",
+    "version": "0.5.142",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "scripts": {

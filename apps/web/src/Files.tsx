@@ -178,10 +178,15 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
     const [loading, setLoading] = useState(false)
     const [editingFile, setEditingFile] = useState<string | null>(null)
     const [newFileName, setNewFileName] = useState("")
+    const [bulkRenameMode, setBulkRenameMode] = useState(false)
+    const [bulkRenameNames, setBulkRenameNames] = useState<Record<string, string>>({})
+    const [bulkRenameInProgress, setBulkRenameInProgress] = useState(false)
     const [creatingFolder, setCreatingFolder] = useState(false)
     const [newFolderName, setNewFolderName] = useState("")
     const [deletingFiles, setDeletingFiles] = useState<Set<string>>(new Set())
     const [renamingFiles, setRenamingFiles] = useState<Set<string>>(new Set())
+    const [updatingPermissions, setUpdatingPermissions] = useState<Set<string>>(new Set())
+    const pendingFileOpsRef = useRef(0)
     const { setIsRouteLoading } = useRouteLoading()
 
     const [showFilenameDialog, setShowFilenameDialog] = useState(false)
@@ -213,6 +218,56 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         }, 150)
     }, [])
 
+    const beginFileOperation = useCallback(() => {
+        if (pendingFileOpsRef.current === 0) {
+            setIsRouteLoading("+", location.pathname, true)
+        }
+        pendingFileOpsRef.current++
+    }, [location.pathname, setIsRouteLoading])
+
+    const endFileOperation = useCallback(() => {
+        pendingFileOpsRef.current = Math.max(0, pendingFileOpsRef.current - 1)
+        if (pendingFileOpsRef.current === 0) {
+            setIsRouteLoading("-", location.pathname)
+        }
+    }, [location.pathname, setIsRouteLoading])
+
+    const finishDeleteOperation = useCallback(
+        (fileName: string) => {
+            setDeletingFiles((prev) => {
+                const next = new Set(prev)
+                next.delete(fileName)
+                return next
+            })
+            endFileOperation()
+        },
+        [endFileOperation],
+    )
+
+    const finishRenameOperation = useCallback(
+        (fileName: string) => {
+            setRenamingFiles((prev) => {
+                const next = new Set(prev)
+                next.delete(fileName)
+                return next
+            })
+            endFileOperation()
+        },
+        [endFileOperation],
+    )
+
+    const finishPermissionsOperation = useCallback(
+        (fileName: string) => {
+            setUpdatingPermissions((prev) => {
+                const next = new Set(prev)
+                next.delete(fileName)
+                return next
+            })
+            endFileOperation()
+        },
+        [endFileOperation],
+    )
+
     const basePath = record ? `${tenantId}/${record.Collection_Path.join("/")}/${record.id}` : ""
 
     const totalPages = Math.ceil(items.length / itemsPerPage)
@@ -223,6 +278,12 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
     useEffect(() => {
         setCurrentPage(1)
     }, [items.length])
+
+    useEffect(() => {
+        setBulkRenameMode(false)
+        setBulkRenameNames({})
+        setBulkRenameInProgress(false)
+    }, [currentPath])
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -572,8 +633,11 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         async (permissions: FilePermissions) => {
             if (!selectedFileForPermissions || !record || !currentUser) return
 
+            const fileName = selectedFileForPermissions.name
+
             try {
-                setIsRouteLoading("+", location.pathname, true)
+                beginFileOperation()
+                setUpdatingPermissions((prev) => new Set(prev).add(fileName))
 
                 const targetRef = selectedFileForPermissions.isFolder
                     ? ref(storage, `${selectedFileForPermissions.fullPath}/.placeholder`)
@@ -651,12 +715,12 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                     variant: "destructive",
                 })
             } finally {
-                setIsRouteLoading("-", location.pathname)
+                finishPermissionsOperation(fileName)
                 setShowUpdatePermissionsDialog(false)
                 setSelectedFileForPermissions(null)
             }
         },
-        [selectedFileForPermissions, record, location.pathname, currentPath, currentUser],
+        [selectedFileForPermissions, record, currentPath, currentUser, beginFileOperation, finishPermissionsOperation],
     )
 
     const handleUpdatePermissionsCancel = useCallback(() => {
@@ -730,7 +794,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         if (!itemToDelete || !record) return
 
         try {
-            setIsRouteLoading("+", location.pathname, true)
+            beginFileOperation()
             setDeletingFiles((prev) => new Set(prev).add(itemToDelete.name))
 
             if (itemToDelete.isFolder) {
@@ -757,16 +821,11 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 variant: "destructive",
             })
         } finally {
-            setDeletingFiles((prev) => {
-                const newSet = new Set(prev)
-                newSet.delete(itemToDelete.name)
-                return newSet
-            })
-            setIsRouteLoading("-", location.pathname)
+            finishDeleteOperation(itemToDelete.name)
             setShowDeleteDialog(false)
             setItemToDelete(null)
         }
-    }, [itemToDelete, currentPath, location.pathname, record])
+    }, [itemToDelete, currentPath, record, beginFileOperation, finishDeleteOperation])
 
     const handleDeleteCancel = useCallback(() => {
         setShowDeleteDialog(false)
@@ -774,7 +833,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
     }, [])
 
     const handleEditName = useCallback(
-        async (item: StorageItem, newName: string) => {
+        async (item: StorageItem, newName: string, options?: { skipReload?: boolean }) => {
             if (!record) return
             if (newName === item.name) {
                 setEditingFile(null)
@@ -789,7 +848,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             }
 
             try {
-                setIsRouteLoading("+", location.pathname, true)
+                beginFileOperation()
                 setRenamingFiles((prev) => new Set(prev).add(item.name))
 
                 const originalRef = ref(storage, item.fullPath)
@@ -854,7 +913,9 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
                 setEditingFile(null)
 
-                loadDirectory(currentPath)
+                if (!options?.skipReload) {
+                    loadDirectory(currentPath)
+                }
             } catch (error) {
                 console.error((error as FirebaseError).message)
                 toast({
@@ -863,33 +924,29 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                     variant: "destructive",
                 })
             } finally {
-                setRenamingFiles((prev) => {
-                    const newSet = new Set(prev)
-                    newSet.delete(item.name)
-                    return newSet
-                })
-                setIsRouteLoading("-", location.pathname)
+                finishRenameOperation(item.name)
             }
         },
-        [currentPath, fileOptions],
+        [currentPath, fileOptions, beginFileOperation, finishRenameOperation, loadDirectory],
     )
 
     const navigateToFolder = useCallback(
         (folderName: string) => {
+            if (bulkRenameInProgress) return
             const newPath = currentPath ? `${currentPath}/${folderName}` : folderName
             loadDirectory(newPath)
         },
-        [currentPath],
+        [currentPath, bulkRenameInProgress],
     )
 
     const navigateUp = useCallback(() => {
-        if (!currentPath) return
+        if (!currentPath || bulkRenameInProgress) return
 
         const pathParts = currentPath.split("/")
         pathParts.pop()
         const newPath = pathParts.join("/")
         loadDirectory(newPath)
-    }, [currentPath])
+    }, [currentPath, bulkRenameInProgress])
 
     const getPathBreadcrumbs = useCallback(() => {
         if (!currentPath) return []
@@ -970,6 +1027,59 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         setShowFolderPermissionsDialog(false)
     }, [])
 
+    const canEditFile = useCallback(
+        (item: StorageItem) => {
+            if (item.isFolder) return false
+            return (
+                (permissions?.Role && item.metadata?.update?.includes(permissions.Role)) ||
+                (currentUser && item.metadata?.createdBy === currentUser.uid)
+            )
+        },
+        [permissions, currentUser],
+    )
+
+    const startBulkRename = useCallback(() => {
+        const editableFiles = items.filter(canEditFile)
+        if (editableFiles.length === 0) return
+        setEditingFile(null)
+        setBulkRenameNames(Object.fromEntries(editableFiles.map((item) => [item.name, item.name])))
+        setBulkRenameMode(true)
+    }, [items, canEditFile])
+
+    const exitBulkRename = useCallback(() => {
+        setBulkRenameMode(false)
+        setBulkRenameNames({})
+        setBulkRenameInProgress(false)
+    }, [])
+
+    const cancelBulkRename = useCallback(() => {
+        if (bulkRenameInProgress) return
+        exitBulkRename()
+    }, [bulkRenameInProgress, exitBulkRename])
+
+    const handleRenameAll = useCallback(async () => {
+        const filesToRename = items
+            .filter((item) => canEditFile(item) && bulkRenameNames[item.name] !== item.name)
+            .map((item) => ({ item, newName: bulkRenameNames[item.name] }))
+
+        if (filesToRename.length === 0) {
+            exitBulkRename()
+            return
+        }
+
+        setBulkRenameInProgress(true)
+        try {
+            await Promise.all(
+                filesToRename.map(({ item, newName }) => handleEditName(item, newName, { skipReload: true })),
+            )
+            await loadDirectory(currentPath)
+        } finally {
+            exitBulkRename()
+        }
+    }, [items, bulkRenameNames, canEditFile, handleEditName, exitBulkRename, loadDirectory, currentPath])
+
+    const editableFileCount = items.filter(canEditFile).length
+
     let borderClass = "border-primary/40"
     let textClass = "text-primary/50"
     if (isDragOver) {
@@ -988,7 +1098,13 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
             <div className="flex items-center space-x-2 mb-4">
                 {currentPath && (
-                    <Button variant="outline" size="sm" onClick={navigateUp} className="flex items-center space-x-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={navigateUp}
+                        disabled={bulkRenameInProgress}
+                        className="flex items-center space-x-1"
+                    >
                         <ArrowLeft className="h-4 w-4" />
                         <span>Back</span>
                     </Button>
@@ -1019,7 +1135,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             >
                 <div className={cn("text-center font-bold", textClass)}>Drop files here</div>
             </div>
-            <div className="flex items-center space-x-2 mt-4">
+            <div className="flex flex-col gap-2 mt-4 sm:flex-row sm:items-center sm:gap-0 sm:space-x-2">
                 <input
                     type="file"
                     multiple
@@ -1033,15 +1149,52 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                         cursor-pointer"
                     onChange={handleFileUpload}
                 />
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCreatingFolder(true)}
-                    className="flex items-center space-x-1 whitespace-nowrap"
-                >
-                    <Plus className="h-4 w-4" />
-                    <span>New Folder</span>
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-0 sm:space-x-2 shrink-0">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCreatingFolder(true)}
+                        disabled={bulkRenameMode}
+                        className="flex items-center space-x-1 whitespace-nowrap"
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span>New Folder</span>
+                    </Button>
+                    {bulkRenameMode ? (
+                        <>
+                            <Button
+                                size="sm"
+                                onClick={handleRenameAll}
+                                disabled={bulkRenameInProgress}
+                                className="flex items-center space-x-1 whitespace-nowrap"
+                            >
+                                <Edit className="h-4 w-4" />
+                                <span>Rename All</span>
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={cancelBulkRename}
+                                disabled={bulkRenameInProgress}
+                                className="whitespace-nowrap"
+                            >
+                                Cancel
+                            </Button>
+                        </>
+                    ) : (
+                        editableFileCount > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={startBulkRename}
+                                className="flex items-center space-x-2 whitespace-nowrap"
+                            >
+                                <Edit className="h-4 w-4" />
+                                <span>Rename Files</span>
+                            </Button>
+                        )
+                    )}
+                </div>
             </div>
 
             {uploadProgress.length > 0 && (
@@ -1130,7 +1283,8 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                 {currentItems.map((item, index) => {
                                     const isDeleting = deletingFiles.has(item.name)
                                     const isRenaming = renamingFiles.has(item.name)
-                                    const isDisabled = isDeleting || isRenaming
+                                    const isUpdatingPermissions = updatingPermissions.has(item.name)
+                                    const isDisabled = isDeleting || isRenaming || isUpdatingPermissions
 
                                     return (
                                         <div
@@ -1158,40 +1312,68 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                     <FileIcon className="h-5 w-5 shrink-0 text-gray-500" />
                                                 )}
 
-                                                {editingFile === item.name && !isDisabled ? (
+                                                {(bulkRenameMode && canEditFile(item)) ||
+                                                (editingFile === item.name && !isDisabled) ? (
                                                     <div className="flex items-center space-x-2 flex-1">
                                                         <Input
-                                                            value={newFileName}
-                                                            onChange={(e) => setNewFileName(e.target.value)}
+                                                            value={
+                                                                bulkRenameMode
+                                                                    ? bulkRenameNames[item.name]
+                                                                    : newFileName
+                                                            }
+                                                            disabled={bulkRenameMode && bulkRenameInProgress}
+                                                            onChange={(event) => {
+                                                                if (bulkRenameMode) {
+                                                                    setBulkRenameNames((prev) => ({
+                                                                        ...prev,
+                                                                        [item.name]: event.target.value,
+                                                                    }))
+                                                                } else {
+                                                                    setNewFileName(event.target.value)
+                                                                }
+                                                            }}
                                                             className="flex-1"
                                                             onKeyDown={(e) => {
-                                                                if (e.key === "Enter") {
-                                                                    handleEditName(item, newFileName)
-                                                                } else if (e.key === "Escape") {
-                                                                    setEditingFile(null)
+                                                                if (!bulkRenameMode) {
+                                                                    if (e.key === "Enter") {
+                                                                        handleEditName(item, newFileName)
+                                                                    } else if (e.key === "Escape") {
+                                                                        setEditingFile(null)
+                                                                    }
                                                                 }
                                                             }}
                                                         />
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => handleEditName(item, newFileName)}
-                                                        >
-                                                            Save
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => setEditingFile(null)}
-                                                        >
-                                                            Cancel
-                                                        </Button>
+                                                        {!bulkRenameMode && (
+                                                            <>
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() => handleEditName(item, newFileName)}
+                                                                >
+                                                                    Save
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => setEditingFile(null)}
+                                                                >
+                                                                    Cancel
+                                                                </Button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="flex-1 min-w-0">
                                                         {item.isFolder ? (
                                                             <button
+                                                                type="button"
                                                                 onClick={() => navigateToFolder(item.name)}
-                                                                className="text-left hover:underline block w-full"
+                                                                disabled={bulkRenameInProgress}
+                                                                className={cn(
+                                                                    "text-left block w-full",
+                                                                    bulkRenameInProgress
+                                                                        ? "cursor-not-allowed opacity-50"
+                                                                        : "hover:underline",
+                                                                )}
                                                             >
                                                                 {item.name}
                                                             </button>
@@ -1202,7 +1384,10 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                 )}
                                             </div>
 
-                                            {!(editingFile === item.name && !isDisabled) && (
+                                            {!(
+                                                (bulkRenameMode && canEditFile(item)) ||
+                                                (editingFile === item.name && !isDisabled)
+                                            ) && (
                                                 <div className="flex items-center space-x-2">
                                                     {!item.isFolder && (
                                                         <>
@@ -1222,10 +1407,11 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                                         size="sm"
                                                                         variant="outline"
                                                                         onClick={() => {
+                                                                            cancelBulkRename()
                                                                             setEditingFile(item.name)
                                                                             setNewFileName(item.name)
                                                                         }}
-                                                                        disabled={isDisabled}
+                                                                        disabled={isDisabled || bulkRenameMode}
                                                                     >
                                                                         <Edit className="h-4 w-4" />
                                                                     </Button>
