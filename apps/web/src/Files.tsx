@@ -38,7 +38,7 @@ import {
     Edit,
     Trash2,
     Folder,
-    File,
+    File as FileIcon,
     ChevronRight,
     ArrowLeft,
     Plus,
@@ -135,7 +135,7 @@ const FileImageThumbnail = ({ storage, fullPath, fileName, pathPrefix }: FileIma
         return <div className="h-12 w-12 shrink-0 rounded-md border bg-muted animate-pulse" aria-hidden />
     }
     if (phase === "fallback" || !url) {
-        return <File className="h-5 w-5 shrink-0 text-gray-500" aria-hidden />
+        return <FileIcon className="h-5 w-5 shrink-0 text-gray-500" aria-hidden />
     }
     return (
         <div className="h-12 w-12 shrink-0 rounded-md flex items-center justify-center">
@@ -781,7 +781,8 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 return
             }
 
-            const validationError = validateStorageName(newName.trim())
+            let finalName = newName.trim()
+            const validationError = validateStorageName(finalName)
             if (validationError) {
                 toast({ title: "Invalid file name", description: validationError, variant: "destructive" })
                 return
@@ -790,13 +791,38 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
             try {
                 setIsRouteLoading("+", location.pathname, true)
                 setRenamingFiles((prev) => new Set(prev).add(item.name))
-                const pathParts = item.fullPath.split("/")
-                pathParts.pop()
-                const newPath = [...pathParts, newName].join("/")
 
                 const originalRef = ref(storage, item.fullPath)
                 const downloadURL = await getDownloadURL(originalRef)
                 const metadata = await getMetadata(originalRef)
+
+                const response = await fetch(downloadURL)
+                const blob = await response.blob()
+
+                let uploadContent: Blob = blob
+                if (fileOptions?.maxImageWidth) {
+                    const sourceFile = new File([blob], finalName, {
+                        type: blob.type || metadata.contentType || "",
+                    })
+                    const prepared = await prepareFile(sourceFile, finalName, fileOptions, true)
+                    uploadContent = prepared.file
+                    if (prepared.filename !== finalName) {
+                        const preparedValidationError = validateStorageName(prepared.filename)
+                        if (preparedValidationError) {
+                            toast({
+                                title: "Invalid file name",
+                                description: preparedValidationError,
+                                variant: "destructive",
+                            })
+                            return
+                        }
+                        finalName = prepared.filename
+                    }
+                }
+
+                const pathParts = item.fullPath.split("/")
+                pathParts.pop()
+                const newPath = [...pathParts, finalName].join("/")
 
                 try {
                     await runHooks("preFileUpdate", globalConfig, customization, {
@@ -807,17 +833,14 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                     return
                 }
 
-                const response = await fetch(downloadURL)
-                const blob = await response.blob()
-
                 const newRef = ref(storage, newPath)
-                await uploadBytesResumable(newRef, blob, { customMetadata: metadata.customMetadata })
+                await uploadBytesResumable(newRef, uploadContent, { customMetadata: metadata.customMetadata })
 
                 await deleteObject(originalRef)
 
                 toast({
                     title: "File renamed",
-                    description: `${item.name} has been renamed to ${newName}`,
+                    description: `${item.name} has been renamed to ${finalName}`,
                 })
 
                 try {
@@ -848,7 +871,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                 setIsRouteLoading("-", location.pathname)
             }
         },
-        [currentPath],
+        [currentPath, fileOptions],
     )
 
     const navigateToFolder = useCallback(
@@ -1132,7 +1155,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                         }
                                                     />
                                                 ) : (
-                                                    <File className="h-5 w-5 shrink-0 text-gray-500" />
+                                                    <FileIcon className="h-5 w-5 shrink-0 text-gray-500" />
                                                 )}
 
                                                 {editingFile === item.name && !isDisabled ? (

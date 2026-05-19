@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.141
+
+### Patch Changes
+
+- fix: apply maxImageWidth processing to image file rename operation
+
 ## 0.5.140
 
 ### Patch Changes

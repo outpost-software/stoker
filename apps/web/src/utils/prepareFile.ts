@@ -33,6 +33,7 @@ export const prepareFile = async (
     file: File,
     preferredFileName: string,
     fileOptions: FileOptions,
+    rename: boolean = false,
 ): Promise<{ file: File; filename: string }> => {
     if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
         return { file, filename: preferredFileName }
@@ -107,7 +108,7 @@ export const prepareFile = async (
             blob.size >= file.size &&
             !didDownscale &&
             ((usePngOutput && file.type === "image/png") || (!usePngOutput && file.type === "image/jpeg"))
-        if (noBenefit) {
+        if (noBenefit && !rename) {
             return { file, filename: preferredFileName }
         }
 
