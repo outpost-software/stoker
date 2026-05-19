@@ -28,6 +28,9 @@ import { useRouteLoading } from "./providers/LoadingProvider"
 import { useLocation } from "react-router"
 import { useStokerState } from "./providers/StateProvider"
 import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover"
+import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet"
+import { useIsMobile } from "./hooks/use-mobile"
+import { useKeyboardOffset } from "./hooks/use-keyboard-offset"
 import { Button } from "./components/ui/button"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./components/ui/command"
@@ -79,6 +82,11 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
     const [collectionTitle, setCollectionTitle] = useState<Record<string, string | undefined>>({})
 
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
+
+    const isMobile = useIsMobile()
+    const someFilterOpen = Object.values(open).some(Boolean)
+    const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && someFilterOpen)
+    const sheetHeight = Math.max(240, Math.min(viewportHeight - 16, viewportHeight * 0.9))
 
     const hasRelationFilterAccess = useCallback((filter: Filter) => {
         if (filter.type === "status" || filter.type === "range") return false
@@ -551,162 +559,171 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                     if (window.innerHeight < 600) {
                         popoverHeight = "h-48"
                     }
+                    const isFilterOpen = !!open[filter.field]
+                    const handleFilterOpenChange = (nextOpen: boolean) => {
+                        setOpen((prev) => ({ ...prev, [filter.field]: nextOpen }))
+                        if (nextOpen) {
+                            startTransition(() => {
+                                getData(searchValue[filter.field], filter.field, field.collection, filter.constraints)
+                            })
+                        }
+                    }
+                    const filterTriggerButton = (
+                        <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={isFilterOpen}
+                            className="w-full justify-between"
+                            disabled={disabled}
+                        >
+                            <span className="w-[150px] sm:w-[250px] overflow-hidden text-ellipsis whitespace-nowrap text-left">
+                                {inputValue[filter.field] ? display[filter.field] : "----"}
+                            </span>
+                            <ChevronsUpDown className="opacity-50 h-4 w-4" />
+                        </Button>
+                    )
+                    const filterCommandBody = (
+                        <Command
+                            filter={() => {
+                                return 1
+                            }}
+                            className={isMobile ? "flex flex-col h-full" : undefined}
+                        >
+                            <CommandInput
+                                placeholder={`Search ${collectionTitle[filter.field]}...`}
+                                className="h-9"
+                                value={searchValue[filter.field]}
+                                onValueChange={(value) => {
+                                    setSearchValue((prev) => ({
+                                        ...prev,
+                                        [filter.field]: value,
+                                    }))
+                                }}
+                            />
+                            <CommandList className={isMobile ? "flex-1 max-h-none" : undefined}>
+                                <CommandEmpty>
+                                    {isFilterOpen &&
+                                        (isLoading[filter.field] ? (
+                                            <LoadingSpinner size={7} className="m-auto" />
+                                        ) : !isLoadingImmediate[filter.field] ? (
+                                            `No ${collectionTitle[filter.field]} found.`
+                                        ) : null)}
+                                </CommandEmpty>
+                                {(!isLoading[filter.field] || isCollectionPreloadCacheEnabled) && (
+                                    <CommandGroup>
+                                        {data[filter.field] && (
+                                            <CommandItem
+                                                key="no_selection"
+                                                value="no_selection"
+                                                onSelect={(currentValue) => {
+                                                    setOpen((prev) => {
+                                                        return {
+                                                            ...prev,
+                                                            [filter.field]: false,
+                                                        }
+                                                    })
+                                                    if (currentValue !== inputValue[filter.field]) {
+                                                        setValue((prev) => {
+                                                            return {
+                                                                ...prev,
+                                                                [filter.field]: currentValue,
+                                                            }
+                                                        })
+                                                        setDisplay((prev) => {
+                                                            return {
+                                                                ...prev,
+                                                                [filter.field]: "----",
+                                                            }
+                                                        })
+                                                        startTransition(() => {
+                                                            handleChange(filter, "no_selection", field.type)
+                                                        })
+                                                    }
+                                                }}
+                                            >
+                                                ----
+                                            </CommandItem>
+                                        )}
+                                        {data[filter.field]?.map((record: StokerRecord) => (
+                                            <CommandItem
+                                                key={record.id}
+                                                value={record.id}
+                                                onSelect={(currentValue) => {
+                                                    setOpen((prev) => {
+                                                        return {
+                                                            ...prev,
+                                                            [filter.field]: false,
+                                                        }
+                                                    })
+                                                    if (currentValue !== inputValue[filter.field]) {
+                                                        setValue((prev) => {
+                                                            return {
+                                                                ...prev,
+                                                                [filter.field]: currentValue,
+                                                            }
+                                                        })
+                                                        setDisplay((prev) => {
+                                                            return {
+                                                                ...prev,
+                                                                [filter.field]:
+                                                                    record[recordTitleField[filter.field] || "id"],
+                                                            }
+                                                        })
+                                                        startTransition(() => {
+                                                            handleChange(filter, record.id, field.type)
+                                                        })
+                                                    }
+                                                }}
+                                            >
+                                                {record[recordTitleField[filter.field] || "id"]}
+                                                <Check
+                                                    className={cn(
+                                                        "ml-auto",
+                                                        inputValue[filter.field] === record.id
+                                                            ? "opacity-100"
+                                                            : "opacity-0",
+                                                    )}
+                                                />
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                )}
+                            </CommandList>
+                        </Command>
+                    )
                     return (
                         <div key={filter.field}>
                             <Label htmlFor={title}>{title}:</Label>
                             <div className="mt-2">
-                                <Popover
-                                    modal={true}
-                                    open={!!open[filter.field]}
-                                    onOpenChange={() => {
-                                        setOpen({
-                                            ...open,
-                                            [filter.field]: !open[filter.field],
-                                        })
-                                        startTransition(() => {
-                                            getData(
-                                                searchValue[filter.field],
-                                                filter.field,
-                                                field.collection,
-                                                filter.constraints,
-                                            )
-                                        })
-                                    }}
-                                >
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            aria-expanded={open[filter.field]}
-                                            className="w-full justify-between"
-                                            disabled={disabled}
-                                        >
-                                            <span className="w-[150px] sm:w-[250px] overflow-hidden text-ellipsis whitespace-nowrap text-left">
-                                                {inputValue[filter.field] ? display[filter.field] : "----"}
-                                            </span>
-                                            <ChevronsUpDown className="opacity-50 h-4 w-4" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
-                                        align="start"
-                                    >
-                                        <Command
-                                            filter={() => {
-                                                return 1
+                                {isMobile ? (
+                                    <Sheet open={isFilterOpen} onOpenChange={handleFilterOpenChange}>
+                                        <SheetTrigger asChild>{filterTriggerButton}</SheetTrigger>
+                                        <SheetContent
+                                            side="bottom"
+                                            className="p-0 pt-8 flex flex-col gap-0 rounded-t-lg"
+                                            style={{
+                                                bottom: keyboardOffset,
+                                                height: sheetHeight,
+                                                maxHeight: sheetHeight,
+                                            }}
+                                            onOpenAutoFocus={(event) => {
+                                                event.preventDefault()
                                             }}
                                         >
-                                            <CommandInput
-                                                placeholder={`Search ${collectionTitle[filter.field]}...`}
-                                                className="h-9"
-                                                value={searchValue[filter.field]}
-                                                onValueChange={(value) => {
-                                                    setSearchValue((prev) => ({
-                                                        ...prev,
-                                                        [filter.field]: value,
-                                                    }))
-                                                }}
-                                            />
-                                            <CommandList>
-                                                <CommandEmpty>
-                                                    {open[filter.field] &&
-                                                        (isLoading[filter.field] ? (
-                                                            <LoadingSpinner size={7} className="m-auto" />
-                                                        ) : !isLoadingImmediate[filter.field] ? (
-                                                            `No ${collectionTitle[filter.field]} found.`
-                                                        ) : null)}
-                                                </CommandEmpty>
-                                                {(!isLoading[filter.field] || isCollectionPreloadCacheEnabled) && (
-                                                    <CommandGroup>
-                                                        {data[filter.field] && (
-                                                            <CommandItem
-                                                                key="no_selection"
-                                                                value="no_selection"
-                                                                onSelect={(currentValue) => {
-                                                                    setOpen((prev) => {
-                                                                        return {
-                                                                            ...prev,
-                                                                            [filter.field]: false,
-                                                                        }
-                                                                    })
-                                                                    if (currentValue !== inputValue[filter.field]) {
-                                                                        setValue((prev) => {
-                                                                            return {
-                                                                                ...prev,
-                                                                                [filter.field]: currentValue,
-                                                                            }
-                                                                        })
-                                                                        setDisplay((prev) => {
-                                                                            return {
-                                                                                ...prev,
-                                                                                [filter.field]: "----",
-                                                                            }
-                                                                        })
-                                                                        startTransition(() => {
-                                                                            handleChange(
-                                                                                filter,
-                                                                                "no_selection",
-                                                                                field.type,
-                                                                            )
-                                                                        })
-                                                                    }
-                                                                }}
-                                                            >
-                                                                ----
-                                                            </CommandItem>
-                                                        )}
-                                                        {data[filter.field]?.map((record: StokerRecord) => (
-                                                            <CommandItem
-                                                                key={record.id}
-                                                                value={record.id}
-                                                                onSelect={(currentValue) => {
-                                                                    setOpen((prev) => {
-                                                                        return {
-                                                                            ...prev,
-                                                                            [filter.field]: false,
-                                                                        }
-                                                                    })
-                                                                    if (currentValue !== inputValue[filter.field]) {
-                                                                        setValue((prev) => {
-                                                                            return {
-                                                                                ...prev,
-                                                                                [filter.field]: currentValue,
-                                                                            }
-                                                                        })
-                                                                        setDisplay((prev) => {
-                                                                            return {
-                                                                                ...prev,
-                                                                                [filter.field]:
-                                                                                    record[
-                                                                                        recordTitleField[
-                                                                                            filter.field
-                                                                                        ] || "id"
-                                                                                    ],
-                                                                            }
-                                                                        })
-                                                                        startTransition(() => {
-                                                                            handleChange(filter, record.id, field.type)
-                                                                        })
-                                                                    }
-                                                                }}
-                                                            >
-                                                                {record[recordTitleField[filter.field] || "id"]}
-                                                                <Check
-                                                                    className={cn(
-                                                                        "ml-auto",
-                                                                        inputValue[filter.field] === record.id
-                                                                            ? "opacity-100"
-                                                                            : "opacity-0",
-                                                                    )}
-                                                                />
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                )}
-                                            </CommandList>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
+                                            {filterCommandBody}
+                                        </SheetContent>
+                                    </Sheet>
+                                ) : (
+                                    <Popover modal={true} open={isFilterOpen} onOpenChange={handleFilterOpenChange}>
+                                        <PopoverTrigger asChild>{filterTriggerButton}</PopoverTrigger>
+                                        <PopoverContent
+                                            className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
+                                            align="start"
+                                        >
+                                            {filterCommandBody}
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
                             </div>
                         </div>
                     )

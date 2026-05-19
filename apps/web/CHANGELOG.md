@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.146
+
+### Patch Changes
+
+- fix: improve mobile relation picker
+
 ## 0.5.145
 
 ### Patch Changes

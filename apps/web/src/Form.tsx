@@ -133,6 +133,9 @@ import { DateTime } from "luxon"
 import { useGoToRecord } from "./utils/goToRecord"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover"
+import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet"
+import { useIsMobile } from "./hooks/use-mobile"
+import { useKeyboardOffset } from "./hooks/use-keyboard-offset"
 import { getFilterDisjunctions } from "./utils/getFilterDisjunctions"
 import { performFullTextSearch } from "./utils/performFullTextSearch"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
@@ -2108,6 +2111,125 @@ function RelationField({
         popoverHeight = "h-48"
     }
 
+    const isMobile = useIsMobile()
+    const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && isOpen)
+    const sheetHeight = Math.max(240, Math.min(viewportHeight - 16, viewportHeight * 0.9))
+
+    const handlePickerOpenChange = (nextOpen: boolean) => {
+        setIsOpen(nextOpen)
+        if (nextOpen) {
+            startTransition(() => {
+                getData(searchValue, (field as RelationFieldType).constraints)
+            })
+        }
+    }
+
+    const triggerButton = (
+        <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={isOpen}
+            className="w-full justify-between"
+            disabled={isDisabled || readOnly}
+        >
+            <span className="break-all whitespace-pre-wrap line-clamp-1 text-left">{inputValue ? display : ""}</span>
+            <ChevronsUpDown className="opacity-50 h-4 w-4" />
+        </Button>
+    )
+
+    const commandBody = (
+        <Command
+            filter={() => {
+                return 1
+            }}
+            className={isMobile ? "flex flex-col h-full" : undefined}
+        >
+            <CommandInput
+                placeholder={`Search ${collectionTitle}...`}
+                className="h-9"
+                value={searchValue}
+                onValueChange={(value) => {
+                    setSearchValue(value)
+                }}
+            />
+            <CommandList className={isMobile ? "flex-1 max-h-none" : undefined}>
+                <CommandEmpty>
+                    {isOpen &&
+                        (isLoading ? (
+                            <LoadingSpinner size={7} className="m-auto" />
+                        ) : !isLoadingImmediate ? (
+                            `No ${collectionTitle} found.`
+                        ) : null)}
+                </CommandEmpty>
+                {(!isLoading || isCollectionPreloadCacheEnabled) && (
+                    <CommandGroup>
+                        {data && ["OneToOne", "OneToMany"].includes(field.type) && (
+                            <CommandItem
+                                key="no_selection"
+                                value="no_selection"
+                                onSelect={(currentValue: string) => {
+                                    setIsOpen(false)
+                                    if (currentValue !== inputValue) {
+                                        setValue(currentValue)
+                                        setDisplay("----")
+                                        startTransition(() => {
+                                            handleOneToChange()
+                                        })
+                                    }
+                                }}
+                            >
+                                ----
+                            </CommandItem>
+                        )}
+                        {data?.map((relationRecord: StokerRecord) => (
+                            <CommandItem
+                                key={relationRecord.id}
+                                value={relationRecord.id}
+                                onSelect={(currentValue) => {
+                                    setIsOpen(false)
+                                    if (currentValue !== inputValue) {
+                                        if (["OneToOne", "OneToMany"].includes(field.type)) {
+                                            setValue(currentValue)
+                                            if (fieldCustomization.admin?.modifyResultTitle) {
+                                                setDisplay(
+                                                    fieldCustomization.admin.modifyResultTitle(
+                                                        relationRecord,
+                                                        collection,
+                                                        record,
+                                                    ),
+                                                )
+                                            } else {
+                                                setDisplay(relationRecord[recordTitleField || "id"])
+                                            }
+                                        }
+                                        startTransition(() => {
+                                            handleOneToChange(
+                                                data?.find((relationRecord) => relationRecord.id === currentValue),
+                                            )
+                                            if (["ManyToOne", "ManyToMany"].includes(field.type)) {
+                                                handleManyToChange(currentValue)
+                                            }
+                                        })
+                                    }
+                                }}
+                            >
+                                {fieldCustomization.admin?.modifyResultTitle
+                                    ? fieldCustomization.admin.modifyResultTitle(relationRecord, collection, record)
+                                    : relationRecord[recordTitleField || "id"]}
+                                <Check
+                                    className={cn(
+                                        "ml-auto",
+                                        inputValue === relationRecord.id ? "opacity-100" : "opacity-0",
+                                    )}
+                                />
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                )}
+            </CommandList>
+        </Command>
+    )
+
     return (
         <FormField
             control={form.control}
@@ -2124,148 +2246,37 @@ function RelationField({
                             form={form}
                         />
                         <FormControl>
-                            <Popover
-                                modal={true}
-                                open={isOpen}
-                                onOpenChange={() => {
-                                    setIsOpen(!isOpen)
-                                    startTransition(() => {
-                                        getData(searchValue, (field as RelationFieldType).constraints)
-                                    })
-                                }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            aria-expanded={isOpen}
-                                            className="w-full justify-between"
-                                            disabled={isDisabled || readOnly}
-                                        >
-                                            <span className="break-all whitespace-pre-wrap line-clamp-1 text-left">
-                                                {inputValue ? display : ""}
-                                            </span>
-                                            <ChevronsUpDown className="opacity-50 h-4 w-4" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                </div>
-                                <PopoverContent
-                                    className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
-                                    align="start"
-                                >
-                                    <Command
-                                        filter={() => {
-                                            return 1
+                            {isMobile ? (
+                                <Sheet open={isOpen} onOpenChange={handlePickerOpenChange}>
+                                    <SheetTrigger asChild>{triggerButton}</SheetTrigger>
+                                    <SheetContent
+                                        side="bottom"
+                                        className="p-0 pt-8 flex flex-col gap-0 rounded-t-lg"
+                                        style={{
+                                            bottom: keyboardOffset,
+                                            height: sheetHeight,
+                                            maxHeight: sheetHeight,
+                                        }}
+                                        onOpenAutoFocus={(event) => {
+                                            event.preventDefault()
                                         }}
                                     >
-                                        <CommandInput
-                                            placeholder={`Search ${collectionTitle}...`}
-                                            className="h-9"
-                                            value={searchValue}
-                                            onValueChange={(value) => {
-                                                setSearchValue(value)
-                                            }}
-                                        />
-                                        <CommandList>
-                                            <CommandEmpty>
-                                                {isOpen &&
-                                                    (isLoading ? (
-                                                        <LoadingSpinner size={7} className="m-auto" />
-                                                    ) : !isLoadingImmediate ? (
-                                                        `No ${collectionTitle} found.`
-                                                    ) : null)}
-                                            </CommandEmpty>
-                                            {(!isLoading || isCollectionPreloadCacheEnabled) && (
-                                                <CommandGroup>
-                                                    {data && ["OneToOne", "OneToMany"].includes(field.type) && (
-                                                        <CommandItem
-                                                            key="no_selection"
-                                                            value="no_selection"
-                                                            onSelect={(currentValue: string) => {
-                                                                setIsOpen(false)
-                                                                if (currentValue !== inputValue) {
-                                                                    setValue(currentValue)
-                                                                    setDisplay("----")
-                                                                    startTransition(() => {
-                                                                        handleOneToChange()
-                                                                    })
-                                                                }
-                                                            }}
-                                                        >
-                                                            ----
-                                                        </CommandItem>
-                                                    )}
-                                                    {data?.map((relationRecord: StokerRecord) => (
-                                                        <CommandItem
-                                                            key={relationRecord.id}
-                                                            value={relationRecord.id}
-                                                            onSelect={(currentValue) => {
-                                                                setIsOpen(false)
-                                                                if (currentValue !== inputValue) {
-                                                                    if (
-                                                                        ["OneToOne", "OneToMany"].includes(field.type)
-                                                                    ) {
-                                                                        setValue(currentValue)
-                                                                        if (
-                                                                            fieldCustomization.admin?.modifyResultTitle
-                                                                        ) {
-                                                                            setDisplay(
-                                                                                fieldCustomization.admin.modifyResultTitle(
-                                                                                    relationRecord,
-                                                                                    collection,
-                                                                                    record,
-                                                                                ),
-                                                                            )
-                                                                        } else {
-                                                                            setDisplay(
-                                                                                relationRecord[
-                                                                                    recordTitleField || "id"
-                                                                                ],
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                    startTransition(() => {
-                                                                        handleOneToChange(
-                                                                            data?.find(
-                                                                                (relationRecord) =>
-                                                                                    relationRecord.id === currentValue,
-                                                                            ),
-                                                                        )
-                                                                        if (
-                                                                            ["ManyToOne", "ManyToMany"].includes(
-                                                                                field.type,
-                                                                            )
-                                                                        ) {
-                                                                            handleManyToChange(currentValue)
-                                                                        }
-                                                                    })
-                                                                }
-                                                            }}
-                                                        >
-                                                            {fieldCustomization.admin?.modifyResultTitle
-                                                                ? fieldCustomization.admin.modifyResultTitle(
-                                                                      relationRecord,
-                                                                      collection,
-                                                                      record,
-                                                                  )
-                                                                : relationRecord[recordTitleField || "id"]}
-                                                            <Check
-                                                                className={cn(
-                                                                    "ml-auto",
-                                                                    inputValue === relationRecord.id
-                                                                        ? "opacity-100"
-                                                                        : "opacity-0",
-                                                                )}
-                                                            />
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            )}
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
+                                        {commandBody}
+                                    </SheetContent>
+                                </Sheet>
+                            ) : (
+                                <Popover modal={true} open={isOpen} onOpenChange={handlePickerOpenChange}>
+                                    <div className="flex items-center gap-2">
+                                        <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+                                    </div>
+                                    <PopoverContent
+                                        className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
+                                        align="start"
+                                    >
+                                        {commandBody}
+                                    </PopoverContent>
+                                </Popover>
+                            )}
                         </FormControl>
                         {description && <FormDescription>{description}</FormDescription>}
                         <FormMessage className="bg-destructive p-4 rounded-md text-background dark:text-primary" />

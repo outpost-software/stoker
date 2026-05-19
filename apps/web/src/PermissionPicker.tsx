@@ -8,7 +8,7 @@ import {
 } from "@stoker-platform/types"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { serverReadOnly } from "./utils/serverReadOnly"
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { QueryConstraint, where, WhereFilterOp } from "firebase/firestore"
 import { getFilterDisjunctions } from "./utils/getFilterDisjunctions"
 import { performFullTextSearch } from "./utils/performFullTextSearch"
@@ -16,6 +16,9 @@ import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { getOne, getSome } from "@stoker-platform/web-client"
 import { FormControl, FormItem, FormLabel } from "./components/ui/form"
 import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover"
+import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet"
+import { useIsMobile } from "./hooks/use-mobile"
+import { useKeyboardOffset } from "./hooks/use-keyboard-offset"
 import { Button } from "./components/ui/button"
 import { Check, ChevronsUpDown, Plus, XCircle } from "lucide-react"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./components/ui/command"
@@ -330,126 +333,155 @@ export const PermissionPicker = ({
         popoverHeight = "h-48"
     }
 
+    const isMobile = useIsMobile()
+    const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && isOpen)
+    const sheetHeight = Math.max(240, Math.min(viewportHeight - 16, viewportHeight * 0.9))
+
+    const handlePickerOpenChange = (nextOpen: boolean) => {
+        setIsOpen(nextOpen)
+        if (nextOpen) {
+            startTransition(() => {
+                getData(searchValue, constraints)
+            })
+        }
+    }
+
+    const triggerButton = (
+        <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={isOpen}
+            className="w-full justify-between"
+            disabled={isDisabled}
+        >
+            <span className="break-all whitespace-pre-wrap line-clamp-1 text-left">{inputValue ? display : ""}</span>
+            <ChevronsUpDown className="opacity-50 h-4 w-4" />
+        </Button>
+    )
+
+    const commandBody = (
+        <Command
+            filter={() => {
+                return 1
+            }}
+            className={isMobile ? "flex flex-col h-full" : undefined}
+        >
+            <CommandInput
+                placeholder={`Search ${title}...`}
+                className="h-9"
+                value={searchValue}
+                onValueChange={(value) => {
+                    setSearchValue(value)
+                }}
+            />
+            <CommandList className={isMobile ? "flex-1 max-h-none" : undefined}>
+                <CommandEmpty>
+                    {isOpen &&
+                        (isLoading ? (
+                            <LoadingSpinner size={7} className="m-auto" />
+                        ) : !isLoadingImmediate ? (
+                            `No ${title} found.`
+                        ) : null)}
+                </CommandEmpty>
+                {(!isLoading || isCollectionPreloadCacheEnabled) && (
+                    <CommandGroup>
+                        {data && (
+                            <CommandItem
+                                key="no_selection"
+                                value="no_selection"
+                                onSelect={(currentValue) => {
+                                    setIsOpen(false)
+                                    if (currentValue !== inputValue) {
+                                        setValue(currentValue)
+                                        setDisplay("----")
+                                    }
+                                }}
+                            >
+                                ----
+                            </CommandItem>
+                        )}
+                        {data?.map((record: StokerRecord) => (
+                            <CommandItem
+                                key={record.id}
+                                value={record.id}
+                                onSelect={(currentValue) => {
+                                    setIsOpen(false)
+                                    if (currentValue !== inputValue) {
+                                        setValue(currentValue)
+                                        setDisplay(record[recordTitleField || "id"])
+                                    }
+                                }}
+                            >
+                                {record[recordTitleField || "id"]}
+                                <Check
+                                    className={cn("ml-auto", inputValue === record.id ? "opacity-100" : "opacity-0")}
+                                />
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                )}
+            </CommandList>
+        </Command>
+    )
+
+    const renderPicker = (children: ReactNode) =>
+        isMobile ? (
+            <Sheet open={isOpen} onOpenChange={handlePickerOpenChange}>
+                <div className="flex items-center gap-2">
+                    <SheetTrigger asChild>{triggerButton}</SheetTrigger>
+                    {children}
+                </div>
+                <SheetContent
+                    side="bottom"
+                    className="p-0 pt-8 flex flex-col gap-0 rounded-t-lg"
+                    style={{
+                        bottom: keyboardOffset,
+                        height: sheetHeight,
+                        maxHeight: sheetHeight,
+                    }}
+                    onOpenAutoFocus={(event) => {
+                        event.preventDefault()
+                    }}
+                >
+                    {commandBody}
+                </SheetContent>
+            </Sheet>
+        ) : (
+            <Popover modal={true} open={isOpen} onOpenChange={handlePickerOpenChange}>
+                <div className="flex items-center gap-2">
+                    <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+                    {children}
+                </div>
+                <PopoverContent className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")} align="start">
+                    {commandBody}
+                </PopoverContent>
+            </Popover>
+        )
+
     if (type === "Parent_Property" && restriction) {
         return (
             <div className="w-full max-w-[750px]">
                 <FormItem>
                     <FormLabel>{`Accessible ${title}`}</FormLabel>
                     <FormControl>
-                        <Popover
-                            modal={true}
-                            open={isOpen}
-                            onOpenChange={() => {
-                                setIsOpen(!isOpen)
-                                startTransition(() => {
-                                    getData(searchValue, constraints)
-                                })
-                            }}
-                        >
-                            <div className="flex items-center gap-2">
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={isOpen}
-                                        className="w-full justify-between"
-                                        disabled={isDisabled}
-                                    >
-                                        <span className="break-all whitespace-pre-wrap line-clamp-1 text-left">
-                                            {inputValue ? display : ""}
-                                        </span>
-                                        <ChevronsUpDown className="opacity-50 h-4 w-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                {
-                                    <Button
-                                        type="button"
-                                        disabled={isDisabled || !inputValue || inputValue === "no_selection"}
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => {
-                                            if (hasUser) {
-                                                form.setValue("operation", "update")
-                                            } else {
-                                                form.setValue("operation", "create")
-                                            }
-                                            handleAddEntity()
-                                        }}
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                }
-                            </div>
-                            <PopoverContent
-                                className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
-                                align="start"
+                        {renderPicker(
+                            <Button
+                                type="button"
+                                disabled={isDisabled || !inputValue || inputValue === "no_selection"}
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                    if (hasUser) {
+                                        form.setValue("operation", "update")
+                                    } else {
+                                        form.setValue("operation", "create")
+                                    }
+                                    handleAddEntity()
+                                }}
                             >
-                                <Command
-                                    filter={() => {
-                                        return 1
-                                    }}
-                                >
-                                    <CommandInput
-                                        placeholder={`Search ${title}...`}
-                                        className="h-9"
-                                        value={searchValue}
-                                        onValueChange={(value) => {
-                                            setSearchValue(value)
-                                        }}
-                                    />
-                                    <CommandList>
-                                        <CommandEmpty>
-                                            {isOpen &&
-                                                (isLoading ? (
-                                                    <LoadingSpinner size={7} className="m-auto" />
-                                                ) : !isLoadingImmediate ? (
-                                                    `No ${title} found.`
-                                                ) : null)}
-                                        </CommandEmpty>
-                                        {(!isLoading || isCollectionPreloadCacheEnabled) && (
-                                            <CommandGroup>
-                                                {data && (
-                                                    <CommandItem
-                                                        key="no_selection"
-                                                        value="no_selection"
-                                                        onSelect={(currentValue) => {
-                                                            setIsOpen(false)
-                                                            if (currentValue !== inputValue) {
-                                                                setValue(currentValue)
-                                                                setDisplay("----")
-                                                            }
-                                                        }}
-                                                    >
-                                                        ----
-                                                    </CommandItem>
-                                                )}
-                                                {data?.map((record: StokerRecord) => (
-                                                    <CommandItem
-                                                        key={record.id}
-                                                        value={record.id}
-                                                        onSelect={(currentValue) => {
-                                                            setIsOpen(false)
-                                                            if (currentValue !== inputValue) {
-                                                                setValue(currentValue)
-                                                                setDisplay(record[recordTitleField || "id"])
-                                                            }
-                                                        }}
-                                                    >
-                                                        {record[recordTitleField || "id"]}
-                                                        <Check
-                                                            className={cn(
-                                                                "ml-auto",
-                                                                inputValue === record.id ? "opacity-100" : "opacity-0",
-                                                            )}
-                                                        />
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        )}
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
+                                <Plus className="h-4 w-4" />
+                            </Button>,
+                        )}
                     </FormControl>
                 </FormItem>
                 {selectedEntities.map((entity) => (
@@ -521,120 +553,24 @@ export const PermissionPicker = ({
             <FormItem>
                 <FormLabel>{`Accessible ${title}`}</FormLabel>
                 <FormControl>
-                    <Popover
-                        modal={true}
-                        open={isOpen}
-                        onOpenChange={() => {
-                            setIsOpen(!isOpen)
-                            startTransition(() => {
-                                getData(searchValue, constraints)
-                            })
-                        }}
-                    >
-                        <div className="flex items-center gap-2">
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    aria-expanded={isOpen}
-                                    className="w-full justify-between"
-                                    disabled={isDisabled}
-                                >
-                                    <span className="break-all whitespace-pre-wrap line-clamp-1 text-left">
-                                        {inputValue ? display : ""}
-                                    </span>
-                                    <ChevronsUpDown className="opacity-50 h-4 w-4" />
-                                </Button>
-                            </PopoverTrigger>
-                            {
-                                <Button
-                                    type="button"
-                                    disabled={isDisabled || !inputValue || inputValue === "no_selection"}
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => {
-                                        if (hasUser) {
-                                            form.setValue("operation", "update")
-                                        } else {
-                                            form.setValue("operation", "create")
-                                        }
-                                        handleChange()
-                                    }}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                            }
-                        </div>
-                        <PopoverContent
-                            className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
-                            align="start"
+                    {renderPicker(
+                        <Button
+                            type="button"
+                            disabled={isDisabled || !inputValue || inputValue === "no_selection"}
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                                if (hasUser) {
+                                    form.setValue("operation", "update")
+                                } else {
+                                    form.setValue("operation", "create")
+                                }
+                                handleChange()
+                            }}
                         >
-                            <Command
-                                filter={() => {
-                                    return 1
-                                }}
-                            >
-                                <CommandInput
-                                    placeholder={`Search ${title}...`}
-                                    className="h-9"
-                                    value={searchValue}
-                                    onValueChange={(value) => {
-                                        setSearchValue(value)
-                                    }}
-                                />
-                                <CommandList>
-                                    <CommandEmpty>
-                                        {isOpen &&
-                                            (isLoading ? (
-                                                <LoadingSpinner size={7} className="m-auto" />
-                                            ) : !isLoadingImmediate ? (
-                                                `No ${title} found.`
-                                            ) : null)}
-                                    </CommandEmpty>
-                                    {(!isLoading || isCollectionPreloadCacheEnabled) && (
-                                        <CommandGroup>
-                                            {data && (
-                                                <CommandItem
-                                                    key="no_selection"
-                                                    value="no_selection"
-                                                    onSelect={(currentValue) => {
-                                                        setIsOpen(false)
-                                                        if (currentValue !== inputValue) {
-                                                            setValue(currentValue)
-                                                            setDisplay("----")
-                                                        }
-                                                    }}
-                                                >
-                                                    ----
-                                                </CommandItem>
-                                            )}
-                                            {data?.map((record: StokerRecord) => (
-                                                <CommandItem
-                                                    key={record.id}
-                                                    value={record.id}
-                                                    onSelect={(currentValue) => {
-                                                        setIsOpen(false)
-                                                        if (currentValue !== inputValue) {
-                                                            setValue(currentValue)
-                                                            setDisplay(record[recordTitleField || "id"])
-                                                        }
-                                                    }}
-                                                >
-                                                    {record[recordTitleField || "id"]}
-                                                    <Check
-                                                        className={cn(
-                                                            "ml-auto",
-                                                            inputValue === record.id ? "opacity-100" : "opacity-0",
-                                                        )}
-                                                    />
-                                                </CommandItem>
-                                            ))}
-                                        </CommandGroup>
-                                    )}
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
+                            <Plus className="h-4 w-4" />
+                        </Button>,
+                    )}
                 </FormControl>
             </FormItem>
             <div className="mt-4">
