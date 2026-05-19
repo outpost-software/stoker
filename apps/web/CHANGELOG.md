@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.144
+
+### Patch Changes
+
+- feat: redirect to duplicated / converted record
+
 ## 0.5.143
 
 ### Patch Changes

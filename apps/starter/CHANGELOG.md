@@ -1,5 +1,12 @@
 # stoker
 
+## 0.4.166
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/web-app@0.5.144
+
 ## 0.4.165
 
 ### Patch Changes

@@ -128,7 +128,9 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                         id,
                         async (data) => {
                             if (!data) {
-                                setRecord(undefined)
+                                if (!(!recordInitialised.current && recordFromState?.id === id)) {
+                                    setRecord(undefined)
+                                }
                                 setIsRouteLoading("-", location.pathname)
                                 return
                             }

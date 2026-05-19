@@ -231,7 +231,7 @@ interface FormProps {
     isLoading?: React.RefObject<boolean>
     record?: StokerRecord
     draft?: boolean
-    onSuccess?: () => void
+    onSuccess?: (record?: StokerRecord) => void
     onSaveRecord?: () => void
     rowSelection?: StokerRecord[]
     fromRelationList?: string
@@ -2392,6 +2392,7 @@ function RecordForm({
     const { serverWriteOnly } = access
     const navigate = useNavigate()
     const params = useParams()
+    const goToRecord = useGoToRecord()
     const { id } = params as { id: string }
     if (operation === "update" && !id) {
         throw new Error("ID param is required for update operation")
@@ -2476,6 +2477,9 @@ function RecordForm({
     const [draftData, setDraftData] = useState<any>(null)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
     const [duplicateRecordData, setDuplicateRecordData] = useState<Partial<StokerRecord> | undefined>(undefined)
+    const [pendingGoToRecord, setPendingGoToRecord] = useState<
+        { collection: CollectionSchema; record: StokerRecord } | undefined
+    >(undefined)
     const [convert, setConvert] = useState<Convert[] | undefined>(undefined)
     const [showConvertModal, setShowConvertModal] = useState(false)
     const [convertRecordData, setConvertRecordData] = useState<Partial<StokerRecord> | undefined>(undefined)
@@ -4136,7 +4140,7 @@ function RecordForm({
 
                 const onValid = () => {
                     if (!isServerReadOnly) {
-                        if (onSuccess) onSuccess()
+                        if (onSuccess) onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                     }
                 }
 
@@ -4163,7 +4167,8 @@ function RecordForm({
 
                         if (isServerReadOnly) {
                             setIsAddingServer(false)
-                            if (onSuccess) onSuccess()
+                            if (onSuccess)
+                                onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                         }
                     })
                     .then(async () => {
@@ -4483,6 +4488,12 @@ function RecordForm({
         form.reset(prevState)
         setFormResetKey((prev) => prev + 1)
     }, [form, prevState])
+
+    useEffect(() => {
+        if (!pendingGoToRecord || showDuplicateModal || showConvertModal) return
+        goToRecord(pendingGoToRecord.collection, pendingGoToRecord.record)
+        setPendingGoToRecord(undefined)
+    }, [pendingGoToRecord, showDuplicateModal, showConvertModal])
 
     const duplicateRecord = useCallback(async () => {
         if (!formValues) return
@@ -5520,10 +5531,11 @@ function RecordForm({
                                             operation="create"
                                             path={collectionPath || [labels.collection]}
                                             record={duplicateRecordData as StokerRecord}
-                                            onSuccess={() => {
+                                            onSuccess={(record?: StokerRecord) => {
                                                 setShowDuplicateModal(false)
                                                 setDuplicateRecordData(undefined)
                                                 setIsDuplicate(false)
+                                                if (record?.id) setPendingGoToRecord({ collection, record })
                                             }}
                                         />
                                     </div>
@@ -5571,10 +5583,16 @@ function RecordForm({
                                             operation="create"
                                             path={[convertTargetCollection.labels.collection]}
                                             record={convertRecordData as StokerRecord}
-                                            onSuccess={() => {
+                                            onSuccess={(record?: StokerRecord) => {
+                                                const targetCollection = convertTargetCollection
                                                 setShowConvertModal(false)
                                                 setConvertRecordData(undefined)
                                                 setConvertTargetCollection(undefined)
+                                                if (record?.id)
+                                                    setPendingGoToRecord({
+                                                        collection: targetCollection,
+                                                        record,
+                                                    })
                                             }}
                                         />
                                     </div>
