@@ -140,7 +140,8 @@ export const PermissionPicker = ({
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(collection, query, data.records)
                     const objectIds = searchResults.map((result) => result.id)
-                    setData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, 10))
+                    const numberOfResults = isMobile ? 20 : 10
+                    setData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults))
                 } else {
                     setData(data.records.slice(0, 10))
                 }
@@ -387,6 +388,7 @@ export const PermissionPicker = ({
                     <CommandGroup>
                         {data && (
                             <CommandItem
+                                className={cn(isMobile ? "p-3" : undefined)}
                                 key="no_selection"
                                 value="no_selection"
                                 onSelect={(currentValue) => {
@@ -402,6 +404,7 @@ export const PermissionPicker = ({
                         )}
                         {data?.map((record: StokerRecord) => (
                             <CommandItem
+                                className={cn(isMobile ? "p-3" : undefined)}
                                 key={record.id}
                                 value={record.id}
                                 onSelect={(currentValue) => {

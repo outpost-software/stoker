@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.147
+
+### Patch Changes
+
+- feat: increase relation picker item size
+
 ## 0.5.146
 
 ### Patch Changes

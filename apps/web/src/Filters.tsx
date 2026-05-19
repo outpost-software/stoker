@@ -314,9 +314,10 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(collectionSchema, query, data.records)
                     const objectIds = searchResults.map((result) => result.id)
+                    const numberOfResults = isMobile ? 20 : 10
                     setData((prev) => ({
                         ...prev,
-                        [field]: data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, 10),
+                        [field]: data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults),
                     }))
                 } else {
                     setData((prev) => ({
@@ -613,6 +614,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                                     <CommandGroup>
                                         {data[filter.field] && (
                                             <CommandItem
+                                                className={cn(isMobile ? "p-3" : undefined)}
                                                 key="no_selection"
                                                 value="no_selection"
                                                 onSelect={(currentValue) => {
@@ -646,6 +648,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                                         )}
                                         {data[filter.field]?.map((record: StokerRecord) => (
                                             <CommandItem
+                                                className={cn(isMobile ? "p-3" : undefined)}
                                                 key={record.id}
                                                 value={record.id}
                                                 onSelect={(currentValue) => {

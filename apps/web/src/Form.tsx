@@ -2025,9 +2025,12 @@ function RelationField({
                         return !!fieldCustomization.admin?.filterResults?.(result, collection, record)
                     })
                     const objectIds = searchResults.map((result) => result.id)
-                    orderData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, 10)).then((data) => {
-                        setData(data)
-                    })
+                    const numberOfResults = isMobile ? 20 : 10
+                    orderData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults)).then(
+                        (data) => {
+                            setData(data)
+                        },
+                    )
                 } else {
                     orderData(
                         data.records
@@ -2165,6 +2168,7 @@ function RelationField({
                     <CommandGroup>
                         {data && ["OneToOne", "OneToMany"].includes(field.type) && (
                             <CommandItem
+                                className={cn(isMobile ? "p-3" : undefined)}
                                 key="no_selection"
                                 value="no_selection"
                                 onSelect={(currentValue: string) => {
@@ -2183,6 +2187,7 @@ function RelationField({
                         )}
                         {data?.map((relationRecord: StokerRecord) => (
                             <CommandItem
+                                className={cn(isMobile ? "p-3" : undefined)}
                                 key={relationRecord.id}
                                 value={relationRecord.id}
                                 onSelect={(currentValue) => {
