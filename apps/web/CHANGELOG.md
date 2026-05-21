@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.151
+
+### Patch Changes
+
+- fix: process preloaded collection page number change immediately
+
 ## 0.5.150
 
 ### Patch Changes

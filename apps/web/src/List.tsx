@@ -812,11 +812,13 @@ export function List({
         const timer = setTimeout(() => {
             if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
                 backToStart()
-            } else if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly)) {
-                setPageIndex(0)
-                setState(`collection-page-number-${labels.collection.toLowerCase()}`, "page", 1)
             }
         }, 750)
+
+        if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly)) {
+            setPageIndex(0)
+            setState(`collection-page-number-${labels.collection.toLowerCase()}`, "page", 1)
+        }
         return () => clearTimeout(timer)
     }, [search])
 
