@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.93
+
+### Patch Changes
+
+- feat: add project deletion confirmation step
+
 ## 0.5.92
 
 ### Patch Changes

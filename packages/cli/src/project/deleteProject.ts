@@ -1,3 +1,4 @@
+import { input } from "@inquirer/prompts"
 import { runChildProcess } from "@stoker-platform/node-client"
 import { readFile, rm, unlink, writeFile } from "fs/promises"
 import { existsSync } from "fs"
@@ -7,6 +8,16 @@ export const deleteProject = async (options: { testMode?: boolean }) => {
     if (!process.env.GCP_PROJECT) {
         throw new Error("GCP_PROJECT is not set.")
     }
+
+    const projectName = process.env.GCP_PROJECT
+    const confirmation = await input({
+        message: `Type the project name "${projectName}" to confirm deletion:`,
+        validate: (value) => value.trim().toLowerCase() === projectName.toLowerCase() || "Project name does not match.",
+    })
+    if (confirmation.trim().toLowerCase() !== projectName.toLowerCase()) {
+        throw new Error("Project name does not match. Deletion cancelled.")
+    }
+
     await runChildProcess("gcloud", ["projects", "delete", process.env.GCP_PROJECT, "--quiet"]).catch(() => {
         throw new Error("Error deleting project.")
     })
