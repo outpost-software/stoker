@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.70
+
+### Patch Changes
+
+- fix: fix redundant single relation update
+
 ## 0.5.69
 
 ### Patch Changes

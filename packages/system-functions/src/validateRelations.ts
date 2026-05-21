@@ -371,27 +371,41 @@ export const validateRelations = (
                                             return;
                                         }
                                     }
+                                    const includeFieldsSchema: CollectionField[] = [];
+                                    includeFields.forEach((includeField) => {
+                                        if (includeField !== "Collection_Path" && includeField !== "deleted" && includeField !== "id") {
+                                            const field = getField(relationCollection.fields, includeField);
+                                            includeFieldsSchema.push(field);
+                                        }
+                                    });
+                                    const relationLowercaseFields = getLowercaseFields(relationCollection, includeFieldsSchema);
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    const fieldUpdate: { [key: string]: any } = {};
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    const fieldUpdateWithSingle: { [key: string]: any } = {};
                                     for (const includeField of includeFields) {
                                         let lowercaseFields: Set<CollectionField> = new Set();
                                         if (includeField !== "Collection_Path" && includeField !== "deleted" && includeField !== "id") {
                                             const includeFieldSchema = getField(relationCollection.fields, includeField);
                                             lowercaseFields = getLowercaseFields(relationCollection, [includeFieldSchema]);
                                         }
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        const fieldUpdate: { [key: string]: any } = {};
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        let fieldUpdateWithSingle: { [key: string]: any } = {};
+                                        const idAlreadyCorrect = includeField === "id" &&
+                                            (!singleFieldRelationsNames.includes(field.name) ||
+                                                main[`${field.name}_Single`]?.id === source?.id);
                                         // eslint-disable-next-line security/detect-object-injection
-                                        if (source && includeField !== "deleted" && (!isEqual(mainRelation[includeField], source[includeField]) ||
+                                        if (source && includeField !== "deleted" && !idAlreadyCorrect && (!isEqual(mainRelation[includeField], source[includeField]) ||
                                             (lowercaseFields.size === 1 && !isEqual(mainRelation[`${includeField}_Lowercase`], source[`${includeField}_Lowercase`])))) {
                                             if (includeField !== "id") {
                                                 // eslint-disable-next-line security/detect-object-injection
-                                                fieldUpdate[`${field.name}.${id}.${includeField}`] = source[includeField] ?? FieldValue.delete();
+                                                const sourceValue = source[includeField] ?? FieldValue.delete();
+                                                fieldUpdate[`${field.name}.${id}.${includeField}`] = sourceValue;
+                                                fieldUpdateWithSingle[`${field.name}.${id}.${includeField}`] = sourceValue;
                                                 if (lowercaseFields.size === 1) {
-                                                    fieldUpdate[`${field.name}.${id}.${includeField}_Lowercase`] = source[`${includeField}_Lowercase`] ?? FieldValue.delete();
+                                                    const sourceLowercaseValue = source[`${includeField}_Lowercase`] ?? FieldValue.delete();
+                                                    fieldUpdate[`${field.name}.${id}.${includeField}_Lowercase`] = sourceLowercaseValue;
+                                                    fieldUpdateWithSingle[`${field.name}.${id}.${includeField}_Lowercase`] = sourceLowercaseValue;
                                                 }
                                             }
-                                            fieldUpdateWithSingle = {...fieldUpdate};
                                             if (singleFieldRelationsNames.includes(field.name)) {
                                                 // eslint-disable-next-line security/detect-object-injection
                                                 fieldUpdateWithSingle[`${field.name}_Single.${includeField}`] = source[includeField] ?? FieldValue.delete();
@@ -405,14 +419,6 @@ export const validateRelations = (
                                             fieldUpdateWithSingle[`${field.name}.${id}.deleted`] = FieldValue.delete();
                                             fieldUpdateWithSingle[`${field.name}_Single.deleted`] = FieldValue.delete();
                                         }
-                                        const includeFieldsSchema: CollectionField[] = [];
-                                        includeFields.forEach((includeField) => {
-                                            if (includeField !== "Collection_Path" && includeField !== "deleted" && includeField !== "id") {
-                                                const field = getField(relationCollection.fields, includeField);
-                                                includeFieldsSchema.push(field);
-                                            }
-                                        });
-                                        const relationLowercaseFields = getLowercaseFields(relationCollection, includeFieldsSchema);
                                         if (!source && field.preserve) {
                                             if (includeField === "deleted" && !mainRelation.deleted) {
                                                 fieldUpdate[`${field.name}.${id}.deleted`] = true;
@@ -440,51 +446,51 @@ export const validateRelations = (
                                                 }
                                             }
                                         }
-                                        const fieldsToRemove = Object.keys(mainRelation).filter((key) =>
-                                            !includeFields.includes(key) &&
-                                            !(key.endsWith("_Lowercase") && Array.from(relationLowercaseFields).map((field) => field.name).includes(key.replace("_Lowercase", "")))
-                                        );
-                                        for (const removeField of fieldsToRemove) {
-                                            fieldUpdate[`${field.name}.${id}.${removeField}`] = FieldValue.delete();
-                                            fieldUpdateWithSingle[`${field.name}.${id}.${removeField}`] = FieldValue.delete();
-                                            if (singleFieldRelationsNames.includes(field.name)) {
-                                                fieldUpdateWithSingle[`${field.name}_Single.${removeField}`] = FieldValue.delete();
-                                            }
+                                    }
+                                    const fieldsToRemove = Object.keys(mainRelation).filter((key) =>
+                                        !includeFields.includes(key) &&
+                                        !(key.endsWith("_Lowercase") && Array.from(relationLowercaseFields).map((field) => field.name).includes(key.replace("_Lowercase", "")))
+                                    );
+                                    for (const removeField of fieldsToRemove) {
+                                        fieldUpdate[`${field.name}.${id}.${removeField}`] = FieldValue.delete();
+                                        fieldUpdateWithSingle[`${field.name}.${id}.${removeField}`] = FieldValue.delete();
+                                        if (singleFieldRelationsNames.includes(field.name)) {
+                                            fieldUpdateWithSingle[`${field.name}_Single.${removeField}`] = FieldValue.delete();
                                         }
-                                        if (Object.keys(fieldUpdateWithSingle).length > 0) {
-                                            transaction.update(snapshot.after.ref, fieldUpdateWithSingle);
+                                    }
+                                    if (Object.keys(fieldUpdateWithSingle).length > 0) {
+                                        transaction.update(snapshot.after.ref, fieldUpdateWithSingle);
+                                    }
+                                    if (Object.keys(fieldUpdate).length > 0) {
+                                        if (isDependencyField(field, collection, schema)) {
+                                            transaction.update(
+                                                db
+                                                    .collection("tenants")
+                                                    .doc(tenantId)
+                                                    .collection("system_fields")
+                                                    .doc(labels.collection)
+                                                    .collection(`${labels.collection}-${field.name}`)
+                                                    .doc(snapshot.after.id),
+                                                fieldUpdate,
+                                            );
                                         }
-                                        if (Object.keys(fieldUpdate).length > 0) {
-                                            if (isDependencyField(field, collection, schema)) {
+                                    }
+                                    if (Object.keys(fieldUpdateWithSingle).length > 0) {
+                                        const roleGroups = getRoleGroups(collection, schema);
+                                        roleGroups.forEach((roleGroup) => {
+                                            if (roleGroup.fields.some((groupField) => groupField.name === field.name)) {
                                                 transaction.update(
                                                     db
                                                         .collection("tenants")
                                                         .doc(tenantId)
                                                         .collection("system_fields")
                                                         .doc(labels.collection)
-                                                        .collection(`${labels.collection}-${field.name}`)
+                                                        .collection(`${labels.collection}-${roleGroup.key}`)
                                                         .doc(snapshot.after.id),
-                                                    fieldUpdate,
+                                                    fieldUpdateWithSingle,
                                                 );
                                             }
-                                        }
-                                        if (Object.keys(fieldUpdateWithSingle).length > 0) {
-                                            const roleGroups = getRoleGroups(collection, schema);
-                                            roleGroups.forEach((roleGroup) => {
-                                                if (roleGroup.fields.some((groupField) => groupField.name === field.name)) {
-                                                    transaction.update(
-                                                        db
-                                                            .collection("tenants")
-                                                            .doc(tenantId)
-                                                            .collection("system_fields")
-                                                            .doc(labels.collection)
-                                                            .collection(`${labels.collection}-${roleGroup.key}`)
-                                                            .doc(snapshot.after.id),
-                                                        fieldUpdateWithSingle,
-                                                    );
-                                                }
-                                            });
-                                        }
+                                        });
                                     }
                                 }, {maxAttempts: 30}).catch((error) => {
                                     errorLogger(error);
