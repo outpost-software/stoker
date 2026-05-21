@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.92
+
+### Patch Changes
+
+- feat: add singleton collection restrictions
+
 ## 0.5.91
 
 ### Patch Changes

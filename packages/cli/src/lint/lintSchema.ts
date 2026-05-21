@@ -188,6 +188,7 @@ export const lintSchema = async (noLog = false) => {
             auth,
             fields,
             access,
+            singleton,
             ttl,
             parentCollection,
             recordTitleField,
@@ -347,6 +348,18 @@ export const lintSchema = async (noLog = false) => {
 
             if (parentCollection) {
                 errors.push(`Auth collection ${collectionName} cannot have a parent collection`)
+            }
+        }
+
+        if (singleton) {
+            if (auth) {
+                errors.push(`Singleton collection ${collectionName} cannot have auth enabled`)
+            }
+            if (operations.create) {
+                errors.push(`Singleton collection ${collectionName} cannot have create operations`)
+            }
+            if (operations.delete) {
+                errors.push(`Singleton collection ${collectionName} cannot have delete operations`)
             }
         }
 
