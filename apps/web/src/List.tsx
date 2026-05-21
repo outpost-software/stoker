@@ -812,6 +812,9 @@ export function List({
         const timer = setTimeout(() => {
             if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
                 backToStart()
+            } else if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly)) {
+                setPageIndex(0)
+                setState(`collection-page-number-${labels.collection.toLowerCase()}`, "page", 1)
             }
         }, 750)
         return () => clearTimeout(timer)
@@ -950,13 +953,13 @@ export function List({
                     }
                 }
             } else if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly)) {
-                const newPageCount = Math.ceil(list.length / pageSize) || 1
+                const newPageCount = Math.ceil(searchList.length / pageSize) || 1
                 if (newPageCount !== pageCount) {
                     setPageCount(newPageCount)
                 }
             }
         }
-    }, [list])
+    }, [list, searchList])
 
     const nextPage = useCallback(() => {
         if (isLoading) return

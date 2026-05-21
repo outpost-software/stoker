@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.150
+
+### Patch Changes
+
+- fix: fix page number / count when search present
+
 ## 0.5.149
 
 ### Patch Changes
