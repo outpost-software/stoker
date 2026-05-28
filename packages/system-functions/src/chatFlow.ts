@@ -216,7 +216,7 @@ export const chatFlow = (
                 retriever,
                 query: input.messages.map((message) => message.content.map((part) => part.text).join("")).join("\n\n"),
                 options: {
-                    limit: chat.defaultQueryLimit || 100,
+                    limit: chat.defaultQueryLimit || 10,
                     where,
                     collection: `tenants/${tenantId}/system_embeddings_${labels.collection}`,
                 },

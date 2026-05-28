@@ -12,7 +12,7 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
         ai: {
             chat: {
                 name: "Stoker",
-                defaultQueryLimit: 100,
+                defaultQueryLimit: 50,
                 roles: ["Office"],
             },
             embedding: true,
