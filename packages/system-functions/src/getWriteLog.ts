@@ -6,7 +6,7 @@ import {
     WriteLogEntry,
 } from "@stoker-platform/types";
 import {getFirestorePathRef} from "@stoker-platform/node-client";
-import {error as errorLogger} from "firebase-functions/logger";
+import {error as errorLogger, warn} from "firebase-functions/logger";
 
 /* eslint-disable max-len */
 
@@ -66,8 +66,8 @@ export const getWriteLog = async (
         const db = getFirestore();
         const permissionsSnapshot =
             await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(user).get();
-        const permissions = permissionsSnapshot.data() as StokerPermissions;
-        if (!permissions.Enabled) {
+        const permissions = permissionsSnapshot.data() as StokerPermissions | undefined;
+        if (!permissions?.Enabled) {
             throw new HttpsError(
                 "permission-denied",
                 "User account is disabled",
@@ -76,7 +76,20 @@ export const getWriteLog = async (
         const pathRef = getFirestorePathRef(db, path, tenantId);
         if (log) {
             const logSnapshot = await pathRef.doc(id).collection("system_write_log").doc(log).get();
-            const logData = logSnapshot.data() as WriteLogEntry;
+            const logData = logSnapshot.data() as WriteLogEntry | undefined;
+            if (!logData) {
+                warn("Write log document not found on server", {
+                    tenantId,
+                    user,
+                    collection,
+                    path,
+                    id,
+                    log,
+                });
+                return {
+                    status: "not-found",
+                };
+            }
             if (user !== logData.user) {
                 throw new HttpsError(
                     "permission-denied",

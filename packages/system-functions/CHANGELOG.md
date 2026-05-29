@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.71
+
+### Patch Changes
+
+- fix: account for non-existent server write log entry
+
 ## 0.5.70
 
 ### Patch Changes
