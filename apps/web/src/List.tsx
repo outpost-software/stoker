@@ -740,23 +740,18 @@ export function List({
                 const field = getField(fields, columnId)
                 if (!isRelationField(field)) return 0
                 const titleField = field.titleField
+                let rawA: string
+                let rawB: string
                 if (titleField) {
-                    return (Object.values(rowA.original[field.name])[0] as StokerRecord)[titleField].toLowerCase() >
-                        (Object.values(rowB.original[field.name])[0] as StokerRecord)[titleField].toLowerCase()
-                        ? 1
-                        : (Object.values(rowA.original[field.name])[0] as StokerRecord)[titleField].toLowerCase() <
-                            (Object.values(rowB.original[field.name])[0] as StokerRecord)[titleField].toLowerCase()
-                          ? -1
-                          : 0
+                    const recordA = Object.values(rowA.original[field.name] ?? {})[0] as StokerRecord | undefined
+                    const recordB = Object.values(rowB.original[field.name] ?? {})[0] as StokerRecord | undefined
+                    rawA = recordA?.[titleField]?.toString().toLowerCase() ?? ""
+                    rawB = recordB?.[titleField]?.toString().toLowerCase() ?? ""
                 } else {
-                    return (Object.keys(rowA.original[field.name])[0] as string) >
-                        (Object.keys(rowB.original[field.name])[0] as string)
-                        ? 1
-                        : (Object.keys(rowA.original[field.name])[0] as string) <
-                            (Object.keys(rowB.original[field.name])[0] as string)
-                          ? -1
-                          : 0
+                    rawA = (Object.keys(rowA.original[field.name] ?? {})[0] ?? "").toLowerCase()
+                    rawB = (Object.keys(rowB.original[field.name] ?? {})[0] ?? "").toLowerCase()
                 }
+                return rawA > rawB ? 1 : rawA < rawB ? -1 : 0
             },
             dateSortingFn: (rowA, rowB, columnId) => {
                 const valueA = getSortingValue(

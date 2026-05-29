@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.152
+
+### Patch Changes
+
+- fix: allow for missing values in relation sort
+
 ## 0.5.151
 
 ### Patch Changes
