@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.153
+
+### Patch Changes
+
+- fix: fix renaming while uploading issue
+
 ## 0.5.152
 
 ### Patch Changes

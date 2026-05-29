@@ -835,7 +835,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
     const handleEditName = useCallback(
         async (item: StorageItem, newName: string, options?: { skipReload?: boolean }) => {
             if (!record) return
-            if (newName === item.name) {
+            if (newName === undefined || newName === null || newName === item.name) {
                 setEditingFile(null)
                 return
             }
@@ -1066,7 +1066,10 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
     const handleRenameAll = useCallback(async () => {
         const filesToRename = items
-            .filter((item) => canEditFile(item) && bulkRenameNames[item.name] !== item.name)
+            .filter((item) => {
+                const newName = bulkRenameNames[item.name]
+                return canEditFile(item) && newName !== undefined && newName !== item.name
+            })
             .map((item) => ({ item, newName: bulkRenameNames[item.name] }))
 
         if (filesToRename.length === 0) {
@@ -1325,7 +1328,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                         <Input
                                                             value={
                                                                 bulkRenameMode
-                                                                    ? bulkRenameNames[item.name]
+                                                                    ? (bulkRenameNames[item.name] ?? item.name)
                                                                     : newFileName
                                                             }
                                                             disabled={bulkRenameMode && bulkRenameInProgress}
