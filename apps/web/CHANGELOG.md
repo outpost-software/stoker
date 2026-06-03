@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.155
+
+### Patch Changes
+
+- fix: correctly detect server writes
+
 ## 0.5.154
 
 ### Patch Changes

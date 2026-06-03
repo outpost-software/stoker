@@ -12,13 +12,14 @@ export const isServerUpdate = (collection: CollectionSchema, record: Partial<Sto
     const tokenFields = fields.filter((field) => field.saveToAuthToken)
     return !!(
         serverWriteOnly ||
-        (auth && user?.operation) ||
-        record.Role ||
-        record.Enabled !== undefined ||
-        record.Name ||
-        record.Email ||
-        record.Photo_URL ||
-        tokenFields.some((field) => record[field.name] !== undefined)
+        (auth &&
+            (user?.operation ||
+                record.Role ||
+                record.Enabled !== undefined ||
+                record.Name ||
+                record.Email ||
+                record.Photo_URL ||
+                tokenFields.some((field) => record[field.name] !== undefined)))
     )
 }
 
