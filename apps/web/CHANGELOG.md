@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.158
+
+### Patch Changes
+
+- fix: improve preload cache expansion handling
+
 ## 0.5.157
 
 ### Patch Changes

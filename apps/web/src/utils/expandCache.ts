@@ -4,7 +4,7 @@ import cloneDeep from "lodash/cloneDeep.js"
 import { getRange } from "@stoker-platform/utils"
 import { getTimezone, preloadCollection } from "@stoker-platform/web-client"
 
-export const expandCache = (
+export const expandCache = async (
     collection: CollectionSchema,
     newRange: DateRange,
     preloadRange: DateRange | undefined,
@@ -16,6 +16,8 @@ export const expandCache = (
             | undefined
         >
     >,
+    setIsExpandingCache?: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsRouteLoading?: (operation: "+" | "-", route: string, immediate?: boolean) => void,
 ) => {
     const { labels, preloadCache } = collection
     const timezone = getTimezone()
@@ -40,16 +42,23 @@ export const expandCache = (
             } else if (preloadCacheRangeDates.end) {
                 preloadCacheRange.end = preloadRange.to as Date
             }
-            preloadCollection(labels.collection, undefined, preloadCacheRange)
-            setPreloadRange((prev) => {
-                return {
-                    ...prev,
-                    [labels.collection]: {
-                        from: preloadCacheRange.start as Date,
-                        to: preloadCacheRange.end as Date,
-                    },
-                }
-            })
+            setIsExpandingCache?.(true)
+            setIsRouteLoading?.("+", location.pathname, true)
+            try {
+                await preloadCollection(labels.collection, undefined, preloadCacheRange)
+                setPreloadRange((prev) => {
+                    return {
+                        ...prev,
+                        [labels.collection]: {
+                            from: preloadCacheRange.start as Date,
+                            to: preloadCacheRange.end as Date,
+                        },
+                    }
+                })
+            } finally {
+                setIsExpandingCache?.(false)
+                setIsRouteLoading?.("-", location.pathname)
+            }
         }
     }
 }

@@ -51,8 +51,9 @@ export function DateRangeSelector({
     const { filters, setFilters } = useFilters()
     const [, setState] = useStokerState()
     const [isInitialized, setIsInitialized] = useState(false)
+    const [isExpandingCache, setIsExpandingCache] = useState(false)
 
-    const { isRouteLoading, isRouteLoadingImmediate } = useRouteLoading()
+    const { isRouteLoading, isRouteLoadingImmediate, setIsRouteLoading } = useRouteLoading()
 
     useEffect(() => {
         if (filters.length === 0 || isInitialized) return
@@ -134,7 +135,7 @@ export function DateRangeSelector({
                 if (!relationList) {
                     setState(`collection-range-${labels.collection.toLowerCase()}`, "range", JSON.stringify(value))
                 }
-                expandCache(collection, value, preloadRange, setPreloadRange)
+                expandCache(collection, value, preloadRange, setPreloadRange, setIsExpandingCache, setIsRouteLoading)
             })
         },
         [preloadRange, rangeFilter, rangeSelector, isInitialized, currentField],
@@ -145,6 +146,7 @@ export function DateRangeSelector({
     const disabled =
         isRouteLoading.has(location.pathname) ||
         (isPreloadCacheEnabled && !preloadRange) ||
+        (isPreloadCacheEnabled && isExpandingCache) ||
         connectionStatus === "offline" ||
         tryFunction(customization.admin?.disableRangeSelector)
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
