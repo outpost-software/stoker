@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.154
+
+### Patch Changes
+
+- fix: round list metric value
+
 ## 0.5.153
 
 ### Patch Changes
