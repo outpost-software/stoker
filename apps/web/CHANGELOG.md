@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.157
+
+### Patch Changes
+
+- feat: export datetime fields in correct format
+    - @stoker-platform/node-client@0.5.63
+    - @stoker-platform/utils@0.5.54
+    - @stoker-platform/web-client@0.5.64
+
 ## 0.5.156
 
 ### Patch Changes

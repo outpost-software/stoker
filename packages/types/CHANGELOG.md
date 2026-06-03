@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.42
+
+### Patch Changes
+
+- feat: export datetime fields in correct format
+
 ## 0.5.41
 
 ### Patch Changes

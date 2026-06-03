@@ -70,7 +70,9 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
             if (field.type === "Boolean") {
                 docData[field.name] = escapeCSVField(doc[field.name] ? "Yes" : "No")
             } else if (field.type === "Timestamp" && doc[field.name]) {
-                const formattedDate = DateTime.fromJSDate((doc[field.name] as Timestamp).toDate()).toFormat(dateFormat)
+                const formattedDate = tryFunction(fieldCustomization.admin?.time)
+                    ? DateTime.fromJSDate((doc[field.name] as Timestamp).toDate()).toFormat("dd/MM/yy HH:mm")
+                    : DateTime.fromJSDate((doc[field.name] as Timestamp).toDate()).toFormat(dateFormat)
                 docData[field.name] = escapeCSVField(formattedDate)
             } else if (isRelationField(field) && doc[field.name]) {
                 const relationCollection = schema.collections[field.collection]

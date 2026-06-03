@@ -1317,7 +1317,7 @@ Set to `true` on a Number field to make it a slider
 
 #### time
 
-`boolean | (() => boolean | Promise<boolean>)`
+`boolean | (() => boolean)`
 
 Set to `true` on a String field to make it a time field.
 
