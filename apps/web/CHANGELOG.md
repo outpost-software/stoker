@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.159
+
+### Patch Changes
+
+- fix: fix initial map load not showing pins
+
 ## 0.5.158
 
 ### Patch Changes

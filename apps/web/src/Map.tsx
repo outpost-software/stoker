@@ -431,10 +431,10 @@ export function Map({
     }, [list, prevList, markers, recordTitleField, mapConfig])
 
     useEffect(() => {
-        if (isLoaded && list) {
+        if (isLoaded && list && isMapReady) {
             fetchMarkers()
         }
-    }, [list])
+    }, [list, isMapReady])
 
     const noLocationRecords = useMemo(() => {
         if (!mapConfig || !list) return []
