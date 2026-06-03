@@ -1277,7 +1277,7 @@ export function List({
                         if (metric.decimal) {
                             value = total.toFixed(metric.decimal)
                         } else {
-                            value = total.toString()
+                            value = Number(total.toFixed(2)).toString()
                         }
                         if (metric.prefix) {
                             value = `${metric.prefix}${value}`
