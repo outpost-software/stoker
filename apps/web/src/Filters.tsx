@@ -274,10 +274,12 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 }
             }
 
+            let searchObjectIDs: string[] | undefined
             if (fullTextSearch && !isCollectionPreloadCacheEnabled && query) {
                 const disjunctions = getFilterDisjunctions(collectionSchema)
                 const hitsPerPage = disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
                 const objectIDs = await performFullTextSearch(collectionSchema, query, hitsPerPage, constraints)
+                searchObjectIDs = objectIDs
                 if (objectIDs.length > 0) {
                     if (isCollectionServerReadOnly) {
                         newConstraints.push(["id", "in", objectIDs] as QueryConstraint & [string, string, unknown])
@@ -314,10 +316,24 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(collectionSchema, query, data.records)
-                    const objectIds = searchResults.map((result) => result.id)
+                    const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
+                    const ordered = searchResults
+                        .map((result) => recordsById.get(result.id))
+                        .filter((doc): doc is StokerRecord => !!doc)
+                        .slice(0, numberOfResults)
                     setData((prev) => ({
                         ...prev,
-                        [field]: data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults),
+                        [field]: ordered,
+                    }))
+                } else if (query && searchObjectIDs) {
+                    const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
+                    const ordered = searchObjectIDs
+                        .map((id) => recordsById.get(id))
+                        .filter((doc): doc is StokerRecord => !!doc)
+                        .slice(0, numberOfResults)
+                    setData((prev) => ({
+                        ...prev,
+                        [field]: ordered,
                     }))
                 } else {
                     setData((prev) => ({

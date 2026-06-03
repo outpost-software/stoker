@@ -1974,10 +1974,12 @@ function RelationField({
                 )
             }
 
+            let searchObjectIDs: string[] | undefined
             if (fullTextSearch && !isCollectionPreloadCacheEnabled && query) {
                 const disjunctions = getFilterDisjunctions(relationCollection)
                 const hitsPerPage = disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
                 const objectIDs = await performFullTextSearch(relationCollection, query, hitsPerPage, constraints)
+                searchObjectIDs = objectIDs
                 if (objectIDs.length > 0) {
                     if (isCollectionServerReadOnly) {
                         newConstraints.push(["id", "in", objectIDs] as QueryConstraint &
@@ -1997,7 +1999,10 @@ function RelationField({
             }
 
             const orderData = async (data: StokerRecord[]) => {
-                const defaultSort = await tryPromise(customization.admin?.defaultSort)
+                const defaultSort = (await tryPromise(customization.admin?.defaultSort)) || {
+                    field: recordTitleField,
+                    direction: "asc",
+                }
                 if (defaultSort) {
                     return sortList(
                         relationCollection,
@@ -2027,27 +2032,32 @@ function RelationField({
                         if (!fieldCustomization.admin?.filterResults) return true
                         return !!fieldCustomization.admin?.filterResults?.(result, collection, record)
                     })
-                    const objectIds = searchResults.map((result) => result.id)
-                    orderData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults)).then(
-                        (data) => {
-                            setData(data)
-                        },
-                    )
+                    const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
+                    const ordered = searchResults
+                        .map((result) => recordsById.get(result.id))
+                        .filter((doc): doc is StokerRecord => !!doc)
+                        .slice(0, numberOfResults)
+                    setData(ordered)
+                } else if (query && searchObjectIDs) {
+                    const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
+                    const ordered = searchObjectIDs
+                        .map((id) => recordsById.get(id))
+                        .filter((doc): doc is StokerRecord => !!doc)
+                        .slice(0, numberOfResults)
+                    setData(ordered)
                 } else {
                     orderData(
-                        data.records
-                            .filter((doc) => {
-                                if (!isCollectionPreloadCacheEnabled) return true
-                                if (!fieldCustomization.admin?.filterResults) return true
-                                return !!fieldCustomization.admin?.filterResults?.(
-                                    doc as unknown as SearchResult,
-                                    collection,
-                                    record,
-                                )
-                            })
-                            .slice(0, numberOfResults),
+                        data.records.filter((doc) => {
+                            if (!isCollectionPreloadCacheEnabled) return true
+                            if (!fieldCustomization.admin?.filterResults) return true
+                            return !!fieldCustomization.admin?.filterResults?.(
+                                doc as unknown as SearchResult,
+                                collection,
+                                record,
+                            )
+                        }),
                     ).then((data) => {
-                        setData(data)
+                        setData(data.slice(0, numberOfResults))
                     })
                 }
                 setIsLoadingImmediate(false)

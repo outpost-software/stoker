@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.160
+
+### Patch Changes
+
+- fix: improve relation search ordering
+
 ## 0.5.159
 
 ### Patch Changes

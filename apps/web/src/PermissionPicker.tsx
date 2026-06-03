@@ -108,10 +108,12 @@ export const PermissionPicker = ({
                 }
             }
 
+            let searchObjectIDs: string[] | undefined
             if (fullTextSearch && !isCollectionPreloadCacheEnabled && query) {
                 const disjunctions = getFilterDisjunctions(collection)
                 const hitsPerPage = disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
                 const objectIDs = await performFullTextSearch(collection, query, hitsPerPage, constraints)
+                searchObjectIDs = objectIDs
                 if (objectIDs.length > 0) {
                     if (isCollectionServerReadOnly) {
                         newConstraints.push(["id", "in", objectIDs] as QueryConstraint &
@@ -142,8 +144,19 @@ export const PermissionPicker = ({
                 const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
                 if (isCollectionPreloadCacheEnabled && query) {
                     const searchResults = localFullTextSearch(collection, query, data.records)
-                    const objectIds = searchResults.map((result) => result.id)
-                    setData(data.records.filter((doc) => objectIds.includes(doc.id)).slice(0, numberOfResults))
+                    const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
+                    const ordered = searchResults
+                        .map((result) => recordsById.get(result.id))
+                        .filter((doc): doc is StokerRecord => !!doc)
+                        .slice(0, numberOfResults)
+                    setData(ordered)
+                } else if (query && searchObjectIDs) {
+                    const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
+                    const ordered = searchObjectIDs
+                        .map((id) => recordsById.get(id))
+                        .filter((doc): doc is StokerRecord => !!doc)
+                        .slice(0, numberOfResults)
+                    setData(ordered)
                 } else {
                     setData(data.records.slice(0, numberOfResults))
                 }
