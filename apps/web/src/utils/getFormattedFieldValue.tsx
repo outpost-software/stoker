@@ -182,7 +182,12 @@ export const getFormattedFieldValue = (
                             }
                         }}
                     >
-                        <span className={cn(card === "header" && "line-clamp-2")}>
+                        <span
+                            className={cn(
+                                card === "header" && "line-clamp-2",
+                                card && card !== "header" && maxLines && `line-clamp-${maxLines - 1}`,
+                            )}
+                        >
                             {/* eslint-disable-next-line security/detect-object-injection */}
                             {titleField ? (Object.values(value)[0] as StokerRecord)[titleField] : Object.keys(value)[0]}
                         </span>

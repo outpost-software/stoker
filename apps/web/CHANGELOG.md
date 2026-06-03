@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.156
+
+### Patch Changes
+
+- fix: clamp board relations based on maxSectionLines
+
 ## 0.5.155
 
 ### Patch Changes
