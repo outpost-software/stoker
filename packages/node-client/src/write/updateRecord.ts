@@ -379,7 +379,9 @@ export const updateRecord = async (
             if (!originalPermissionsSnapshot?.exists) throw new Error("PERMISSION_DENIED")
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             originalPermissions = originalPermissionsSnapshot.data()!
-            if (partial.Role && partial.Role !== originalRecord.Role && !user?.permissions) {
+            const suppliedPermissions =
+                user?.permissions && Object.keys(user.permissions).length > 0 ? user.permissions : undefined
+            if (partial.Role && partial.Role !== originalRecord.Role && !suppliedPermissions) {
                 user ||= { operation: "update", permissions: {} as StokerPermissions }
                 user.permissions = cloneDeep(originalPermissions)
                 user.permissions.Role = partial.Role
