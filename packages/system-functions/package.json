@@ -1,7 +1,7 @@
 {
     "name": "@stoker-platform/system-functions",
     "type": "module",
-    "version": "0.5.72",
+    "version": "0.5.73",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "lib/main.js",
     "types": "lib/main.d.ts",
@@ -16,22 +16,22 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
-        "@genkit-ai/firebase": "^1.33.0",
-        "@genkit-ai/google-genai": "^1.33.0",
+        "@genkit-ai/firebase": "^1.36.0",
+        "@genkit-ai/google-genai": "^1.36.0",
         "@google-cloud/storage": "^7.19.0",
-        "@stoker-platform/node-client": "0.5.63",
-        "@stoker-platform/types": "0.5.42",
-        "@stoker-platform/utils": "0.5.54",
+        "@stoker-platform/node-client": "0.5.64",
+        "@stoker-platform/types": "0.5.43",
+        "@stoker-platform/utils": "0.5.55",
         "dotenv": "^17.4.2",
-        "firebase-admin": "^13.8.0",
+        "firebase-admin": "^13.10.0",
         "firebase-functions": "^6.6.0",
-        "genkit": "^1.33.0",
+        "genkit": "^1.36.0",
         "lodash": "^4.18.1",
-        "twilio": "^6.0.0"
+        "twilio": "^6.0.2"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^8.59.0",
-        "@typescript-eslint/parser": "^8.59.0",
+        "@typescript-eslint/eslint-plugin": "^8.60.1",
+        "@typescript-eslint/parser": "^8.60.1",
         "eslint": "^8.57.1",
         "eslint-config-google": "^0.14.0",
         "eslint-plugin-import": "^2.32.0",
