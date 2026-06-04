@@ -74,7 +74,7 @@ export const updateRecord = async (
     },
 ) => {
     const userId = options?.userId
-    const user = options?.user
+    let user = options?.user
     let context = options?.context
     const tenantId = getTenant()
     const globalConfig = getGlobalConfigModule()
@@ -256,7 +256,7 @@ export const updateRecord = async (
 
     try {
         if (createUserRequest) {
-            if (!user.password) throw new Error("Password is required")
+            if (!user?.password) throw new Error("Password is required")
         }
         if (!options?.providedTransaction) {
             const record = { ...fullOriginalRecord, ...partial }
@@ -379,6 +379,11 @@ export const updateRecord = async (
             if (!originalPermissionsSnapshot?.exists) throw new Error("PERMISSION_DENIED")
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             originalPermissions = originalPermissionsSnapshot.data()!
+            if (partial.Role && partial.Role !== originalRecord.Role && !user?.permissions) {
+                user ||= { operation: "update", permissions: {} as StokerPermissions }
+                user.permissions = cloneDeep(originalPermissions)
+                user.permissions.Role = partial.Role
+            }
             if (user?.permissions) {
                 user.permissions.Role ||= partial.Role || originalRecord.Role
                 user.permissions.Enabled ??= partial.Enabled ?? originalRecord.Enabled
