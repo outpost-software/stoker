@@ -2,7 +2,6 @@ import { Timestamp as AdminTimestamp, FieldValue } from "firebase-admin/firestor
 import { Timestamp, WhereFilterOp, WriteBatch } from "firebase/firestore"
 import { NodeUtilities, WebUtilities } from "./app"
 import { CalendarOptions } from "@fullcalendar/core"
-import { SearchResult } from "minisearch"
 
 export type StokerRole = string
 export type StokerCollection = string
@@ -911,7 +910,7 @@ export interface FieldAdmin {
     skipFormRequiredValidation?: boolean | (() => boolean)
     overrideFormRequiredValidation?: (operation: "create" | "update", record?: StokerRecord) => boolean
     filterValues?: (value: string | number, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean
-    filterResults?: (result: SearchResult, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean
+    filterResults?: (result: StokerRecord, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean
     modifyResultTitle?: (
         record: StokerRecord,
         parentCollection: CollectionSchema,

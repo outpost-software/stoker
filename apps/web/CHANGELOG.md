@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.162
+
+### Patch Changes
+
+- fix: improve local full text search filtering
+    - @stoker-platform/node-client@0.5.65
+    - @stoker-platform/utils@0.5.56
+    - @stoker-platform/web-client@0.5.66
+
 ## 0.5.161
 
 ### Patch Changes

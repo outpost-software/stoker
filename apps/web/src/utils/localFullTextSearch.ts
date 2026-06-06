@@ -1,11 +1,11 @@
 import { CollectionSchema, StokerRecord } from "@stoker-platform/types"
-import MiniSearch, { Options, SearchResult } from "minisearch"
+import MiniSearch, { Options } from "minisearch"
 
 export const localFullTextSearch = (
     collection: CollectionSchema,
     query: string,
     list: StokerRecord[],
-    filter?: (result: SearchResult) => boolean,
+    filter?: (result: StokerRecord) => boolean,
     tokenize?: boolean,
 ) => {
     const { recordTitleField, fullTextSearch } = collection
@@ -17,14 +17,15 @@ export const localFullTextSearch = (
                 fuzzy: 0.2,
                 prefix: true,
             }),
-            filter,
         },
+    }
+    if (filter) {
+        list = list.filter((record) => filter(record))
     }
     if (tokenize) {
         miniSearchConfig.tokenize = (string) => [string]
     }
     const miniSearch = new MiniSearch(miniSearchConfig)
-    // eslint-disable-next-line security/detect-object-injection
     miniSearch.addAll(list)
     const results = miniSearch.search(query)
     return results

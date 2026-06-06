@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.44
+
+### Patch Changes
+
+- fix: improve local full text search filtering
+
 ## 0.5.43
 
 ### Patch Changes

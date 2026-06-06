@@ -171,7 +171,6 @@ import {
 import { FiltersProvider } from "./providers/FiltersProvider"
 import Collection from "./Collection"
 import { Separator } from "./components/ui/separator"
-import { SearchResult } from "minisearch"
 import { sortList } from "./utils/sortList"
 import MonthPicker from "./components/ui/month-picker"
 
@@ -2050,11 +2049,7 @@ function RelationField({
                         data.records.filter((doc) => {
                             if (!isCollectionPreloadCacheEnabled) return true
                             if (!fieldCustomization.admin?.filterResults) return true
-                            return !!fieldCustomization.admin?.filterResults?.(
-                                doc as unknown as SearchResult,
-                                collection,
-                                record,
-                            )
+                            return !!fieldCustomization.admin?.filterResults?.(doc, collection, record)
                         }),
                     ).then((data) => {
                         setData(data.slice(0, numberOfResults))
