@@ -18,6 +18,9 @@ const Settings: GenerateSchema = (): CollectionSchema => {
             },
         },
         indexExemption: true,
+        preloadCache: {
+            roles: ["Admin"],
+        },
         recordTitleField: "Organization_Name",
         admin: {
             navbarPosition: 4,

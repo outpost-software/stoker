@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.97
+
+### Patch Changes
+
+- feat: enable Settings preload cache
+
 ## 0.5.96
 
 ### Patch Changes
