@@ -635,10 +635,19 @@ export function List({
         return [selectColumnDef, ...fieldColumns]
     }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus])
 
+    const isSearchRelevanceOrder = !!(search && isPreloadCacheEnabled)
+
     const searchList = useMemo(() => {
         if (search && (isPreloadCacheEnabled || isServerReadOnly)) {
-            const searchResults = localFullTextSearch(collection, search, list || []).map((result) => result.id)
-            return list?.filter((record) => searchResults.includes(record.id)) || []
+            const searchResults = localFullTextSearch(collection, search, list || [])
+            if (isPreloadCacheEnabled) {
+                const recordsById = new Map((list || []).map((record) => [record.id, record]))
+                return searchResults
+                    .map((result) => recordsById.get(result.id))
+                    .filter((record): record is StokerRecord => record !== undefined)
+            }
+            const searchResultIds = searchResults.map((result) => result.id)
+            return list?.filter((record) => searchResultIds.includes(record.id)) || []
         }
         return list || []
     }, [isPreloadCacheEnabled, isServerReadOnly, list, search])
@@ -658,6 +667,7 @@ export function List({
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: (sortingUpdater) => {
+            if (isSearchRelevanceOrder) return
             if (typeof sortingUpdater === "function") {
                 const newSorting = sortingUpdater(sorting)
                 const field = getField(fields, newSorting[0].id)
@@ -697,9 +707,9 @@ export function List({
         onRowSelectionChange: setRowSelection,
         pageCount,
         autoResetPageIndex: false,
-        enableSorting: true,
+        enableSorting: !isSearchRelevanceOrder,
         state: {
-            sorting,
+            sorting: isSearchRelevanceOrder ? [] : sorting,
             columnFilters,
             rowSelection,
             pagination: {
