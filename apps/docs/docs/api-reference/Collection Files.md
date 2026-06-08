@@ -1399,7 +1399,7 @@ Filter the options in the dropdown for String or Number fields with `values` set
 
 #### filterResults
 
-`(result: SearchResult, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean`
+`(result: StokerRecord, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean`
 
 Filter the options in the dropdown for relational fields. Only works when `preloadCache` is enabled for the user's role.
 
