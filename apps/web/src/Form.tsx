@@ -5226,7 +5226,7 @@ function RecordForm({
                                                                 Are you absolutely sure?
                                                             </AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                {`This will remove system access for this ${labels.record}.`}
+                                                                {`This will remove system access for this ${recordTitle}.`}
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
