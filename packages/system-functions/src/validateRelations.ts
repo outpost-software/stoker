@@ -397,7 +397,7 @@ export const validateRelations = (
                                             (lowercaseFields.size === 1 && !isEqual(mainRelation[`${includeField}_Lowercase`], source[`${includeField}_Lowercase`])))) {
                                             if (includeField !== "id") {
                                                 // eslint-disable-next-line security/detect-object-injection
-                                                const sourceValue = source[includeField] ?? FieldValue.delete();
+                                                const sourceValue = source[includeField] !== undefined ? source[includeField] : FieldValue.delete();
                                                 fieldUpdate[`${field.name}.${id}.${includeField}`] = sourceValue;
                                                 fieldUpdateWithSingle[`${field.name}.${id}.${includeField}`] = sourceValue;
                                                 if (lowercaseFields.size === 1) {
@@ -408,7 +408,7 @@ export const validateRelations = (
                                             }
                                             if (singleFieldRelationsNames.includes(field.name)) {
                                                 // eslint-disable-next-line security/detect-object-injection
-                                                fieldUpdateWithSingle[`${field.name}_Single.${includeField}`] = source[includeField] ?? FieldValue.delete();
+                                                fieldUpdateWithSingle[`${field.name}_Single.${includeField}`] = source[includeField] !== undefined ? source[includeField] : FieldValue.delete();
                                                 if (lowercaseFields.size === 1) {
                                                     fieldUpdateWithSingle[`${field.name}_Single.${includeField}_Lowercase`] = source[`${includeField}_Lowercase`] ?? FieldValue.delete();
                                                 }

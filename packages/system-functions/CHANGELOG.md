@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.75
+
+### Patch Changes
+
+- fix: correct nullable include field values to null
+
 ## 0.5.74
 
 ### Patch Changes
