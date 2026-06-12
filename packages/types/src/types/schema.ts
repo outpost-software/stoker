@@ -754,6 +754,20 @@ export interface CollectionAdmin {
                     field: string
                     direction?: "asc" | "desc"
                 }>)
+    secondarySort?:
+        | {
+              field: string
+              direction?: "asc" | "desc"
+          }
+        | (() =>
+              | {
+                    field: string
+                    direction?: "asc" | "desc"
+                }
+              | Promise<{
+                    field: string
+                    direction?: "asc" | "desc"
+                }>)
     itemsPerPage?: number | (() => number | Promise<number>)
     list?: ListConfig | (() => ListConfig | Promise<ListConfig>)
     cards?: CardsConfig | (() => CardsConfig | Promise<CardsConfig>)
@@ -819,6 +833,10 @@ export interface CollectionAdminCache {
     defaultView?: "list" | "cards" | "images" | "map" | "calendar"
     defaultRoute?: string
     defaultSort?: {
+        field: string
+        direction?: "asc" | "desc"
+    }
+    secondarySort?: {
         field: string
         direction?: "asc" | "desc"
     }

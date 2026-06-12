@@ -183,6 +183,13 @@ function Collection({
           }
         | undefined
     >(undefined)
+    const [secondarySort, setSecondarySort] = useState<
+        | {
+              field: string
+              direction?: "asc" | "desc"
+          }
+        | undefined
+    >(undefined)
 
     const [state, setStokerState] = useStokerState()
     const setState = useCallback(
@@ -1194,6 +1201,16 @@ function Collection({
                   }
                 | undefined
             setDefaultSort(defaultSortOverride || defaultSort)
+            const secondarySort = (await getCachedConfigValue(customization, [
+                ...collectionAdminPath,
+                "secondarySort",
+            ])) as
+                | {
+                      field: string
+                      direction?: "asc" | "desc"
+                  }
+                | undefined
+            setSecondarySort(secondarySort)
             const sortState = state[`collection-sort-${labels.collection.toLowerCase()}`]
             if (sortState && !relationList) {
                 const newSorting = JSON.parse(sortState)
@@ -2513,6 +2530,7 @@ function Collection({
                                                 setBackToStartKey={setBackToStartKey}
                                                 search={search}
                                                 defaultSort={defaultSort}
+                                                secondarySort={secondarySort}
                                                 setOptimisticList={setOptimisticList}
                                                 relationList={relationList}
                                                 relationCollection={relationCollection}

@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.45
+
+### Patch Changes
+
+- feat: add secondary sort feature
+
 ## 0.5.44
 
 ### Patch Changes

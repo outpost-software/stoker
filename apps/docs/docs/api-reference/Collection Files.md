@@ -1582,6 +1582,18 @@ The default route for the record page. Can be "edit", "files", a relation list c
 
 The default field to sort the list by.
 
+### secondarySort
+
+```
+{ field: string, direction?: "asc" | "desc" } | 
+(
+    () => { field: string, direction?: "asc" | "desc" } |
+    Promise<{ field: string, direction?: "asc" | "desc" }>
+)
+```
+
+The secondary field to sort the list by. Only works for collections with `preloadCache` or `access.serverReadOnly` enabled.
+
 ### rangeSelectorValues
 
 `"range" | "week" | "month" | ("range" | "week" | "month")[] | (() => "range" | "week" | "month" | ("range" | "week" | "month")[])`

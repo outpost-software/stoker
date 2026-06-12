@@ -212,6 +212,12 @@ interface ListProps {
               direction?: "asc" | "desc"
           }
         | undefined
+    secondarySort:
+        | {
+              field: string
+              direction?: "asc" | "desc"
+          }
+        | undefined
     setOptimisticList: () => void
     relationList?: RelationList
     relationCollection?: CollectionSchema
@@ -237,6 +243,7 @@ export function List({
     setBackToStartKey,
     search,
     defaultSort,
+    secondarySort,
     setOptimisticList,
     relationList,
     relationCollection,
@@ -838,7 +845,10 @@ export function List({
         } else if (recordTitleField) {
             setSorting([{ id: recordTitleField, desc: false }])
         }
-    }, [table, recordTitleField])
+        if ((isPreloadCacheEnabled || isServerReadOnly) && secondarySort) {
+            setSorting((prev) => [...prev, { id: secondarySort.field, desc: secondarySort.direction === "desc" }])
+        }
+    }, [table, recordTitleField, secondarySort, isPreloadCacheEnabled, isServerReadOnly])
 
     useEffect(() => {
         if (isPreloadCacheEnabled || isServerReadOnly) {
