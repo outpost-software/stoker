@@ -21,6 +21,7 @@ import { useGoToRecord } from "./utils/goToRecord"
 import { performFullTextSearch } from "./utils/performFullTextSearch"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { useConnection } from "./providers/ConnectionProvider"
+import { SearchResult } from "minisearch"
 
 export function SearchAllResults({ collection, search }: { collection: CollectionSchema; search: string }) {
     const { labels, fullTextSearch, recordTitleField, softDelete } = collection
@@ -92,10 +93,15 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                             const activeRecords = softDelete?.archivedField
                                 ? loadedDocs.filter((doc) => !doc[softDelete.archivedField])
                                 : loadedDocs
-                            const miniSearchResults = localFullTextSearch(collection, search, activeRecords)
-                            const searchRecords = activeRecords.filter((doc) =>
-                                miniSearchResults.map((result) => result.id).includes(doc.id),
+                            const miniSearchResults: SearchResult[] = localFullTextSearch(
+                                collection,
+                                search,
+                                activeRecords,
                             )
+                            const recordsById = new Map(activeRecords.map((record) => [record.id, record]))
+                            const searchRecords = miniSearchResults
+                                .map((result) => recordsById.get(result.id))
+                                .filter((record): record is StokerRecord => record !== undefined)
                             setResults(searchRecords.slice(0, MAX_RESULTS))
                             setLoading(false)
                         } else {
