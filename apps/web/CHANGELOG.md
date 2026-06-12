@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.164
+
+### Patch Changes
+
+- feat: provide previous to onChange
+
 ## 0.5.163
 
 ### Patch Changes

@@ -1668,11 +1668,11 @@ When the "create" form is opened from within another record's relation list, the
 (
     operation: "create" | "update",
     record: StokerRecord,
-    originalRecord: StokerRecord,
+    previous: StokerRecord | undefined,
 ) => Partial<StokerRecord> | void | Promise<Partial<StokerRecord> | void>
 ```
 
-A hook that fires whenenver the form is updated. Optionally return an object with field updates.
+A hook that fires whenever the form is updated. Optionally return an object with field updates.
 
 ### live
 

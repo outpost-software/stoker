@@ -3733,6 +3733,8 @@ function RecordForm({
 
     const suppressDraftSaveRef = useRef(false)
 
+    const previous = useRef<StokerRecord | undefined>(undefined)
+
     useEffect(() => {
         if (!(suppressDraftSaveRef?.current || !isDirty)) {
             if (
@@ -3764,7 +3766,7 @@ function RecordForm({
                 tryPromise(customization.admin.onChange, [
                     operation,
                     cloneDeep(form.getValues()) as StokerRecord,
-                    prevState as StokerRecord,
+                    previous.current as StokerRecord,
                 ]).then((updatedRecord: StokerRecord) => {
                     if (updatedRecord && !isEqual(updatedRecord, formValues)) {
                         Object.entries(updatedRecord).forEach(([key, value]) => {
@@ -3773,6 +3775,7 @@ function RecordForm({
                     }
                 })
             }
+            previous.current = cloneDeep(form.getValues()) as StokerRecord
         }, 0)
     }, [form.watch()])
 
