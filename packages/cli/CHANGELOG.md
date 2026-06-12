@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.100
+
+### Patch Changes
+
+- fix: add no-cache headers
+
 ## 0.5.99
 
 ### Patch Changes
