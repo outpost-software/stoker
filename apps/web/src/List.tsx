@@ -19,6 +19,7 @@ import {
     getCachedConfigValue,
     getField,
     getFieldCustomization,
+    getSystemFieldsSchema,
     isRelationField,
     isSortingEnabled,
     tryFunction,
@@ -253,6 +254,7 @@ export function List({
     hasBreadcrumbs,
 }: ListProps) {
     const { labels, fields, access, recordTitleField, softDelete, fullTextSearch } = collection
+    const systemFields = getSystemFieldsSchema()
     const { serverWriteOnly } = access
     const softDeleteField = softDelete?.archivedField
     const softDeleteTimestampField = softDelete?.timestampField
@@ -639,7 +641,31 @@ export function List({
             })
             .filter(Boolean) as ColumnDef<StokerRecord>[]
 
-        return [selectColumnDef, ...fieldColumns]
+        const allColumns = [selectColumnDef, ...fieldColumns]
+
+        if (secondarySort && !allColumns.some((column) => column.id === secondarySort.field)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const hiddenColumn: any = {
+                id: secondarySort.field,
+                accessorKey: secondarySort.field,
+                header: () => null,
+                cell: () => null,
+                enableHiding: true,
+            }
+            const field = getField(fields.concat(systemFields), secondarySort.field)
+            if (field.type === "String") {
+                hiddenColumn.sortingFn = "stringSortingFn"
+            } else if (isRelationField(field)) {
+                hiddenColumn.sortingFn = "relationSortingFn"
+            } else if (field.type === "Timestamp") {
+                hiddenColumn.sortingFn = "dateSortingFn"
+            } else {
+                hiddenColumn.sortingFn = "rawSortingFn"
+            }
+            allColumns.push(hiddenColumn as ColumnDef<StokerRecord>)
+        }
+
+        return allColumns
     }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus])
 
     const isSearchRelevanceOrder = !!(search && isPreloadCacheEnabled)
@@ -1735,29 +1761,39 @@ export function List({
                                             {headerGroup.headers.map((header) => {
                                                 let className = ""
                                                 if (header.id !== "select") {
-                                                    const field = getField(fields, header.id)
-                                                    const fieldCustomization = getFieldCustomization(
-                                                        field,
-                                                        customization,
-                                                    )
-                                                    const hidden = tryFunction(fieldCustomization.admin?.hidden)
-                                                    if (hidden) {
-                                                        switch (hidden) {
-                                                            case "sm":
-                                                                className = cn(className, "hidden", "sm:table-cell")
-                                                                break
-                                                            case "md":
-                                                                className = cn(className, "hidden", "md:table-cell")
-                                                                break
-                                                            case "lg":
-                                                                className = cn(className, "hidden", "lg:table-cell")
-                                                                break
-                                                            case "xl":
-                                                                className = cn(className, "hidden", "xl:table-cell")
-                                                                break
-                                                            case "2xl":
-                                                                className = cn(className, "hidden", "2xl:table-cell")
-                                                                break
+                                                    if (
+                                                        !systemFields.some(
+                                                            (systemField) => systemField.name === header.id,
+                                                        )
+                                                    ) {
+                                                        const field = getField(fields, header.id)
+                                                        const fieldCustomization = getFieldCustomization(
+                                                            field,
+                                                            customization,
+                                                        )
+                                                        const hidden = tryFunction(fieldCustomization.admin?.hidden)
+                                                        if (hidden) {
+                                                            switch (hidden) {
+                                                                case "sm":
+                                                                    className = cn(className, "hidden", "sm:table-cell")
+                                                                    break
+                                                                case "md":
+                                                                    className = cn(className, "hidden", "md:table-cell")
+                                                                    break
+                                                                case "lg":
+                                                                    className = cn(className, "hidden", "lg:table-cell")
+                                                                    break
+                                                                case "xl":
+                                                                    className = cn(className, "hidden", "xl:table-cell")
+                                                                    break
+                                                                case "2xl":
+                                                                    className = cn(
+                                                                        className,
+                                                                        "hidden",
+                                                                        "2xl:table-cell",
+                                                                    )
+                                                                    break
+                                                            }
                                                         }
                                                     }
                                                 } else {
@@ -1805,50 +1841,58 @@ export function List({
                                                     {row.getVisibleCells().map((cell: Cell<unknown, unknown>) => {
                                                         let className = "p-0"
                                                         const id = cell.column.columnDef.id
+                                                        const field = getField(fields.concat(systemFields), id)
                                                         if (id !== "select") {
-                                                            const field = getField(fields, id)
-                                                            const fieldCustomization = getFieldCustomization(
-                                                                field,
-                                                                customization,
-                                                            )
-                                                            const hidden = tryFunction(fieldCustomization.admin?.hidden)
-                                                            if (hidden) {
-                                                                switch (hidden) {
-                                                                    case "sm":
-                                                                        className = cn(
-                                                                            className,
-                                                                            "hidden",
-                                                                            "sm:table-cell",
-                                                                        )
-                                                                        break
-                                                                    case "md":
-                                                                        className = cn(
-                                                                            className,
-                                                                            "hidden",
-                                                                            "md:table-cell",
-                                                                        )
-                                                                        break
-                                                                    case "lg":
-                                                                        className = cn(
-                                                                            className,
-                                                                            "hidden",
-                                                                            "lg:table-cell",
-                                                                        )
-                                                                        break
-                                                                    case "xl":
-                                                                        className = cn(
-                                                                            className,
-                                                                            "hidden",
-                                                                            "xl:table-cell",
-                                                                        )
-                                                                        break
-                                                                    case "2xl":
-                                                                        className = cn(
-                                                                            className,
-                                                                            "hidden",
-                                                                            "2xl:table-cell",
-                                                                        )
-                                                                        break
+                                                            if (
+                                                                !systemFields.some(
+                                                                    (systemField) => systemField.name === id,
+                                                                )
+                                                            ) {
+                                                                const fieldCustomization = getFieldCustomization(
+                                                                    field,
+                                                                    customization,
+                                                                )
+                                                                const hidden = tryFunction(
+                                                                    fieldCustomization.admin?.hidden,
+                                                                )
+                                                                if (hidden) {
+                                                                    switch (hidden) {
+                                                                        case "sm":
+                                                                            className = cn(
+                                                                                className,
+                                                                                "hidden",
+                                                                                "sm:table-cell",
+                                                                            )
+                                                                            break
+                                                                        case "md":
+                                                                            className = cn(
+                                                                                className,
+                                                                                "hidden",
+                                                                                "md:table-cell",
+                                                                            )
+                                                                            break
+                                                                        case "lg":
+                                                                            className = cn(
+                                                                                className,
+                                                                                "hidden",
+                                                                                "lg:table-cell",
+                                                                            )
+                                                                            break
+                                                                        case "xl":
+                                                                            className = cn(
+                                                                                className,
+                                                                                "hidden",
+                                                                                "xl:table-cell",
+                                                                            )
+                                                                            break
+                                                                        case "2xl":
+                                                                            className = cn(
+                                                                                className,
+                                                                                "hidden",
+                                                                                "2xl:table-cell",
+                                                                            )
+                                                                            break
+                                                                    }
                                                                 }
                                                             }
                                                             if (

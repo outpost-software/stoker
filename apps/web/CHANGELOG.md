@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.166
+
+### Patch Changes
+
+- feat: improve secondary sort feature
+
 ## 0.5.165
 
 ### Patch Changes

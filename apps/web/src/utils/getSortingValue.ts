@@ -1,4 +1,4 @@
-import { getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
+import { getField, getFieldCustomization, getSystemFieldsSchema, tryFunction } from "@stoker-platform/utils"
 import { CollectionCustomization, CollectionSchema, StokerRecord } from "@stoker-platform/types"
 
 export const getSortingValue = (
@@ -10,6 +10,11 @@ export const getSortingValue = (
     parentRecord?: StokerRecord,
 ) => {
     const { fields } = collection
+    const systemFields = getSystemFieldsSchema()
+    if (systemFields.some((systemField) => systemField.name === field)) {
+        // eslint-disable-next-line security/detect-object-injection
+        return record[field]
+    }
     const fieldSchema = getField(fields, field)
     const fieldCustomization = getFieldCustomization(fieldSchema, customization)
     // eslint-disable-next-line security/detect-object-injection
