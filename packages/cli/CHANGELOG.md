@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.98
+
+### Patch Changes
+
+- fix: remove empty arrays when comparing schema diff
+
 ## 0.5.97
 
 ### Patch Changes

@@ -19,12 +19,17 @@ export const deployProject = async (options: any) => {
         if (!options.initial) {
             const currentSchema = await generateSchema()
             const lastSchema = await fetchCurrentSchema()
-            const currentScemaCopy = cloneDeep(currentSchema) as Omit<
+            const currentSchemaCopy = cloneDeep(currentSchema) as Omit<
                 CollectionsSchema,
                 "published_time" | "version"
             > & { version?: number; published_time?: unknown }
-            delete currentScemaCopy.published_time
-            delete currentScemaCopy.version
+            delete currentSchemaCopy.published_time
+            delete currentSchemaCopy.version
+            if (!currentSchemaCopy.config.writeLogIndexExemption?.length)
+                delete currentSchemaCopy.config.writeLogIndexExemption
+            for (const collection of Object.values(currentSchemaCopy.collections)) {
+                if (!collection.queries?.length) delete collection.queries
+            }
             const lastSchemaCopy = cloneDeep(lastSchema) as Omit<CollectionsSchema, "published_time" | "version"> & {
                 version?: number
                 published_time?: unknown
@@ -32,7 +37,7 @@ export const deployProject = async (options: any) => {
             delete lastSchemaCopy.published_time
             delete lastSchemaCopy.version
 
-            if (!options.maintenanceOn && !isEqual(currentScemaCopy, lastSchemaCopy)) {
+            if (!options.maintenanceOn && !isEqual(currentSchemaCopy, lastSchemaCopy)) {
                 throw new Error("The schema for this project has changed. Maintenance mode cannot be disabled.")
             }
         }
