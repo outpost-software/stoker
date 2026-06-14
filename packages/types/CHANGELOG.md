@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.46
+
+### Patch Changes
+
+- feat: add option to disable Dashboard chart animation
+
 ## 0.5.45
 
 ### Patch Changes

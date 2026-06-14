@@ -295,6 +295,7 @@ type DashboardChart = {
     constraints?: [string, WhereFilterOp, unknown][]
     interval?: "day" | "month" | "year"
     numberOfIntervals?: number
+    animate?: boolean
     offset?: number
 }
 ```

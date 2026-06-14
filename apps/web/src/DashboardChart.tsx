@@ -337,6 +337,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                             fill="url(#fill1)"
                                             stroke="var(--chart-dark)"
                                             stackId="a"
+                                            isAnimationActive={chart.animate ?? true}
                                         />
                                         {(metricField2 || chart.formula2) && (
                                             <Area
@@ -345,6 +346,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                                 fill="url(#fill2)"
                                                 stroke="var(--chart-light)"
                                                 stackId="a"
+                                                isAnimationActive={chart.animate ?? true}
                                             />
                                         )}
                                         {(metricField1 || chart.formula1) && (

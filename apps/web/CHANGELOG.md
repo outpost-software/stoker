@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.168
+
+### Patch Changes
+
+- feat: add option to disable Dashboard chart animation
+    - @stoker-platform/node-client@0.5.67
+    - @stoker-platform/utils@0.5.58
+    - @stoker-platform/web-client@0.5.68
+
 ## 0.5.167
 
 ### Patch Changes

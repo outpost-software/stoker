@@ -132,6 +132,7 @@ export interface DashboardChart {
     interval?: "day" | "month" | "year"
     numberOfIntervals?: number
     offset?: number
+    animate?: boolean
 }
 
 export interface DashboardReminder {
