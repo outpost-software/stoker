@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.169
+
+### Patch Changes
+
+- fix: correct PWA icon map
+
 ## 0.5.168
 
 ### Patch Changes
