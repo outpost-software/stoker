@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.48
+
+### Patch Changes
+
+- feat: add getStokerFirestore to Node utilities
+
 ## 0.5.47
 
 ### Patch Changes

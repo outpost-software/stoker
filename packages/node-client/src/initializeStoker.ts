@@ -55,6 +55,7 @@ const utilities: NodeUtilities = {
     getMaintenanceInfo() {
         return maintenanceInfo
     },
+    getStokerFirestore,
 }
 
 export const initializeStoker = async (

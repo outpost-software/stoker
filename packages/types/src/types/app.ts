@@ -29,7 +29,7 @@ import type { Firestore, Timestamp, WhereFilterOp } from "firebase/firestore"
 import type { AnalyticsSettings, ConsentSettings } from "firebase/analytics"
 import type { AppCheck } from "firebase/app-check"
 
-import type { FieldValue } from "firebase-admin/firestore"
+import type { FieldValue, Firestore as AdminFirestore } from "firebase-admin/firestore"
 import { FirebaseError } from "firebase-admin"
 
 export interface AuthConfig {
@@ -372,6 +372,7 @@ export interface NodeUtilities {
     getCustomizationFile: (collection: string, schema: CollectionsSchema) => CollectionCustomization
     getVersionInfo: () => VersionInfo | undefined
     getMaintenanceInfo: () => { active: boolean } | undefined
+    getStokerFirestore: () => AdminFirestore
 }
 
 export interface StokerState {

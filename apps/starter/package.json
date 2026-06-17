@@ -1,7 +1,7 @@
 {
     "name": "stoker",
     "private": true,
-    "version": "0.4.197",
+    "version": "0.4.198",
     "type": "module",
     "license": "UNLICENSED",
     "scripts": {
@@ -18,12 +18,12 @@
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
     },
     "dependencies": {
-        "@stoker-platform/cli": "0.5.102",
-        "@stoker-platform/node-client": "0.5.68",
-        "@stoker-platform/types": "0.5.47",
-        "@stoker-platform/utils": "0.5.59",
-        "@stoker-platform/web-app": "0.5.170",
-        "@stoker-platform/web-client": "0.5.69",
+        "@stoker-platform/cli": "0.5.103",
+        "@stoker-platform/node-client": "0.5.69",
+        "@stoker-platform/types": "0.5.48",
+        "@stoker-platform/utils": "0.5.60",
+        "@stoker-platform/web-app": "0.5.171",
+        "@stoker-platform/web-client": "0.5.70",
         "algoliasearch": "^5.53.0",
         "firebase-admin": "^13.10.0",
         "moment-timezone": "latest",

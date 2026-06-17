@@ -1,9 +1,9 @@
-import { getApp, App } from "firebase-admin/app"
+import { getApp } from "firebase-admin/app"
 import { getFirestore, Firestore } from "firebase-admin/firestore"
 import { getFirestoreDatabaseId } from "@stoker-platform/utils"
 
-export const getStokerFirestore = (app?: App): Firestore => {
-    const firebaseApp = app || getApp()
+export const getStokerFirestore = (): Firestore => {
+    const firebaseApp = getApp()
     const firebaseConfigString = process.env.STOKER_FB_WEB_APP_CONFIG
     if (!firebaseConfigString) {
         throw new Error("STOKER_FB_WEB_APP_CONFIG not set.")

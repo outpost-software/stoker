@@ -1,5 +1,14 @@
 # @stoker-platform/node-client
 
+## 0.5.69
+
+### Patch Changes
+
+- feat: add getStokerFirestore to Node utilities
+- Updated dependencies
+    - @stoker-platform/types@0.5.48
+    - @stoker-platform/utils@0.5.60
+
 ## 0.5.68
 
 ### Patch Changes

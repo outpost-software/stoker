@@ -1349,6 +1349,17 @@ afterAll(async () => {
         },
     })
 
+    let confirmed = false
+
+    child.stdout?.on("data", async (data) => {
+        const output = data.toString()
+        if (!confirmed && output.includes("Type the project name")) {
+            await wait(1000)
+            child.stdin?.write(`${projectName}\n`)
+            confirmed = true
+        }
+    })
+
     child.stderr?.on("data", (data) => {
         console.error(data.toString())
     })
