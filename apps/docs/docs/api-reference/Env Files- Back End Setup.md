@@ -58,6 +58,10 @@ Analytics for your projects will be tracked under this account.
 
 App data for your projects is stored in Cloud Firestore.
 
+#### `FB_FIRESTORE_EDITION`
+
+The edition for your Firestore databases. Must be `standard` or `enterprise`. Defaults to `enterprise`.
+
 #### `FB_FIRESTORE_REGION` (Required)
 
 The region for your Firestore databases. Must be a valid [Firestore region](https://firebase.google.com/docs/firestore/locations).

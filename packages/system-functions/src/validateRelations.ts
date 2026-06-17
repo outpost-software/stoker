@@ -11,7 +11,6 @@ import {
     CollectionReference,
     FieldValue,
     Transaction,
-    getFirestore,
 } from "firebase-admin/firestore";
 import {
     Change,
@@ -31,7 +30,10 @@ import {
     getSingleFieldRelations,
     isDependencyField,
 } from "@stoker-platform/utils";
-import {getFirestorePathRef} from "@stoker-platform/node-client";
+import {
+    getFirestorePathRef,
+    getStokerFirestore,
+} from "@stoker-platform/node-client";
 
 /* eslint-disable max-len */
 
@@ -50,7 +52,7 @@ export const validateRelations = (
 
         if (!before && after?.Last_Write_By === "System") return;
 
-        const db = getFirestore();
+        const db = getStokerFirestore();
 
         const {labels, fields} = collection;
         const singleFieldRelations = getSingleFieldRelations(collection, fields);

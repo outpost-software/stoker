@@ -55,6 +55,7 @@ import {
     serializeTimestamps,
     getFiles,
     getTenant,
+    getStokerFirestore,
 } from "@stoker-platform/web-client"
 import {
     createElement,
@@ -77,7 +78,6 @@ import {
     deleteField,
     doc,
     collection as dbCollection,
-    getFirestore,
     Timestamp,
     QueryConstraint,
     where,
@@ -2419,7 +2419,7 @@ function RecordForm({
     if (operation === "update" && !id) {
         throw new Error("ID param is required for update operation")
     }
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const storage = getStorage()
     const firebaseAuth = getAuth()
     const currentUser = firebaseAuth.currentUser

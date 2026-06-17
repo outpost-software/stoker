@@ -10,7 +10,8 @@ import {
     StokerRecord,
 } from "@stoker-platform/types"
 import { getCollectionRefs } from "./getCollectionRefs.js"
-import { DocumentSnapshot, getFirestore, QuerySnapshot, Transaction, WhereFilterOp } from "firebase-admin/firestore"
+import { DocumentSnapshot, QuerySnapshot, Transaction, WhereFilterOp } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { getGlobalConfigModule, getCustomizationFile, getTenant } from "../initializeStoker.js"
 import {
     getRecordSubcollections,
@@ -241,7 +242,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
 
     const constraints = options?.constraints
     const tenantId = getTenant()
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     let pages: number
     let cursor: Cursor

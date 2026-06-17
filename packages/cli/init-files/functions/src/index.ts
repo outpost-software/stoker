@@ -39,6 +39,7 @@ import {defineSecret} from "firebase-functions/params";
 import {readFileSync} from "fs";
 import {
     getPathCollections,
+    getFirestoreTriggerDatabase,
     roleHasOperationAccess,
 } from "@stoker-platform/utils";
 import {
@@ -67,6 +68,12 @@ const consumeAppCheckToken =
     process.env.FB_FUNCTIONS_CONSUME_APP_CHECK_TOKEN === "true";
 const v1Region = process.env.FB_FUNCTIONS_V1_REGION ||
     process.env.FB_FUNCTIONS_REGION;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const webAppConfig = JSON.parse(process.env.STOKER_FB_WEB_APP_CONFIG!);
+const projectId = webAppConfig.projectId;
+const firestoreDatabase =
+    getFirestoreTriggerDatabase(process.env.FB_FIRESTORE_EDITION, projectId);
+
 
 const ai = genkit({
     plugins: [vertexAI({
@@ -83,6 +90,7 @@ export const stoker: any = {};
 
 stoker["notifications"] = onDocumentCreated({
     document: "tenants/{tenantId}/Inbox/{messageId}",
+    database: firestoreDatabase,
 }, (event) => {
     return messageNotifications(
         event,
@@ -182,6 +190,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`validatefields${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return validateFields(
@@ -197,6 +206,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`verifywritelog${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return verifyWriteLog(event, collectionSchema);
@@ -216,6 +226,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`fulltextsearch${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
             secrets: [algoliaAdminKey],
         }, (event) => {
@@ -234,6 +245,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`autoincrement${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return autoIncrement(event, collectionSchema, schema);
@@ -243,6 +255,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
     stoker[`validatedenormalized${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return validateDenormalized(event, collectionSchema, schema);
@@ -258,6 +271,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`includefields${collectionNameLower}`] =
         onDocumentUpdated({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return updateIncludeFields(event, collectionSchema, schema);
@@ -273,6 +287,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         }`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return validateRelations(
@@ -295,6 +310,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         }`] =
         onDocumentDeleted({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return removeRelations(
@@ -312,6 +328,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`uniquedelete${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return uniqueDelete(
@@ -324,6 +341,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
     stoker[`deletefiles${collectionNameLower}`] =
         onDocumentDeleted({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return deleteFiles(
@@ -336,6 +354,7 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         stoker[`embedding${collectionNameLower}`] =
         onDocumentWritten({
             document,
+            database: firestoreDatabase,
             retry: true,
         }, (event) => {
             return writeEmbedding(
@@ -401,6 +420,7 @@ if (process.env.STOKER_SMS_ENABLED === "true") {
     const twilioPhoneNumber = defineSecret("TWILIO_PHONE_NUMBER");
     stoker["sendmessage"] = onDocumentCreated({
         document: "system_messages/{messageId}",
+        database: firestoreDatabase,
         retry: true,
         secrets: [twilioAccountSid, twilioAuthToken, twilioPhoneNumber],
     }, (event) => {

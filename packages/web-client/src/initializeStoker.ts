@@ -67,6 +67,11 @@ import { initializeConnectionStatus, getConnectionStatus, getNetworkStatus } fro
 import { initializeErrorEvents } from "./initializeErrorEvents"
 import { getPerformance } from "firebase/performance"
 import { fetchAndActivate, getRemoteConfig } from "firebase/remote-config"
+import {
+    configureStokerFirestore,
+    getStokerFirestoreDatabaseId,
+    getStokerFirestore,
+} from "./utils/getStokerFirestore.js"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -208,6 +213,7 @@ const utilities: WebUtilities = {
         return authInstances.firestoreWrite
     },
 
+    getStokerFirestore,
     getFirestoreWrite() {
         return firestoreInstances.firestoreWrite
     },
@@ -263,6 +269,8 @@ export const initializeStoker = async (
     // Initialize Firebase Apps
 
     const firebaseConfig = JSON.parse(env.STOKER_FB_WEB_APP_CONFIG)
+    configureStokerFirestore(env.STOKER_FB_FIRESTORE_EDITION, firebaseConfig.projectId)
+    const firestoreDatabaseId = getStokerFirestoreDatabaseId()
     const firebaseGDPR = (await getCachedConfigValue(globalConfig, ["global", "firebase", "GDPRSettings"])) as boolean
     app = initializeApp(firebaseConfig, {
         automaticDataCollectionEnabled: firebaseGDPR || true,
@@ -281,7 +289,11 @@ export const initializeStoker = async (
     const { firestoreWriteApp } = apps
 
     const maintenanceApp = initializeApp(firebaseConfig, "maintenance")
-    firestoreInstances.maintenance = initializeFirestore(maintenanceApp, getFirestoreWebChannelWorkaround())
+    firestoreInstances.maintenance = initializeFirestore(
+        maintenanceApp,
+        getFirestoreWebChannelWorkaround(),
+        firestoreDatabaseId,
+    )
 
     const remoteConfig = getRemoteConfig()
     remoteConfig.settings.minimumFetchIntervalMillis = 3600000
@@ -602,20 +614,32 @@ export const initializeStoker = async (
                 }
             }
             const firestoreWebChannelWorkaround = getFirestoreWebChannelWorkaround()
-            firestoreInstances.main = initializeFirestore(app, {
-                ...cacheSettings,
-                ...firestoreWebChannelWorkaround,
-            })
-            if (["ALL", "WRITE"].includes(offlinePersistence)) {
-                firestoreInstances.firestoreWrite = initializeFirestore(firestoreWriteApp, {
-                    ...persistentWriteCache,
-                    ...firestoreWebChannelWorkaround,
-                })
-            } else {
-                firestoreInstances.firestoreWrite = initializeFirestore(firestoreWriteApp, {
+            firestoreInstances.main = initializeFirestore(
+                app,
+                {
                     ...cacheSettings,
                     ...firestoreWebChannelWorkaround,
-                })
+                },
+                firestoreDatabaseId,
+            )
+            if (["ALL", "WRITE"].includes(offlinePersistence)) {
+                firestoreInstances.firestoreWrite = initializeFirestore(
+                    firestoreWriteApp,
+                    {
+                        ...persistentWriteCache,
+                        ...firestoreWebChannelWorkaround,
+                    },
+                    firestoreDatabaseId,
+                )
+            } else {
+                firestoreInstances.firestoreWrite = initializeFirestore(
+                    firestoreWriteApp,
+                    {
+                        ...cacheSettings,
+                        ...firestoreWebChannelWorkaround,
+                    },
+                    firestoreDatabaseId,
+                )
             }
             if (mode === "development" && enableEmulators) {
                 if (!disableIndividualEmulators?.includes("Firestore")) {
@@ -809,6 +833,7 @@ export {
     getVersionInfo,
     getMaintenanceInfo,
     getCurrentUserPermissions,
+    getStokerFirestore,
     getLoadingState,
     getUnsubscribes,
     clearUnsubscribes,

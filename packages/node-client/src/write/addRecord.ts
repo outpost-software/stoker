@@ -1,6 +1,7 @@
 import { uniqueValidation } from "./uniqueValidation.js"
 import { writeLog } from "./writeLog.js"
-import { DocumentSnapshot, FieldValue, getFirestore, Timestamp, Transaction } from "firebase-admin/firestore"
+import { DocumentSnapshot, FieldValue, Timestamp, Transaction } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import {
     addSystemFields,
     validateRecord,
@@ -89,7 +90,7 @@ export const addRecord = async (
     const customization = getCustomizationFile(labels.collection, schema)
     const appName = await tryPromise(globalConfig.appName)
 
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const auth = getAuth()
     const currentUser = userId ? await auth.getUser(userId) : undefined
     const currentUserRole = currentUser?.customClaims?.role

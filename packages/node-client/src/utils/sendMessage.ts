@@ -1,8 +1,8 @@
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "./getStokerFirestore.js"
 import { getMode } from "../initializeStoker"
 
 export const sendMessage = async (to: string, body: string) => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const mode = getMode()
     const adminPhone = process.env.ADMIN_SMS
     if (mode === "development") {

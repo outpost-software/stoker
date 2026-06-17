@@ -3,7 +3,6 @@ import {CollectionSchema, CollectionsSchema} from "@stoker-platform/types";
 import {
     defineFirestoreRetriever,
 } from "@genkit-ai/firebase";
-import {getFirestore} from "firebase-admin/firestore";
 import {AuthData} from "firebase-functions/tasks";
 import {z} from "zod";
 import {
@@ -11,6 +10,7 @@ import {
     getOne,
     getSome,
     getInputSchema,
+    getStokerFirestore,
     updateRecord,
     initializeStoker,
     deserializeTimestampsWithoutUnderscores,
@@ -51,7 +51,7 @@ export const chatFlow = (
     if (!aiConfig?.embedding || !aiConfig?.chat) throw new HttpsError("invalid-argument", "Embedding and chat are not enabled for this collection.");
     const {chat} = aiConfig;
 
-    const firestore = getFirestore();
+    const firestore = getStokerFirestore();
 
     const zodSchema = getInputSchema(collection, schema, undefined, true);
 

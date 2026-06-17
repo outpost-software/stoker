@@ -1,7 +1,7 @@
 import { IdTokenResult, User } from "firebase/auth"
-import { Unsubscribe, doc, getFirestore, onSnapshot } from "firebase/firestore"
+import { Unsubscribe, doc, onSnapshot } from "firebase/firestore"
 import { StokerPermissions } from "@stoker-platform/types"
-import { getGlobalConfigModule, getSchema, getTenant, signOut } from "../main"
+import { getGlobalConfigModule, getSchema, getStokerFirestore, getTenant, signOut } from "../main"
 import isEqual from "lodash/isEqual.js"
 import { preloadCollection } from "./cache/preloadCollection"
 
@@ -10,7 +10,7 @@ let permissions: StokerPermissions | null = null
 export const initializeUserListeners = async (user: User, idTokenResult: IdTokenResult): Promise<Unsubscribe[]> => {
     const listeners: Unsubscribe[] = []
     const tenantId = getTenant()
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const globalConfig = getGlobalConfigModule()
     const schema = getSchema()
     if (!idTokenResult.claims.doc) throw new Error("User document ID not found in claims")

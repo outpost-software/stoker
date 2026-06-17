@@ -18,7 +18,8 @@ import {
     isRelationField,
     validateRecord,
 } from "@stoker-platform/utils"
-import { CollectionReference, getFirestore, Transaction } from "firebase-admin/firestore"
+import { CollectionReference, Transaction } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { getFirestorePathRef } from "../utils/getFirestorePathRef.js"
 import { getCustomizationFile } from "../initializeStoker.js"
 import isEqual from "lodash/isEqual.js"
@@ -55,7 +56,7 @@ export const validateRelationHierarchy = async (
 ) => {
     if (!isRelationField(field) || !field.enforceHierarchy) return
     const { fields } = collection
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const relationEntries = Object.entries(record[field.name])
     if (!relationEntries.length) {
         throw new Error(`VALIDATION_ERROR: relation ${field.name} is required`)
@@ -160,7 +161,7 @@ export const validateRelations = async (
     originalRecord?: StokerRecord,
 ) => {
     const { fields } = collectionSchema
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const noDelete = new Map<string, string[]>()
     const originalRelationRecords = new Map<StokerCollection, Record<string, StokerRecord>>()
     const updatedRelationRecords = new Map<StokerCollection, Record<string, StokerRecord>>()

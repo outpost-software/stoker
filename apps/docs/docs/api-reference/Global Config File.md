@@ -448,7 +448,7 @@ When importing modules that are web-only or server-only, be sure to:
 
 This lets you write web and server code in the same file.
 
-You can also write your own modules in the `src/web` and `src/node` folders and import modules statically there. In this case, you can only use one import per line i.e. `import { getFirestore } from "firebase/firestore"`
+You can also write your own modules in the `src/web` and `src/node` folders and import modules statically there. In this case, you can only use one import per line i.e. `import { getAuth } from "firebase/auth"`
 :::
 
 :::danger

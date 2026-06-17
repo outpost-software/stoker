@@ -1,5 +1,6 @@
 import { writeLog } from "./writeLog.js"
-import { DocumentSnapshot, FieldValue, getFirestore, Timestamp, Transaction } from "firebase-admin/firestore"
+import { DocumentSnapshot, FieldValue, Timestamp, Transaction } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import {
     addDenormalized,
     runHooks,
@@ -69,7 +70,7 @@ export const deleteRecord = async (
         return result
     }
 
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     let currentUserPermissions: StokerPermissions | undefined
     if (userId) {

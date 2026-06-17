@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.59
+
+### Patch Changes
+
+- feat: add Firestore Enterprise Edition support
+- Updated dependencies
+    - @stoker-platform/types@0.5.47
+
 ## 0.5.58
 
 ### Patch Changes

@@ -132,6 +132,12 @@ Returns the app's write Auth instance.
 
 Only relevant when `auth.offlinePersistenceType` is set to `"ALL"` or `"WRITE"`
 
+### getStokerFirestore
+
+`() => Firestore`
+
+Returns the app's main Firestore instance.
+
 ### getFirestoreWrite
 
 `() => Firestore`
@@ -207,6 +213,12 @@ Returns information about the app's current schema version.
 `() => { active: boolean } | undefined`
 
 Returns the app's current maintenance mode status.
+
+### getStokerFirestore
+
+`() => Firestore`
+
+Returns the app's main Firestore instance.
 
 ## context (web sdk only)
 

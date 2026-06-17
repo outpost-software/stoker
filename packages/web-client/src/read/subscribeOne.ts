@@ -1,4 +1,5 @@
-import { Unsubscribe, onSnapshot, onSnapshotsInSync, getFirestore, SnapshotMetadata } from "firebase/firestore"
+import { Unsubscribe, onSnapshot, onSnapshotsInSync, SnapshotMetadata } from "firebase/firestore"
+import { getStokerFirestore } from "../initializeStoker.js"
 import {
     CollectionField,
     PostOperationHookArgs,
@@ -52,7 +53,7 @@ export const subscribeOne = async (
     const roleGroups = getCurrentUserRoleGroups()
     // eslint-disable-next-line security/detect-object-injection
     const roleGroup = roleGroups[collection]
-    const db = getFirestore()
+    const db = getStokerFirestore()
     // eslint-disable-next-line security/detect-object-injection
     const collectionSchema = schema.collections[collection]
     if (!collectionSchema) throw new Error("COLLECTION_NOT_FOUND")

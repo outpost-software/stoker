@@ -2,7 +2,7 @@ import { runChildProcess } from "@stoker-platform/node-client"
 import { writeFile, unlink, readFile } from "fs/promises"
 import { join } from "path"
 import dotenv from "dotenv"
-import { retryOperation } from "@stoker-platform/utils"
+import { retryOperation, getFirestoreDatabaseId } from "@stoker-platform/utils"
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager"
 import { addTenant } from "./addTenant.js"
 import { existsSync } from "fs"
@@ -320,21 +320,27 @@ export const addProject = async (options: any) => {
 
     if (getProgress() < 10) {
         await new Promise((resolve) => setTimeout(resolve, 10000))
+        const args = [
+            "firestore",
+            "databases",
+            "create",
+            `--location=${process.env.FB_FIRESTORE_REGION}`,
+            "--type=firestore-native",
+            process.env.FB_FIRESTORE_EDITION ? `--edition=${process.env.FB_FIRESTORE_EDITION}` : "--edition=enterprise",
+            "--delete-protection",
+            options.pitr && process.env.FB_FIRESTORE_ENABLE_PITR !== "false" ? "--enable-pitr" : "--no-enable-pitr",
+            `--project=${projectId}`,
+            "--quiet",
+        ]
+        if ((process.env.FB_FIRESTORE_EDITION || "enterprise") === "enterprise") {
+            args.push(`--database=${projectId}`)
+            args.push("--enable-firestore-data-access")
+            args.push("--enable-realtime-updates")
+            args.push("--concurrency-mode=pessimistic")
+        }
         await retryOperation(
             async () => {
-                await runChildProcess("gcloud", [
-                    "firestore",
-                    "databases",
-                    "create",
-                    `--location=${process.env.FB_FIRESTORE_REGION}`,
-                    "--type=firestore-native",
-                    "--delete-protection",
-                    options.pitr && process.env.FB_FIRESTORE_ENABLE_PITR !== "false"
-                        ? "--enable-pitr"
-                        : "--no-enable-pitr",
-                    `--project=${projectId}`,
-                    "--quiet",
-                ]).catch(() => {
+                await runChildProcess("gcloud", args).catch(() => {
                     throw new Error("Error creating Firestore database.")
                 })
             },
@@ -362,7 +368,7 @@ export const addProject = async (options: any) => {
                 : process.env.FB_FIRESTORE_BACKUP_RETENTION
                   ? `--retention=${process.env.FB_FIRESTORE_BACKUP_RETENTION}`
                   : "--retention=7d",
-            "--database=(default)",
+            `--database=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, projectId)}`,
             `--project=${projectId}`,
             "--quiet",
         ]
@@ -499,6 +505,18 @@ export const addProject = async (options: any) => {
             await runChildProcess("attrib", ["-H", firebasercPath])
         }
         await runChildProcess("firebase", ["target:apply", "storage", "default", projectId, "--project", projectId])
+        if ((process.env.FB_FIRESTORE_EDITION || "enterprise") === "enterprise") {
+            const firebaseJsonPath = join(process.cwd(), "firebase.json")
+            const firebaseJson = JSON.parse(await readFile(firebaseJsonPath, "utf8"))
+            firebaseJson.firestore = [
+                {
+                    database: projectId,
+                    rules: "firebase-rules/firestore.rules",
+                    indexes: "firebase-rules/firestore.indexes.json",
+                },
+            ]
+            await writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 4), "utf8")
+        }
         await updateProjectData(17)
     }
 
@@ -847,23 +865,30 @@ export const addProject = async (options: any) => {
     if (getProgress() < 33) {
         const externalSecrets = JSON.parse(process.env.EXTERNAL_SECRETS || "{}")
         for (const [secretName, secretValue] of Object.entries(externalSecrets)) {
-            const [externalSecret] = await secretManager.createSecret({
-                parent: `projects/${projectId}`,
-                secret: {
-                    name: secretName,
-                    replication: {
-                        automatic: {},
+            try {
+                const [externalSecret] = await secretManager.createSecret({
+                    parent: `projects/${projectId}`,
+                    secret: {
+                        name: secretName,
+                        replication: {
+                            automatic: {},
+                        },
                     },
-                },
-                secretId: secretName,
-            })
-            const [secretVersion] = await secretManager.addSecretVersion({
-                parent: externalSecret.name,
-                payload: {
-                    data: Buffer.from(secretValue as string, "utf8"),
-                },
-            })
-            console.log(secretVersion)
+                    secretId: secretName,
+                })
+                const [secretVersion] = await secretManager.addSecretVersion({
+                    parent: externalSecret.name,
+                    payload: {
+                        data: Buffer.from(secretValue as string, "utf8"),
+                    },
+                })
+                console.log(secretVersion)
+            } catch (error) {
+                if ((error as { code: number })?.code === 6) {
+                    continue
+                }
+                throw error
+            }
         }
         await updateProjectData(33)
     }
@@ -1080,6 +1105,7 @@ STOKER_FB_ENABLE_APP_CHECK=${process.env.FB_ENABLE_APP_CHECK}
 STOKER_FB_APP_CHECK_KEY="${recaptchaKeyId}"
 STOKER_ALGOLIA_ID="${process.env.ALGOLIA_ID || ""}"
 STOKER_FB_FUNCTIONS_REGION="${process.env.FB_FUNCTIONS_REGION}"
+STOKER_FB_FIRESTORE_EDITION="${process.env.FB_FIRESTORE_EDITION || "enterprise"}"
 FB_DATABASE="${projectId}-default-rtdb"
 FB_FIRESTORE_EXPORT_BUCKET="${projectId}-export"`
 

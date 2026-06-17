@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.69
+
+### Patch Changes
+
+- feat: add Firestore Enterprise Edition support
+- Updated dependencies
+    - @stoker-platform/types@0.5.47
+    - @stoker-platform/utils@0.5.59
+
 ## 0.5.68
 
 ### Patch Changes

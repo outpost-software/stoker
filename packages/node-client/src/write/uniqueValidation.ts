@@ -1,6 +1,6 @@
 import { CollectionSchema, CollectionsSchema, StokerPermissions, StokerRecord } from "@stoker-platform/types"
 import { getFieldCustomization, isDeleteSentinel, isValidUniqueFieldValue, tryPromise } from "@stoker-platform/utils"
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { getCustomizationFile } from "../initializeStoker"
 export const uniqueValidation = async (
     operation: "create" | "update",
@@ -12,7 +12,7 @@ export const uniqueValidation = async (
     user?: string,
     permissions?: StokerPermissions,
 ) => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const customization = getCustomizationFile(collectionSchema.labels.collection, schema)
 
     const collectionName = collectionSchema.labels.collection

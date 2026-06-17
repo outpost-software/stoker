@@ -1,10 +1,10 @@
 import { initializeFirebase } from "@stoker-platform/node-client"
-import { getFirestore } from "firebase-admin/firestore"
+import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getUserPermissions = async (options: any) => {
     await initializeFirebase()
-    const db = getFirestore()
+    const db = getCLIFirestore()
     const usersRef = await db
         .collection("tenants")
         .doc(options.tenant)

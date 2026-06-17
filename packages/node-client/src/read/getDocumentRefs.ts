@@ -1,7 +1,8 @@
 import { getFirestorePathRef } from "../utils/getFirestorePathRef"
 import { CollectionsSchema, StokerPermissions } from "@stoker-platform/types"
 import { collectionAccess, getRoleGroup, hasDependencyAccess } from "@stoker-platform/utils"
-import { DocumentReference, getFirestore } from "firebase-admin/firestore"
+import { DocumentReference } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 
 export const getDocumentRefs = (
     tenantId: string,
@@ -10,7 +11,7 @@ export const getDocumentRefs = (
     schema: CollectionsSchema,
     permissions?: StokerPermissions,
 ): DocumentReference[] => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const collectionName = path.at(-1)
     if (!collectionName) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line security/detect-object-injection

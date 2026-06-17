@@ -1,18 +1,18 @@
 import {
-    CollectionSchema,
-    StokerRecord,
-} from "@stoker-platform/types";
-import {
-    getFirestore,
-    Timestamp,
-} from "firebase-admin/firestore";
-import {error as errorLogger} from "firebase-functions/logger";
-import {
     deleteRecord,
+    getStokerFirestore,
     initializeStoker,
     setTenant,
 } from "@stoker-platform/node-client";
 import {join} from "node:path";
+import {
+    CollectionSchema,
+    StokerRecord,
+} from "@stoker-platform/types";
+import {
+    Timestamp,
+} from "firebase-admin/firestore";
+import {error as errorLogger} from "firebase-functions/logger";
 
 export const deleteTrash = (
     collection: CollectionSchema,
@@ -20,7 +20,7 @@ export const deleteTrash = (
     return (async () => {
         const {softDelete} = collection;
         if (!softDelete) return;
-        const db = getFirestore();
+        const db = getStokerFirestore();
         let records;
         let lastVisible = null;
         const pageSize = 1000;

@@ -6,18 +6,10 @@ import {
     getCurrentUserPermissions,
     getAllRoleGroups,
     getTenant,
+    getStokerFirestore,
 } from "../initializeStoker.js"
 import { writeLog } from "./writeLog.js"
-import {
-    writeBatch,
-    doc,
-    arrayUnion,
-    deleteField,
-    arrayRemove,
-    Timestamp,
-    serverTimestamp,
-    getFirestore,
-} from "firebase/firestore"
+import { writeBatch, doc, arrayUnion, deleteField, arrayRemove, Timestamp, serverTimestamp } from "firebase/firestore"
 import {
     runHooks,
     addDenormalized,
@@ -55,7 +47,7 @@ export const deleteRecord = async (
     const schema = getSchema()
     const roleGroups = getAllRoleGroups()
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const globalConfig = getGlobalConfigModule()
     const permissions = getCurrentUserPermissions()
     if (path.length === 0) throw new Error("EMPTY_PATH")

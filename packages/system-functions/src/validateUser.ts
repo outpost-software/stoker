@@ -1,5 +1,5 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {getAuth, UserRecord} from "firebase-admin/auth";
-import {getFirestore} from "firebase-admin/firestore";
 import {error as errorLogger} from "firebase-functions/logger";
 
 export const validateUser = async (
@@ -7,7 +7,7 @@ export const validateUser = async (
 ) => {
     return (async () => {
         const auth = getAuth();
-        const db = getFirestore();
+        const db = getStokerFirestore();
 
         const deleteUser = async (tenantId?: string) => {
             try {

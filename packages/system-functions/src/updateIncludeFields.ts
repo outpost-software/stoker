@@ -1,3 +1,4 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {
     CollectionSchema,
     CollectionsSchema,
@@ -7,7 +8,6 @@ import {
     DocumentData,
     DocumentSnapshot,
     FieldValue,
-    getFirestore,
 } from "firebase-admin/firestore";
 import {
     Change,
@@ -65,7 +65,7 @@ export const updateIncludeFields = (
 ) => {
     return (async () => {
         const tenantId = event.params.tenantId as string;
-        const db = getFirestore();
+        const db = getStokerFirestore();
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
         const before = snapshot.before.data() as StokerRecord;

@@ -1,12 +1,12 @@
 import { StokerRecord } from "@stoker-platform/types"
 import { getAuth } from "firebase-admin/auth"
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { getTenant } from "../initializeStoker"
 
 export const deleteUser = async (record: StokerRecord) => {
     const tenantId = getTenant()
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     const errors: string[] = []
 

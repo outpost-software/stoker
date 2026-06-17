@@ -1,15 +1,16 @@
 import { fetchCurrentSchema, initializeFirebase } from "@stoker-platform/node-client"
 import { getAuth } from "firebase-admin/auth"
-import { CollectionReference, getFirestore } from "firebase-admin/firestore"
-import { getStorage } from "firebase-admin/storage"
 import { getApp } from "firebase-admin/app"
+import { CollectionReference } from "firebase-admin/firestore"
+import { getStorage } from "firebase-admin/storage"
+import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const deleteTenant = async (options: any) => {
     await initializeFirebase()
     const app = getApp()
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getCLIFirestore()
     const storage = getStorage()
 
     const schema = await fetchCurrentSchema()

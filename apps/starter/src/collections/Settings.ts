@@ -10,7 +10,6 @@ const Settings: GenerateSchema = (): CollectionSchema => {
         access: {
             operations: {
                 read: ["Office", "Client"],
-                create: ["Office"],
                 update: ["Office"],
             },
         },

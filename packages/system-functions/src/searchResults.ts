@@ -1,3 +1,4 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {
     CallableRequest,
     HttpsError,
@@ -18,7 +19,6 @@ import {
     hasDependencyAccess,
     isRelationField,
 } from "@stoker-platform/utils";
-import {getFirestore} from "firebase-admin/firestore";
 
 /* eslint-disable max-len */
 
@@ -104,7 +104,7 @@ export const searchResults = async (
     // eslint-disable-next-line security/detect-object-injection
     const collectionSchema = schema.collections[collection];
     const {fields} = collectionSchema;
-    const db = getFirestore();
+    const db = getStokerFirestore();
     const permissionsSnapshot = await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(user).get();
     const permissions = permissionsSnapshot.data() as StokerPermissions;
     if (!permissions?.Role) {

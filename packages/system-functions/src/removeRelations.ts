@@ -1,3 +1,4 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {
     CollectionsSchema,
     CollectionSchema,
@@ -14,7 +15,6 @@ import {
 } from "@stoker-platform/utils";
 import {
     FieldValue,
-    getFirestore,
     QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
 import {error as errorLogger} from "firebase-functions/logger";
@@ -34,7 +34,7 @@ export const removeRelations = (
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
 
-        const db = getFirestore();
+        const db = getStokerFirestore();
 
         const {labels, access} = collection;
 

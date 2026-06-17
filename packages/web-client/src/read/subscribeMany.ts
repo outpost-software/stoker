@@ -9,7 +9,6 @@ import {
     endAt,
     endBefore,
     getCountFromServer,
-    getFirestore,
     limit,
     limitToLast,
     onSnapshot,
@@ -35,6 +34,7 @@ import {
     getGlobalConfigModule,
     getSchema,
     getCurrentUserRoleGroups,
+    getStokerFirestore,
 } from "../initializeStoker"
 import cloneDeep from "lodash/cloneDeep.js"
 import {
@@ -113,7 +113,7 @@ export const subscribeMany = async (
     const roleGroups = getCurrentUserRoleGroups()
     // eslint-disable-next-line security/detect-object-injection
     const roleGroup = roleGroups[collection]
-    const db = getFirestore()
+    const db = getStokerFirestore()
     // eslint-disable-next-line security/detect-object-injection
     const collectionSchema = schema.collections[collection]
     const { labels, preloadCache, access } = collectionSchema

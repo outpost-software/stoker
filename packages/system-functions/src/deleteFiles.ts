@@ -1,10 +1,10 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {CollectionSchema} from "@stoker-platform/types";
 import {
     FirestoreEvent,
     QueryDocumentSnapshot,
 } from "firebase-functions/v2/firestore";
 import {getApp} from "firebase-admin/app";
-import {getFirestore} from "firebase-admin/firestore";
 import {getStorage} from "firebase-admin/storage";
 
 export const deleteFiles = (
@@ -20,7 +20,7 @@ export const deleteFiles = (
         const id = snapshot.id;
 
         const app = getApp();
-        const db = getFirestore();
+        const db = getStokerFirestore();
         const storage = getStorage();
         const bucket = storage.bucket(app.options.projectId);
 

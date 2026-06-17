@@ -1,4 +1,4 @@
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "./getStokerFirestore.js"
 import { getMode } from "../initializeStoker"
 import {
     sanitizeEmailAddress,
@@ -22,7 +22,7 @@ export const sendMail = async (
     }[],
     from?: string,
 ) => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const mode = getMode()
     const adminEmail = process.env.ADMIN_EMAIL
     if (mode === "development" || process.env.FIRESTORE_EMULATOR_HOST) {

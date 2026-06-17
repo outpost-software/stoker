@@ -23,7 +23,8 @@ import {
     getFieldCustomization,
     tryPromise,
 } from "@stoker-platform/utils"
-import { DocumentSnapshot, getFirestore, Transaction } from "firebase-admin/firestore"
+import { DocumentSnapshot, Transaction } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { fetchCurrentSchema } from "../utils/fetchSchema.js"
 
 const getSubcollections = async (
@@ -192,7 +193,7 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
     }
 
     const tenantId = getTenant()
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     let docData: StokerRecord
 

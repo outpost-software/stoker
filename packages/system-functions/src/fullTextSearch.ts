@@ -9,10 +9,10 @@ import {algoliasearch} from "algoliasearch";
 import {
     getFirestorePathRef,
     getOne,
+    getStokerFirestore,
     initializeStoker,
 } from "@stoker-platform/node-client";
 import {join} from "path";
-import {getFirestore} from "firebase-admin/firestore";
 
 /* eslint-disable max-len */
 
@@ -39,7 +39,7 @@ export const fullTextSearch = (
             true
         );
 
-        const db = getFirestore();
+        const db = getStokerFirestore();
 
         if (!process.env.STOKER_ALGOLIA_ID) {
             errorLogger("Algolia ID environment variable not set");

@@ -14,11 +14,12 @@ import {join} from "node:path";
 import {
     initializeStoker,
     sendMail,
+    getStokerFirestore,
     validateRelations,
     validateSoftDelete,
 } from "@stoker-platform/node-client";
 import cloneDeep from "lodash/cloneDeep.js";
-import {FieldValue, getFirestore, Timestamp} from "firebase-admin/firestore";
+import {FieldValue, Timestamp} from "firebase-admin/firestore";
 
 /* eslint-disable max-len */
 
@@ -35,7 +36,7 @@ export const validateFields = (
         const snapshot = event.data!;
         const before = snapshot.before.data() as StokerRecord | undefined;
         const after = snapshot.after.data() as StokerRecord | undefined;
-        const db = getFirestore();
+        const db = getStokerFirestore();
 
         if (after?.Last_Write_By === "System") return;
         if ((before?.Last_Write_At as Timestamp)?.valueOf() === (after?.Last_Write_At as Timestamp)?.valueOf()) return;

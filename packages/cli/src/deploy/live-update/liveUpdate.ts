@@ -1,11 +1,12 @@
 import { fetchCurrentSchema, initializeFirebase } from "@stoker-platform/node-client"
 import { VersionInfo } from "@stoker-platform/types"
-import { getFirestore, FieldValue } from "firebase-admin/firestore"
+import { FieldValue } from "firebase-admin/firestore"
+import { getCLIFirestore } from "../../utils/getCLIFirestore.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const liveUpdate = async (options: any) => {
     await initializeFirebase()
-    const db = getFirestore()
+    const db = getCLIFirestore()
     const batch = db.batch()
     const currentSchema = await fetchCurrentSchema()
     const deployId = db.collection("system_deployment").doc("latest_deploy").collection("deploy_history").doc().id

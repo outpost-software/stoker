@@ -1,7 +1,8 @@
 import { fetchCurrentSchema, getCollectionRefs, initializeStoker } from "@stoker-platform/node-client"
 import { tryPromise, getRange } from "@stoker-platform/utils"
-import { Filter, getFirestore, Query, WhereFilterOp } from "firebase-admin/firestore"
+import { Filter, Query, WhereFilterOp } from "firebase-admin/firestore"
 import { join } from "path"
+import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const explainPreloadQueries = async (options: any) => {
@@ -15,7 +16,7 @@ export const explainPreloadQueries = async (options: any) => {
     const globalConfig = getGlobalConfigModule()
     const schema = await fetchCurrentSchema()
 
-    const db = getFirestore()
+    const db = getCLIFirestore()
 
     const permissionsSnapshot = await db
         .collection("tenants")

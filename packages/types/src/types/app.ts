@@ -358,6 +358,7 @@ export interface WebUtilities {
     getAppCheck: () => AppCheck
     getAppCheckFirestoreWrite: () => AppCheck
     getFirestoreWriteAuth: () => Auth
+    getStokerFirestore: () => Firestore
     getFirestoreWrite: () => Firestore
     getFirestoreMaintenance: () => Firestore
 }

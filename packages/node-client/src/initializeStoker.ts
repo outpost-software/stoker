@@ -8,7 +8,8 @@ import {
 } from "@stoker-platform/types"
 import { getCustomization, tryPromise } from "@stoker-platform/utils"
 import { initializeApp, getApp, applicationDefault, App } from "firebase-admin/app"
-import { DocumentSnapshot, getFirestore } from "firebase-admin/firestore"
+import { DocumentSnapshot } from "firebase-admin/firestore"
+import { getStokerFirestore } from "./utils/getStokerFirestore.js"
 import cloneDeep from "lodash/cloneDeep.js"
 import { getCustomizationFiles } from "./utils/getCustomizationFiles"
 import { fetchCurrentSchema } from "./main"
@@ -108,7 +109,7 @@ export const initializeStoker = async (
     timezone = await tryPromise(globalConfig.timezone)
 
     if (!alreadyInitialized) {
-        getFirestore()
+        getStokerFirestore()
             .collection("system_deployment")
             .doc("maintenance_mode")
             .onSnapshot(
@@ -126,7 +127,7 @@ export const initializeStoker = async (
             )
     }
     if (!alreadyInitialized) {
-        getFirestore()
+        getStokerFirestore()
             .collection("system_deployment")
             .doc("latest_deploy")
             .onSnapshot(

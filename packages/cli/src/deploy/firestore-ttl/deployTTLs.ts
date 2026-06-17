@@ -1,5 +1,6 @@
 import type { CollectionSchema, CollectionsSchema } from "@stoker-platform/types"
 import { runChildProcess, initializeFirebase } from "@stoker-platform/node-client"
+import { getFirestoreDatabaseId } from "@stoker-platform/utils"
 
 import spawn from "cross-spawn"
 import { generateSchema } from "../schema/generateSchema.js"
@@ -30,6 +31,7 @@ export const deployTTLs = async () => {
                 ttl,
                 `--collection-group=${collectionName}`,
                 "--enable-ttl",
+                `--database=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, projectId)}`,
                 `--project=${projectId}`,
                 "--quiet",
                 "--async",
@@ -49,6 +51,7 @@ export const deployTTLs = async () => {
                 ttl,
                 `--collection-group=${collectionName}`,
                 "--disable-ttl",
+                `--database=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, projectId)}`,
                 `--project=${projectId}`,
                 "--quiet",
                 "--async",
@@ -72,6 +75,7 @@ export const deployTTLs = async () => {
                 "ttls",
                 "list",
                 `--collection-group=${collection}`,
+                `--database=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, projectId)}`,
                 `--project=${projectId}`,
             ])
             let stdout = ""

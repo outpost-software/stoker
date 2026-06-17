@@ -1,6 +1,6 @@
 import { UserRecord, getAuth } from "firebase-admin/auth"
 import { StokerPermissions } from "@stoker-platform/types"
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { getTenant } from "../initializeStoker"
 
 export const rollbackUser = async (
@@ -11,7 +11,7 @@ export const rollbackUser = async (
 ) => {
     const tenantId = getTenant()
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const claims = originalUser.customClaims || {}
 
     let rollbackError = false

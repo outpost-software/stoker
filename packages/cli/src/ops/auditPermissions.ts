@@ -1,6 +1,6 @@
 import { fetchCurrentSchema, initializeStoker } from "@stoker-platform/node-client"
-import { getFirestore } from "firebase-admin/firestore"
 import { join } from "node:path"
+import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const auditPermissions = async (options: any) => {
@@ -11,8 +11,7 @@ export const auditPermissions = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
     const schema = await fetchCurrentSchema()
-    const db = getFirestore()
-    const dbMain = getFirestore()
+    const db = getCLIFirestore()
 
     const mismatches = []
     const permissions = await db.collection("tenants").doc(options.tenant).collection("system_user_permissions").get()
@@ -108,7 +107,7 @@ export const auditPermissions = async (options: any) => {
     console.log(mismatches.join("\n\n"))
 
     if (options.email && mismatches.length > 0) {
-        await dbMain.collection("system_mail").add({
+        await db.collection("system_mail").add({
             to: options.email,
             message: {
                 subject: `Stoker Permissions Audit`,

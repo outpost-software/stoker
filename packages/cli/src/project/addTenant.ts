@@ -1,14 +1,14 @@
 import { input } from "@inquirer/prompts"
 import { fetchCurrentSchema, initializeFirebase, initializeStoker } from "@stoker-platform/node-client"
 import { CollectionSchema } from "@stoker-platform/types"
-import { getFirestore } from "firebase-admin/firestore"
 import { join } from "path"
 import { retryOperation, isRelationField } from "@stoker-platform/utils"
 import { addRecordPrompt } from "./addRecordPrompt.js"
+import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 
 export const addTenant = async () => {
     await initializeFirebase()
-    const db = getFirestore()
+    const db = getCLIFirestore()
     const doc = await db.collection("tenants").add({})
     const tenantId = doc.id
 

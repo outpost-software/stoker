@@ -1,5 +1,6 @@
 import {
     fetchCurrentSchema,
+    getStokerFirestore,
     initializeStoker,
 } from "@stoker-platform/node-client";
 import {
@@ -16,7 +17,6 @@ import {collectionAccess,
     hasDependencyAccess,
     isRelationField,
 } from "@stoker-platform/utils";
-import {getFirestore} from "firebase-admin/firestore";
 import {error as errorLogger} from "firebase-functions/logger";
 import {
     CallableRequest,
@@ -42,7 +42,7 @@ export const getSchema = async (
     }
     const tenantId = token?.tenant as string;
 
-    const db = getFirestore();
+    const db = getStokerFirestore();
     const permissionsSnapshot = await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(user).get();
     if (!permissionsSnapshot.exists) {
         throw new HttpsError("permission-denied", "User does not have permission to access the schema");

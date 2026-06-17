@@ -17,11 +17,13 @@ export const generateFirestoreIndexes = async () => {
 
     await lintSchema(true)
 
+    const edition = process.env.FB_FIRESTORE_EDITION || "enterprise"
+
     const indexesResponse = await fetch(process.env.URL_FIRESTORE_INDEXES, {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ schema }),
+        body: JSON.stringify({ schema, edition }),
         method: "POST",
     })
     const { indexes, message, error } = await indexesResponse.json()

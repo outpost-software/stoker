@@ -1,9 +1,10 @@
-import { getFirestore, Transaction } from "firebase-admin/firestore"
+import { Transaction } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { getTenant } from "../initializeStoker"
 
 export const lockRecord = async (transaction: Transaction, docId: string, userId: string) => {
     const tenantId = getTenant()
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     const lockIds = [docId]
     if (userId && userId.trim() !== "") {
@@ -30,7 +31,7 @@ export const lockRecord = async (transaction: Transaction, docId: string, userId
 
 export const unlockRecord = async (docId: string, userId: string) => {
     const tenantId = getTenant()
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     const lockIds = [docId]
     if (userId && userId.trim() !== "") {

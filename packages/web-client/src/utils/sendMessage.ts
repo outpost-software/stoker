@@ -1,5 +1,5 @@
-import { addDoc, collection, getFirestore } from "firebase/firestore"
-import { getEnv } from "../initializeStoker"
+import { addDoc, collection } from "firebase/firestore"
+import { getEnv, getStokerFirestore } from "../initializeStoker"
 import { sendAdminSMS } from "./sendAdminSMS"
 
 export const sendMessage = async (to: string, body: string) => {
@@ -9,7 +9,7 @@ export const sendMessage = async (to: string, body: string) => {
         await sendAdminSMS(body)
         return
     }
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const message: {
         to: string
         body: string

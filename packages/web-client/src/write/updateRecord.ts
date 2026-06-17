@@ -6,18 +6,10 @@ import {
     getCurrentUserPermissions,
     getAllRoleGroups,
     getTenant,
+    getStokerFirestore,
 } from "../initializeStoker.js"
 import { writeLog } from "./writeLog.js"
-import {
-    writeBatch,
-    doc,
-    arrayUnion,
-    Timestamp,
-    serverTimestamp,
-    deleteField,
-    arrayRemove,
-    getFirestore,
-} from "firebase/firestore"
+import { writeBatch, doc, arrayUnion, Timestamp, serverTimestamp, deleteField, arrayRemove } from "firebase/firestore"
 import {
     addSystemFields,
     validateRecord,
@@ -77,7 +69,7 @@ export const updateRecord = async (
     const roleGroups = getAllRoleGroups()
     const globalConfig = getGlobalConfigModule()
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const permissions = getCurrentUserPermissions()
     if (path.length === 0) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

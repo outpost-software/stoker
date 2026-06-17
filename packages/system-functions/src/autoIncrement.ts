@@ -1,9 +1,9 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {
     CollectionSchema,
     CollectionsSchema,
     StokerRecord,
 } from "@stoker-platform/types";
-import {getFirestore} from "firebase-admin/firestore";
 import {
     Change,
     DocumentSnapshot,
@@ -26,7 +26,7 @@ export const autoIncrement = (
 ) => {
     return (async () => {
         const tenantId = event.params.tenantId as string;
-        const db = getFirestore();
+        const db = getStokerFirestore();
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
         const before = snapshot.before.data() as StokerRecord | undefined;

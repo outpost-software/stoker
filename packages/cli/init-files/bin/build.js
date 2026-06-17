@@ -4,6 +4,7 @@ import { fileURLToPath } from "url"
 import { dirname, join } from "path"
 import { readFile, writeFile, readdir } from "fs/promises"
 import { existsSync, cpSync, rmSync } from "fs"
+import { getFirestoreDatabaseId } from "@stoker-platform/utils"
 import dotenv from "dotenv"
 
 const envDir = join(process.cwd(), ".env")
@@ -101,6 +102,7 @@ try {
         "SMTP_CONNECTION_URI=",
         "firebaseextensions.v1beta.function/location=",
         "DATABASE_REGION=",
+        "DATABASE=",
     ]
     const filteredLines = extensionEnvFileLines.filter(
         (line) => !linesToRemove.some((removeStr) => line.startsWith(removeStr)),
@@ -113,6 +115,7 @@ try {
     filteredLines.push(`DEFAULT_REPLY_TO=${mailSender.split("=")[1].replace(/^"|"$/g, "")}`)
     filteredLines.push(`SMTP_CONNECTION_URI=${mailSmtpConnectionUri.split("=")[1].replace(/^"|"$/g, "")}`)
     filteredLines.push(`DATABASE_REGION=${databaseRegion.split("=")[1].replace(/^"|"$/g, "")}`)
+    filteredLines.push(`DATABASE=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT)}`)
     await writeFile(join(__dirname, "..", "extensions", "firestore-send-email.env"), filteredLines.join("\n"))
 
     // Create functions .env file with filtered environment variables
@@ -122,7 +125,7 @@ try {
     const projectSpecificEnvFile = join(envDir, `.env.${process.env.GCP_PROJECT}`)
 
     let envContent = ""
-    const envPattern = /^(FB_FUNCTIONS_|FB_AI_REGION|STOKER_|ADMIN_)/
+    const envPattern = /^(FB_FIRESTORE_EDITION|FB_FUNCTIONS_|FB_AI_REGION|STOKER_|ADMIN_)/
 
     if (existsSync(projectEnvFile)) {
         const projectEnvContent = await readFile(projectEnvFile, "utf8")

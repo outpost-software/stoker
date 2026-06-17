@@ -6,11 +6,14 @@ import {
     CollectionsSchema,
     StokerRecord,
 } from "@stoker-platform/types";
-import {FieldValue, getFirestore} from "firebase-admin/firestore";
+import {FieldValue} from "firebase-admin/firestore";
 import {vertexAI} from "@genkit-ai/google-genai";
 import {genkit} from "genkit";
 import {tryPromise} from "@stoker-platform/utils";
-import {initializeStoker} from "@stoker-platform/node-client";
+import {
+    initializeStoker,
+    getStokerFirestore,
+} from "@stoker-platform/node-client";
 import {join} from "path";
 
 /* eslint-disable max-len */
@@ -47,7 +50,7 @@ export const writeEmbedding = (
             );
             const customization = getCustomizationFile(labels.collection, schema);
             // eslint-disable-next-line security/detect-object-injection
-            const db = getFirestore();
+            const db = getStokerFirestore();
             await db.runTransaction(async (transaction) => {
                 if (!aiConfig?.embedding) return;
                 const ref = await transaction.get(snapshot.after.ref);

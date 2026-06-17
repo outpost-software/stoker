@@ -1,6 +1,5 @@
 import {CallableRequest, HttpsError} from "firebase-functions/v2/https";
 import {getStorage} from "firebase-admin/storage";
-import {getFirestore} from "firebase-admin/firestore";
 import {
     CollectionsSchema,
     StokerPermissions,
@@ -11,7 +10,10 @@ import {
     documentAccess,
     validateStorageName,
 } from "@stoker-platform/utils";
-import {getFirestorePathRef} from "@stoker-platform/node-client";
+import {
+    getFirestorePathRef,
+    getStokerFirestore,
+} from "@stoker-platform/node-client";
 import {error as errorLogger} from "firebase-functions/logger";
 import {getApp} from "firebase-admin/app";
 import {
@@ -92,7 +94,7 @@ export const getFiles = async (
         }
         // eslint-disable-next-line security/detect-object-injection
         const collectionSchema = schema.collections[collection];
-        const db = getFirestore();
+        const db = getStokerFirestore();
         const permissionsSnapshot =
             await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(user).get();
         const permissions = permissionsSnapshot.data() as StokerPermissions;

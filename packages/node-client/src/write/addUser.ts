@@ -1,6 +1,6 @@
 import { CollectionSchema, GlobalConfig, StokerPermissions, StokerRecord } from "@stoker-platform/types"
 import { isDeleteSentinel, tryPromise } from "@stoker-platform/utils"
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { deleteUser } from "./deleteUser"
 import { getAuth } from "firebase-admin/auth"
 import { sendMail } from "../utils/sendMail"
@@ -16,7 +16,7 @@ export const addUser = async (
     password: string,
 ) => {
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const { labels, fields } = collection
 
     const message = "USER_ERROR"

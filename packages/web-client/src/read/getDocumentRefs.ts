@@ -1,10 +1,10 @@
 import { StokerPermissions, RoleGroup } from "@stoker-platform/types"
-import { getCurrentUserPermissions, getSchema, getTenant } from "../initializeStoker"
+import { getCurrentUserPermissions, getSchema, getStokerFirestore, getTenant } from "../initializeStoker"
 import { collectionAccess, hasDependencyAccess } from "@stoker-platform/utils"
-import { doc, getFirestore } from "firebase/firestore"
+import { doc } from "firebase/firestore"
 
 export const getDocumentRefs = (path: string[], recordId: string, roleGroup: RoleGroup) => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const tenantId = getTenant()
     const schema = getSchema()
     const permissions = getCurrentUserPermissions() as StokerPermissions

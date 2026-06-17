@@ -1,7 +1,7 @@
 import { CollectionSchema, GlobalConfig, StokerPermissions, StokerRecord } from "@stoker-platform/types"
 import { isDeleteSentinel, tryPromise } from "@stoker-platform/utils"
 import { getAuth, UserRecord } from "firebase-admin/auth"
-import { getFirestore } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { addUser } from "./addUser.js"
 import { rollbackUser } from "./rollbackUser.js"
 import { deleteUser } from "./deleteUser.js"
@@ -22,7 +22,7 @@ export const updateUser = async (
     password?: string,
 ) => {
     const auth = getAuth()
-    const db = getFirestore()
+    const db = getStokerFirestore()
 
     const authToken: Record<string, unknown> = {}
     for (const field of collection.fields) {

@@ -1,4 +1,5 @@
-import { doc, getDoc, getFirestore } from "firebase/firestore"
+import { doc, getDoc } from "firebase/firestore"
+import { getStokerFirestore } from "../initializeStoker.js"
 import { CollectionSchema, StokerPermissions, StokerRecord } from "@stoker-platform/types"
 import { isValidUniqueFieldValue, isDeleteSentinel } from "@stoker-platform/utils"
 import { getTenant } from "../initializeStoker"
@@ -11,7 +12,7 @@ export const uniqueValidation = async (
     permissions: StokerPermissions,
 ) => {
     const tenantId = getTenant()
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const collectionName = collectionSchema.labels.collection
 
     const uniqueFields = collectionSchema.fields.filter((field) => "unique" in field && field.unique)

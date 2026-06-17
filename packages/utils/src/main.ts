@@ -80,3 +80,4 @@ export {
 } from "./operations/sanitizeEmailInput.js"
 export { validateStorageName } from "./operations/validateStorageName.js"
 export { sanitizeDownloadFilename } from "./operations/sanitizeDownloadFilename.js"
+export { getFirestoreDatabaseId, getFirestoreTriggerDatabase } from "./operations/getFirestoreDatabaseId.js"

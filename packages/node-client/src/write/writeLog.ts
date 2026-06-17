@@ -1,4 +1,5 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore"
+import { Timestamp } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { CollectionSchema, StokerRecord, WriteLogEntry } from "@stoker-platform/types"
 import cloneDeep from "lodash/cloneDeep.js"
 import { getFirestorePathRef } from "../utils/getFirestorePathRef.js"
@@ -18,7 +19,7 @@ export const writeLog = async (
 ): Promise<void> => {
     const { labels } = collectionSchema
 
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const globalConfig = getGlobalConfigModule()
 
     const TTL = await tryPromise(globalConfig.firebase?.writeLogTTL)

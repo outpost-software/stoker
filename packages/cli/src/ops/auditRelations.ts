@@ -1,7 +1,8 @@
 import { fetchCurrentSchema, getFirestorePathRef, initializeStoker } from "@stoker-platform/node-client"
 import { CollectionField, StokerRecord, StokerRelation } from "@stoker-platform/types"
-import { CollectionReference, getFirestore, QueryDocumentSnapshot } from "firebase-admin/firestore"
+import { CollectionReference, QueryDocumentSnapshot } from "firebase-admin/firestore"
 import { join } from "node:path"
+import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 import isEqual from "lodash/isEqual.js"
 import { getField, getLowercaseFields, getSingleFieldRelations } from "@stoker-platform/utils"
 
@@ -14,7 +15,7 @@ export const auditRelations = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
     const schema = await fetchCurrentSchema()
-    const db = getFirestore()
+    const db = getCLIFirestore()
     const tenantPrefix = `tenants/${options.tenant}`
 
     const recordByDocumentPath = new Map<string, StokerRecord>()

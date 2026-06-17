@@ -11,7 +11,8 @@ import {
     StokerPermissions,
 } from "@stoker-platform/types"
 import { getFirestorePathRef } from "../utils/getFirestorePathRef"
-import { getFirestore, Query, WhereFilterOp } from "firebase-admin/firestore"
+import { Query, WhereFilterOp } from "firebase-admin/firestore"
+import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import {
     collectionAccess,
     getField,
@@ -30,7 +31,7 @@ export const getCollectionRefs = (
     userId?: string,
     permissions?: StokerPermissions,
 ): Query[] => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const collectionName = path.at(-1)
     if (!collectionName) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line security/detect-object-injection

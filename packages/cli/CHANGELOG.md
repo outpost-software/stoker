@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.102
+
+### Patch Changes
+
+- feat: add Firestore Enterprise Edition support
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.68
+    - @stoker-platform/types@0.5.47
+    - @stoker-platform/utils@0.5.59
+
 ## 0.5.101
 
 ### Patch Changes

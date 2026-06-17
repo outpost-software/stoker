@@ -11,6 +11,7 @@ export const useGoToRecord = () => {
 
     const goToRecord = (collection: CollectionSchema, record: StokerRecord, relationField?: RelationField) => {
         const customization = getCollectionConfigModule(collection.labels.collection)
+        if (!customization) return
         let route = "edit"
         if (customization.admin?.defaultRoute) {
             route = tryFunction(customization.admin.defaultRoute)

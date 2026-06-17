@@ -1,11 +1,14 @@
 import {CallableRequest, HttpsError} from "firebase-functions/v2/https";
-import {DocumentSnapshot, getFirestore} from "firebase-admin/firestore";
+import {DocumentSnapshot} from "firebase-admin/firestore";
 import {
     CollectionsSchema,
     StokerPermissions,
     WriteLogEntry,
 } from "@stoker-platform/types";
-import {getFirestorePathRef} from "@stoker-platform/node-client";
+import {
+    getFirestorePathRef,
+    getStokerFirestore,
+} from "@stoker-platform/node-client";
 import {error as errorLogger, warn} from "firebase-functions/logger";
 
 /* eslint-disable max-len */
@@ -63,7 +66,7 @@ export const getWriteLog = async (
 
         // eslint-disable-next-line security/detect-object-injection
         // const collectionSchema = schema.collections[collection];
-        const db = getFirestore();
+        const db = getStokerFirestore();
         const permissionsSnapshot =
             await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(user).get();
         const permissions = permissionsSnapshot.data() as StokerPermissions | undefined;

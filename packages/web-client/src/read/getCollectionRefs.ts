@@ -10,8 +10,14 @@ import {
     ParentEntityParentFilter,
     ParentPropertyEntityParentFilter,
 } from "@stoker-platform/types"
-import { Query, QueryFieldFilterConstraint, collection, getFirestore, query, where } from "firebase/firestore"
-import { getCollectionConfigModule, getCurrentUserPermissions, getSchema, getTenant } from "../initializeStoker"
+import { Query, QueryFieldFilterConstraint, collection, query, where } from "firebase/firestore"
+import {
+    getCollectionConfigModule,
+    getCurrentUserPermissions,
+    getSchema,
+    getStokerFirestore,
+    getTenant,
+} from "../initializeStoker"
 import {
     collectionAccess,
     getField,
@@ -22,7 +28,7 @@ import {
 } from "@stoker-platform/utils"
 
 export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const tenantId = getTenant()
     const schema = getSchema()
     const permissions = getCurrentUserPermissions() as StokerPermissions

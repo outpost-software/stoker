@@ -1,8 +1,8 @@
+import {getStokerFirestore} from "@stoker-platform/node-client";
 import {Change, DocumentSnapshot, FirestoreEvent}
     from "firebase-functions/v2/firestore";
 import {error as errorLogger} from "firebase-functions/logger";
 import {CollectionSchema, StokerRecord} from "@stoker-platform/types";
-import {getFirestore} from "firebase-admin/firestore";
 
 /* eslint-disable max-len */
 
@@ -30,7 +30,7 @@ export const uniqueDelete = (
             }
 
             if (changedUniqueFields) {
-                const db = getFirestore();
+                const db = getStokerFirestore();
                 await db.runTransaction(async (transaction) => {
                     let record: StokerRecord;
                     if (after) {

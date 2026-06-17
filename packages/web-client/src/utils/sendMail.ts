@@ -1,5 +1,5 @@
-import { addDoc, collection, getFirestore } from "firebase/firestore"
-import { getEnv } from "../initializeStoker"
+import { addDoc, collection } from "firebase/firestore"
+import { getEnv, getStokerFirestore } from "../initializeStoker"
 import { sendAdminEmail } from "./sendAdminEmail"
 import {
     sanitizeEmailAddress,
@@ -44,7 +44,7 @@ export const sendMail = async (
         throw new Error("No valid email addresses provided")
     }
 
-    const db = getFirestore()
+    const db = getStokerFirestore()
     const mail: {
         to: string | string[]
         cc?: string | string[]
