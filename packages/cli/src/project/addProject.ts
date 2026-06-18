@@ -505,9 +505,9 @@ export const addProject = async (options: any) => {
             await runChildProcess("attrib", ["-H", firebasercPath])
         }
         await runChildProcess("firebase", ["target:apply", "storage", "default", projectId, "--project", projectId])
+        const firebaseJsonPath = join(process.cwd(), "firebase.json")
+        const firebaseJson = JSON.parse(await readFile(firebaseJsonPath, "utf8"))
         if ((process.env.FB_FIRESTORE_EDITION || "enterprise") === "enterprise") {
-            const firebaseJsonPath = join(process.cwd(), "firebase.json")
-            const firebaseJson = JSON.parse(await readFile(firebaseJsonPath, "utf8"))
             firebaseJson.firestore = [
                 {
                     database: projectId,
@@ -515,6 +515,12 @@ export const addProject = async (options: any) => {
                     indexes: "firebase-rules/firestore.indexes.json",
                 },
             ]
+            await writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 4), "utf8")
+        } else {
+            firebaseJson.firestore = {
+                rules: "firebase-rules/firestore.rules",
+                indexes: "firebase-rules/firestore.indexes.json",
+            }
             await writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 4), "utf8")
         }
         await updateProjectData(17)

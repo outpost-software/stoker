@@ -1,8 +1,39 @@
-import { fetchCurrentSchema, getCollectionRefs, initializeStoker } from "@stoker-platform/node-client"
+import {
+    fetchCurrentSchema,
+    getCollectionRefs,
+    initializeStoker,
+    getStokerFirestore,
+} from "@stoker-platform/node-client"
 import { tryPromise, getRange } from "@stoker-platform/utils"
-import { Filter, Query, WhereFilterOp } from "firebase-admin/firestore"
+import { Filter, Firestore, Query, WhereFilterOp } from "firebase-admin/firestore"
 import { join } from "path"
-import { getCLIFirestore } from "../utils/getCLIFirestore.js"
+
+const explainQuery = async (_db: Firestore, query: Query, analyze: boolean) => {
+    const edition = process.env.FB_FIRESTORE_EDITION || "enterprise"
+    if (edition === "enterprise") {
+        /* 
+        const pipeline = db.pipeline().createFrom(query)
+        const snapshot = analyze
+            ? await pipeline.execute({
+                  explainOptions: { mode: "analyze", outputFormat: "text" },
+              })
+            : await pipeline.execute({
+                  rawOptions: {
+                      "explain_options.mode": "explain",
+                      "explain_options.output_format": "text",
+                  },
+              })
+        const stats = snapshot.explainStats
+        if (!stats) {
+            throw new Error("No explain results")
+        }
+        return stats.text
+        */
+        return "Explain is temporarily disabled for enterprise edition."
+    }
+    const results = await query.explain({ analyze })
+    return results.metrics
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const explainPreloadQueries = async (options: any) => {
@@ -16,7 +47,7 @@ export const explainPreloadQueries = async (options: any) => {
     const globalConfig = getGlobalConfigModule()
     const schema = await fetchCurrentSchema()
 
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
 
     const permissionsSnapshot = await db
         .collection("tenants")
@@ -83,8 +114,8 @@ export const explainPreloadQueries = async (options: any) => {
 
         console.log(`${collection}:`)
         for (const query of queries) {
-            const metrics = await query.explain({ analyze: options.analyze })
-            console.log(JSON.stringify(metrics.metrics))
+            const metrics = await explainQuery(db, query, options.analyze)
+            console.log(typeof metrics === "string" ? metrics : JSON.stringify(metrics))
         }
         console.log("\n")
     }

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.104
+
+### Patch Changes
+
+- fix: re-use Node SDK Firebase app
+
 ## 0.5.103
 
 ### Patch Changes

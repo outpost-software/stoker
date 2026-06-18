@@ -3,6 +3,7 @@ import { getDatabase } from "firebase-admin/database"
 import { mkdir, rm, writeFile } from "fs/promises"
 import { join } from "path"
 import { CollectionsSchema } from "@stoker-platform/types"
+import { getFirestoreDatabaseId } from "@stoker-platform/utils"
 
 export const prepareEmulatorData = async () => {
     if (!process.env.GCP_PROJECT) {
@@ -114,6 +115,7 @@ export const prepareEmulatorData = async () => {
         "firestore",
         "export",
         `gs://${process.env.GCP_PROJECT}/firestore_export`,
+        `--database=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT)}`,
         "--project",
         process.env.GCP_PROJECT,
     ])

@@ -1,4 +1,4 @@
-import { fetchCurrentSchema, initializeStoker } from "@stoker-platform/node-client"
+import { fetchCurrentSchema, initializeStoker, getStokerFirestore } from "@stoker-platform/node-client"
 import {
     getDependencyIndexFields,
     getLowercaseFields,
@@ -8,7 +8,6 @@ import {
     isRelationField,
 } from "@stoker-platform/utils"
 import { join } from "node:path"
-import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 import isEqual from "lodash/isEqual.js"
 import isEmpty from "lodash/isEmpty.js"
 
@@ -21,7 +20,7 @@ export const auditDenormalized = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
     const schema = await fetchCurrentSchema()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
 
     for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

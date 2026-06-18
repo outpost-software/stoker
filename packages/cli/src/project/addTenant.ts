@@ -1,14 +1,17 @@
 import { input } from "@inquirer/prompts"
-import { fetchCurrentSchema, initializeFirebase, initializeStoker } from "@stoker-platform/node-client"
+import {
+    fetchCurrentSchema,
+    initializeFirebase,
+    initializeStoker,
+    getStokerFirestore,
+} from "@stoker-platform/node-client"
 import { CollectionSchema } from "@stoker-platform/types"
 import { join } from "path"
 import { retryOperation, isRelationField } from "@stoker-platform/utils"
 import { addRecordPrompt } from "./addRecordPrompt.js"
-import { getCLIFirestore } from "../utils/getCLIFirestore.js"
-
 export const addTenant = async () => {
     await initializeFirebase()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const doc = await db.collection("tenants").add({})
     const tenantId = doc.id
 

@@ -1,10 +1,9 @@
-import { initializeFirebase } from "@stoker-platform/node-client"
-import { getCLIFirestore } from "../../utils/getCLIFirestore.js"
+import { initializeFirebase, getStokerFirestore } from "@stoker-platform/node-client"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const setDeploymentStatus = async (status: "idle" | "in_progress") => {
     await initializeFirebase()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     if (!["idle", "in_progress"].includes(status)) {
         throw new Error("Invalid deployment status")
     }

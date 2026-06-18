@@ -1,6 +1,5 @@
-import { fetchCurrentSchema, initializeStoker } from "@stoker-platform/node-client"
+import { fetchCurrentSchema, initializeStoker, getStokerFirestore } from "@stoker-platform/node-client"
 import { join } from "node:path"
-import { getCLIFirestore } from "../utils/getCLIFirestore.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const auditPermissions = async (options: any) => {
@@ -11,7 +10,7 @@ export const auditPermissions = async (options: any) => {
         join(process.cwd(), "lib", "collections"),
     )
     const schema = await fetchCurrentSchema()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
 
     const mismatches = []
     const permissions = await db.collection("tenants").doc(options.tenant).collection("system_user_permissions").get()

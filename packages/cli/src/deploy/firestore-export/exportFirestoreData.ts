@@ -1,5 +1,6 @@
 import { initializeFirebase, fetchCurrentSchema, runChildProcess } from "@stoker-platform/node-client"
 import type { CollectionsSchema } from "@stoker-platform/types"
+import { getFirestoreDatabaseId } from "@stoker-platform/utils"
 
 export const exportFirestoreData = async () => {
     await initializeFirebase()
@@ -22,6 +23,8 @@ export const exportFirestoreData = async () => {
                     `gs://${bucket}/`,
                     `--collection-ids=${collections.join(",")}`,
                     `--project=${process.env.GCP_PROJECT}`,
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    `--database=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT!)}`,
                     "--quiet",
                 ])
                 collections = []

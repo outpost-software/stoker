@@ -2,7 +2,7 @@ import { CollectionField, CollectionsSchema } from "@stoker-platform/types"
 import { FieldValue } from "firebase-admin/firestore"
 import { appendFileSync } from "fs"
 import { join } from "path"
-import { getCLIFirestore } from "../../../utils/getCLIFirestore.js"
+import { getStokerFirestore } from "@stoker-platform/node-client"
 
 export const deleteField = async (currentSchema: CollectionsSchema, lastSchema: CollectionsSchema) => {
     const deletedFields: string[] = []
@@ -29,7 +29,7 @@ export const deleteField = async (currentSchema: CollectionsSchema, lastSchema: 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const filePath = join(process.cwd(), ".migration", process.env.GCP_PROJECT!, `v${currentSchema.version.toString()}`)
 
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const bulkWriter = db.bulkWriter()
     for (const field of deletedFields) {
         const [collection, fieldName] = field.split(".")

@@ -1,10 +1,11 @@
 import { describe, test, expect, afterAll } from "vitest"
 import { ChildProcess } from "node:child_process"
 import { mkdir, readdir, rm } from "node:fs/promises"
-import { getFirestore, Timestamp } from "firebase-admin/firestore"
+import { Timestamp } from "firebase-admin/firestore"
 import {
     addRecord,
     deleteRecord,
+    getStokerFirestore,
     initializeFirebase,
     initializeStoker,
     updateRecord,
@@ -14,15 +15,9 @@ import { algoliasearch } from "algoliasearch"
 import { getAuth } from "firebase-admin/auth"
 import dotenv from "dotenv"
 import spawn from "cross-spawn"
-import { getApp } from "firebase-admin/app"
-import { getFirestoreDatabaseId } from "@stoker-platform/utils"
 
 const stokerMain = join(process.cwd(), "..", "..", "packages", "cli", "lib", "src", "main.js")
 const projectName = `test-project-${Date.now()}`
-
-const getCLIFirestore = () => {
-    return getFirestore(getApp(), getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, projectName))
-}
 
 const resolveCLICommand = async (process: ChildProcess) => {
     await new Promise<void>((resolve, reject) => {
@@ -43,7 +38,7 @@ const getTenantId = async () => {
     dotenv.config({ path: join(process.cwd(), ".env", ".env"), quiet: true })
     dotenv.config({ path: join(process.cwd(), ".env", `.env.${projectName}`), quiet: true })
     await initializeFirebase()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenants = await db.collection("tenants").listDocuments()
     return tenants[0].id
 }
@@ -63,7 +58,7 @@ const startStoker = async () => {
 
 const getUserId = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const userSnapshot = await db.collection("tenants").doc(tenantId).collection("Users").get()
     const user = userSnapshot.docs.find((doc) => doc.data()?.Email === "another@getoutpost.com")
@@ -72,7 +67,7 @@ const getUserId = async () => {
 
 const getAdminId = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const userSnapshot = await db.collection("tenants").doc(tenantId).collection("Users").get()
     const user = userSnapshot.docs.find((doc) => doc.data()?.Email === "test@getoutpost.com")
@@ -81,7 +76,7 @@ const getAdminId = async () => {
 
 const getCompanyId = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const companySnapshot = await db.collection("tenants").doc(tenantId).collection("Companies").get()
     return companySnapshot.docs[0]?.id as string
@@ -89,7 +84,7 @@ const getCompanyId = async () => {
 
 const getCompanyName = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const companySnapshot = await db.collection("tenants").doc(tenantId).collection("Companies").get()
     return companySnapshot.docs[0]?.data()?.Name as string
@@ -97,7 +92,7 @@ const getCompanyName = async () => {
 
 const getContactId = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const contactSnapshot = await db.collection("tenants").doc(tenantId).collection("Contacts").get()
     return contactSnapshot.docs.find((doc) => doc.data()?.Email === "client@getoutpost.com")?.id as string
@@ -105,7 +100,7 @@ const getContactId = async () => {
 
 const getWorkOrderId = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const workOrderSnapshot = await db.collection("tenants").doc(tenantId).collection("Work_Orders").get()
     return workOrderSnapshot.docs[0].id as string
@@ -113,7 +108,7 @@ const getWorkOrderId = async () => {
 
 const getBuildingId = async () => {
     await startStoker()
-    const db = getCLIFirestore()
+    const db = getStokerFirestore()
     const tenantId = await getTenantId()
     const contactId = await getContactId()
     const buildingSnapshot = await db
@@ -1015,7 +1010,7 @@ describe("Cloud Functions", async () => {
         functionsContactId = contactId
         const adminId = await getAdminId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const record = await addRecord(
             ["Users"],
             {
@@ -1049,7 +1044,7 @@ describe("Cloud Functions", async () => {
         const companyName = await getCompanyName()
         const adminId = await getAdminId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const record = await addRecord(
             ["Contacts", contactId, "Vehicles"],
             {
@@ -1083,7 +1078,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const userId = await getUserId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(userId).get()
         expect(snapshot.data()?.Number).not.toBeNaN()
         const dependency1 = await db
@@ -1110,7 +1105,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const snapshot = await db
             .collection("tenants")
             .doc(tenantId)
@@ -1149,7 +1144,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         await updateRecord(["Contacts"], contactId, {
             Name: "Test Contact 2",
         })
@@ -1165,7 +1160,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const service = await addRecord(["Contacts", contactId, "Vehicles", functionsVehicleId, "Services"], {
             Name: "Test Service",
             Vehicle: {
@@ -1201,7 +1196,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const workOrderId = await getWorkOrderId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         await updateRecord(["Work_Orders"], workOrderId, {
             Name: "Test Work Order 2",
         })
@@ -1224,7 +1219,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         await deleteRecord(["Contacts"], contactId)
 
         await wait(20000)
@@ -1238,7 +1233,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const companyId = await getCompanyId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         await deleteRecord(["Companies"], companyId, { force: true })
 
         await wait(20000)
@@ -1258,7 +1253,7 @@ describe("Cloud Functions", async () => {
     test("validateRelations function removes relations in subcollection", async () => {
         const tenantId = await getTenantId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         await deleteRecord(["Contacts", functionsContactId, "Vehicles"], functionsVehicleId)
 
         await wait(20000)
@@ -1280,7 +1275,7 @@ describe("Cloud Functions", async () => {
     test("verifyWriteLog function verifies write log", async () => {
         const tenantId = await getTenantId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const snapshot = await db
             .collection("tenants")
             .doc(tenantId)
@@ -1296,7 +1291,7 @@ describe("Cloud Functions", async () => {
     test("verifyWriteLog function verifies write log in subcollection", async () => {
         const tenantId = await getTenantId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         const snapshot = await db
             .collection("tenants")
             .doc(tenantId)
@@ -1317,7 +1312,7 @@ describe("Cloud Functions", async () => {
         const tenantId = await getTenantId()
         const workOrderId = await getWorkOrderId()
         await startStoker()
-        const db = getCLIFirestore()
+        const db = getStokerFirestore()
         await db.collection("tenants").doc(tenantId).collection("Work_Orders").doc(workOrderId).update({
             Last_Write_At: Timestamp.now(),
             Last_Write_By: "Systems",
