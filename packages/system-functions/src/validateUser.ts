@@ -1,9 +1,10 @@
 import {getStokerFirestore} from "@stoker-platform/node-client";
 import {getAuth, UserRecord} from "firebase-admin/auth";
+import {UserRecord as UserRecordFunctions} from "firebase-functions/v1/auth";
 import {error as errorLogger} from "firebase-functions/logger";
 
 export const validateUser = async (
-    user: UserRecord,
+    user: UserRecordFunctions,
 ) => {
     return (async () => {
         const auth = getAuth();
