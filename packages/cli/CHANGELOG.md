@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.109
+
+### Patch Changes
+
+- fix: send database edition to storage rules generator
+
 ## 0.5.108
 
 ### Patch Changes
