@@ -1,5 +1,17 @@
 # @stoker-platform/cli
 
+## 0.5.108
+
+### Patch Changes
+
+- chore: update firebase-admin version pinning
+
+## 0.5.107
+
+### Patch Changes
+
+- fix: fix firebase-admin version pinning
+
 ## 0.5.106
 
 ### Patch Changes

@@ -1,7 +1,6 @@
 {
     "overrides": {
-        "vite": "^7.3.5",
-        "firebase-admin": "13.10.0"
+        "vite": "^7.3.5"
     },
     "name": "stoker",
     "private": true,
@@ -30,7 +29,7 @@
         "@stoker-platform/utils": "latest",
         "@stoker-platform/web-app": "latest",
         "@stoker-platform/web-client": "latest",
-        "firebase-admin": "latest"
+        "firebase-admin": "^13.10.0"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "latest",
