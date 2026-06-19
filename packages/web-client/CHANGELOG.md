@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.71
+
+### Patch Changes
+
+- feat: bail out stale authentications
+
 ## 0.5.70
 
 ### Patch Changes

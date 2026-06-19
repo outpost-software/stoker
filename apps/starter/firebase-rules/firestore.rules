@@ -1,7 +1,7 @@
 rules_version = '2'
 
 service cloud.firestore {
-    match /databases/(default)/documents {
+    match /databases/{database}/documents {
 
         // DEPLOYMENT
 
@@ -23,19 +23,19 @@ service cloud.firestore {
 
             function isLoggedIn() {
                 let t = request.auth.token;
-                return t.tenant == tenantId && t.collection != null && t.role != null && t.doc != null && exists(/databases/(default)/documents/tenants/$(tenantId)/$(t.collection)/$(t.doc))
+                return t.tenant == tenantId && t.collection != null && t.role != null && t.doc != null && exists(/databases/$(database)/documents/tenants/$(tenantId)/$(t.collection)/$(t.doc))
             }
             function isValidId(id) {
                 return id.size() == 20 && id.matches("^[a-zA-Z0-9]+$")
             }
             function isLocked(id) {
-                return exists(/databases/(default)/documents/tenants/$(tenantId)/system_locks/$(id))
+                return exists(/databases/$(database)/documents/tenants/$(tenantId)/system_locks/$(id))
             }
             function getLatestDeploy() {
-                return get(/databases/(default)/documents/system_deployment/latest_deploy).data
+                return get(/databases/$(database)/documents/system_deployment/latest_deploy).data
             }
             function maintenanceMode() {
-                return get(/databases/(default)/documents/system_deployment/maintenance_mode).data.active
+                return get(/databases/$(database)/documents/system_deployment/maintenance_mode).data.active
             }
             function verifyVersion() {
                 let r = request.resource.data;
@@ -44,7 +44,7 @@ service cloud.firestore {
             }
 
             function getUserPermissions() {
-                return get(/databases/(default)/documents/tenants/$(tenantId)/system_user_permissions/$(request.auth.uid)).data
+                return get(/databases/$(database)/documents/tenants/$(tenantId)/system_user_permissions/$(request.auth.uid)).data
             }
             function restrictionInactive(permissions, restriction) {
                 let p = permissions;
@@ -56,16 +56,16 @@ service cloud.firestore {
             }
 
             function existsDocument(path) {
-                return exists(/databases/(default)/documents/tenants/$(tenantId)/$(path))
+                return exists(/databases/$(database)/documents/tenants/$(tenantId)/$(path))
             }
             function existsAfterDocument(path) {
-                return existsAfter(/databases/(default)/documents/tenants/$(tenantId)/$(path))
+                return existsAfter(/databases/$(database)/documents/tenants/$(tenantId)/$(path))
             }
             function getDocument(path) {
-                return get(/databases/(default)/documents/tenants/$(tenantId)/$(path)).data
+                return get(/databases/$(database)/documents/tenants/$(tenantId)/$(path)).data
             }
             function getAfterDocument(path) {
-                return getAfter(/databases/(default)/documents/tenants/$(tenantId)/$(path)).data
+                return getAfter(/databases/$(database)/documents/tenants/$(tenantId)/$(path)).data
             }
 
             function readAllowed(collectionPermissions) {

@@ -241,6 +241,7 @@ const clearUnsubscribes = () => {
 }
 
 let errorEventsInitialized = false
+let authLifecycleGeneration = 0
 
 export const initializeStoker = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -525,9 +526,13 @@ export const initializeStoker = async (
     let offlinePersistence: "ALL" | "WRITE" | "NONE"
 
     onAuthStateChanged(main, async (currentUser) => {
+        const generation = ++authLifecycleGeneration
+        const isStale = () => generation !== authLifecycleGeneration
+
         if (currentUser) {
             user = currentUser
             const idTokenResult = await getIdTokenResult(user)
+            if (isStale()) return
             const { claims } = idTokenResult
             tenant = claims.tenant as string
             userData = {
@@ -550,6 +555,7 @@ export const initializeStoker = async (
                 )
             }
             await Promise.all(allAuthStates)
+            if (isStale()) return
 
             if (!errorEventsInitialized) {
                 initializeErrorEvents(globalConfig)
@@ -582,6 +588,8 @@ export const initializeStoker = async (
                 ["global", "auth", "maxWriteCacheSize"],
                 [user, claims],
             )) as number
+            if (isStale()) return
+
             let cacheSettings: { localCache: PersistentLocalCache } | { localCache: MemoryLocalCache }
             const persistentCache = {
                 localCache: persistentLocalCache({
@@ -668,6 +676,8 @@ export const initializeStoker = async (
                     currentUserRoleGroups: Record<StokerCollection, RoleGroup>
                 }
             }
+            if (isStale()) return
+
             schema = schemaResult.data.schema as CollectionsSchema
             const deserializedAllRoleGroups = Object.entries(schemaResult.data.allRoleGroups).map(
                 ([collectionName, roleGroups]) => {
@@ -686,6 +696,8 @@ export const initializeStoker = async (
             )
 
             const userListeners = await initializeUserListeners(user, idTokenResult)
+            if (isStale()) return
+
             unsubscribes.push(...userListeners)
 
             if (offlinePersistence === "WRITE") {
@@ -693,6 +705,7 @@ export const initializeStoker = async (
             }
 
             await tryPromise(globalConfig.postLogin, [user])
+            if (isStale()) return
 
             const event = new Event("stoker:ready")
             document.dispatchEvent(event)

@@ -18,6 +18,16 @@
             "cache": false,
             "persistent": true
         },
+        "stoker#dev": {
+            "dependsOn": [
+                "@stoker-platform/web-client#build",
+                "@stoker-platform/node-client#build",
+                "@stoker-platform/cli#build",
+                "@stoker-platform/utils#build"
+            ],
+            "cache": false,
+            "persistent": true
+        },
         "//#format": {},
         "lint": {},
         "build": {

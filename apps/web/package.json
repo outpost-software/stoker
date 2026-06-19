@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-app",
-    "version": "0.5.171",
+    "version": "0.5.172",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "scripts": {
@@ -53,7 +53,7 @@
         "@sentry/react": "^10.56.0",
         "@stoker-platform/node-client": "0.5.69",
         "@stoker-platform/utils": "0.5.60",
-        "@stoker-platform/web-client": "0.5.70",
+        "@stoker-platform/web-client": "0.5.71",
         "@tanstack/react-table": "^8.21.3",
         "@types/react": "18.3.13",
         "@types/react-dom": "18.3.1",
