@@ -116,7 +116,6 @@ try {
     filteredLines.push(`SMTP_CONNECTION_URI=${mailSmtpConnectionUri.split("=")[1].replace(/^"|"$/g, "")}`)
     filteredLines.push(`DATABASE_REGION=${databaseRegion.split("=")[1].replace(/^"|"$/g, "")}`)
     filteredLines.push(`DATABASE=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT)}`)
-
     await writeFile(join(__dirname, "..", "extensions", "firestore-send-email.env"), filteredLines.join("\n"))
 
     // Create functions .env file with filtered environment variables

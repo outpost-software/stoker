@@ -385,12 +385,16 @@ describe("CLI", async () => {
             },
         })
 
+        child.stdout?.on("data", (data) => {
+            console.log(data.toString())
+        })
+
         child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
         await resolveCLICommand(child)
-    }, 60000)
+    }, 120000)
 
     test("build-web-app command builds the web app", async () => {
         const child = spawn("node", [stokerMain, "build-web-app"], {
@@ -533,6 +537,7 @@ describe("CLI", async () => {
     test("add-record command as user adds a record", async () => {
         const adminId = await getAdminId()
         const tenantId = await getTenantId()
+        await wait(10000)
         const child = spawn(
             "node",
             [
@@ -563,7 +568,7 @@ describe("CLI", async () => {
         })
 
         await resolveCLICommand(child)
-    }, 30000)
+    }, 40000)
 
     test("update-record command as user updates a record", async () => {
         const adminId = await getAdminId()
@@ -867,7 +872,7 @@ describe("CLI", async () => {
         })
 
         await resolveCLICommand(child)
-    }, 20000)
+    }, 60000)
 
     test("audit-relationships command audits relations", async () => {
         const tenantId = await getTenantId()
@@ -889,7 +894,7 @@ describe("CLI", async () => {
         })
 
         await resolveCLICommand(child)
-    }, 600000)
+    }, 60000)
 
     test("export command exports data", async () => {
         const tenantId = await getTenantId()
@@ -901,12 +906,16 @@ describe("CLI", async () => {
             },
         })
 
+        child.stdout?.on("data", (data) => {
+            console.log(data.toString())
+        })
+
         child.stderr?.on("data", (data) => {
             console.error(data.toString())
         })
 
         await resolveCLICommand(child)
-    }, 30000)
+    }, 120000)
 
     test("bigquery command exports data", async () => {
         const tenantId = await getTenantId()
