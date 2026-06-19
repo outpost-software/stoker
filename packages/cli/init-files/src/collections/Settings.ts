@@ -13,7 +13,6 @@ const Settings: GenerateSchema = (): CollectionSchema => {
             operations: {
                 assignable: ["Admin"],
                 read: ["Admin"],
-                create: ["Admin"],
                 update: ["Admin"],
             },
         },

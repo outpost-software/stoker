@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.105
+
+### Patch Changes
+
+- fix: remove Settings create operation
+
 ## 0.5.104
 
 ### Patch Changes

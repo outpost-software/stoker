@@ -1,6 +1,6 @@
 # @stoker-platform/system-functions
 
-## 0.5.80
+## 0.5.81
 
 ### Patch Changes
 
