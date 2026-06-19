@@ -4064,16 +4064,6 @@
             ]
         },
         {
-            "collectionGroup": "Sites-Name",
-            "fieldPath": "id",
-            "indexes": [
-                {
-                    "queryScope": "COLLECTION",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "Sites-Company",
             "fieldPath": "*",
             "indexes": []
