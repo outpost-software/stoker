@@ -1,4 +1,8 @@
 {
+    "overrides": {
+        "vite": "^7.3.5",
+        "firebase-admin": "13.10.0"
+    },
     "name": "stoker",
     "private": true,
     "version": "0.0.1",

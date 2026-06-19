@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.106
+
+### Patch Changes
+
+- fix: pin firebase-admin version
+
 ## 0.5.105
 
 ### Patch Changes
