@@ -24,7 +24,9 @@ export const generateFirestoreRules = async () => {
         body: JSON.stringify({ schema }),
         method: "POST",
     })
-    let rules = await rulesResponse.text()
+    const result = await rulesResponse.json()
+    let { rules } = result
+    const { message } = result
 
     const customRules = readFileSync(
         resolve(__dirname, process.cwd(), "firebase-rules", "firestore.custom.rules"),
@@ -44,4 +46,6 @@ export const generateFirestoreRules = async () => {
     rules = `${rules}\n\n        // CUSTOM SECURITY RULES\n\n        ${customRules.split("\n").join("\n        ")}\n    }\n}`
 
     writeFileSync(resolve(__dirname, process.cwd(), "firebase-rules", "firestore.rules"), rules)
+
+    console.log(message)
 }

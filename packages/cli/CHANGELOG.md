@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.110
+
+### Patch Changes
+
+- feat: improve security rule and index reports
+
 ## 0.5.109
 
 ### Patch Changes

@@ -26,7 +26,10 @@ export const generateStorageRules = async () => {
         body: JSON.stringify({ schema, edition }),
         method: "POST",
     })
-    const rules = await rulesResponse.text()
+    const result = await rulesResponse.json()
+    const { rules, message } = result
 
     writeFileSync(resolve(__dirname, process.cwd(), "firebase-rules", "storage.rules"), rules)
+
+    console.log(message)
 }

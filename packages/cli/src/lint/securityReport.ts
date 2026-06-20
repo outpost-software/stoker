@@ -8,7 +8,6 @@ import {
     getRoleGroups,
     getFieldCustomization,
 } from "@stoker-platform/utils"
-import { statSync } from "node:fs"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 import { GlobalConfig } from "@stoker-platform/types"
@@ -274,18 +273,6 @@ export const securityReport = async () => {
                 isError = true
             }
         }
-    }
-
-    const filePath = join(process.cwd(), "firebase-rules", "firestore.rules")
-    const fileStats = statSync(filePath)
-    const rulesetSize = fileStats.size / 1024
-    if (rulesetSize > 256) {
-        console.error(`[ERROR] Size of ruleset: ${rulesetSize.toFixed(2)} KB - Exceeds Maximum of 256 KB.`)
-        isError = true
-    } else if (rulesetSize > 200) {
-        console.warn(`[WARN] Size of ruleset: ${rulesetSize.toFixed(2)} KB.`)
-    } else {
-        console.log(`Size of ruleset: ${rulesetSize.toFixed(2)} KB.`)
     }
 
     if (isError) {
