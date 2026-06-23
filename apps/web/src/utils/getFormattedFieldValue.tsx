@@ -163,7 +163,7 @@ export const getFormattedFieldValue = (
                         variant="outline"
                         size="sm"
                         className={cn(
-                            "w-fit min-w-[100px] md:min-w-[200px] max-w-full whitespace-normal break-words h-auto p-3 bg-transparent dark:bg-blue-500/50 text-blue-500 dark:text-primary dark:hover:bg-blue-500 dark:border-input",
+                            "w-fit min-w-[100px] md:min-w-[200px] max-w-full whitespace-normal break-words h-auto p-3 bg-background dark:bg-blue-500/50 text-blue-500 dark:text-primary dark:hover:bg-blue-500 dark:border-input",
                         )}
                         disabled={
                             !relationCollection ||

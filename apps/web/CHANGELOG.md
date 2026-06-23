@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.175
+
+### Patch Changes
+
+- fix: change background colour for relation button in light mode
+
 ## 0.5.174
 
 ### Patch Changes
