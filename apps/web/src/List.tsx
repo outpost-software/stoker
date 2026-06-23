@@ -693,6 +693,12 @@ export function List({
             .filter((record): record is StokerRecord => record !== undefined)
     }, [rowSelection, searchList])
 
+    const searchOptions = tryFunction(customization.admin?.searchOptions) || {
+        fuzzy: false,
+        prefix: false,
+    }
+    const exactPhrase = searchOptions.fuzzy === false && searchOptions.prefix === false
+
     const table = useReactTable<StokerRecord>({
         data: searchList,
         columns,
@@ -700,7 +706,7 @@ export function List({
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: (sortingUpdater) => {
-            if (isSearchRelevanceOrder) return
+            if (isSearchRelevanceOrder && !exactPhrase) return
             if (typeof sortingUpdater === "function") {
                 const newSorting = sortingUpdater(sorting)
                 const field = getField(fields, newSorting[0].id)
@@ -740,9 +746,9 @@ export function List({
         onRowSelectionChange: setRowSelection,
         pageCount,
         autoResetPageIndex: false,
-        enableSorting: !isSearchRelevanceOrder,
+        enableSorting: !isSearchRelevanceOrder || exactPhrase,
         state: {
-            sorting: isSearchRelevanceOrder ? [] : sorting,
+            sorting: isSearchRelevanceOrder && !exactPhrase ? [] : sorting,
             columnFilters,
             rowSelection,
             pagination: {

@@ -1,32 +1,83 @@
 import { CollectionSchema, StokerRecord } from "@stoker-platform/types"
+import { getCollectionConfigModule } from "@stoker-platform/web-client"
 import MiniSearch, { Options } from "minisearch"
+
+const flattenToSearchText = (value: unknown): string => {
+    if (value == null) return ""
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return String(value)
+    }
+    if (Array.isArray(value)) {
+        return value.map(flattenToSearchText).filter(Boolean).join(" ")
+    }
+    if (typeof value === "object") {
+        return Object.values(value).map(flattenToSearchText).filter(Boolean).join(" ")
+    }
+    return ""
+}
+
+const valueContainsPhrase = (value: unknown, phrase: string): boolean => {
+    if (value == null) return false
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return String(value).toLowerCase().includes(phrase)
+    }
+    if (Array.isArray(value)) {
+        return value.some((item) => valueContainsPhrase(item, phrase))
+    }
+    if (typeof value === "object") {
+        return Object.values(value).some((item) => valueContainsPhrase(item, phrase))
+    }
+    return false
+}
+
+const recordMatchesPhrase = (record: StokerRecord, fields: string[], phrase: string) =>
+    // eslint-disable-next-line security/detect-object-injection
+    fields.some((field) => valueContainsPhrase(record[field], phrase))
 
 export const localFullTextSearch = (
     collection: CollectionSchema,
     query: string,
     list: StokerRecord[],
     filter?: (result: StokerRecord) => boolean,
-    tokenize?: boolean,
 ) => {
     const { recordTitleField, fullTextSearch } = collection
-    const miniSearchConfig: Options = {
-        fields: fullTextSearch || [recordTitleField],
-        storeFields: fullTextSearch || [recordTitleField],
-        searchOptions: {
-            ...(collection.searchOptions || {
-                fuzzy: 0.2,
-                prefix: true,
-            }),
-        },
+    const fields = fullTextSearch || [recordTitleField]
+    const customization = getCollectionConfigModule(collection.labels.collection)
+    const searchOptions = customization.admin?.searchOptions || {
+        fuzzy: false,
+        prefix: false,
     }
+
     if (filter) {
         list = list.filter((record) => filter(record))
     }
-    if (tokenize) {
-        miniSearchConfig.tokenize = (string) => [string]
+
+    const phrase = query.trim().toLowerCase()
+    const exactPhrase = searchOptions.fuzzy === false && searchOptions.prefix === false
+
+    if (exactPhrase) {
+        if (!phrase) return []
+        return list
+            .filter((record) => recordMatchesPhrase(record, fields, phrase))
+            .map((record) => ({
+                id: record.id,
+                score: 1,
+                terms: [phrase],
+                queryTerms: [phrase],
+                match: { [phrase]: fields },
+                // eslint-disable-next-line security/detect-object-injection
+                ...Object.fromEntries(fields.map((field) => [field, record[field]])),
+            }))
     }
+
+    const miniSearchConfig: Options = {
+        fields,
+        storeFields: fields,
+        searchOptions,
+        stringifyField: (fieldValue) => flattenToSearchText(fieldValue),
+    }
+
     const miniSearch = new MiniSearch(miniSearchConfig)
     miniSearch.addAll(list)
-    const results = miniSearch.search(query)
-    return results
+    return miniSearch.search(query)
 }

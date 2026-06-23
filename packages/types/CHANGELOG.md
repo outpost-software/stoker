@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.50
+
+### Patch Changes
+
+- feat: add exact match search as default search mode
+
 ## 0.5.49
 
 ### Patch Changes

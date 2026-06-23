@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.174
+
+### Patch Changes
+
+- feat: improve relation button display
+- feat: add exact match search as default search mode
+    - @stoker-platform/node-client@0.5.71
+    - @stoker-platform/utils@0.5.62
+    - @stoker-platform/web-client@0.5.73
+
 ## 0.5.173
 
 ### Patch Changes

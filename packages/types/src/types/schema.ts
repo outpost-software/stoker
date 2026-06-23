@@ -2,6 +2,7 @@ import { Timestamp as AdminTimestamp, FieldValue } from "firebase-admin/firestor
 import { Timestamp, WhereFilterOp, WriteBatch } from "firebase/firestore"
 import { NodeUtilities, WebUtilities } from "./app"
 import { CalendarOptions } from "@fullcalendar/core"
+import { SearchOptions } from "minisearch"
 
 export type StokerRole = string
 export type StokerCollection = string
@@ -770,6 +771,7 @@ export interface CollectionAdmin {
                     direction?: "asc" | "desc"
                 }>)
     itemsPerPage?: number | (() => number | Promise<number>)
+    searchOptions?: SearchOptions
     list?: ListConfig | (() => ListConfig | Promise<ListConfig>)
     cards?: CardsConfig | (() => CardsConfig | Promise<CardsConfig>)
     images?: ImagesConfig | (() => ImagesConfig | Promise<ImagesConfig>)
@@ -841,6 +843,7 @@ export interface CollectionAdminCache {
         field: string
         direction?: "asc" | "desc"
     }
+    searchOptions?: SearchOptions
     itemsPerPage?: number
     list?: ListConfig
     cards?: CardsConfig
@@ -1127,7 +1130,6 @@ export interface CollectionSchema {
     enableWriteLog?: boolean
     preserveWriteLog?: boolean
     fullTextSearch?: string[]
-    searchOptions?: Record<string, unknown>
     ttl?: string
     indexExemption?: boolean
     roleSystemFields?: RoleSystemField[]
