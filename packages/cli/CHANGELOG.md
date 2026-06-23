@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.113
+
+### Patch Changes
+
+- fix: allow full text search fields with access restrictions in cached modes
+
 ## 0.5.112
 
 ### Patch Changes

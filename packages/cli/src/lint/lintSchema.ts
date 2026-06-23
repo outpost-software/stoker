@@ -537,7 +537,10 @@ export const lintSchema = async (noLog = false) => {
                     )
                 } else {
                     const fieldSchema = getField(fields, field)
-                    if (fieldSchema.access) {
+                    if (
+                        fieldSchema.access &&
+                        !readRoles.every((role) => preloadCache?.roles.includes(role) || serverReadOnly?.includes(role))
+                    ) {
                         errors.push(
                             `Collection ${collectionName} has a full text search field ${field} with access restrictions`,
                         )
