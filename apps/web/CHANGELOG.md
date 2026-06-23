@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.178
+
+### Patch Changes
+
+- fix: fix filters button showing when no filters to show
+
 ## 0.5.177
 
 ### Patch Changes

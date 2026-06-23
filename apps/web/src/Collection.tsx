@@ -1298,7 +1298,7 @@ function Collection({
             })
         }
         return excluded
-    }, [isPreloadCacheEnabled, cardsConfig, statusField, tab])
+    }, [isPreloadCacheEnabled, cardsConfig, statusField, tab, filters])
 
     const filtersActive = useMemo(() => {
         return (
@@ -1335,12 +1335,13 @@ function Collection({
             if (!field) return false
 
             if (filter.roles && !filter.roles.includes(userRole)) return false
+            if (relationList && relationList.field === filter.field) return false
 
             if (filter.type === "relation") {
                 if (!isRelationField(field)) return false
                 const relationCollection = schema.collections[field.collection]
-                if (!relationCollection || !relationCollection.fullTextSearch) return false
-                const collectionPermissions = permissions?.collections?.[relationCollection.labels.collection]
+                if (!relationCollection?.fullTextSearch) return false
+                const collectionPermissions = permissions.collections?.[relationCollection.labels.collection]
                 const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
                 const dependencyAccess = hasDependencyAccess(relationCollection, schema, permissions)
                 if (!fullCollectionAccess && dependencyAccess.length === 0) return false
