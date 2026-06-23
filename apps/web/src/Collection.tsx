@@ -1572,7 +1572,7 @@ function Collection({
                     pushConstraint(softDelete.archivedField, "==", false)
                 }
 
-                if (fullTextSearch && !isPreloadCacheEnabled && query) {
+                if (fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly && query) {
                     const disjunctions = getFilterDisjunctions(collection)
                     const hitsPerPage =
                         disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
@@ -1599,7 +1599,7 @@ function Collection({
                         | [string, WhereFilterOp, unknown][]
                         | QueryConstraint[],
                     only: isPreloadCacheEnabled ? "cache" : undefined,
-                    pagination: isPreloadCacheEnabled ? undefined : { number: 10 },
+                    pagination: isPreloadCacheEnabled || (isServerReadOnly && query) ? undefined : { number: 10 },
                     noEmbeddingFields: true,
                 })
 
@@ -1611,7 +1611,7 @@ function Collection({
                     return !array?.includes(parentId)
                 })
 
-                if (isPreloadCacheEnabled && query) {
+                if ((isPreloadCacheEnabled || isServerReadOnly) && query) {
                     const searchResults = localFullTextSearch(collection, query, filtered)
                     const objectIds = searchResults.map((result) => result.id)
                     setSelectableData(filtered.filter((doc) => objectIds.includes(doc.id)).slice(0, 10))

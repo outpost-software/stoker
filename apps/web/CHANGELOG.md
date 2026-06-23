@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.177
+
+### Patch Changes
+
+- fix: always use local search for serverReadOnly collections
+
 ## 0.5.176
 
 ### Patch Changes

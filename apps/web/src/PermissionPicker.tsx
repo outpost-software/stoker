@@ -109,7 +109,7 @@ export const PermissionPicker = ({
             }
 
             let searchObjectIDs: string[] | undefined
-            if (fullTextSearch && !isCollectionPreloadCacheEnabled && query) {
+            if (fullTextSearch && !isCollectionPreloadCacheEnabled && !isCollectionServerReadOnly && query) {
                 const disjunctions = getFilterDisjunctions(collection)
                 const hitsPerPage = disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
                 const objectIDs = await performFullTextSearch(collection, query, hitsPerPage, constraints)
@@ -136,13 +136,16 @@ export const PermissionPicker = ({
             getSome([labels.collection], {
                 constraints: newConstraints,
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
-                pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
+                pagination:
+                    isCollectionPreloadCacheEnabled || (isCollectionServerReadOnly && query)
+                        ? undefined
+                        : { number: 10 },
                 noEmbeddingFields: true,
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 
                 const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
-                if (isCollectionPreloadCacheEnabled && query) {
+                if ((isCollectionPreloadCacheEnabled || isCollectionServerReadOnly) && query) {
                     const searchResults = localFullTextSearch(collection, query, data.records)
                     const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
                     const ordered = searchResults

@@ -275,7 +275,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
             }
 
             let searchObjectIDs: string[] | undefined
-            if (fullTextSearch && !isCollectionPreloadCacheEnabled && query) {
+            if (fullTextSearch && !isCollectionPreloadCacheEnabled && !isCollectionServerReadOnly && query) {
                 const disjunctions = getFilterDisjunctions(collectionSchema)
                 const hitsPerPage = disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
                 const objectIDs = await performFullTextSearch(collectionSchema, query, hitsPerPage, constraints)
@@ -308,13 +308,16 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
             getSome([collection], {
                 constraints: newConstraints as QueryConstraint[] | [string, WhereFilterOp, unknown][],
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
-                pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
+                pagination:
+                    isCollectionPreloadCacheEnabled || (isCollectionServerReadOnly && query)
+                        ? undefined
+                        : { number: 10 },
                 noEmbeddingFields: true,
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 
                 const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
-                if (isCollectionPreloadCacheEnabled && query) {
+                if ((isCollectionPreloadCacheEnabled || isCollectionServerReadOnly) && query) {
                     const searchResults = localFullTextSearch(collectionSchema, query, data.records)
                     const recordsById = new Map(data.records.map((doc) => [doc.id, doc]))
                     const ordered = searchResults

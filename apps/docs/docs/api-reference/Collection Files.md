@@ -80,12 +80,6 @@ For collections without `preloadCache` or `serverReadOnly` set to `true`, you wi
     - All fields used for [filters](#filters) in the admin app. So, if your app filters the collection by "Status", add a "Status" attribute to the facets section. For relation filters, append "_Array" to the end of the field name. For example, "Project_Array".
     - All fields used for [attribute restrictions](Collection%20Files#attributerestrictions).
 
-### searchOptions
-
-`Record<string, unknown>`
-
-Client-side full text search options. Only relevant for roles with the [preload cache](#preload-cache-config) enabled. Provide [MiniSeach settings](https://lucaong.github.io/minisearch/types/MiniSearch.SearchOptions.html).
-
 ### relationLists
 
 ```
@@ -1593,6 +1587,12 @@ The default field to sort the list by.
 ```
 
 The secondary field to sort the list by. Only works for collections with `preloadCache` or `access.serverReadOnly` enabled.
+
+### searchOptions
+
+`SearchOptions | (() => SearchOptions)`
+
+Client-side full text search options. Only relevant for roles with the [preload cache](#preload-cache-config) or `access.serverReadOnly` enabled. Provide [MiniSeach settings](https://lucaong.github.io/minisearch/types/MiniSearch.SearchOptions.html).
 
 ### rangeSelectorValues
 

@@ -58,7 +58,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
             ],
         }
 
-        if (fullTextSearch && !isPreloadCacheEnabled) {
+        if (fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
             const disjunctions = getFilterDisjunctions(collection)
             const hitsPerPage = disjunctions === 0 ? 5 : Math.min(5, Math.max(1, Math.floor(30 / disjunctions)))
             const algoliaConstraints: [string, "==" | "in", unknown][] = []
@@ -67,11 +67,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
             }
             const objectIDs = await performFullTextSearch(collection, search, hitsPerPage, algoliaConstraints)
             if (objectIDs.length > 0) {
-                if (isServerReadOnly) {
-                    query.queries[0].constraints = [["id", "in", objectIDs]]
-                } else {
-                    query.queries[0].constraints = [where("id", "in", objectIDs)]
-                }
+                query.queries[0].constraints = [where("id", "in", objectIDs)]
             } else if (search) {
                 setResults([])
                 setLoading(false)
@@ -105,7 +101,7 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                             setResults(searchRecords.slice(0, MAX_RESULTS))
                             setLoading(false)
                         } else {
-                            setResults(loadedDocs)
+                            setResults(loadedDocs.slice(0, MAX_RESULTS))
                             setLoading(false)
                         }
 
@@ -151,13 +147,23 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
             }
 
             const getServerData = async () => {
+                const serverConstraints: [string, WhereFilterOp, unknown][] = []
+                if (softDelete?.archivedField) {
+                    serverConstraints.push([softDelete.archivedField, "==", false])
+                }
                 const data = await getSome([labels.collection], {
-                    constraints: query.queries[0].constraints as [string, WhereFilterOp, unknown][],
-                    pagination: {
-                        number: MAX_RESULTS,
-                    },
+                    constraints: serverConstraints,
+                    pagination: search && fullTextSearch ? undefined : { number: MAX_RESULTS },
                 })
-                setResults(data.records)
+                let records = data.records
+                if (search && fullTextSearch) {
+                    const searchResults = localFullTextSearch(collection, search, records)
+                    const recordsById = new Map(records.map((record) => [record.id, record]))
+                    records = searchResults
+                        .map((result) => recordsById.get(result.id))
+                        .filter((record): record is StokerRecord => record !== undefined)
+                }
+                setResults(records.slice(0, MAX_RESULTS))
                 setLoading(false)
                 resolve()
             }

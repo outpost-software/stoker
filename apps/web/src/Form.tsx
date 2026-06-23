@@ -1974,7 +1974,7 @@ function RelationField({
             }
 
             let searchObjectIDs: string[] | undefined
-            if (fullTextSearch && !isCollectionPreloadCacheEnabled && query) {
+            if (fullTextSearch && !isCollectionPreloadCacheEnabled && !isCollectionServerReadOnly && query) {
                 const disjunctions = getFilterDisjunctions(relationCollection)
                 const hitsPerPage = disjunctions === 0 ? 10 : Math.min(10, Math.max(1, Math.floor(30 / disjunctions)))
                 const objectIDs = await performFullTextSearch(relationCollection, query, hitsPerPage, constraints)
@@ -2020,13 +2020,16 @@ function RelationField({
             getSome([labels.collection], {
                 constraints: newConstraints,
                 only: isCollectionPreloadCacheEnabled ? "cache" : undefined,
-                pagination: isCollectionPreloadCacheEnabled ? undefined : { number: 10 },
+                pagination:
+                    isCollectionPreloadCacheEnabled || (isCollectionServerReadOnly && query)
+                        ? undefined
+                        : { number: 10 },
                 noEmbeddingFields: true,
             }).then((data) => {
                 clearTimeout(pickerDebounceTimeout.current)
 
                 const numberOfResults = isCollectionPreloadCacheEnabled && isMobile ? 20 : 10
-                if (isCollectionPreloadCacheEnabled && query) {
+                if ((isCollectionPreloadCacheEnabled || isCollectionServerReadOnly) && query) {
                     const searchResults = localFullTextSearch(relationCollection, query, data.records, (result) => {
                         if (!fieldCustomization.admin?.filterResults) return true
                         return !!fieldCustomization.admin?.filterResults?.(result, collection, record)
