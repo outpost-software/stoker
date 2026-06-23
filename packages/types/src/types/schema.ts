@@ -687,6 +687,7 @@ export interface CustomRecordPage {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         utils: any
     }>
+    props?: Record<string, unknown>
     condition?: (record: StokerRecord | undefined) => boolean
     icon?: React.FC<{ className?: string }>
 }

@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.173
+
+### Patch Changes
+
+- feat: add props option to custom record pages
+    - @stoker-platform/node-client@0.5.70
+    - @stoker-platform/utils@0.5.61
+    - @stoker-platform/web-client@0.5.72
+
 ## 0.5.172
 
 ### Patch Changes

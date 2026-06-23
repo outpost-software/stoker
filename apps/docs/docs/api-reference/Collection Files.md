@@ -1845,6 +1845,7 @@ type CustomRecordPage = {
         hooks: any
         utils: any
     }>
+    props?: Record<string, unknown>
     condition?: (record: StokerRecord | undefined) => boolean
 }
 ```
@@ -1859,7 +1860,9 @@ Create custom pages for the collection.
 
 `url`: The url that the page will load on
 
-`component`: The custom component and the props that will be passed to it.
+`component`: The custom component.
+
+`props`: Props to pass to the custom component.
 
 `condition`: Show or hide the custom component
 

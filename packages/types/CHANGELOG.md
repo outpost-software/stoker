@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.49
+
+### Patch Changes
+
+- feat: add props option to custom record pages
+
 ## 0.5.48
 
 ### Patch Changes

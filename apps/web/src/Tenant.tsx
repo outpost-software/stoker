@@ -591,7 +591,7 @@ function Tenant() {
                                     runViewTransition(() => navigate("/"))
                                 }}
                             >
-                                <img src={logo || defaultLogo} alt="Logo" className="h-8 mr-2" />
+                                <img src={logo || defaultLogo} alt="Logo" className="h-8 mr-2 object-contain" />
                             </button>
                             {links}
                         </nav>

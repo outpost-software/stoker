@@ -311,6 +311,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                         }),
                                                         hooks: import.meta.glob("./hooks/*.{ts,tsx}", { eager: true }),
                                                         utils: import.meta.glob("./lib/*.{ts,tsx}", { eager: true }),
+                                                        ...page.props,
                                                     })}
                                                 </main>
                                             }
