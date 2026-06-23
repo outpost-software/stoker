@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.176
+
+### Patch Changes
+
+- fix: revert relation button change for card view
+
 ## 0.5.175
 
 ### Patch Changes
