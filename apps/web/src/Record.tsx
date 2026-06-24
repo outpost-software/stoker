@@ -208,6 +208,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                         <CardContent className="px-0">
                             <SidebarProvider defaultOpen={true} open={true} className="flex flex-col lg:flex-row">
                                 <RecordSidebar
+                                    record={record}
                                     collection={collection}
                                     customRecordPages={customRecordPages}
                                     isAssigning={isAssigning}

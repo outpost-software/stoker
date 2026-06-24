@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.179
+
+### Patch Changes
+
+- feat: add relation list parameter to titles method
+    - @stoker-platform/node-client@0.5.72
+    - @stoker-platform/utils@0.5.63
+    - @stoker-platform/web-client@0.5.74
+
 ## 0.5.178
 
 ### Patch Changes

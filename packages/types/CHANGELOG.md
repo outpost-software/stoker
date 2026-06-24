@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.51
+
+### Patch Changes
+
+- feat: add relation list parameter to titles method
+
 ## 0.5.50
 
 ### Patch Changes

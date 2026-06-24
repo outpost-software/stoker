@@ -783,7 +783,12 @@ function Collection({
                 labels.collection,
                 "admin",
             ]
-            const titles = await getCachedConfigValue(customization, [...collectionAdminPath, "titles"])
+            const titles = await getCachedConfigValue(
+                customization,
+                [...collectionAdminPath, "titles"],
+                [relationList ? "relation-list" : undefined, relationCollection, relationParent],
+                true,
+            )
             setCollectionTitle(titles?.collection || labels.collection)
             setRecordTitle(titles?.record || labels.record)
             if (!itemsPerPageOverride) {

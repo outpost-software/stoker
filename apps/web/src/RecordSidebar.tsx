@@ -10,7 +10,13 @@ import {
 } from "./components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./components/ui/dropdown-menu"
 import { useLocation, useNavigate, useParams } from "react-router"
-import { Assignable, CollectionPermissions, CollectionSchema, CustomRecordPage } from "@stoker-platform/types"
+import {
+    Assignable,
+    CollectionPermissions,
+    CollectionSchema,
+    CustomRecordPage,
+    StokerRecord,
+} from "@stoker-platform/types"
 import { collectionAccess, getField, isRelationField, tryFunction, tryPromise } from "@stoker-platform/utils"
 import { getCurrentUserPermissions, getCollectionConfigModule, getSchema } from "@stoker-platform/web-client"
 import { runViewTransition } from "./utils/runViewTransition"
@@ -24,11 +30,13 @@ interface SidebarItem {
 }
 
 export const RecordSidebar = ({
+    record,
     collection,
     customRecordPages,
     isAssigning,
     setIsAssigning,
 }: {
+    record: StokerRecord
     collection: CollectionSchema
     customRecordPages?: CustomRecordPage[]
     isAssigning: Record<string, boolean>
@@ -54,7 +62,11 @@ export const RecordSidebar = ({
                     const relationCollection = schema.collections[relationList.collection]
                     if (!relationCollection) return
                     const relationCustomization = getCollectionConfigModule(relationCollection.labels.collection)
-                    const titles = await tryPromise(relationCustomization.admin?.titles)
+                    const titles = await tryPromise(relationCustomization.admin?.titles, [
+                        "relation-list",
+                        collection,
+                        record,
+                    ])
                     const title = titles?.collection || relationList.collection
                     setRelationTitles((prev) => ({
                         ...prev,

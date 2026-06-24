@@ -1494,7 +1494,15 @@ The collection's position in the navbar.
 
 ### titles
 
-`{ collection: string, record: string } | ((context?: "permissions") => { collection: string; record: string } | Promise<{ collection: string; record: string }>)`
+```
+{ collection: string, record: string } | 
+(
+    (
+        context?: "permissions" | "search-all" | "relation-list", 
+        parentCollection?: CollectionSchema, parentRecord?: StokerRecord
+    ) => { collection: string; record: string } | Promise<{ collection: string; record: string }>
+)
+```
 
 Human-readable labels for the collection. Only necessary if the root `labels` are not human-readable.
 

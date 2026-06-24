@@ -720,7 +720,9 @@ export interface CollectionAdmin {
               record: string
           }
         | ((
-              context?: "permissions" | "search-all",
+              context?: "permissions" | "search-all" | "relation-list",
+              parentCollection?: CollectionSchema,
+              parentRecord?: StokerRecord,
           ) => { collection: string; record: string } | Promise<{ collection: string; record: string }>)
     icon?: React.FC | (() => React.FC | Promise<React.FC>)
     duplicate?: boolean | (() => boolean | Promise<boolean>)
