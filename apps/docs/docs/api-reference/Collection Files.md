@@ -1499,7 +1499,8 @@ The collection's position in the navbar.
 (
     (
         context?: "permissions" | "search-all" | "relation-list", 
-        parentCollection?: CollectionSchema, parentRecord?: StokerRecord
+        parentCollection?: CollectionSchema,
+        parentRecord?: StokerRecord,
     ) => { collection: string; record: string } | Promise<{ collection: string; record: string }>
 )
 ```
