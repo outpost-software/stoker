@@ -1,5 +1,17 @@
 # @stoker-platform/web-app
 
+## 0.5.183
+
+### Patch Changes
+
+- fix: improve compact list metric transitions
+
+## 0.5.182
+
+### Patch Changes
+
+- fix: improve list metric responsiveness
+
 ## 0.5.181
 
 ### Patch Changes
