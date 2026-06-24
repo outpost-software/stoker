@@ -623,6 +623,7 @@ export interface Metric {
     prefix?: string
     suffix?: string
     textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    compact?: boolean
     formula?: (records: StokerRecord[]) => number | string
 }
 export interface Chart {

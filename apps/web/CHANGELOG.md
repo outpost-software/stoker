@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.180
+
+### Patch Changes
+
+- feat: add compact option to list metrics
+    - @stoker-platform/node-client@0.5.73
+    - @stoker-platform/utils@0.5.64
+    - @stoker-platform/web-client@0.5.75
+
 ## 0.5.179
 
 ### Patch Changes

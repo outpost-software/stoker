@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.52
+
+### Patch Changes
+
+- feat: add compact option to list metrics
+
 ## 0.5.51
 
 ### Patch Changes

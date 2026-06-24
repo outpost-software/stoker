@@ -1512,6 +1512,21 @@ export function List({
                                             metric.type === "custom"
                                         ) {
                                             const metricTitle = metric.title || `Total ${collectionTitle}`
+                                            if (metric.compact) {
+                                                return (
+                                                    <div
+                                                        key={`metric-${index}`}
+                                                        className={"grid gap-3 place-content-center"}
+                                                    >
+                                                        <Card className="p-4 flex flex-col min-w-[175px] place-content-center items-center bg-blue-500 dark:bg-blue-500/50 text-primary-foreground dark:text-primary">
+                                                            <div className="font-semibold line-clamp-1 text-center">
+                                                                {/* eslint-disable-next-line security/detect-object-injection */}
+                                                                {metricTitle}: {metricsValues[index] as string}
+                                                            </div>
+                                                        </Card>
+                                                    </div>
+                                                )
+                                            }
                                             return (
                                                 <div
                                                     key={`metric-${index}`}
