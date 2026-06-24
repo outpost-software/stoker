@@ -16,6 +16,11 @@ export const deployProject = async (options: any) => {
             await runChildProcess("npx", ["stoker", "deployment", "--status", "idle"])
         }
 
+        await runChildProcess("npx", ["stoker", "generate-types"])
+        await runChildProcess("npm", ["run", "format"])
+        await runChildProcess("npm", ["run", "lint"])
+        await runChildProcess("npm", ["run", "build"])
+
         if (!options.initial) {
             const currentSchema = await generateSchema()
             const lastSchema = await fetchCurrentSchema()
@@ -42,10 +47,6 @@ export const deployProject = async (options: any) => {
             }
         }
 
-        await runChildProcess("npx", ["stoker", "generate-types"])
-        await runChildProcess("npm", ["run", "format"])
-        await runChildProcess("npm", ["run", "lint"])
-        await runChildProcess("npm", ["run", "build"])
         await runChildProcess("npm", ["run", "test"])
         await runChildProcess("npx", ["stoker", "build-web-app"])
 

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.114
+
+### Patch Changes
+
+- fix: run schema diff check after build step
+
 ## 0.5.113
 
 ### Patch Changes
