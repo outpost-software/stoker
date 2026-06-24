@@ -97,6 +97,10 @@ export function DateRangeSelector({
                 }
             }
 
+            if (value.to) {
+                value = { ...value, to: DateTime.fromJSDate(value.to).endOf("day").toJSDate() }
+            }
+
             if (!rangeFilter) return
 
             setRange(value)

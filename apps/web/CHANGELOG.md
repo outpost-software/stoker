@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.181
+
+### Patch Changes
+
+- fix: filter by end of selected end date in range picker
+
 ## 0.5.180
 
 ### Patch Changes
