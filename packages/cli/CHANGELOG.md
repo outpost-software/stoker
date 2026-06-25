@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.117
+
+### Patch Changes
+
+- fix: update AI chat system prompt to insist on RAG
+
 ## 0.5.116
 
 ### Patch Changes
