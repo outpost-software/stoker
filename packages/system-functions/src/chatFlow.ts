@@ -8,7 +8,6 @@ import {z} from "zod";
 import {
     addRecord,
     getOne,
-    getSome,
     getInputSchema,
     getStokerFirestore,
     updateRecord,
@@ -163,35 +162,6 @@ export const chatFlow = (
         },
     );
 
-    const getSomeTool = ai.defineTool(
-        {
-            name: `get${labels.collection}`,
-            description: `Gets multiple records from the ${labels.collection} collection`,
-            inputSchema: z.object({}),
-            outputSchema: z.string(),
-        },
-        async (_input, {context}) => {
-            if (!context.auth) throw new HttpsError("unauthenticated", `You are not authorized to get records from the ${labels.collection} collection.`);
-            const tenantId = (context?.auth?.token as {tenant?: string})?.tenant;
-            if (!tenantId) {
-                throw new HttpsError("unauthenticated", "Tenant ID not found in authentication token");
-            }
-            await initializeStoker(
-                "production",
-                tenantId,
-                join(process.cwd(), "lib", "system-custom", "main.js"),
-                join(process.cwd(), "lib", "system-custom", "collections"),
-                true,
-            );
-            try {
-                const records = await getSome([labels.collection], {userId: context.auth?.uid});
-                return JSON.stringify(records.records);
-            } catch {
-                return "Error getting records";
-            }
-        },
-    );
-
     return ai.defineFlow(
         {
             name: `${collection.labels.collection.toLowerCase()}_chat`,
@@ -238,7 +208,7 @@ export const chatFlow = (
                 query: input.messages.map((message) => message.content.map((part) => part.text).join("")).join("\n\n"),
             }, {
                 docs,
-                tools: [addRecordTool, updateRecordTool, getOneTool, getSomeTool],
+                tools: [addRecordTool, updateRecordTool, getOneTool],
             });
             for await (const chunk of stream) {
                 sendChunk(chunk.text);

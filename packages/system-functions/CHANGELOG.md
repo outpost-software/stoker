@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.87
+
+### Patch Changes
+
+- fix: remove getSome tool from AI chat
+
 ## 0.5.86
 
 ### Patch Changes
