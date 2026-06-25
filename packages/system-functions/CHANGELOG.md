@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.86
+
+### Patch Changes
+
+- fix: perform bulk writes in batches
+
 ## 0.5.85
 
 ### Patch Changes

@@ -1232,46 +1232,68 @@ export function List({
         const titles = await getCachedConfigValue(customization, ["collections", labels.collection, "admin", "titles"])
         const recordTitle = titles?.record || labels.record
 
-        selectedRecords.forEach((record) => {
+        const recordsToDelete = [...selectedRecords]
+
+        for (const record of recordsToDelete) {
             if (isGlobalLoading.get(record.id)?.server) {
                 alert(
                     `Record ${record.id} is currently being written to the server. Please wait for it to finish before deleting.`,
                 )
                 return
             }
-            const serverWrite = isServerDelete(collection, record)
+        }
 
+        recordsToDelete.forEach((record) => {
             setOptimisticDelete(labels.collection, record.id)
+        })
 
-            setGlobalLoading("+", record.id, serverWrite, !(serverWrite || isServerReadOnly))
+        const BATCH_SIZE = 5
+        const runDeletes = async () => {
+            for (let i = 0; i < recordsToDelete.length; i += BATCH_SIZE) {
+                const batch = recordsToDelete.slice(i, i + BATCH_SIZE)
+                const batchPromises = batch.map((record) => {
+                    const serverWrite = isServerDelete(collection, record)
 
-            deleteRecord(record.Collection_Path, record.id)
-                .then(() => {
-                    if (isServerReadOnly) {
-                        backToStart()
-                    }
-                })
-                .catch((error) => {
-                    console.error(error)
-                    toast({
-                        // eslint-disable-next-line security/detect-object-injection
-                        description: `${recordTitle} ${recordTitleField ? record[recordTitleField] : record.id} failed to delete.`,
-                        variant: "destructive",
-                    })
-                })
-                .finally(() => {
-                    if (serverWrite || isServerReadOnly) {
+                    setGlobalLoading("+", record.id, serverWrite, !(serverWrite || isServerReadOnly))
+
+                    const deletePromise = deleteRecord(record.Collection_Path, record.id)
+                        .then(() => {
+                            if (isServerReadOnly) {
+                                backToStart()
+                            }
+                        })
+                        .catch((error) => {
+                            console.error(error)
+                            toast({
+                                // eslint-disable-next-line security/detect-object-injection
+                                description: `${recordTitle} ${recordTitleField ? record[recordTitleField] : record.id} failed to delete.`,
+                                variant: "destructive",
+                            })
+                        })
+                        .finally(() => {
+                            if (serverWrite || isServerReadOnly) {
+                                removeOptimisticDelete(labels.collection, record.id)
+                            }
+                            setGlobalLoading("-", record.id, undefined, !(serverWrite || isServerReadOnly))
+                        })
+                    if (!serverWrite && !isServerReadOnly) {
                         removeOptimisticDelete(labels.collection, record.id)
                     }
-                    setGlobalLoading("-", record.id, undefined, !(serverWrite || isServerReadOnly))
+                    return deletePromise
                 })
-            if (!serverWrite && !isServerReadOnly) {
-                removeOptimisticDelete(labels.collection, record.id)
+                await Promise.all(batchPromises)
             }
-        })
+        }
+
+        if (isServerReadOnly) {
+            await runDeletes()
+        } else {
+            runDeletes()
+        }
+
         setRowSelection({})
         toast({
-            description: `Deleting ${selectedRecords.length} ${selectedRecords.length > 1 ? "records" : "record"}.`,
+            description: `Deleting ${recordsToDelete.length} ${recordsToDelete.length > 1 ? "records" : "record"}.`,
         })
     }, [
         collection,

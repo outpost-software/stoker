@@ -158,12 +158,12 @@ export const writeApi = async (
         return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-        if (error.message.includes("VALIDATION_ERROR")) {
+        if (error.message?.includes("VALIDATION_ERROR")) {
             throw new HttpsError(
                 "failed-precondition",
                 error.message
             );
-        } else if (error.message.includes("PERMISSION_DENIED")) {
+        } else if (error.message?.includes("PERMISSION_DENIED")) {
             errorLogger(error);
             throw new HttpsError(
                 "permission-denied",

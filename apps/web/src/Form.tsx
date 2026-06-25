@@ -4323,49 +4323,58 @@ function RecordForm({
                     return
                 }
 
-                const updatePromises: Promise<StokerRecord>[] = []
+                const recordsToUpdate = rowSelection.filter((selectedRecord) => selectedRecord.id)
 
-                rowSelection.forEach((selectedRecord) => {
-                    if (selectedRecord.id) {
-                        setOptimisticUpdate(labels.collection, {
-                            ...selectedRecord,
-                            ...cloneDeep(recordToSave),
-                        } as StokerRecord)
-                    }
+                recordsToUpdate.forEach((selectedRecord) => {
+                    setOptimisticUpdate(labels.collection, {
+                        ...selectedRecord,
+                        ...cloneDeep(recordToSave),
+                    } as StokerRecord)
                 })
 
-                rowSelection.forEach((selectedRecord) => {
-                    if (!selectedRecord.id) return
-
-                    const serverWrite = isServerUpdate(collection, { ...recordToSave, id: selectedRecord.id })
-                    setGlobalLoading("+", selectedRecord.id, serverWrite, !(serverWrite || isServerReadOnly))
-
-                    const updatePromise = updateRecord(path, selectedRecord.id, recordToSave, {
-                        originalRecord: selectedRecord,
-                    })
-                        .catch((error) => {
-                            console.error(`Failed to update record ${selectedRecord.id}:`, error)
-                            toast({
-                                // eslint-disable-next-line security/detect-object-injection
-                                description: `${recordTitle} ${recordTitleField ? selectedRecord[recordTitleField] : selectedRecord.id} failed to update.`,
-                                variant: "destructive",
+                const BATCH_SIZE = 5
+                const runUpdates = async () => {
+                    for (let i = 0; i < recordsToUpdate.length; i += BATCH_SIZE) {
+                        const batch = recordsToUpdate.slice(i, i + BATCH_SIZE)
+                        const batchPromises = batch.map((selectedRecord) => {
+                            const serverWrite = isServerUpdate(collection, {
+                                ...recordToSave,
+                                id: selectedRecord.id,
                             })
-                        })
-                        .finally(() => {
-                            removeOptimisticUpdate(labels.collection, selectedRecord.id)
-                            setGlobalLoading("-", selectedRecord.id, undefined, !(serverWrite || isServerReadOnly))
-                            if (serverWrite || isServerReadOnly) {
-                                if (onSaveRecord) onSaveRecord()
-                            }
-                        })
+                            setGlobalLoading("+", selectedRecord.id, serverWrite, !(serverWrite || isServerReadOnly))
 
-                    updatePromises.push(updatePromise as Promise<StokerRecord>)
-                })
+                            return updateRecord(path, selectedRecord.id, recordToSave, {
+                                originalRecord: selectedRecord,
+                            })
+                                .catch((error) => {
+                                    console.error(`Failed to update record ${selectedRecord.id}:`, error)
+                                    toast({
+                                        // eslint-disable-next-line security/detect-object-injection
+                                        description: `${recordTitle} ${recordTitleField ? selectedRecord[recordTitleField] : selectedRecord.id} failed to update.`,
+                                        variant: "destructive",
+                                    })
+                                })
+                                .finally(() => {
+                                    removeOptimisticUpdate(labels.collection, selectedRecord.id)
+                                    setGlobalLoading(
+                                        "-",
+                                        selectedRecord.id,
+                                        undefined,
+                                        !(serverWrite || isServerReadOnly),
+                                    )
+                                    if (serverWrite || isServerReadOnly) {
+                                        if (onSaveRecord) onSaveRecord()
+                                    }
+                                })
+                        })
+                        await Promise.all(batchPromises)
+                    }
+                }
 
                 if (isServerReadOnly) {
-                    await Promise.all(updatePromises)
+                    await runUpdates()
                 } else {
-                    Promise.all(updatePromises)
+                    runUpdates()
                 }
 
                 rowSelection.forEach((selectedRecord) => {
