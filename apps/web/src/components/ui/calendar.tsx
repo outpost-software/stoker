@@ -1,17 +1,67 @@
 import * as React from "react"
-import { DayPicker } from "react-day-picker"
+import { format } from "date-fns"
+import { DayPicker, type CaptionLabelProps } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons"
+import YearPicker from "@/components/ui/year-picker"
 
 /* eslint-disable react/prop-types */
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+function CalendarCaptionLabel({ displayMonth, id, onYearClick }: CaptionLabelProps & { onYearClick: () => void }) {
+    return (
+        <div className="text-sm font-medium" aria-live="polite" role="presentation" id={id}>
+            <button
+                type="button"
+                onClick={onYearClick}
+                className="rounded-sm p-2 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+                {format(displayMonth, "MMMM ")}
+                {format(displayMonth, "yyyy")}
+            </button>
+        </div>
+    )
+}
+
+function Calendar({
+    className,
+    classNames,
+    showOutsideDays = true,
+    month: monthProp,
+    onMonthChange: onMonthChangeProp,
+    defaultMonth,
+    fromYear,
+    toYear,
+    components,
+    ...props
+}: CalendarProps) {
+    const [showYearPicker, setShowYearPicker] = React.useState(false)
+    const [internalMonth, setInternalMonth] = React.useState<Date>(defaultMonth ?? new Date())
+
+    const month = monthProp ?? internalMonth
+    const onMonthChange = onMonthChangeProp ?? setInternalMonth
+
+    if (showYearPicker) {
+        return (
+            <YearPicker
+                currentMonth={month}
+                onYearChange={(newMonth) => {
+                    onMonthChange(newMonth)
+                    setShowYearPicker(false)
+                }}
+                fromYear={fromYear}
+                toYear={toYear}
+            />
+        )
+    }
+
     return (
         <DayPicker
+            month={month}
+            onMonthChange={onMonthChange}
             showOutsideDays={showOutsideDays}
             className={cn("p-3", className)}
             classNames={{
@@ -52,7 +102,13 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
             components={{
                 IconLeft: () => <ChevronLeftIcon className="h-4 w-4" />,
                 IconRight: () => <ChevronRightIcon className="h-4 w-4" />,
+                ...components,
+                CaptionLabel: (captionProps) => (
+                    <CalendarCaptionLabel {...captionProps} onYearClick={() => setShowYearPicker(true)} />
+                ),
             }}
+            fromYear={fromYear}
+            toYear={toYear}
             {...props}
         />
     )

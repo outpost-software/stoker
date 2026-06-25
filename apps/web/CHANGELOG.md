@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.185
+
+### Patch Changes
+
+- feat: add temporary year picker
+
 ## 0.5.184
 
 ### Patch Changes
