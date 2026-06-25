@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.184
+
+### Patch Changes
+
+- fix: perform bulk writes in batches
+
 ## 0.5.183
 
 ### Patch Changes
