@@ -1957,6 +1957,7 @@ export function List({
                                                                 onClick={() => {
                                                                     const field = getField(fields, id)
                                                                     if (
+                                                                        field &&
                                                                         id !== "select" &&
                                                                         !["OneToOne", "OneToMany"].includes(field.type)
                                                                     ) {
@@ -1969,6 +1970,7 @@ export function List({
                                                                 onKeyDown={(event) => {
                                                                     const field = getField(fields, id)
                                                                     if (
+                                                                        field &&
                                                                         id !== "select" &&
                                                                         event.key === "Enter" &&
                                                                         !["OneToOne", "OneToMany"].includes(field.type)
