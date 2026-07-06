@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.186
+
+### Patch Changes
+
+- feat: improve light mode metric colours
+
 ## 0.5.185
 
 ### Patch Changes

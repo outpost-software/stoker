@@ -1556,7 +1556,7 @@ export function List({
                                                     key={`metric-${index}`}
                                                     className={cn("grid gap-3 place-content-center", hideThirdMetric)}
                                                 >
-                                                    <Card className="p-4 pt-6 pb-6 h-[175px] min-w-[175px] flex flex-col place-content-center items-center bg-blue-500 dark:bg-blue-500/50 text-primary-foreground dark:text-primary">
+                                                    <Card className="p-4 pt-6 pb-6 h-[175px] min-w-[175px] flex flex-col place-content-center items-center text-blue-500 dark:bg-blue-500/50 dark:text-primary">
                                                         <div className="relative bottom-2">
                                                             <div className="font-semibold line-clamp-1 text-center">
                                                                 {metricTitle}
@@ -1573,6 +1573,8 @@ export function List({
                                                                     "leading-none",
                                                                     "overflow-hidden",
                                                                     "break-words",
+                                                                    "text-primary/80",
+                                                                    "dark:text-primary",
                                                                     metric.textSize || "text-3xl",
                                                                 )}
                                                             >
@@ -1957,7 +1959,6 @@ export function List({
                                                                 onClick={() => {
                                                                     const field = getField(fields, id)
                                                                     if (
-                                                                        field &&
                                                                         id !== "select" &&
                                                                         !["OneToOne", "OneToMany"].includes(field.type)
                                                                     ) {
@@ -1970,7 +1971,6 @@ export function List({
                                                                 onKeyDown={(event) => {
                                                                     const field = getField(fields, id)
                                                                     if (
-                                                                        field &&
                                                                         id !== "select" &&
                                                                         event.key === "Enter" &&
                                                                         !["OneToOne", "OneToMany"].includes(field.type)

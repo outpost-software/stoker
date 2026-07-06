@@ -176,7 +176,7 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
 
     return (
         <div className="grid gap-3 h-full items-center bg-background rounded-xl">
-            <Card className="p-4 pt-6 pb-6 h-full flex flex-col justify-center items-center bg-blue-500 dark:bg-blue-500/50 text-primary-foreground dark:text-primary border-transparent dark:border-background">
+            <Card className="p-4 pt-6 pb-6 h-full flex flex-col justify-center items-center text-blue-500 dark:bg-blue-500/50 dark:text-primary border-transparent dark:border-background">
                 <div className="text-[16px] font-[600] line-clamp-1 text-center">{metricTitle}</div>
                 {connectionStatus === "online" || isPreloadCacheEnabled ? (
                     isLoading || (isPreloadCacheEnabled && isCacheLoading) ? (
@@ -196,6 +196,8 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
                                 "leading-none",
                                 "overflow-hidden",
                                 "break-words",
+                                "text-primary/80",
+                                "dark:text-primary",
                                 metric.textSize || "text-3xl",
                             )}
                         >
