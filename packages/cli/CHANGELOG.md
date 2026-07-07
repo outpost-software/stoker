@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.120
+
+### Patch Changes
+
+- feat: revert default Firestore edition to standard
+
 ## 0.5.119
 
 ### Patch Changes

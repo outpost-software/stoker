@@ -60,7 +60,11 @@ App data for your projects is stored in Cloud Firestore.
 
 #### `FB_FIRESTORE_EDITION`
 
-The edition for your Firestore databases. Must be `standard` or `enterprise`. Defaults to `enterprise`.
+The edition for your Firestore databases. Must be `standard` or `enterprise`. Defaults to `standard`.
+
+:::danger
+File uploads will currently not work when Firestore Enterprise Edition is enabled. This is due to cross-service security rules currently being incompatible with Firestore Enterprise Edition.
+:::
 
 #### `FB_FIRESTORE_REGION` (Required)
 

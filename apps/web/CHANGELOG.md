@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.187
+
+### Patch Changes
+
+- feat: change Dashboard metric spinner colour
+
 ## 0.5.186
 
 ### Patch Changes

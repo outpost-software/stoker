@@ -180,7 +180,7 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
                 <div className="text-[16px] font-[600] line-clamp-1 text-center">{metricTitle}</div>
                 {connectionStatus === "online" || isPreloadCacheEnabled ? (
                     isLoading || (isPreloadCacheEnabled && isCacheLoading) ? (
-                        <div className="flex items-center justify-center min-h-10">
+                        <div className="flex items-center justify-center min-h-10 text-primary/80 dark:text-primary">
                             <LoadingSpinner size={7} />
                         </div>
                     ) : (
