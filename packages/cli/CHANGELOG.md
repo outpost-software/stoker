@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.119
+
+### Patch Changes
+
+- fix: use project ID for storage rules Firestore database ID
+
 ## 0.5.118
 
 ### Patch Changes

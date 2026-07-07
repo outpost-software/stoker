@@ -23,7 +23,7 @@ export const generateStorageRules = async () => {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ schema, edition }),
+        body: JSON.stringify({ schema, edition, project: process.env.GCP_PROJECT }),
         method: "POST",
     })
     const result = await rulesResponse.json()

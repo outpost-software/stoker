@@ -194,9 +194,9 @@ To deploy your latest changes to a project:
 All of your app data is stored in your own Google Cloud projects. We do NOT have access to your Google Cloud projects or your app data.
 
 When you deploy with `stoker deploy` or add a project with `stoker add-project`, the following occurs:
-- Your Stoker schema (JSON) is sent to our server.
+- Your Stoker schema (JSON) is sent to our server along with your project's Google Cloud project ID.
 - Our server returns Firestore Indexes, Firestore Security Rules and Firebase Storage Security Rules for your project.
-- We do not store, log, or retain your schema, generated rules, or index definitions after the request is completed. They are processed in-memory solely for the purpose of generating the required Firebase configuration files.
+- We do not store, log, or retain your schema, project ID, generated rules, or index definitions after the request is completed. They are processed in-memory solely for the purpose of generating the required Firebase configuration files.
 - No AI is used in the generation of your rules / indexes.
 
 No analytics or tracking data are collected from the Stoker CLI.
