@@ -109,6 +109,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                         maxSectionLines: 3,
                     },
                 ],
+                cardClass: "border-none",
             },
             metrics: [
                 {
@@ -404,6 +405,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                         list: false,
                         form: false,
                     },
+                    noExport: true,
                 },
                 restrictUpdate: true,
             },
@@ -415,6 +417,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                         list: false,
                         form: false,
                     },
+                    noExport: true,
                 },
             },
             {

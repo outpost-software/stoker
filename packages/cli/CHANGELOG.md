@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.118
+
+### Patch Changes
+
+- feat: improve init files Inbox config
+
 ## 0.5.117
 
 ### Patch Changes
