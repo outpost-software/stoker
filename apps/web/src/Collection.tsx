@@ -241,6 +241,7 @@ function Collection({
     const [firstTabLoadCards, setFirstTabLoadCards] = useState<boolean | undefined>(undefined)
     const [revertingStatusFilter, setRevertingStatusFilter] = useState(false)
     const [rangeSelector, setRangeSelector] = useState<"range" | "week" | "month" | undefined>(undefined)
+    const [titleCount, setTitleCount] = useState(false)
 
     const { filters, setFilters, order, setOrder, getFilterConstraints } = useFilters()
     const { orderByField, orderByDirection } = useMemo(() => getOrderBy(collection, order), [order])
@@ -610,11 +611,8 @@ function Collection({
                                 // eslint-disable-next-line security/detect-object-injection
                                 unsubscribe.current[key].push(newUnsubscribe)
                                 if (!isPreloadCacheEnabled && !isServerReadOnly) {
-                                    if (!query.infinite) {
-                                        setPages((prev) => ({ ...prev, [key]: newPages || 1 }))
-                                    } else {
-                                        setCount((prev) => ({ ...prev, [key]: newCount }))
-                                    }
+                                    setPages((prev) => ({ ...prev, [key]: newPages || 1 }))
+                                    setCount((prev) => ({ ...prev, [key]: newCount }))
                                 }
                                 resolve()
                             }
@@ -881,6 +879,8 @@ function Collection({
             const customListActions =
                 (await getCachedConfigValue(customization, [...collectionAdminPath, "customListActions"])) || []
             setCustomListActions(customListActions)
+            const titleCount = await getCachedConfigValue(customization, [...collectionAdminPath, "titleCount"])
+            setTitleCount(!!titleCount)
 
             const statusField = await getCachedConfigValue(customization, [...collectionAdminPath, "statusField"])
             setStatusField(statusField)
@@ -1744,6 +1744,14 @@ function Collection({
                             <Card className="flex items-center gap-2 h-12 sm:min-w-[300px] p-5">
                                 {icon ? createElement(icon) : null}
                                 <h1>{collectionTitle}</h1>
+                                {titleCount && tab !== "cards" && tab !== "calendar" && (
+                                    <span
+                                        className="hidden sm:block text-sm text-muted-foreground ml-auto"
+                                        style={{ marginLeft: "auto", marginRight: 0 }}
+                                    >
+                                        {(count?.default ?? list.default?.length)?.toString()}
+                                    </span>
+                                )}
                             </Card>
                             {isInitialized && (connectionStatus === "online" || isPreloadCacheEnabled) && (
                                 <>

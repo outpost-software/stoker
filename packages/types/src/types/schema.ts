@@ -789,6 +789,7 @@ export interface CollectionAdmin {
         | (() => "range" | "week" | "month" | ("range" | "week" | "month")[])
     defaultRangeSelector?: "range" | "week" | "month" | (() => "range" | "week" | "month")
     restrictExport?: StokerRole[] | (() => StokerRole[] | Promise<StokerRole[]>)
+    titleCount?: boolean | (() => boolean | Promise<boolean>)
     metrics?: (Metric | Chart)[] | (() => (Metric | Chart)[] | Promise<(Metric | Chart)[]>)
     meta?: CollectionMeta | (() => CollectionMeta | Promise<CollectionMeta>)
     rowHighlight?: RowHighlight[] | (() => RowHighlight[])

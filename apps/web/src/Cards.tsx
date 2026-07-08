@@ -189,7 +189,7 @@ function CardItem({ index, style, data }: CardItemProps) {
 
     let titleClass = ""
     if (isPendingServer || isDisabled) {
-        titleClass = "text-muted-foreground"
+        titleClass = "text-primary/70 dark:text-muted-foreground"
     }
 
     const headerLineClamp = cardsConfig.maxHeaderLines === 2 ? "line-clamp-2" : "line-clamp-1"

@@ -2172,6 +2172,12 @@ Return an array of filter objects (specified above). Filters will appear in the 
 
 "Range filters" allow you to filter by a Timestamp field. See [`preloadCache.range`](#range) for more information on what the options do.
 
+### titleCount
+
+`boolean | (() => boolean | Promise<boolean>)`
+
+Display a counter in the title bar showing the number of items in the list.
+
 ### metrics
 
 ```

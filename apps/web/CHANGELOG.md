@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.189
+
+### Patch Changes
+
+- feat: add title bar counter
+    - @stoker-platform/node-client@0.5.75
+    - @stoker-platform/utils@0.5.66
+    - @stoker-platform/web-client@0.5.77
+
 ## 0.5.188
 
 ### Patch Changes
