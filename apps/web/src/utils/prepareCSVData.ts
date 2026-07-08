@@ -59,7 +59,7 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
             const noExport = tryFunction(fieldCustomization.admin?.noExport) || false
             if (noExport) continue
             if (fieldCustomization.admin?.condition?.form) {
-                const condition = tryFunction(fieldCustomization.admin?.condition?.form, ["update", doc])
+                const condition = tryFunction(fieldCustomization.admin?.condition?.form, ["update", doc, true])
                 if (condition === false) {
                     docData[field.name] = ""
                     continue

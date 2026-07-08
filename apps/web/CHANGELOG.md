@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.188
+
+### Patch Changes
+
+- feat: add isExport parameter to form condition method
+    - @stoker-platform/node-client@0.5.74
+    - @stoker-platform/utils@0.5.65
+    - @stoker-platform/web-client@0.5.76
+
 ## 0.5.187
 
 ### Patch Changes

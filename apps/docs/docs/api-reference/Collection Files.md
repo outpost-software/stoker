@@ -1211,13 +1211,15 @@ An icon that will be shown for the field on the form page. Provide additional Ta
 ```
 {
     list?: boolean | ((parentCollection?: CollectionSchema, parentRecord?: StokerRecord) => boolean)
-    form?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)
+    form?: boolean | ((operation?: "create" | "update", record?: StokerRecord, isExport?: boolean) => boolean)
 }
 ```
 
 Show or hide the field in the list view and on the form page. 
 
-The list function recieves the parent collection and parent record when shown on a relation list page.
+The list method recieves the parent collection and parent record when shown on a relation list page.
+
+The form method receives isExport as true during CSV export operations.
 
 #### hidden
 

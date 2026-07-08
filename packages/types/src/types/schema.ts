@@ -908,7 +908,7 @@ export interface FieldAdmin {
     icon?: FormFieldIcon | (() => FormFieldIcon | Promise<FormFieldIcon>)
     condition?: {
         list?: boolean | ((parentCollection?: CollectionSchema, parentRecord?: StokerRecord) => boolean)
-        form?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)
+        form?: boolean | ((operation?: "create" | "update", record?: StokerRecord, isExport?: boolean) => boolean)
     }
     readOnly?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)
     description?: FieldDescription

@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.53
+
+### Patch Changes
+
+- feat: add isExport parameter to form condition method
+
 ## 0.5.52
 
 ### Patch Changes
