@@ -3713,6 +3713,15 @@ function RecordForm({
     useEffect(() => {
         const loadImages = async () => {
             if (!formImagesEnabled || operation !== "update" || !record || isOffline) return
+            const imageFieldUrls = fields
+                .filter((field) => {
+                    if (field.type !== "String") return false
+                    const fieldCustomization = getFieldCustomization(field, customization)
+                    return tryFunction(fieldCustomization.admin?.image)
+                })
+                .map((field) => {
+                    return record?.[field.name]
+                })
             try {
                 const items = await getFiles("", record)
                 const imageItems = items.filter((item) => {
@@ -3724,7 +3733,7 @@ function RecordForm({
                         return url
                     }),
                 )
-                setCarouselImages(urls)
+                setCarouselImages(urls.filter((url) => !imageFieldUrls.includes(url)))
             } finally {
                 setCarouselLoading(false)
             }

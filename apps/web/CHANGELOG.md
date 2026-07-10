@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.192
+
+### Patch Changes
+
+- feat: remove image field images from image carousel
+
 ## 0.5.191
 
 ### Patch Changes
