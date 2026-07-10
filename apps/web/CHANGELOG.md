@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.191
+
+### Patch Changes
+
+- fix: fix image field upload spinner
+
 ## 0.5.190
 
 ### Patch Changes

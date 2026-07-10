@@ -2714,7 +2714,7 @@ function RecordForm({
         async (
             selectedPermissions: FilePermissions,
             contextOverride?: "files" | "image-create" | "image-update",
-            imageUpdateOverrides?: { pendingImage: { fieldName: string; file: File }; resolver: () => void },
+            imageUpdateOverrides?: { pendingImage: { fieldName: string; file: File }; resolver?: () => void },
         ) => {
             const context = contextOverride ?? permissionsContext
             if (context === "files") {
@@ -2840,6 +2840,10 @@ function RecordForm({
                                 description: `Failed to upload ${filename}`,
                                 variant: "destructive",
                             })
+                            resolve()
+                            if (effectiveResolver) {
+                                effectiveResolver()
+                            }
                         },
                         async () => {
                             try {
@@ -2912,20 +2916,21 @@ function RecordForm({
 
     const uploadImageForUpdate = useCallback(
         async (fieldName: string, file: File) => {
-            return await new Promise<void>((resolve) => {
-                setPermissionsContext("image-update")
-                setPendingImageForUpdate({ fieldName, file })
-                setEditingFilename(file.name)
-                setIsMultipleFileUpload(false)
+            setPermissionsContext("image-update")
+            setPendingImageForUpdate({ fieldName, file })
+            setEditingFilename(file.name)
+            setIsMultipleFileUpload(false)
+
+            if (shouldSkipPermissionsDialog()) {
+                await handlePermissionsConfirm(getDefaultPermissions(), "image-update", {
+                    pendingImage: { fieldName, file },
+                })
+                return
+            }
+
+            await new Promise<void>((resolve) => {
                 setImageUpdateResolver(() => resolve)
-                if (shouldSkipPermissionsDialog()) {
-                    handlePermissionsConfirm(getDefaultPermissions(), "image-update", {
-                        pendingImage: { fieldName, file },
-                        resolver: resolve,
-                    })
-                } else {
-                    setShowPermissionsDialog(true)
-                }
+                setShowPermissionsDialog(true)
             })
         },
         [shouldSkipPermissionsDialog, getDefaultPermissions, handlePermissionsConfirm],
