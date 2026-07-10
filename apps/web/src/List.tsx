@@ -111,6 +111,7 @@ interface AreaMetricChartProps {
     timezone: string
     showMetric2: boolean
     showLegend: boolean
+    currency?: string
 }
 
 const AreaMetricChart = ({
@@ -120,7 +121,14 @@ const AreaMetricChart = ({
     timezone,
     showMetric2,
     showLegend,
+    currency,
 }: AreaMetricChartProps) => {
+    const formatChartValue = (value: number) => {
+        if (currency) {
+            return `${currency}${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        }
+        return value.toLocaleString()
+    }
     const filteredData = useMemo(() => {
         return chartData?.filter((item) => {
             const date = new Date(item.date)
@@ -177,6 +185,7 @@ const AreaMetricChart = ({
                                 })
                             }}
                             indicator="dot"
+                            valueFormatter={currency ? (value) => formatChartValue(Number(value)) : undefined}
                         />
                     }
                 />
@@ -1413,8 +1422,8 @@ export function List({
                                 const existingInterval = chartData.find((item) => item.date === date)
                                 if (existingInterval) {
                                     existingInterval.metric1 += metric1
-                                    if (existingInterval.metric2 && metric2) {
-                                        existingInterval.metric2 += metric2
+                                    if (metric2) {
+                                        existingInterval.metric2 = (existingInterval.metric2 ?? 0) + metric2
                                     }
                                 } else {
                                     chartData.push({ date, metric1, metric2 })
@@ -1626,6 +1635,8 @@ export function List({
                                                 },
                                             } satisfies ChartConfig
 
+                                            const currency = tryFunction(metric.currency)
+
                                             return (
                                                 <div key={`metric-${index}`} className="grid gap-3 flex-1 min-w-0">
                                                     <Card className="pt-0 w-full" key={`metric-${index}`}>
@@ -1675,6 +1686,7 @@ export function List({
                                                                     timezone={timezone}
                                                                     showMetric2={!!metricField2}
                                                                     showLegend={!!(metricField1 && metricField2)}
+                                                                    currency={currency}
                                                                 />
                                                             </CardContent>
                                                         </div>

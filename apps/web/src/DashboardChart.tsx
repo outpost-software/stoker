@@ -140,8 +140,8 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                     const existingInterval = chartData.find((item) => item.date === date)
                     if (existingInterval) {
                         existingInterval.metric1 += metric1
-                        if (existingInterval.metric2 && metric2) {
-                            existingInterval.metric2 += metric2
+                        if (metric2) {
+                            existingInterval.metric2 = (existingInterval.metric2 ?? 0) + metric2
                         }
                     } else {
                         chartData.push({ date, metric1, metric2 })
@@ -171,8 +171,8 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                     const existingInterval = chartData.find((item) => item.date === date)
                     if (existingInterval) {
                         existingInterval.metric1 += metric1
-                        if (existingInterval.metric2 && metric2) {
-                            existingInterval.metric2 += metric2
+                        if (metric2) {
+                            existingInterval.metric2 = (existingInterval.metric2 ?? 0) + metric2
                         }
                     } else {
                         chartData.push({ date, metric1, metric2 })
@@ -245,6 +245,16 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
         tryFunction(metricField2Customization?.admin?.label) ||
         metricField2?.name ||
         "Total"
+
+    const hasMetric2 = !!(metricField2 || chart.formula2)
+
+    const currency = tryFunction(chart.currency)
+    const formatChartValue = (value: number) => {
+        if (currency) {
+            return `${currency}${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        }
+        return value.toLocaleString()
+    }
 
     const chartConfig = {
         visitors: {
@@ -328,6 +338,31 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                                         }
                                                     }}
                                                     indicator="dot"
+                                                    valueFormatter={
+                                                        currency
+                                                            ? (value) => formatChartValue(Number(value))
+                                                            : undefined
+                                                    }
+                                                    footer={
+                                                        hasMetric2
+                                                            ? (payload) => {
+                                                                  const total = payload.reduce(
+                                                                      (sum, item) => sum + (Number(item.value) || 0),
+                                                                      0,
+                                                                  )
+                                                                  return (
+                                                                      <div className="flex w-full justify-between gap-x-2 leading-none items-center">
+                                                                          <span className="text-muted-foreground">
+                                                                              Total
+                                                                          </span>
+                                                                          <span className="font-mono font-medium tabular-nums text-foreground">
+                                                                              {formatChartValue(total)}
+                                                                          </span>
+                                                                      </div>
+                                                                  )
+                                                              }
+                                                            : undefined
+                                                    }
                                                 />
                                             }
                                         />
@@ -339,7 +374,7 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                             stackId="a"
                                             isAnimationActive={chart.animate ?? true}
                                         />
-                                        {(metricField2 || chart.formula2) && (
+                                        {hasMetric2 && (
                                             <Area
                                                 dataKey="metric2"
                                                 type="natural"

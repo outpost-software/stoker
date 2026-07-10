@@ -89,6 +89,8 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+type ChartTooltipPayload = NonNullable<React.ComponentProps<typeof RechartsPrimitive.Tooltip>["payload"]>
+
 const ChartTooltipContent = React.forwardRef<
     HTMLDivElement,
     React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
@@ -98,6 +100,8 @@ const ChartTooltipContent = React.forwardRef<
             indicator?: "line" | "dot" | "dashed"
             nameKey?: string
             labelKey?: string
+            footer?: React.ReactNode | ((payload: ChartTooltipPayload) => React.ReactNode)
+            valueFormatter?: (value: number | string) => React.ReactNode
         }
 >(
     (
@@ -115,6 +119,8 @@ const ChartTooltipContent = React.forwardRef<
             color,
             nameKey,
             labelKey,
+            footer,
+            valueFormatter,
         },
         ref,
     ) => {
@@ -213,9 +219,11 @@ const ChartTooltipContent = React.forwardRef<
                                                     {itemConfig?.label || item.name}
                                                 </span>
                                             </div>
-                                            {item.value && (
+                                            {item.value !== undefined && item.value !== null && (
                                                 <span className="font-mono font-medium tabular-nums text-foreground">
-                                                    {item.value.toLocaleString()}
+                                                    {valueFormatter
+                                                        ? valueFormatter(item.value as number | string)
+                                                        : item.value.toLocaleString()}
                                                 </span>
                                             )}
                                         </div>
@@ -225,6 +233,11 @@ const ChartTooltipContent = React.forwardRef<
                         )
                     })}
                 </div>
+                {footer ? (
+                    <div className="border-t border-border/50 pt-1.5">
+                        {typeof footer === "function" ? footer(payload) : footer}
+                    </div>
+                ) : null}
             </div>
         )
     },

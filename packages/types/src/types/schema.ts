@@ -634,6 +634,7 @@ export interface Chart {
     defaultRange: "90d" | "30d" | "7d"
     roles?: StokerRole[]
     title?: string
+    currency?: string | (() => string)
 }
 export interface CollectionMeta {
     title?: string

@@ -2201,6 +2201,7 @@ type Chart = {
     title?: string
     roles?: string[]
     defaultRange: "90d" | "30d" | "7d"
+    currency?: string | (() => string)
 }
 ```
 

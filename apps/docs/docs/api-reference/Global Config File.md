@@ -297,6 +297,7 @@ type DashboardChart = {
     numberOfIntervals?: number
     animate?: boolean
     offset?: number
+    currency?: string | (() => string)
 }
 ```
 

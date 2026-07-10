@@ -133,6 +133,7 @@ export interface DashboardChart {
     numberOfIntervals?: number
     offset?: number
     animate?: boolean
+    currency?: string | (() => string)
 }
 
 export interface DashboardReminder {

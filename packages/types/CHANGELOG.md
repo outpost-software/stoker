@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.55
+
+### Patch Changes
+
+- feat: add chart currency option
+
 ## 0.5.54
 
 ### Patch Changes
