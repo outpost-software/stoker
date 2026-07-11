@@ -370,6 +370,8 @@ export const Images = memo(
         const [orderByField, setOrderByField] = useState<string | undefined>(undefined)
         const [orderByDirection, setOrderByDirection] = useState<"asc" | "desc" | undefined>(undefined)
 
+        const infiniteLoaderRef = useRef<InfiniteLoader>(null)
+
         const backToStart = useCallback(
             (
                 latestConstraints?: QueryConstraint[],
@@ -377,6 +379,7 @@ export const Images = memo(
                 latestOrderByDirection?: "asc" | "desc",
             ) => {
                 return new Promise<void>((resolve) => {
+                    infiniteLoaderRef.current?.resetloadMoreItemsCache()
                     setServerList({})
                     setList({})
                     const newQuery = {
@@ -659,6 +662,7 @@ export const Images = memo(
 
         useEffect(() => {
             setIsFirstLoad(true)
+            setPrevIds(new Set())
         }, [filters, orderByField, orderByDirection])
 
         useEffect(() => {
@@ -838,6 +842,7 @@ export const Images = memo(
                 >
                     {!formList && (meta?.title || collectionTitle) && <Meta />}
                     <InfiniteLoader
+                        ref={infiniteLoaderRef}
                         isItemLoaded={(index) => index < itemCount}
                         itemCount={100000}
                         loadMoreItems={loadMoreItems}

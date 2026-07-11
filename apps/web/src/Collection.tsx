@@ -375,9 +375,6 @@ function Collection({
     }, [serverList])
 
     useEffect(() => {
-        if (isAssigning !== undefined) {
-            setBackToStartKey((prev) => prev + 1)
-        }
         if (!relationList || !isInitialized) return
         setFilters((prev) => {
             let next = prev
@@ -397,7 +394,7 @@ function Collection({
             }
             return next
         })
-    }, [isAssigning])
+    }, [isAssigning, isInitialized])
 
     // This is to ensure that the optimistic list is set in cases where cached documents exactly match the downloaded server documents
     // In this case, the cache-only snapshot listener does not fire a second time when the cache has loaded because there is no change to the list

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.195
+
+### Patch Changes
+
+- fix: fix infinite scroll stale records issue
+
 ## 0.5.194
 
 ### Patch Changes
