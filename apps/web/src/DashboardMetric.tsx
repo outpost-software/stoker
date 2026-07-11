@@ -61,7 +61,7 @@ export const DashboardMetric = ({ metric, title, collection }: DashboardMetricPr
 
     useEffect(() => {
         debouncedSetIsLoading(true)
-        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe)
+        getData(collectionSchema, constraints, debouncedSetIsLoading, setResults, setUnsubscribe, metric.forceServer)
         return () => {
             unsubscribe?.forEach((unsubscribe) => unsubscribe())
             if (loadingTimeoutRef.current) {

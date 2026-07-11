@@ -113,6 +113,7 @@ export interface DashboardMetric {
     suffix?: string
     textSize?: "text-xl" | "text-2xl" | "text-3xl"
     constraints?: [string, WhereFilterOp, unknown][]
+    forceServer?: boolean
 }
 export interface DashboardChart {
     kind: "chart"
@@ -147,6 +148,8 @@ export interface DashboardReminder {
         field: string
         direction: "asc" | "desc"
     }
+    forceServer?: boolean
+    filter?: (record: StokerRecord) => boolean
 }
 
 export type DashboardItem = DashboardMetric | DashboardChart | DashboardReminder

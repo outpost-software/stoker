@@ -623,7 +623,7 @@ export const subscribeMany = async (
         docs.set(snapshot.id, docData)
     }
 
-    const useCache = options?.only === "cache" || isPreloadCacheEnabled
+    const useCache = options?.only === "cache" || (isPreloadCacheEnabled && options?.only !== "default")
 
     if (isPreloadCacheEnabled && options?.tempCache) {
         await preloadCollection(

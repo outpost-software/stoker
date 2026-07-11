@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.56
+
+### Patch Changes
+
+- feat: allow Dashboard elements to query the server in preload cache mode
+
 ## 0.5.55
 
 ### Patch Changes

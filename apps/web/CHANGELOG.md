@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.194
+
+### Patch Changes
+
+- feat: allow Dashboard elements to query the server in preload cache mode
+- Updated dependencies
+    - @stoker-platform/web-client@0.5.79
+    - @stoker-platform/node-client@0.5.77
+    - @stoker-platform/utils@0.5.68
+
 ## 0.5.193
 
 ### Patch Changes

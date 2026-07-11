@@ -11,6 +11,7 @@ export const getData = async (
     setLoading: (loading: boolean) => void,
     setResults: (results: StokerRecord[]) => void,
     setUnsubscribe: (value: React.SetStateAction<Unsubscribe[] | undefined>) => void,
+    forceServer?: boolean,
 ) => {
     const { labels } = collection
     const isPreloadCacheEnabled = preloadCacheEnabled(collection)
@@ -65,7 +66,10 @@ export const getData = async (
                         }
                         resolve()
                     },
-                    { constraints: currentQuery.constraints as QueryConstraint[] },
+                    {
+                        constraints: currentQuery.constraints as QueryConstraint[],
+                        only: forceServer ? "default" : undefined,
+                    },
                 )
                 const { unsubscribe: newUnsubscribe } = result
                 promiseLoaded = true
