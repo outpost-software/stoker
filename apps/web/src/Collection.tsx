@@ -1042,7 +1042,10 @@ function Collection({
                     tabRef.current = "list"
                 }
             }
-            if (rangeSelectorState) {
+            if (isPreloadCacheEnabled && relationList) {
+                setRangeSelector("range")
+                rangeSelectorState = "range"
+            } else if (rangeSelectorState) {
                 setRangeSelector(rangeSelectorState as "range" | "week" | "month" | undefined)
                 setState(`collection-range-selector-${labels.collection.toLowerCase()}`, "selector", rangeSelectorState)
             }
@@ -1071,6 +1074,12 @@ function Collection({
                         rangeValue = JSON.stringify({
                             from: getMinDate(),
                             to: getMaxDate(),
+                        })
+                    } else if (isPreloadCacheEnabled && relationList) {
+                        const preloadCacheRange = getRange(preloadCache.range, timezone)
+                        rangeValue = JSON.stringify({
+                            from: preloadCacheRange.start.toISOString(),
+                            to: preloadCacheRange.end?.toISOString(),
                         })
                     } else if (!rangeValue) {
                         const now = convertDateToTimezone(new Date())

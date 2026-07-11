@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.197
+
+### Patch Changes
+
+- feat: use maximum date range for preloaded relation lists
+
 ## 0.5.196
 
 ### Patch Changes

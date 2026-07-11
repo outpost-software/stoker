@@ -277,8 +277,17 @@ export function DateRangeSelector({
                                         ) : (
                                             <span>Pick a date</span>
                                         )
+                                    ) : range?.from ? (
+                                        range.to ? (
+                                            <>
+                                                {DateTime.fromJSDate(range.from).toFormat("d/M/yy")} -{" "}
+                                                {DateTime.fromJSDate(range.to).toFormat("d/M/yy")}
+                                            </>
+                                        ) : (
+                                            DateTime.fromJSDate(range.from).toFormat("d/M/yy")
+                                        )
                                     ) : (
-                                        <span>Change date range</span>
+                                        <span>Pick a date</span>
                                     )}
                                 </>
                             )}
