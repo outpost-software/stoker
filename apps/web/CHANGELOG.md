@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.196
+
+### Patch Changes
+
+- fix: fix image loading spinner issue
+
 ## 0.5.195
 
 ### Patch Changes

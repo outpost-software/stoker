@@ -53,31 +53,36 @@ interface RowImageProps {
 
 const RowImage = memo(
     ({ src, alt }: RowImageProps) => {
-        const [isLoaded, setIsLoaded] = useState(false)
+        const imgRef = useRef<HTMLImageElement | null>(null)
+        const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
         const [showSpinner, setShowSpinner] = useState(false)
+        const isLoaded = loadedSrc === src
 
         useEffect(() => {
-            setIsLoaded(false)
+            if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+                setLoadedSrc(src)
+                setShowSpinner(false)
+                return
+            }
             setShowSpinner(false)
             const timer = setTimeout(() => {
-                if (!isLoaded) setShowSpinner(true)
+                setShowSpinner(true)
             }, 500)
             return () => clearTimeout(timer)
         }, [src])
 
-        useEffect(() => {
-            if (isLoaded) setShowSpinner(false)
-        }, [isLoaded])
         return (
             <>
                 <img
+                    key={src}
+                    ref={imgRef}
                     alt={alt}
                     className={cn(
                         "max-w-full max-h-full object-contain rounded-md ease-in-out duration-300 transition-opacity-transform hover:scale-95",
                         { "opacity-0": !isLoaded, "opacity-100": isLoaded },
                     )}
                     src={getSafeUrl(src)}
-                    onLoad={() => setIsLoaded(true)}
+                    onLoad={() => setLoadedSrc(src)}
                 />
                 {!isLoaded && showSpinner && (
                     <div className="absolute inset-0 flex items-center justify-center">
