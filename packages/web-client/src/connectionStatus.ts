@@ -31,7 +31,7 @@ export const initializeConnectionStatus = () => {
 }
 
 export const getConnectionStatus = () => {
-    return connectionStatus
+    return connectionStatus ?? "Online"
 }
 export const getNetworkStatus = () => {
     return navigator.onLine ? "Online" : "Offline"

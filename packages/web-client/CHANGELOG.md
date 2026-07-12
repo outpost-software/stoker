@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.80
+
+### Patch Changes
+
+- fix: fix Dashboard reminder sorting
+
 ## 0.5.79
 
 ### Patch Changes

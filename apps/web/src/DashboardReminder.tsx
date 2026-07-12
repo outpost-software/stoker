@@ -209,7 +209,6 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                     </TableRow>
                                 ) : (
                                     results
-                                        .slice(page * pages, (page + 1) * pages)
                                         .sort((a, b) => {
                                             if (!sorting) return 0
                                             const sortingField = getField(fields, sorting.field)
@@ -229,6 +228,7 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                                 return sortB - sortA
                                             }
                                         })
+                                        .slice(page * pages, (page + 1) * pages)
                                         .map((result: StokerRecord) => (
                                             <TableRow
                                                 key={result.id}
