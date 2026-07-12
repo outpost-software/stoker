@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.199
+
+### Patch Changes
+
+- chore: restore Dashboard reminder sorting improvements
+
 ## 0.5.198
 
 ### Patch Changes

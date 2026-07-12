@@ -17,6 +17,7 @@ import { Card, CardContent } from "./components/ui/card"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getField, getFieldCustomization, isRelationField, tryFunction } from "@stoker-platform/utils"
 import { getFormattedFieldValue } from "./utils/getFormattedFieldValue"
+import { getSortingValue } from "./utils/getSortingValue"
 
 interface DashboardReminderProps {
     reminder: Reminder
@@ -212,21 +213,55 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                         .sort((a, b) => {
                                             if (!sorting) return 0
                                             const sortingField = getField(fields, sorting.field)
-                                            const fieldCustomization = getFieldCustomization(
-                                                sortingField,
+                                            const valueA = getSortingValue(
+                                                collectionSchema,
                                                 customization,
+                                                sorting.field,
+                                                a,
                                             )
-                                            let sortA = a[sorting.field]
-                                            let sortB = b[sorting.field]
-                                            if (fieldCustomization.admin?.sort) {
-                                                sortA = tryFunction(fieldCustomization.admin?.sort, [a])
-                                                sortB = tryFunction(fieldCustomization.admin?.sort, [b])
-                                            }
-                                            if (sorting.direction === "asc") {
-                                                return sortA - sortB
+                                            const valueB = getSortingValue(
+                                                collectionSchema,
+                                                customization,
+                                                sorting.field,
+                                                b,
+                                            )
+                                            let result: number
+                                            if (sortingField.type === "String") {
+                                                const rawA = valueA?.toString().toLowerCase() ?? ""
+                                                const rawB = valueB?.toString().toLowerCase() ?? ""
+                                                result = rawA > rawB ? 1 : rawA < rawB ? -1 : 0
+                                            } else if (isRelationField(sortingField)) {
+                                                const titleField = sortingField.titleField
+                                                let rawA: string
+                                                let rawB: string
+                                                if (titleField) {
+                                                    const recordA = Object.values(a[sortingField.name] ?? {})[0] as
+                                                        | StokerRecord
+                                                        | undefined
+                                                    const recordB = Object.values(b[sortingField.name] ?? {})[0] as
+                                                        | StokerRecord
+                                                        | undefined
+                                                    // eslint-disable-next-line security/detect-object-injection
+                                                    rawA = recordA?.[titleField]?.toString().toLowerCase() ?? ""
+                                                    // eslint-disable-next-line security/detect-object-injection
+                                                    rawB = recordB?.[titleField]?.toString().toLowerCase() ?? ""
+                                                } else {
+                                                    rawA = (
+                                                        Object.keys(a[sortingField.name] ?? {})[0] ?? ""
+                                                    ).toLowerCase()
+                                                    rawB = (
+                                                        Object.keys(b[sortingField.name] ?? {})[0] ?? ""
+                                                    ).toLowerCase()
+                                                }
+                                                result = rawA > rawB ? 1 : rawA < rawB ? -1 : 0
+                                            } else if (sortingField.type === "Timestamp") {
+                                                const rawA = Number(valueA?.valueOf() || 0)
+                                                const rawB = Number(valueB?.valueOf() || 0)
+                                                result = rawA > rawB ? 1 : rawA < rawB ? -1 : 0
                                             } else {
-                                                return sortB - sortA
+                                                result = valueA > valueB ? 1 : valueA < valueB ? -1 : 0
                                             }
+                                            return sorting.direction === "asc" ? result : -result
                                         })
                                         .slice(page * pages, (page + 1) * pages)
                                         .map((result: StokerRecord) => (
