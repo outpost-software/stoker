@@ -92,7 +92,7 @@ export const searchResults = async (
     if (typeof hitsPerPage !== "number" || !Number.isFinite(hitsPerPage)) {
         throw new HttpsError("invalid-argument", "hitsPerPage must be a finite number");
     }
-    const MAX_HITS_PER_PAGE = 100;
+    const MAX_HITS_PER_PAGE = 1000;
     const clampedHitsPerPage = Math.min(Math.max(Math.floor(hitsPerPage), 1), MAX_HITS_PER_PAGE);
     if (typeof query !== "string") {
         throw new HttpsError("invalid-argument", "query must be a string");

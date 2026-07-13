@@ -68,6 +68,7 @@ export interface SubscribeManyOptions {
         startAt?: Cursor
         endAt?: Cursor
     }
+    multipleQueries?: QueryConstraint[][]
     noComputedFields?: boolean
     noEmbeddingFields?: boolean
     tempCache?: {
@@ -146,6 +147,7 @@ export const subscribeMany = async (
     const refs = getCollectionRefs(path, roleGroup)
     if (refs.length === 0) return { pages: 0, count: 0, unsubscribe: () => {} }
     let constraintRefs = refs.map((ref) => query(ref, ...(constraints || [])))
+    let allRefs: Query[]
     const cursor = options?.pagination?.startAfter ||
         options?.pagination?.endBefore ||
         options?.pagination?.startAt ||
@@ -332,7 +334,7 @@ export const subscribeMany = async (
                 if (!(status === "loaded" || status === "deleted")) docsLoaded = false
             })
         }
-        if (loaded.size === constraintRefs.length && docsLoaded) {
+        if (loaded.size === allRefs.length && docsLoaded) {
             initialLoad = false
             const unsubscribe = onSnapshotsInSync(db, () => {
                 unsubscribe()
@@ -636,7 +638,17 @@ export const subscribeMany = async (
         )
     }
 
-    for (const ref of constraintRefs) {
+    if (options?.multipleQueries) {
+        const mutipleRefs = []
+        for (const constraint of options.multipleQueries) {
+            mutipleRefs.push(query(constraintRefs[0], ...constraint))
+        }
+        allRefs = mutipleRefs
+    } else {
+        allRefs = constraintRefs
+    }
+
+    for (const ref of allRefs) {
         let first = true
         const listener = onSnapshot(
             ref,
@@ -644,8 +656,8 @@ export const subscribeMany = async (
             (snapshot) => {
                 if (useCache || snapshot.metadata.fromCache === false) {
                     loaded.set(ref, true)
-                    cursor.first.set(constraintRefs.indexOf(ref), snapshot.docs[0])
-                    cursor.last.set(constraintRefs.indexOf(ref), snapshot.docs.at(-1) || snapshot.docs[0])
+                    cursor.first.set(allRefs.indexOf(ref), snapshot.docs[0])
+                    cursor.last.set(allRefs.indexOf(ref), snapshot.docs.at(-1) || snapshot.docs[0])
                     if (!(initialLoad && options?.relations)) {
                         callbackOnLoaded(cursor, snapshot.metadata)
                     }
@@ -673,7 +685,7 @@ export const subscribeMany = async (
                                 referenceCount.set(change.doc.id, documentReferenceCount - 1)
                                 if (referenceCount.get(change.doc.id) === 0) {
                                     docs.delete(change.doc.id)
-                                    if (loaded.size === constraintRefs.length && options?.relations) {
+                                    if (loaded.size === allRefs.length && options?.relations) {
                                         docRelationsStatus.set(change.doc.id, "deleted")
                                         removeRelations(change.doc.id)
                                     }
@@ -681,7 +693,7 @@ export const subscribeMany = async (
                             }
                         })
                     }
-                    if (loaded.size === constraintRefs.length && options?.relations) {
+                    if (loaded.size === allRefs.length && options?.relations) {
                         if (docs.size === 0) {
                             callbackOnLoaded(cursor, snapshot.metadata)
                         }

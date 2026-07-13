@@ -492,6 +492,8 @@ function Collection({
                 setIsRouteLoading("+", location.pathname)
             }
 
+            const multipleQueries: QueryConstraint[][] = []
+
             if (
                 fullTextSearch &&
                 !isPreloadCacheEnabled &&
@@ -500,11 +502,6 @@ function Collection({
                 tab !== "map" &&
                 tab !== "calendar"
             ) {
-                const disjunctions = getFilterDisjunctions(collection)
-                const hitsPerPage =
-                    disjunctions === 0
-                        ? Math.min(30, itemsPerPage || 10)
-                        : Math.min(itemsPerPage || 10, Math.max(1, Math.floor(30 / disjunctions)))
                 let latestFilters = filters
                 if (tab === "cards" && prevTabRef.current !== "cards") {
                     latestFilters = [...filters]
@@ -517,10 +514,32 @@ function Collection({
                         }
                     }
                 }
+                const disjunctions = getFilterDisjunctions(collection, {
+                    assignable,
+                    isAssigning: queryIsAssigning,
+                    filters: latestFilters,
+                    relationList,
+                    relationParent,
+                })
+                const searchOptions = customization.admin?.searchOptions
+                const exactPhrase = searchOptions?.fuzzy === false && searchOptions?.prefix === false
+                const batchSize =
+                    disjunctions === 0
+                        ? Math.min(30, itemsPerPage || 10)
+                        : Math.min(itemsPerPage || 10, Math.max(1, Math.floor(30 / disjunctions)))
+                let hitsPerPage = 0
+                if (exactPhrase && !(hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0)) {
+                    hitsPerPage = 1000
+                } else {
+                    hitsPerPage = batchSize
+                }
                 const constraints = getFilterConstraints(latestFilters, false, true) as [string, "==" | "in", unknown][]
                 const objectIDs = await performFullTextSearch(collection, search, hitsPerPage, constraints)
                 searchResults.current = { ...searchResults.current, [key]: objectIDs }
-                if (objectIDs.length > 0) {
+                if (
+                    objectIDs.length > 0 &&
+                    (!exactPhrase || hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0)
+                ) {
                     if (isServerReadOnly) {
                         query.queries = query.queries.map((q) => ({
                             ...q,
@@ -535,6 +554,10 @@ function Collection({
                             ...q,
                             constraints: [...q.constraints, where("id", "in", objectIDs)] as QueryConstraint[],
                         }))
+                    }
+                } else if (objectIDs.length > 0 && exactPhrase) {
+                    for (let i = 0; i < objectIDs.length; i += batchSize) {
+                        multipleQueries.push([where("id", "in", objectIDs.slice(i, i + batchSize))])
                     }
                 } else if (search) {
                     setServerList((prev) => ({ ...prev, [key]: [] }))
@@ -639,6 +662,27 @@ function Collection({
                             }
                         }
 
+                        const subscribeOptions = {
+                            ...currentQuery.options,
+                            constraints: combineQueryConstraints([
+                                ...(currentQuery.constraints as QueryConstraint[]),
+                                ...(additionalConstraintsRef.current?.map((constraint) =>
+                                    where(constraint[0], constraint[1] as WhereFilterOp, constraint[2]),
+                                ) || []),
+                            ]),
+                            tempCache:
+                                isPreloadCacheEnabled && relationList?.loadAll
+                                    ? {
+                                          label: `${labels.collection}-${relationList?.field}`,
+                                          constraints: [[`${relationList?.field}_Single.id`, "==", relationParent?.id]],
+                                      }
+                                    : undefined,
+                            multiple: multipleQueries.length > 0 ? multipleQueries : undefined,
+                        } as SubscribeManyOptions
+                        if (multipleQueries.length > 0) {
+                            delete subscribeOptions.pagination
+                        }
+
                         // TODO: subcollection support
                         const result = await subscribeMany(
                             [labels.collection],
@@ -663,24 +707,7 @@ function Collection({
                                     window.location.reload()
                                 }
                             },
-                            {
-                                ...currentQuery.options,
-                                constraints: combineQueryConstraints([
-                                    ...(currentQuery.constraints as QueryConstraint[]),
-                                    ...(additionalConstraintsRef.current?.map((constraint) =>
-                                        where(constraint[0], constraint[1] as WhereFilterOp, constraint[2]),
-                                    ) || []),
-                                ]),
-                                tempCache:
-                                    isPreloadCacheEnabled && relationList?.loadAll
-                                        ? {
-                                              label: `${labels.collection}-${relationList?.field}`,
-                                              constraints: [
-                                                  [`${relationList?.field}_Single.id`, "==", relationParent?.id],
-                                              ],
-                                          }
-                                        : undefined,
-                            } as SubscribeManyOptions,
+                            subscribeOptions,
                         )
                         const { unsubscribe: newUnsubscribe, count: newCount, pages: newPages } = result
                         promiseLoaded = true

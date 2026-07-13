@@ -677,6 +677,8 @@ export function List({
         return allColumns
     }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus])
 
+    const isServerFullTextSearch = !!(search && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly)
+
     const isSearchRelevanceOrder = !!(search && isPreloadCacheEnabled)
 
     const searchList = useMemo(() => {
@@ -693,6 +695,8 @@ export function List({
         }
         return list || []
     }, [isPreloadCacheEnabled, isServerReadOnly, list, search])
+
+    const tablePageSize = isServerFullTextSearch ? Math.max(searchList.length, 1) : pageSize
 
     const selectedRecords = useMemo(() => {
         const selectedIds = Object.keys(rowSelection)
@@ -761,12 +765,13 @@ export function List({
             columnFilters,
             rowSelection,
             pagination: {
-                pageSize,
-                pageIndex,
+                pageSize: tablePageSize,
+                pageIndex: isServerFullTextSearch ? 0 : pageIndex,
             },
         },
         onPaginationChange: (updater) => {
-            const newPagination = typeof updater === "function" ? updater({ pageIndex, pageSize }) : updater
+            const newPagination =
+                typeof updater === "function" ? updater({ pageIndex, pageSize: tablePageSize }) : updater
             if (pageCount && newPagination.pageIndex < pageCount) {
                 setPageIndex(newPagination.pageIndex)
             }
@@ -868,7 +873,7 @@ export function List({
             }
         }, 750)
 
-        if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly)) {
+        if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly || isServerFullTextSearch)) {
             setPageIndex(0)
             setState(`collection-page-number-${labels.collection.toLowerCase()}`, "page", 1)
         }
@@ -1070,12 +1075,15 @@ export function List({
     }, [table, list, pageSize, isLoading, cursor, pageNumber, pageCount, constraints, orderByField, orderByDirection])
 
     const canGetNextPage = useCallback(() => {
+        if (isServerFullTextSearch) {
+            return false
+        }
         if (isPreloadCacheEnabled || isServerReadOnly) {
             return table.getCanNextPage()
         } else {
             return !isLoadingDebounced && pageCount && pageNumber < pageCount && list?.length === pageSize
         }
-    }, [table, isLoadingDebounced, pageNumber, pageCount, list, pageSize])
+    }, [table, isLoadingDebounced, pageNumber, pageCount, list, pageSize, isServerFullTextSearch])
 
     const prevPage = useCallback(() => {
         if (isLoading) return
@@ -1161,12 +1169,15 @@ export function List({
     }, [table, list, pageSize, isLoading, cursor, prevCursor, pageNumber, constraints, orderByField, orderByDirection])
 
     const canGetPrevPage = useCallback(() => {
+        if (isServerFullTextSearch) {
+            return false
+        }
         if (isPreloadCacheEnabled || isServerReadOnly) {
             return table.getCanPreviousPage()
         } else {
             return !isLoadingDebounced && pageNumber > 1
         }
-    }, [table, isLoadingDebounced, pageNumber])
+    }, [table, isLoadingDebounced, pageNumber, isServerFullTextSearch])
 
     const onChangePageNumber = useCallback(
         (event: React.ChangeEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
@@ -2019,7 +2030,12 @@ export function List({
                 </ScrollArea>
             </Card>
             <div className="flex items-center justify-end space-x-2 py-4 print:hidden">
-                {pagesLoaded && (
+                {isServerFullTextSearch && searchList.length > 0 && (
+                    <Badge variant="secondary" className="hidden sm:block">
+                        {searchList.length} {searchList.length === 1 ? "result" : "results"}
+                    </Badge>
+                )}
+                {pagesLoaded && !isServerFullTextSearch && (
                     <Badge variant="secondary" className="hidden sm:block">
                         Page{" "}
                         {isPreloadCacheEnabled || isServerReadOnly
@@ -2046,7 +2062,7 @@ export function List({
                         />
                     </div>
                 )}
-                {!isPreloadCacheEnabled && !isServerReadOnly && (
+                {!isServerFullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly && (
                     <Button
                         type="button"
                         variant="outline"
@@ -2059,19 +2075,28 @@ export function List({
                         Back to start
                     </Button>
                 )}
-                {!(
-                    !isPreloadCacheEnabled &&
-                    !isServerReadOnly &&
-                    typeof sortingField?.sorting === "object" &&
-                    sortingField.sorting.direction
-                ) && (
-                    <Button type="button" variant="outline" size="sm" onClick={prevPage} disabled={!canGetPrevPage()}>
-                        Previous
+                {!isServerFullTextSearch &&
+                    !(
+                        !isPreloadCacheEnabled &&
+                        !isServerReadOnly &&
+                        typeof sortingField?.sorting === "object" &&
+                        sortingField.sorting.direction
+                    ) && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={prevPage}
+                            disabled={!canGetPrevPage()}
+                        >
+                            Previous
+                        </Button>
+                    )}
+                {!isServerFullTextSearch && (
+                    <Button type="button" variant="outline" size="sm" onClick={nextPage} disabled={!canGetNextPage()}>
+                        Next
                     </Button>
                 )}
-                <Button type="button" variant="outline" size="sm" onClick={nextPage} disabled={!canGetNextPage()}>
-                    Next
-                </Button>
             </div>
         </>
     )

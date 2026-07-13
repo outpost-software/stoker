@@ -1,8 +1,16 @@
-import { CollectionSchema } from "@stoker-platform/types"
+import { Assignable, CollectionSchema, Filter, RelationList, StokerRecord } from "@stoker-platform/types"
 import { getAttributeRestrictions } from "@stoker-platform/utils"
 import { getCurrentUserPermissions } from "@stoker-platform/web-client"
 
-export const getFilterDisjunctions = (collection: CollectionSchema) => {
+export interface FilterDisjunctionsOptions {
+    assignable?: Assignable
+    isAssigning?: boolean
+    filters?: Filter[]
+    relationList?: RelationList
+    relationParent?: StokerRecord
+}
+
+export const getFilterDisjunctions = (collection: CollectionSchema, options?: FilterDisjunctionsOptions) => {
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
     let disjunctions = 0
@@ -23,6 +31,24 @@ export const getFilterDisjunctions = (collection: CollectionSchema) => {
                 if (attributeRestriction.operations && !attributeRestriction.operations?.includes("Read")) continue
                 incrementDisjunctions(propertyRole.values?.length)
             }
+        }
+    }
+    if (
+        options?.isAssigning &&
+        options.relationList &&
+        options.relationParent?.id &&
+        options.assignable?.includeAssignedInFilters?.length &&
+        options.filters
+    ) {
+        const activeOrCount = options.filters.filter(
+            (filter) =>
+                filter.type === "select" &&
+                filter.value &&
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                options.assignable!.includeAssignedInFilters!.includes(filter.field),
+        ).length
+        for (let i = 0; i < activeOrCount; i++) {
+            incrementDisjunctions(2)
         }
     }
     return disjunctions

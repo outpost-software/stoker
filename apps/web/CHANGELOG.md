@@ -1,5 +1,13 @@
 # @stoker-platform/web-app
 
+## 0.5.201
+
+### Patch Changes
+
+- feat: improve server side full text search
+- Updated dependencies
+    - @stoker-platform/web-client@0.5.82
+
 ## 0.5.200
 
 ### Patch Changes

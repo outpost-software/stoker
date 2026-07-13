@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.93
+
+### Patch Changes
+
+- feat: improve server side full text search
+
 ## 0.5.92
 
 ### Patch Changes
