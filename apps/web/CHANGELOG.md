@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.202
+
+### Patch Changes
+
+- fix: fix incorrect multipleQueries option
+
 ## 0.5.201
 
 ### Patch Changes

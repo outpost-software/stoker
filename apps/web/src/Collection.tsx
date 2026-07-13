@@ -677,7 +677,7 @@ function Collection({
                                           constraints: [[`${relationList?.field}_Single.id`, "==", relationParent?.id]],
                                       }
                                     : undefined,
-                            multiple: multipleQueries.length > 0 ? multipleQueries : undefined,
+                            multipleQueries: multipleQueries.length > 0 ? multipleQueries : undefined,
                         } as SubscribeManyOptions
                         if (multipleQueries.length > 0) {
                             delete subscribeOptions.pagination
