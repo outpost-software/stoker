@@ -253,6 +253,15 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                         <FiltersProvider
                                                             key={`${relationList.collection}-filters`}
                                                             collection={relationCollection}
+                                                            relationList={relationList}
+                                                            relationParent={record}
+                                                            assignable={assignable?.find(
+                                                                (item: Assignable) =>
+                                                                    item.collection === relationList.collection,
+                                                            )}
+                                                            isAssigning={
+                                                                isAssigning?.[relationList.collection.toLowerCase()]
+                                                            }
                                                         >
                                                             {hasBreadcrumbs && record && (
                                                                 <>

@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.200
+
+### Patch Changes
+
+- fix: improve relation list assign mode
+    - @stoker-platform/node-client@0.5.78
+    - @stoker-platform/utils@0.5.69
+    - @stoker-platform/web-client@0.5.81
+
 ## 0.5.199
 
 ### Patch Changes

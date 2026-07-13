@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.57
+
+### Patch Changes
+
+- fix: improve relation list assign mode
+
 ## 0.5.56
 
 ### Patch Changes

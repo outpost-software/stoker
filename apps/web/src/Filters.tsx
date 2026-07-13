@@ -1,8 +1,11 @@
 import {
+    Assignable,
     CollectionField,
     CollectionSchema,
     Filter,
+    RelationFilter,
     RelationList,
+    SelectFilter,
     StokerCollection,
     StokerRecord,
 } from "@stoker-platform/types"
@@ -51,9 +54,11 @@ interface FiltersProps {
     collection: CollectionSchema
     excluded: string[]
     relationList?: RelationList
+    assignable?: Assignable
+    isAssigning?: boolean
 }
 
-export function Filters({ collection, excluded, relationList }: FiltersProps) {
+export function Filters({ collection, excluded, relationList, assignable, isAssigning }: FiltersProps) {
     const { labels, fields } = collection
     const location = useLocation()
     const schema = getSchema()
@@ -83,6 +88,25 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
 
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
 
+    const isArrayOrRelationFilter = useCallback(
+        (filter: Filter): filter is SelectFilter | RelationFilter => {
+            if (filter.type === "relation") return true
+            if (filter.type === "select") {
+                const fieldSchema = getField(fields, filter.field)
+                return fieldSchema.type === "Array"
+            }
+            return false
+        },
+        [fields],
+    )
+
+    const isIncludeAssignedActive = useCallback(() => {
+        if (!isAssigning || !assignable?.includeAssignedInFilters?.length) return false
+        return assignable.includeAssignedInFilters.some((field) =>
+            filters.some((filter) => filter.type === "select" && filter.field === field && filter.value),
+        )
+    }, [isAssigning, assignable, filters])
+
     const isMobile = useIsMobile()
     const someFilterOpen = Object.values(open).some(Boolean)
     const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && someFilterOpen)
@@ -111,10 +135,6 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                     if (!field || !isRelationField(field)) continue
                     const relationCollection = schema.collections[field.collection]
                     const relationCustomization = getCollectionConfigModule(relationCollection.labels.collection)
-
-                    if (!isPreloadCacheEnabled && filter.value) {
-                        setArrayContainsFilterSet(filter.field)
-                    }
 
                     const collectionAdminPath: ["collections", StokerCollection, "admin"] = [
                         "collections",
@@ -151,11 +171,6 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                         })
                     }
                 } else if (filter.type === "select") {
-                    const field = getField(fields, filter.field)
-                    if (!isPreloadCacheEnabled && filter.value && field.type === "Array") {
-                        setArrayContainsFilterSet(filter.field)
-                    }
-
                     setValue((prev) => ({
                         ...prev,
                         [filter.field]: filter.value?.toString() || "no_selection",
@@ -166,11 +181,33 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
         initialize()
     }, [])
 
+    useEffect(() => {
+        if (isPreloadCacheEnabled) return
+
+        let arrayOrRelationField: string | undefined
+
+        if (isIncludeAssignedActive()) {
+            const activeField = assignable?.includeAssignedInFilters?.find((field) =>
+                filters.some((filter) => filter.type === "select" && filter.field === field && filter.value),
+            )
+            if (activeField) {
+                arrayOrRelationField = activeField
+            }
+        }
+
+        const arrayOrRelationFilter = filters.find(
+            (filter): filter is SelectFilter | RelationFilter => !!filter.value && isArrayOrRelationFilter(filter),
+        )
+        if (arrayOrRelationFilter) {
+            arrayOrRelationField = arrayOrRelationFilter.field
+        }
+        setArrayContainsFilterSet(arrayOrRelationField)
+    }, [filters, isAssigning, assignable, isPreloadCacheEnabled, isIncludeAssignedActive, isArrayOrRelationFilter])
+
     const handleChange = useCallback(
         (filter: Filter, value: string, type: CollectionField["type"]) => {
             if (preventChange) return
             if (filter.type === "range" || filter.type === "status") return
-            const fieldSchema = getField(fields, filter.field)
             const index = filters
                 .filter((filterItem) => filterItem.type !== "status" && filterItem.type !== "range")
                 .findIndex((filterItem) => filter.field === filterItem.field)
@@ -187,9 +224,6 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                     }
                     return newFilters
                 })
-                if (!isPreloadCacheEnabled && (filter.type === "relation" || fieldSchema.type === "Array")) {
-                    setArrayContainsFilterSet(filter.field)
-                }
             } else {
                 setFilters((filters) => {
                     newFilters = [...filters]
@@ -197,9 +231,6 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                     delete newFilters[index].value
                     return newFilters
                 })
-                if (!isPreloadCacheEnabled && (filter.type === "relation" || fieldSchema.type === "Array")) {
-                    setArrayContainsFilterSet(undefined)
-                }
             }
             const filterParam = newFilters
                 .filter((filter: Filter) => filter.type !== "status" && filter.type !== "range" && filter.value)
@@ -388,13 +419,22 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
     const isFilterDisabled = useCallback(
         (filter: Filter) => {
             if (filter.type === "range" || filter.type === "status") return false
+            return isRouteLoading.has(location.pathname)
+        },
+        [isRouteLoading, location.pathname],
+    )
+
+    const isFilterInactive = useCallback(
+        (filter: Filter) => {
+            if (filter.type === "range" || filter.type === "status") return false
             const fieldSchema = getField(fields, filter.field)
             return !!(
-                isRouteLoading.has(location.pathname) ||
                 (!isPreloadCacheEnabled &&
                     arrayContainsFilterSet &&
                     arrayContainsFilterSet !== filter.field &&
-                    (filter.type === "relation" || fieldSchema.type === "Array")) ||
+                    (filter.type === "relation" ||
+                        fieldSchema.type === "Array" ||
+                        (isAssigning && assignable?.includeAssignedInFilters?.includes(filter.field)))) ||
                 (isRelationField(fieldSchema) &&
                     connectionStatus === "offline" &&
                     !preloadCacheEnabled(schema.collections[fieldSchema.collection]))
@@ -412,7 +452,7 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                 if (!field) return null
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const label = tryFunction(fieldCustomization.admin?.label)
-                const disabled = isFilterDisabled(filter)
+                const disabled = isFilterDisabled(filter) || isFilterInactive(filter)
                 if (excluded.includes(filter.field)) return null
                 if (filter.type === "select") {
                     const title = tryFunction(filter.title) || label || field.name
@@ -501,7 +541,10 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                                                         handleChange(filter, value, field.type)
                                                     })
                                                 }}
-                                                className="disabled:opacity-100"
+                                                className={cn(
+                                                    "disabled:opacity-100",
+                                                    isFilterInactive(filter) && "disabled:opacity-50",
+                                                )}
                                             >
                                                 {value}
                                             </Button>
@@ -520,7 +563,10 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                                                 handleChange(filter, "no_selection", field.type)
                                             })
                                         }}
-                                        className="disabled:opacity-100"
+                                        className={cn(
+                                            "disabled:opacity-100",
+                                            isFilterInactive(filter) && "disabled:opacity-50",
+                                        )}
                                     >
                                         All
                                     </Button>
@@ -765,9 +811,6 @@ export function Filters({ collection, excluded, relationList }: FiltersProps) {
                     variant="outline"
                     disabled={isRouteLoading.has(location.pathname)}
                     onClick={() => {
-                        if (!isPreloadCacheEnabled) {
-                            setArrayContainsFilterSet(undefined)
-                        }
                         filters.forEach((filter) => {
                             if (filter.type === "status" || filter.type === "range") return
                             if (relationList && relationList.field === filter.field) return

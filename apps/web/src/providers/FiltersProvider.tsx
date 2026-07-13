@@ -1,11 +1,32 @@
 import { getMaxDate, getMinDate } from "@/utils/getMaxDateRange"
 import { preloadCacheEnabled } from "@/utils/preloadCacheEnabled"
 import { serverReadOnly } from "@/utils/serverReadOnly"
-import { CalendarConfig, CollectionSchema, Filter, StokerCollection, StokerRecord } from "@stoker-platform/types"
+import {
+    Assignable,
+    CalendarConfig,
+    CollectionSchema,
+    Filter,
+    RelationList,
+    StokerCollection,
+    StokerRecord,
+} from "@stoker-platform/types"
 import { getCachedConfigValue, getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
 import { getCollectionConfigModule } from "@stoker-platform/web-client"
-import { QueryConstraint, where, WhereFilterOp } from "firebase/firestore"
+import { or, QueryConstraint, where, WhereFilterOp } from "firebase/firestore"
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
+
+const includesAssigned = (
+    relationList: RelationList | undefined,
+    relationParent: StokerRecord | undefined,
+    assignable: Assignable | undefined,
+    isAssigning: boolean | undefined,
+    filter: Filter,
+) => {
+    if (!isAssigning || !relationList || !relationParent?.id) return false
+    if (filter.type !== "select" || !filter.value) return false
+    const includeAssignedInFilters = assignable?.includeAssignedInFilters || []
+    return !!includeAssignedInFilters.includes(filter.field)
+}
 
 export const FiltersContext = createContext<
     | {
@@ -25,11 +46,22 @@ export const FiltersContext = createContext<
 
 interface FiltersProviderProps {
     collection: CollectionSchema
+    relationList?: RelationList
+    relationParent?: StokerRecord
+    assignable?: Assignable
+    isAssigning?: boolean
     children: React.ReactNode
 }
 
 /* eslint-disable react/prop-types */
-export const FiltersProvider: React.FC<FiltersProviderProps> = ({ collection, children }) => {
+export const FiltersProvider: React.FC<FiltersProviderProps> = ({
+    collection,
+    relationList,
+    relationParent,
+    assignable,
+    isAssigning,
+    children,
+}) => {
     const { labels, fields, softDelete } = collection
     const [filters, setFilters] = useState<Filter[]>([])
     const [order, setOrder] = useState<{ field: string; direction: "asc" | "desc" }>()
@@ -112,6 +144,14 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({ collection, ch
                             constraints.push(where(filter.field, "array-contains", filter.value))
                         } else if (field.type === "Number") {
                             constraints.push(where(filter.field, "==", Number(filter.value)))
+                        } else if (includesAssigned(relationList, relationParent, assignable, isAssigning, filter)) {
+                            constraints.push(
+                                or(
+                                    where(filter.field, "==", filter.value),
+                                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                    where(`${relationList!.field}_Array`, "array-contains", relationParent!.id),
+                                ) as unknown as QueryConstraint,
+                            )
                         } else {
                             constraints.push(where(filter.field, "==", filter.value))
                         }
@@ -205,7 +245,20 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({ collection, ch
                 return constraints
             }
         },
-        [filters, fields, isPreloadCacheEnabled, isServerReadOnly, statusField, softDeleteField],
+        [
+            filters,
+            fields,
+            relationList,
+            relationParent,
+            assignable,
+            isAssigning,
+            isPreloadCacheEnabled,
+            isServerReadOnly,
+            statusField,
+            softDeleteField,
+            calendarConfig,
+            customization,
+        ],
     )
 
     const filterRecord = useCallback(
@@ -268,6 +321,12 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({ collection, ch
                         show = show && record[filter.field]?.includes(filter.value)
                     } else if (field.type === "Number") {
                         show = show && record[filter.field] === Number(filter.value)
+                    } else if (includesAssigned(relationList, relationParent, assignable, isAssigning, filter)) {
+                        show =
+                            show &&
+                            (record[filter.field] === filter.value ||
+                                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                record[`${relationList!.field}_Array`]?.includes(relationParent!.id))
                     } else {
                         show = show && record[filter.field] === filter.value
                     }
@@ -279,7 +338,17 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({ collection, ch
             })
             return show
         },
-        [filters, statusField, softDeleteField],
+        [
+            filters,
+            fields,
+            relationList,
+            relationParent,
+            assignable,
+            isAssigning,
+            statusField,
+            softDeleteField,
+            customization,
+        ],
     )
 
     return (

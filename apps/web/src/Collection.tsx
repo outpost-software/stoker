@@ -82,6 +82,7 @@ import { ScrollArea } from "./components/ui/scroll-area"
 import { DateRangeSelector } from "./DateRange"
 import { useCache } from "./providers/CacheProvider"
 import { getOrderBy } from "./utils/getOrderBy"
+import { combineQueryConstraints } from "./utils/combineQueryConstraints"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { TooltipProvider } from "./components/ui/tooltip"
@@ -252,6 +253,11 @@ function Collection({
     const currentField = currentFieldAll[labels.collection]
     const [backToStartKey, setBackToStartKey] = useState(0)
 
+    const [displayIsAssigning, setDisplayIsAssigning] = useState(isAssigning)
+    const filtersIsAssigningRef = useRef(isAssigning)
+    const assignQueryGenerationRef = useRef(0)
+    const displayedAssignGenerationRef = useRef(0)
+
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
 
     useEffect(() => {
@@ -376,6 +382,7 @@ function Collection({
 
     useEffect(() => {
         if (!relationList || !isInitialized) return
+        filtersIsAssigningRef.current = isAssigning
         setFilters((prev) => {
             let next = prev
                 .filter((filter) => !(filter.type === "relation" && filter.field === relationList.field))
@@ -395,6 +402,12 @@ function Collection({
             return next
         })
     }, [isAssigning, isInitialized])
+
+    useEffect(() => {
+        if (!relationList) {
+            setDisplayIsAssigning(isAssigning)
+        }
+    }, [relationList, isAssigning])
 
     // This is to ensure that the optimistic list is set in cases where cached documents exactly match the downloaded server documents
     // In this case, the cache-only snapshot listener does not fire a second time when the cache has loaded because there is no change to the list
@@ -466,6 +479,15 @@ function Collection({
             const startingTab = tabRef.current
             key ||= "default"
 
+            const queryGeneration = ++assignQueryGenerationRef.current
+            const queryIsAssigning = filtersIsAssigningRef.current
+            const syncDisplayIsAssigning = () => {
+                if (queryGeneration >= displayedAssignGenerationRef.current) {
+                    displayedAssignGenerationRef.current = queryGeneration
+                    setDisplayIsAssigning(queryIsAssigning)
+                }
+            }
+
             if (!isPreloadCacheEnabled || relationList?.loadAll) {
                 setIsRouteLoading("+", location.pathname)
             }
@@ -517,6 +539,7 @@ function Collection({
                 } else if (search) {
                     setServerList((prev) => ({ ...prev, [key]: [] }))
                     setOptimisticList([], key)
+                    syncDisplayIsAssigning()
                     setIsRouteLoading("-", location.pathname)
                     setCursor({})
                     setPages({})
@@ -591,6 +614,7 @@ function Collection({
                                 setServerList((prev) => ({ ...prev, [key]: loadedDocs }))
                                 setOptimisticList(loadedDocs, key)
                             }
+                            syncDisplayIsAssigning()
                             if (!query.infinite || firstLoad) {
                                 setCursor((prev) => ({ ...prev, [key]: newCursor }))
                             }
@@ -641,12 +665,12 @@ function Collection({
                             },
                             {
                                 ...currentQuery.options,
-                                constraints: [
+                                constraints: combineQueryConstraints([
                                     ...(currentQuery.constraints as QueryConstraint[]),
                                     ...(additionalConstraintsRef.current?.map((constraint) =>
                                         where(constraint[0], constraint[1] as WhereFilterOp, constraint[2]),
                                     ) || []),
-                                ],
+                                ]),
                                 tempCache:
                                     isPreloadCacheEnabled && relationList?.loadAll
                                         ? {
@@ -684,6 +708,7 @@ function Collection({
                     })
                     setServerList((prev) => ({ ...prev, [key]: data.records }))
                     setOptimisticList(data.records, key)
+                    syncDisplayIsAssigning()
                     setIsRouteLoading("-", location.pathname)
                     resolve()
                 }
@@ -1444,12 +1469,12 @@ function Collection({
                     ...(additionalConstraints || []),
                 ]
             } else {
-                finalConstraints = [
+                finalConstraints = combineQueryConstraints([
                     ...(constraints as QueryConstraint[]),
                     ...(additionalConstraints?.map((constraint) =>
                         where(constraint[0], constraint[1], constraint[2]),
                     ) || []),
-                ]
+                ])
             }
             // TODO: subcollection support
             const serverData = await getSome(
@@ -2233,6 +2258,8 @@ function Collection({
                                                                 collection={collection}
                                                                 excluded={excludedFilters}
                                                                 relationList={relationList}
+                                                                assignable={assignable}
+                                                                isAssigning={displayIsAssigning}
                                                             />
                                                         </SheetContent>
                                                     </Sheet>
@@ -2602,7 +2629,7 @@ function Collection({
                                                 relationCollection={relationCollection}
                                                 relationParent={relationParent}
                                                 formList={!!formList}
-                                                isAssigning={isAssigning}
+                                                isAssigning={displayIsAssigning}
                                                 assignable={assignable}
                                                 hasBreadcrumbs={hasBreadcrumbs}
                                             />

@@ -699,6 +699,7 @@ export interface Assignable {
     collection: string
     isAvailable: (record: StokerRecord) => boolean
     unavailableField?: string
+    includeAssignedInFilters?: string[]
 }
 
 export interface CustomListAction {
