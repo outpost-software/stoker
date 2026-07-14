@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.58
+
+### Patch Changes
+
+- feat: add filter condition method
+
 ## 0.5.57
 
 ### Patch Changes

@@ -54,11 +54,21 @@ interface FiltersProps {
     collection: CollectionSchema
     excluded: string[]
     relationList?: RelationList
+    relationCollection?: CollectionSchema
+    relationParent?: StokerRecord
     assignable?: Assignable
     isAssigning?: boolean
 }
 
-export function Filters({ collection, excluded, relationList, assignable, isAssigning }: FiltersProps) {
+export function Filters({
+    collection,
+    excluded,
+    relationList,
+    relationCollection,
+    relationParent,
+    assignable,
+    isAssigning,
+}: FiltersProps) {
     const { labels, fields } = collection
     const location = useLocation()
     const schema = getSchema()
@@ -446,6 +456,12 @@ export function Filters({ collection, excluded, relationList, assignable, isAssi
     return (
         <div className="flex flex-col gap-6">
             {filters.map((filter: Filter) => {
+                if (
+                    "condition" in filter &&
+                    filter.condition &&
+                    filter.condition(relationCollection, relationParent, isAssigning) === false
+                )
+                    return null
                 if (filter.type === "relation" && !hasRelationFilterAccess(filter)) return
                 if (filter.type === "status" || filter.type === "range") return
                 const field = getField(fields, filter.field)
@@ -474,7 +490,7 @@ export function Filters({ collection, excluded, relationList, assignable, isAssi
                                 <Label htmlFor={title}>{title}:</Label>
                                 <RadioGroup defaultValue="no_selection" className="mt-2">
                                     {values.map((value: string) => {
-                                        if (filter.condition && filter.condition(value) === false) return null
+                                        if (filter.filterValues && filter.filterValues(value) === false) return null
                                         return (
                                             <div key={value} className="flex items-center space-x-2">
                                                 <RadioGroupItem
@@ -525,7 +541,7 @@ export function Filters({ collection, excluded, relationList, assignable, isAssi
                                 <Label htmlFor={title}>{title}:</Label>
                                 <div className="mt-2 flex flex-col gap-2">
                                     {values.map((value: string) => {
-                                        if (filter.condition && filter.condition(value) === false) return null
+                                        if (filter.filterValues && filter.filterValues(value) === false) return null
                                         return (
                                             <Button
                                                 key={value}
@@ -600,7 +616,7 @@ export function Filters({ collection, excluded, relationList, assignable, isAssi
                                         <SelectContent>
                                             <SelectItem value="no_selection">----</SelectItem>
                                             {values.map((value: string) => {
-                                                if (filter.condition && filter.condition(value) === false) return
+                                                if (filter.filterValues && filter.filterValues(value) === false) return
                                                 return (
                                                     <SelectItem key={value} value={value}>
                                                         {value}

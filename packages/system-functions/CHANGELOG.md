@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.94
+
+### Patch Changes
+
+- feat: add filter condition method
+- Updated dependencies
+    - @stoker-platform/types@0.5.58
+    - @stoker-platform/node-client@0.5.79
+    - @stoker-platform/utils@0.5.70
+
 ## 0.5.93
 
 ### Patch Changes

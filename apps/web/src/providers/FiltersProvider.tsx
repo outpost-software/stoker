@@ -135,6 +135,9 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                     }
                     if (filter.type === "select") {
                         const field = getField(fields, filter.field)
+                        const includeValueInFilters = assignable?.includeValueInFilters?.find(
+                            (include) => include.field === filter.field && include.values.includes(filter.value),
+                        )
                         if (field.type === "Boolean") {
                             const fieldCustomization = getFieldCustomization(field, customization)
                             const label = tryFunction(fieldCustomization.admin?.label) || field.name
@@ -145,12 +148,20 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                         } else if (field.type === "Number") {
                             constraints.push(where(filter.field, "==", Number(filter.value)))
                         } else if (includesAssigned(relationList, relationParent, assignable, isAssigning, filter)) {
+                            const filterValues = [filter.value]
+                            if (includeValueInFilters) {
+                                filterValues.push(includeValueInFilters.includeValue as string | number)
+                            }
                             constraints.push(
                                 or(
-                                    where(filter.field, "==", filter.value),
+                                    where(filter.field, "in", filterValues),
                                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                     where(`${relationList!.field}_Array`, "array-contains", relationParent!.id),
                                 ) as unknown as QueryConstraint,
+                            )
+                        } else if (isAssigning && includeValueInFilters) {
+                            constraints.push(
+                                where(filter.field, "in", [filter.value, includeValueInFilters.includeValue]),
                             )
                         } else {
                             constraints.push(where(filter.field, "==", filter.value))
@@ -312,6 +323,9 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                 }
                 if (filter.type === "select") {
                     const field = getField(fields, filter.field)
+                    const includeValueInFilters = assignable?.includeValueInFilters?.find(
+                        (include) => include.field === filter.field && include.values.includes(filter.value),
+                    )
                     if (field.type === "Boolean") {
                         const fieldCustomization = getFieldCustomization(field, customization)
                         const label = tryFunction(fieldCustomization.admin?.label) || field.name
@@ -327,6 +341,8 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                             (record[filter.field] === filter.value ||
                                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                 record[`${relationList!.field}_Array`]?.includes(relationParent!.id))
+                    } else if (isAssigning && includeValueInFilters) {
+                        show = show && [filter.value, includeValueInFilters.includeValue].includes(record[filter.field])
                     } else {
                         show = show && record[filter.field] === filter.value
                     }

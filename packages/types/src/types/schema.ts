@@ -594,11 +594,16 @@ export type SelectFilter = {
     field: string
     title?: string | (() => string)
     roles?: StokerRole[]
-    condition?: (value: boolean | string | number | undefined) => boolean
+    filterValues?: (value: boolean | string | number | undefined) => boolean
     defaultValue?:
         | string
         | number
-        | ((parentCollection: CollectionSchema, parentRecord?: StokerRecord) => string | number | undefined)
+        | ((
+              parentCollection?: CollectionSchema,
+              parentRecord?: StokerRecord,
+              isAssigning?: boolean,
+          ) => string | number | undefined)
+    condition?: (parentCollection?: CollectionSchema, parentRecord?: StokerRecord, isAssigning?: boolean) => boolean
     value?: string | number
     style?: "select" | "radio" | "buttons"
 }
@@ -700,6 +705,11 @@ export interface Assignable {
     isAvailable: (record: StokerRecord) => boolean
     unavailableField?: string
     includeAssignedInFilters?: string[]
+    includeValueInFilters?: {
+        field: string
+        values: unknown[]
+        includeValue: unknown
+    }[]
 }
 
 export interface CustomListAction {

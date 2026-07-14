@@ -2133,9 +2133,18 @@ type SelectFilter = {
     field: string
     title?: string | (() => string)
     roles?: string[]
-    condition?: (value: boolean | string | number | undefined) => boolean
+    filterValues?: (value: boolean | string | number | undefined) => boolean
     style?: "select" | "radio" | "buttons"
-    defaultValue?: string | number | (() => string | number)
+    defaultValue?: string | number | ((
+        parentCollection: CollectionSchema,
+        parentRecord?: StokerRecord,
+        isAssigning?: boolean,
+    ) => string | number)
+    condition?: (
+        parentCollection?: CollectionSchema,
+        parentRecord?: StokerRecord,
+        isAssigning?: boolean,
+    ) => bolean
 }
 
 type RelationFilter = {

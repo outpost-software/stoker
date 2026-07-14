@@ -199,7 +199,7 @@ const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
                     field: "Role",
                     title: "User Role",
                     style: "buttons",
-                    condition(value) {
+                    filterValues(value) {
                         return value !== "Office"
                     },
                 },

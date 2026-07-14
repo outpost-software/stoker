@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.203
+
+### Patch Changes
+
+- feat: add filter condition method
+    - @stoker-platform/node-client@0.5.79
+    - @stoker-platform/utils@0.5.70
+    - @stoker-platform/web-client@0.5.83
+
 ## 0.5.202
 
 ### Patch Changes

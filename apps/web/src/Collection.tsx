@@ -529,7 +529,7 @@ function Collection({
                         : Math.min(itemsPerPage || 10, Math.max(1, Math.floor(30 / disjunctions)))
                 let hitsPerPage = 0
                 if (exactPhrase && !(hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0)) {
-                    hitsPerPage = 1000
+                    hitsPerPage = 500
                 } else {
                     hitsPerPage = batchSize
                 }
@@ -2285,6 +2285,8 @@ function Collection({
                                                                 collection={collection}
                                                                 excluded={excludedFilters}
                                                                 relationList={relationList}
+                                                                relationCollection={relationCollection}
+                                                                relationParent={relationParent}
                                                                 assignable={assignable}
                                                                 isAssigning={displayIsAssigning}
                                                             />
