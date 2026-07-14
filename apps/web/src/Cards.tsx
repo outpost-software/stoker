@@ -812,16 +812,26 @@ function DropZone({
         if (!statusList) return []
         if (typeof orderByField !== "string") return []
         const removeEmptyRecords: StokerRecord[] = []
-        const latestFiltered =
+        let latestFiltered =
             latestList?.filter(
                 (record) =>
                     record[statusField.name] ===
                         (statusField.type === "Boolean" ? statusValue === statusValues[0] : statusValue) &&
                     filterRecord(record),
             ) || []
+        let removedFiltered = removedList
+        if (search && !isPreloadCacheEnabled && !isServerReadOnly) {
+            const matchingIds = new Set(
+                localFullTextSearch(collection, search, latestFiltered.concat(removedFiltered)).map(
+                    (result) => result.id,
+                ),
+            )
+            latestFiltered = latestFiltered.filter((record) => matchingIds.has(record.id))
+            removedFiltered = removedFiltered.filter((record) => matchingIds.has(record.id))
+        }
         statusList
             ?.concat(latestFiltered)
-            .concat(removedList)
+            .concat(removedFiltered)
             .forEach((record) => {
                 if (record !== undefined) {
                     removeEmptyRecords.push(record)
@@ -851,7 +861,8 @@ function DropZone({
 
     useEffect(() => {
         setIsFirstLoad(true)
-    }, [filters, orderByField, orderByDirection])
+        setPrevIds(new Set())
+    }, [filters, orderByField, orderByDirection, search])
 
     useEffect(() => {
         if (statusList && !isFirstLoad && !isPreloadCacheEnabled && !isServerReadOnly) {
@@ -1157,6 +1168,7 @@ export function Cards({
     const backToStart = useCallback(
         (latestConstraints?: QueryConstraint[]) => {
             if (!statusField) return
+            setCursor({})
             setList({})
             setServerList({})
             statusValues?.forEach((statusValue) => {

@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.207
+
+### Patch Changes
+
+- fix: fix Cards and Images views search issues
+
 ## 0.5.206
 
 ### Patch Changes

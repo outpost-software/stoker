@@ -257,6 +257,7 @@ function Collection({
     const filtersIsAssigningRef = useRef(isAssigning)
     const assignQueryGenerationRef = useRef(0)
     const displayedAssignGenerationRef = useRef(0)
+    const dataGenerationRef = useRef<{ [key: string | number]: number }>({})
 
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
 
@@ -474,12 +475,42 @@ function Collection({
         }
     }, [search, list])
 
+    const prevSearchRef = useRef<string | undefined>(undefined)
+    useEffect(() => {
+        if (
+            !isPreloadCacheEnabled &&
+            !isServerReadOnly &&
+            fullTextSearch &&
+            tabRef.current !== "map" &&
+            tabRef.current !== "calendar"
+        ) {
+            if (prevSearchRef.current !== undefined && prevSearchRef.current !== search) {
+                dataGenerationRef.current.default = (dataGenerationRef.current.default || 0) + 1
+            }
+            prevSearchRef.current = search
+        }
+    }, [search])
+
     const getData = useCallback(
         async (query: Query, key?: string | number) => {
             const startingTab = tabRef.current
             key ||= "default"
 
             const queryGeneration = ++assignQueryGenerationRef.current
+            // eslint-disable-next-line security/detect-object-injection
+            if (dataGenerationRef.current[key] === undefined) {
+                // eslint-disable-next-line security/detect-object-injection
+                dataGenerationRef.current[key] = 0
+            }
+            // eslint-disable-next-line security/detect-object-injection
+            const dataGeneration = ++dataGenerationRef.current[key]
+            // eslint-disable-next-line security/detect-object-injection
+            const isCurrentData = () => dataGenerationRef.current[key] === dataGeneration
+            const releaseRouteLoading = () => {
+                if (!isPreloadCacheEnabled || relationList?.loadAll) {
+                    setIsRouteLoading("-", location.pathname)
+                }
+            }
             const queryIsAssigning = filtersIsAssigningRef.current
             const syncDisplayIsAssigning = () => {
                 if (queryGeneration >= displayedAssignGenerationRef.current) {
@@ -539,6 +570,9 @@ function Collection({
                         ? { collection: relationCollection.labels.collection, id: relationParent.id }
                         : undefined
                 const objectIDs = await performFullTextSearch(collection, search, hitsPerPage, constraints, assigning)
+                if (!isCurrentData()) {
+                    return
+                }
                 searchResults.current = { ...searchResults.current, [key]: objectIDs }
                 if (
                     objectIDs.length > 0 &&
@@ -567,7 +601,7 @@ function Collection({
                     setServerList((prev) => ({ ...prev, [key]: [] }))
                     setOptimisticList([], key)
                     syncDisplayIsAssigning()
-                    setIsRouteLoading("-", location.pathname)
+                    releaseRouteLoading()
                     setCursor({})
                     setPages({})
                     setCount({})
@@ -611,6 +645,13 @@ function Collection({
                         let firstLoad = true
 
                         const load = () => {
+                            if (!isCurrentData()) {
+                                if (firstLoad) {
+                                    firstLoad = false
+                                    resolve()
+                                }
+                                return
+                            }
                             if (query.infinite) {
                                 setServerList((prev) => {
                                     // eslint-disable-next-line security/detect-object-injection
@@ -643,7 +684,14 @@ function Collection({
                             }
                             syncDisplayIsAssigning()
                             if (!query.infinite || firstLoad) {
-                                setCursor((prev) => ({ ...prev, [key]: newCursor }))
+                                if (multipleQueries.length > 0) {
+                                    setCursor((prev) => ({
+                                        ...prev,
+                                        [key]: { first: new Map(), last: new Map() },
+                                    }))
+                                } else {
+                                    setCursor((prev) => ({ ...prev, [key]: newCursor }))
+                                }
                             }
                             if (!isPreloadCacheEnabled || relationList?.loadAll) {
                                 if (!isPreloadCacheEnabled) loadedKeys.current.add(key)
@@ -691,6 +739,7 @@ function Collection({
                         const result = await subscribeMany(
                             [labels.collection],
                             (docs: StokerRecord[], cursor?: Cursor) => {
+                                if (!isCurrentData()) return
                                 loadedDocs = docs
                                 newCursor = {
                                     first: new Map(cursor?.first),
@@ -703,8 +752,8 @@ function Collection({
                             },
                             (error) => {
                                 console.error(error)
-                                if (!isPreloadCacheEnabled || relationList?.loadAll) {
-                                    setIsRouteLoading("-", location.pathname)
+                                if (isCurrentData()) {
+                                    releaseRouteLoading()
                                 }
                                 resolve()
                                 if (error instanceof FirestoreError && error.code === "not-found") {
@@ -713,14 +762,19 @@ function Collection({
                             },
                             subscribeOptions,
                         )
+                        if (!isCurrentData()) {
+                            result.unsubscribe()
+                            resolve()
+                            return
+                        }
                         const { unsubscribe: newUnsubscribe, count: newCount, pages: newPages } = result
                         promiseLoaded = true
                         if (queryLoaded && startingTab === tabRef.current) {
                             load()
                         }
                     } catch (error) {
-                        if (!isPreloadCacheEnabled || relationList?.loadAll) {
-                            setIsRouteLoading("-", location.pathname)
+                        if (isCurrentData()) {
+                            releaseRouteLoading()
                         }
                         reject(error)
                     }
@@ -737,6 +791,10 @@ function Collection({
                             ...(additionalConstraintsRef.current || []),
                         ],
                     })
+                    if (!isCurrentData()) {
+                        resolve()
+                        return
+                    }
                     setServerList((prev) => ({ ...prev, [key]: data.records }))
                     setOptimisticList(data.records, key)
                     syncDisplayIsAssigning()

@@ -385,6 +385,7 @@ export const Images = memo(
             ) => {
                 return new Promise<void>((resolve) => {
                     infiniteLoaderRef.current?.resetloadMoreItemsCache()
+                    setCursor({})
                     setServerList({})
                     setList({})
                     const newQuery = {
@@ -508,8 +509,13 @@ export const Images = memo(
         }, [order])
 
         useEffect(() => {
+            if (!isInitialized) return
+            if (fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
+                setCursor({})
+                infiniteLoaderRef.current?.resetloadMoreItemsCache()
+            }
             const timer = setTimeout(() => {
-                if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
+                if (fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
                     backToStart()
                 }
             }, 750)
@@ -639,10 +645,20 @@ export const Images = memo(
             if (!list) return []
             if (typeof orderByField !== "string") return []
             const removeEmptyRecords: StokerRecord[] = []
-            const latestFiltered = latestList?.filter((record) => filterRecord(record)) || []
+            let latestFiltered = latestList?.filter((record) => filterRecord(record)) || []
+            let removedFiltered = removedList
+            if (search && !isPreloadCacheEnabled && !isServerReadOnly) {
+                const matchingIds = new Set(
+                    localFullTextSearch(collection, search, latestFiltered.concat(removedFiltered)).map(
+                        (result) => result.id,
+                    ),
+                )
+                latestFiltered = latestFiltered.filter((record) => matchingIds.has(record.id))
+                removedFiltered = removedFiltered.filter((record) => matchingIds.has(record.id))
+            }
             defaultList
                 ?.concat(latestFiltered)
-                .concat(removedList)
+                .concat(removedFiltered)
                 .forEach((record) => {
                     if (record !== undefined) {
                         removeEmptyRecords.push(record)
@@ -668,7 +684,7 @@ export const Images = memo(
         useEffect(() => {
             setIsFirstLoad(true)
             setPrevIds(new Set())
-        }, [filters, orderByField, orderByDirection])
+        }, [filters, orderByField, orderByDirection, search])
 
         useEffect(() => {
             if (list && !isFirstLoad && !isPreloadCacheEnabled && !isServerReadOnly) {
@@ -877,6 +893,7 @@ export const Images = memo(
     (prevProps, nextProps) =>
         prevProps.list === nextProps.list &&
         prevProps.search === nextProps.search &&
+        prevProps.cursor === nextProps.cursor &&
         prevProps.isAssigning === nextProps.isAssigning &&
         prevProps.backToStartKey === nextProps.backToStartKey,
 )
