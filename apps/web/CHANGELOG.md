@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.205
+
+### Patch Changes
+
+- fix: fix filter clearing issue
+
 ## 0.5.204
 
 ### Patch Changes

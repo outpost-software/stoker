@@ -837,7 +837,8 @@ export function Filters({
                                 filter.condition &&
                                 !filter.condition(relationCollection, relationParent, isAssigning)
                             )
-                                if (isSidebar && !relationList?.showFilters?.includes(filter.field)) return
+                                return
+                            if (isSidebar && !relationList?.showFilters?.includes(filter.field)) return
                             const field = getField(fields, filter.field)
                             if (!field) return
                             if (filter.type === "select") {
