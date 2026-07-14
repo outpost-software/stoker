@@ -30,6 +30,7 @@ import { serverReadOnly } from "./utils/serverReadOnly"
 import { useRouteLoading } from "./providers/LoadingProvider"
 import { getRelationFields } from "./utils/getRelationFields"
 import { FiltersProvider } from "./providers/FiltersProvider"
+import { SidebarFilters } from "./SidebarFilters"
 import Collection from "./Collection"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { Separator } from "./components/ui/separator"
@@ -82,6 +83,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
 
     const [isAssigning, setIsAssigning] = useState<Record<string, boolean>>({})
     const [assignable, setAssignable] = useState<Assignable[] | undefined>(undefined)
+    const [sidebarFiltersContainer, setSidebarFiltersContainer] = useState<HTMLDivElement | null>(null)
 
     useEffect(() => {
         if (id && record && record.id !== id) {
@@ -213,6 +215,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                     customRecordPages={customRecordPages}
                                     isAssigning={isAssigning}
                                     setIsAssigning={setIsAssigning}
+                                    filtersContainerRef={setSidebarFiltersContainer}
                                 />
                                 <Routes>
                                     <Route
@@ -276,6 +279,25 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                                         <Separator />
                                                                     </div>
                                                                 </>
+                                                            )}
+                                                            {sidebarFiltersContainer && (
+                                                                <SidebarFilters
+                                                                    key={`${relationList.collection}-sidebar-filters`}
+                                                                    container={sidebarFiltersContainer}
+                                                                    collection={relationCollection}
+                                                                    relationList={relationList}
+                                                                    relationCollection={collection}
+                                                                    relationParent={record}
+                                                                    assignable={assignable?.find(
+                                                                        (item: Assignable) =>
+                                                                            item.collection === relationList.collection,
+                                                                    )}
+                                                                    isAssigning={
+                                                                        isAssigning?.[
+                                                                            relationList.collection.toLowerCase()
+                                                                        ]
+                                                                    }
+                                                                />
                                                             )}
                                                             <Collection
                                                                 key={`${relationList.collection}-collection`}

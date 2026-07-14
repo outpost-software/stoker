@@ -58,6 +58,7 @@ interface FiltersProps {
     relationParent?: StokerRecord
     assignable?: Assignable
     isAssigning?: boolean
+    isSidebar?: boolean
 }
 
 export function Filters({
@@ -68,6 +69,7 @@ export function Filters({
     relationParent,
     assignable,
     isAssigning,
+    isSidebar,
 }: FiltersProps) {
     const { labels, fields } = collection
     const location = useLocation()
@@ -830,6 +832,12 @@ export function Filters({
                         filters.forEach((filter) => {
                             if (filter.type === "status" || filter.type === "range") return
                             if (relationList && relationList.field === filter.field) return
+                            if (
+                                "condition" in filter &&
+                                filter.condition &&
+                                !filter.condition(relationCollection, relationParent, isAssigning)
+                            )
+                                if (isSidebar && !relationList?.showFilters?.includes(filter.field)) return
                             const field = getField(fields, filter.field)
                             if (!field) return
                             if (filter.type === "select") {

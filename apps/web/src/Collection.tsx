@@ -1359,6 +1359,9 @@ function Collection({
                     }
                 }
             })
+            if (relationList.showFilters) {
+                excluded.push(...relationList.showFilters)
+            }
         }
         return excluded
     }, [isPreloadCacheEnabled, cardsConfig, statusField, tab, filters])

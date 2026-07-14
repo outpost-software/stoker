@@ -90,6 +90,7 @@ For collections without `preloadCache` or `serverReadOnly` set to `true`, you wi
     loadAll?: boolean,
     constraints?: [string, "==" | "in", unknown][]
     showMetrics?: boolean
+    showFilters?: string[]
 }[]
 ```
 
@@ -108,6 +109,8 @@ For example, a "Clients" collection might have lists of related "Sites", "Quotes
 `constraints`: Firestore constraints to apply to the relation list's query.
 
 `showMetrics`: Show [metrics](#metrics) above the list in the Admin UI.
+
+`showFilters`: A list of [filters](#filters) to show in the LHS sidebar when the relation list is active.
 
 ### enableWriteLog
 

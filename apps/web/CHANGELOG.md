@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.204
+
+### Patch Changes
+
+- feat: add record sidebar filters
+    - @stoker-platform/node-client@0.5.80
+    - @stoker-platform/utils@0.5.71
+    - @stoker-platform/web-client@0.5.84
+
 ## 0.5.203
 
 ### Patch Changes

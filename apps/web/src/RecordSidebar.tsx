@@ -35,12 +35,14 @@ export const RecordSidebar = ({
     customRecordPages,
     isAssigning,
     setIsAssigning,
+    filtersContainerRef,
 }: {
     record: StokerRecord
     collection: CollectionSchema
     customRecordPages?: CustomRecordPage[]
     isAssigning: Record<string, boolean>
     setIsAssigning: (isAssigning: Record<string, boolean>) => void
+    filtersContainerRef?: (element: HTMLDivElement | null) => void
 }) => {
     const { labels } = collection
     const { path, id } = useParams()
@@ -308,6 +310,7 @@ export const RecordSidebar = ({
                                 )}
                             </div>
                         </SidebarMenu>
+                        <div ref={filtersContainerRef} />
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>

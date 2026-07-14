@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.59
+
+### Patch Changes
+
+- feat: add record sidebar filters
+
 ## 0.5.58
 
 ### Patch Changes

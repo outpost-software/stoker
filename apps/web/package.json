@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-app",
-    "version": "0.5.203",
+    "version": "0.5.204",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "scripts": {
@@ -51,9 +51,9 @@
         "@radix-ui/react-tooltip": "^1.2.8",
         "@react-google-maps/api": "^2.20.8",
         "@sentry/react": "^10.56.0",
-        "@stoker-platform/node-client": "0.5.79",
-        "@stoker-platform/utils": "0.5.70",
-        "@stoker-platform/web-client": "0.5.83",
+        "@stoker-platform/node-client": "0.5.80",
+        "@stoker-platform/utils": "0.5.71",
+        "@stoker-platform/web-client": "0.5.84",
         "@tanstack/react-table": "^8.21.3",
         "@types/react": "18.3.13",
         "@types/react-dom": "18.3.1",

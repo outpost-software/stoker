@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/node-client",
-    "version": "0.5.79",
+    "version": "0.5.80",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -24,8 +24,8 @@
     },
     "dependencies": {
         "@google-cloud/storage": "^7.19.0",
-        "@stoker-platform/types": "0.5.58",
-        "@stoker-platform/utils": "0.5.70",
+        "@stoker-platform/types": "0.5.59",
+        "@stoker-platform/utils": "0.5.71",
         "@types/luxon": "^3.7.1",
         "cross-spawn": "^7.0.6",
         "firebase-admin": "^13.10.0",

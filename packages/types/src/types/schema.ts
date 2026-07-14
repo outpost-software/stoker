@@ -1121,6 +1121,7 @@ export interface RelationList {
     constraints?: [string, "==" | "in", unknown][]
     loadAll?: boolean
     showMetrics?: boolean
+    showFilters?: string[]
 }
 
 export interface CollectionSchema {

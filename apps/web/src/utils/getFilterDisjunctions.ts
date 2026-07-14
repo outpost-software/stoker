@@ -51,5 +51,23 @@ export const getFilterDisjunctions = (collection: CollectionSchema, options?: Fi
             incrementDisjunctions(2)
         }
     }
+    if (
+        options?.isAssigning &&
+        options.relationList &&
+        options.relationParent?.id &&
+        options.assignable?.includeValueInFilters?.length &&
+        options.filters
+    ) {
+        const activeOrCount = options.filters.filter(
+            (filter) =>
+                filter.type === "select" &&
+                filter.value &&
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                options.assignable!.includeValueInFilters!.some((item) => item.field === filter.field),
+        ).length
+        for (let i = 0; i < activeOrCount; i++) {
+            incrementDisjunctions(2)
+        }
+    }
     return disjunctions
 }
