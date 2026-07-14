@@ -1245,12 +1245,15 @@ export function Cards({
     }, [backToStartKey])
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
-                const constraints = removeCardsStatusFilter(filters)
-                backToStart(constraints as QueryConstraint[])
-            }
-        }, 750)
+        const timer = setTimeout(
+            () => {
+                if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
+                    const constraints = removeCardsStatusFilter(filters)
+                    backToStart(constraints as QueryConstraint[])
+                }
+            },
+            search ? 750 : 250,
+        )
         return () => clearTimeout(timer)
     }, [search])
 

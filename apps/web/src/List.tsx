@@ -867,11 +867,14 @@ export function List({
     }, [])
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
-                backToStart()
-            }
-        }, 750)
+        const timer = setTimeout(
+            () => {
+                if (isInitialized && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
+                    backToStart()
+                }
+            },
+            search ? 750 : 250,
+        )
 
         if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly || isServerFullTextSearch)) {
             setPageIndex(0)

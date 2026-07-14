@@ -514,11 +514,14 @@ export const Images = memo(
                 setCursor({})
                 infiniteLoaderRef.current?.resetloadMoreItemsCache()
             }
-            const timer = setTimeout(() => {
-                if (fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
-                    backToStart()
-                }
-            }, 750)
+            const timer = setTimeout(
+                () => {
+                    if (fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly) {
+                        backToStart()
+                    }
+                },
+                search ? 750 : 250,
+            )
             return () => clearTimeout(timer)
         }, [search])
 

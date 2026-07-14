@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.208
+
+### Patch Changes
+
+- feat: reduce clear search debounce interval
+
 ## 0.5.207
 
 ### Patch Changes
