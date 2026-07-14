@@ -534,7 +534,11 @@ function Collection({
                     hitsPerPage = batchSize
                 }
                 const constraints = getFilterConstraints(latestFilters, false, true) as [string, "==" | "in", unknown][]
-                const objectIDs = await performFullTextSearch(collection, search, hitsPerPage, constraints)
+                const assigning =
+                    queryIsAssigning && assignable && relationList && relationCollection && relationParent?.id
+                        ? { collection: relationCollection.labels.collection, id: relationParent.id }
+                        : undefined
+                const objectIDs = await performFullTextSearch(collection, search, hitsPerPage, constraints, assigning)
                 searchResults.current = { ...searchResults.current, [key]: objectIDs }
                 if (
                     objectIDs.length > 0 &&

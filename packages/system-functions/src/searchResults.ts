@@ -1,15 +1,22 @@
-import {getStokerFirestore} from "@stoker-platform/node-client";
+import {
+    getOne,
+    getStokerFirestore,
+    initializeStoker,
+    tryPromise,
+} from "@stoker-platform/node-client";
 import {
     CallableRequest,
     HttpsError,
 } from "firebase-functions/v2/https";
 import {algoliasearch} from "algoliasearch";
-import {AttributeRestriction,
+import {Assignable,
+    AttributeRestriction,
     CollectionsSchema,
     EntityParentFilter,
     EntityRestriction,
     StokerPermissions,
 } from "@stoker-platform/types";
+import {join} from "path";
 import {
     collectionAccess,
     getAttributeRestrictions,
@@ -77,7 +84,7 @@ export const searchResults = async (
     }
     const tenantId = token?.tenant as string;
 
-    const {collection, query, hitsPerPage, constraints} = request.data;
+    const {collection, query, hitsPerPage, constraints, assigning} = request.data;
 
     if (!process.env.STOKER_ALGOLIA_ID) {
         throw new HttpsError("invalid-argument", "Algolia ID environment variable not set");
@@ -100,6 +107,9 @@ export const searchResults = async (
     if (constraints && !Array.isArray(constraints)) {
         throw new HttpsError("invalid-argument", "constraints must be an array");
     }
+    if (assigning && (typeof assigning !== "object" || typeof assigning.collection !== "string" || typeof assigning.id !== "string")) {
+        throw new HttpsError("invalid-argument", "assigning must be an object with collection and id strings");
+    }
 
     // eslint-disable-next-line security/detect-object-injection
     const collectionSchema = schema.collections[collection];
@@ -121,8 +131,42 @@ export const searchResults = async (
 
     const hasAttributeRestrictions: AttributeRestriction[] = getAttributeRestrictions(collectionSchema, permissions);
     const hasEntityRestrictions: EntityRestriction[] = getEntityRestrictions(collectionSchema, permissions);
-    const hasEntityParentFilters: { parentFilter: EntityParentFilter; parentRestriction: EntityRestriction }[] =
+    const hasEntityParentFilters: {parentFilter: EntityParentFilter; parentRestriction: EntityRestriction}[] =
         getEntityParentFilters(collectionSchema, schema, permissions);
+
+    let assignable: Assignable | undefined;
+    let assignedArrayFilter: string | undefined;
+    if (assigning) {
+        // eslint-disable-next-line security/detect-object-injection
+        const parentCollectionSchema = schema.collections[assigning.collection];
+        if (!parentCollectionSchema) {
+            throw new HttpsError("invalid-argument", "Assigning collection not found");
+        }
+
+        const {getCustomizationFile} = await initializeStoker(
+            "production",
+            tenantId,
+            join(process.cwd(), "lib", "system-custom", "main.js"),
+            join(process.cwd(), "lib", "system-custom", "collections"),
+            true,
+        );
+
+        try {
+            await getOne([assigning.collection], assigning.id, {userId: user});
+        } catch {
+            throw new HttpsError("permission-denied", "User does not have permission to access assigning parent");
+        }
+
+        const relationList = parentCollectionSchema.relationLists?.find((list) => list.collection === collection);
+        if (relationList) {
+            const customization = getCustomizationFile(assigning.collection, schema);
+            const assignables = (await tryPromise(customization?.admin?.assignable)) as Assignable[] | undefined;
+            assignable = assignables?.find((item) => item.collection === collection);
+            if (assignable) {
+                assignedArrayFilter = `${sanitizeAlgoliaFieldName(relationList.field)}_Array:"${sanitizeAlgoliaFilterValue(assigning.id)}"`;
+            }
+        }
+    }
 
     const filters: string[] = [`tenant_id:${tenantId}`];
 
@@ -149,10 +193,30 @@ export const searchResults = async (
                 }
             } else if (operator === "==") {
                 const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
-                if (typeof constraint[2] === "string") {
-                    filters.push(`${sanitizedFieldName}:"${sanitizedValue}"`);
+                const valueFilter = typeof constraint[2] === "string" ?
+                    `${sanitizedFieldName}:"${sanitizedValue}"` :
+                    `${sanitizedFieldName}:${sanitizedValue}`;
+                const includeValueInFilters = assignable?.includeValueInFilters?.find(
+                    (include) => include.field === sanitizedFieldName && include.values.includes(constraint[2]),
+                );
+                const includesAssigned = !!assignedArrayFilter &&
+                    !!assignable?.includeAssignedInFilters?.includes(sanitizedFieldName);
+                const orFilters = [valueFilter];
+                if (includeValueInFilters) {
+                    const {includeValue} = includeValueInFilters;
+                    const sanitizedIncludeValue = sanitizeAlgoliaFilterValue(includeValue);
+                    orFilters.push(typeof includeValue === "string" ?
+                        `${sanitizedFieldName}:"${sanitizedIncludeValue}"` :
+                        `${sanitizedFieldName}:${sanitizedIncludeValue}`);
+                }
+                if (includesAssigned) {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    orFilters.push(assignedArrayFilter!);
+                }
+                if (orFilters.length > 1) {
+                    filters.push(`(${orFilters.join(" OR ")})`);
                 } else {
-                    filters.push(`${sanitizedFieldName}:${sanitizedValue}`);
+                    filters.push(valueFilter);
                 }
             } else if (operator === "in") {
                 if (!Array.isArray(constraint[2])) {

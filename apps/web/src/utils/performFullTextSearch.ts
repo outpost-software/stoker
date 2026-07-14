@@ -7,6 +7,7 @@ export const performFullTextSearch = async (
     search: string,
     hitsPerPage: number,
     constraints?: [string, "==" | "in", unknown][],
+    assigning?: { collection: string; id: string },
 ) => {
     const { labels } = collection
     const firebaseFunctions = getFunctions(getApp(), import.meta.env.STOKER_FB_FUNCTIONS_REGION)
@@ -16,6 +17,7 @@ export const performFullTextSearch = async (
         query: search,
         hitsPerPage,
         constraints,
+        assigning,
     })) as { data: string[] }
     return results.data
 }

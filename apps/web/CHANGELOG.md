@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.206
+
+### Patch Changes
+
+- feat: update Algolia search filters to match web app filters
+
 ## 0.5.205
 
 ### Patch Changes
