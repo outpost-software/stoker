@@ -34,6 +34,7 @@ import { SidebarFilters } from "./SidebarFilters"
 import Collection from "./Collection"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { Separator } from "./components/ui/separator"
+import { loadAssigning } from "./utils/relationListFiltersState"
 
 export const Record = ({ collection }: { collection: CollectionSchema }) => {
     const { labels, fields, recordTitleField } = collection
@@ -81,7 +82,12 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
     const [breadcrumbs, setBreadcrumbs] = useState<string[] | undefined>(undefined)
     const [customRecordPages, setCustomRecordPages] = useState<CustomRecordPage[] | undefined>(undefined)
 
-    const [isAssigning, setIsAssigning] = useState<Record<string, boolean>>({})
+    const [isAssigning, setIsAssigning] = useState<Record<string, boolean>>(() => {
+        const saved = loadAssigning(location.pathname)
+        if (saved === undefined) return {}
+        const page = location.pathname.split("/").filter(Boolean).pop()
+        return page ? { [page]: saved } : {}
+    })
     const [assignable, setAssignable] = useState<Assignable[] | undefined>(undefined)
     const [sidebarFiltersContainer, setSidebarFiltersContainer] = useState<HTMLDivElement | null>(null)
 

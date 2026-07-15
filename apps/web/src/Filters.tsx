@@ -30,6 +30,7 @@ import { useFilters } from "./providers/FiltersProvider"
 import { useRouteLoading } from "./providers/LoadingProvider"
 import { useLocation } from "react-router"
 import { useStokerState } from "./providers/StateProvider"
+import { saveFilters } from "./utils/relationListFiltersState"
 import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover"
 import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet"
 import { useIsMobile } from "./hooks/use-mobile"
@@ -245,7 +246,13 @@ export function Filters({
                 })
             }
             const filterParam = newFilters
-                .filter((filter: Filter) => filter.type !== "status" && filter.type !== "range" && filter.value)
+                .filter(
+                    (filter: Filter) =>
+                        filter.type !== "status" &&
+                        filter.type !== "range" &&
+                        filter.value &&
+                        !(relationList && filter.type === "relation" && filter.field === relationList.field),
+                )
                 .map((filter: Filter) => {
                     if (filter.type !== "status" && filter.type !== "range" && filter.value) {
                         return `${filter.field}=${filter.value.toString()}`
@@ -259,9 +266,11 @@ export function Filters({
                 } else {
                     setState(`collection-filters-${labels.collection.toLowerCase()}`, "filters", "DELETE_STATE")
                 }
+            } else {
+                saveFilters(location.pathname, relationList, filters)
             }
         },
-        [preventChange],
+        [preventChange, location.pathname, relationList],
     )
 
     const pickerDebounceTimeout = useRef<NodeJS.Timeout>()

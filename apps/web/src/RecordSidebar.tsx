@@ -20,6 +20,7 @@ import {
 import { collectionAccess, getField, isRelationField, tryFunction, tryPromise } from "@stoker-platform/utils"
 import { getCurrentUserPermissions, getCollectionConfigModule, getSchema } from "@stoker-platform/web-client"
 import { runViewTransition } from "./utils/runViewTransition"
+import { saveAssigning } from "./utils/relationListFiltersState"
 import { useEffect, useState } from "react"
 
 interface SidebarItem {
@@ -132,11 +133,21 @@ export const RecordSidebar = ({
         })
     }
 
+    const relationListPath = (page: string) => `/${labels.record.toLowerCase()}/${path}/${id}/${page}`
+
     const goToRecordPage = (page: string) => {
-        if (location.pathname === `/${labels.record.toLowerCase()}/${path}/${id}/${page}`) {
+        if (location.pathname === relationListPath(page)) {
             return
         }
-        runViewTransition(() => navigate(`/${labels.record.toLowerCase()}/${path}/${id}/${page}`))
+        runViewTransition(() => navigate(relationListPath(page)))
+    }
+
+    const setAssigning = (page: string, assigning: boolean) => {
+        setIsAssigning({
+            ...isAssigning,
+            [page]: assigning,
+        })
+        saveAssigning(relationListPath(page), assigning)
     }
 
     const anyCustomActive = customItems.some((item) => location.pathname.includes(item.page))
@@ -166,12 +177,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && isActive && !isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
-                                                                onClick={() =>
-                                                                    setIsAssigning({
-                                                                        ...isAssigning,
-                                                                        [item.page]: true,
-                                                                    })
-                                                                }
+                                                                onClick={() => setAssigning(item.page, true)}
                                                                 type="button"
                                                             >
                                                                 <Pencil className="w-4 h-4" />
@@ -180,12 +186,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && isActive && isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
-                                                                onClick={() =>
-                                                                    setIsAssigning({
-                                                                        ...isAssigning,
-                                                                        [item.page]: false,
-                                                                    })
-                                                                }
+                                                                onClick={() => setAssigning(item.page, false)}
                                                                 type="button"
                                                             >
                                                                 <List className="w-4 h-4" />
@@ -237,12 +238,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && !isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
-                                                                onClick={() =>
-                                                                    setIsAssigning({
-                                                                        ...isAssigning,
-                                                                        [item.page]: true,
-                                                                    })
-                                                                }
+                                                                onClick={() => setAssigning(item.page, true)}
                                                                 type="button"
                                                             >
                                                                 <Pencil className="w-4 h-4" />
@@ -251,12 +247,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
-                                                                onClick={() =>
-                                                                    setIsAssigning({
-                                                                        ...isAssigning,
-                                                                        [item.page]: false,
-                                                                    })
-                                                                }
+                                                                onClick={() => setAssigning(item.page, false)}
                                                                 type="button"
                                                             >
                                                                 <List className="w-4 h-4" />

@@ -60,6 +60,7 @@ import cloneDeep from "lodash/cloneDeep.js"
 import { Map as StokerMap } from "./Map"
 import { Calendar } from "./Calendar"
 import { useStokerState } from "./providers/StateProvider"
+import { loadFilters } from "./utils/relationListFiltersState"
 import { Filters } from "./Filters"
 import { FirestoreError, QueryConstraint, Timestamp, where, WhereFilterOp } from "firebase/firestore"
 import { useFilters } from "./providers/FiltersProvider"
@@ -1059,6 +1060,7 @@ function Collection({
                     })
                 }
             } else {
+                const savedFilterValues = loadFilters(location.pathname)
                 filtersClone.forEach((filter: Filter) => {
                     if (filter.type === "status" || filter.type === "range") {
                         return
@@ -1070,6 +1072,24 @@ function Collection({
                         !isAssigning
                     ) {
                         filter.value = relationParent.id
+                        return
+                    }
+                    if (savedFilterValues) {
+                        if (filter.type === "relation" && filter.field === relationList.field) {
+                            return
+                        }
+                        const filterValue = savedFilterValues.find((value) => value.split("=")[0] === filter.field)
+                        if (filterValue) {
+                            const field = getField(fields, filter.field)
+                            if (field.type === "Number") {
+                                // eslint-disable-next-line security/detect-object-injection
+                                filter.value = Number(filterValue.split("=")[1])
+                            } else {
+                                // eslint-disable-next-line security/detect-object-injection
+                                filter.value = filterValue.split("=")[1]
+                            }
+                        }
+                        return
                     }
                     if (filter.type === "select" && filter.defaultValue) {
                         filter.value = tryFunction(filter.defaultValue, [
