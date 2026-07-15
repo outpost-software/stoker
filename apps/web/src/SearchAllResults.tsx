@@ -8,6 +8,7 @@ import {
     getCachedConfigValue,
     getCollectionConfigModule,
     getCurrentUserPermissions,
+    getGlobalConfigModule,
     getLoadingState,
     getSome,
     subscribeMany,
@@ -22,9 +23,12 @@ import { performFullTextSearch } from "./utils/performFullTextSearch"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { useConnection } from "./providers/ConnectionProvider"
 import { SearchResult } from "minisearch"
+import { tryFunction } from "@stoker-platform/utils"
 
 export function SearchAllResults({ collection, search }: { collection: CollectionSchema; search: string }) {
     const { labels, fullTextSearch, recordTitleField, softDelete } = collection
+    const globalConfig = getGlobalConfigModule()
+    const searchAll = tryFunction(globalConfig.admin?.searchAll)
     const customization = getCollectionConfigModule(labels.collection)
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
@@ -131,6 +135,8 @@ export function SearchAllResults({ collection, search }: { collection: Collectio
                         {
                             constraints: currentQuery.constraints as QueryConstraint[],
                             pagination: isPreloadCacheEnabled ? undefined : { number: MAX_RESULTS },
+                            // Temporary solution for searching all records, including those outside the preloaded range
+                            only: searchAll ? "default" : undefined,
                         },
                     )
                     const { unsubscribe: newUnsubscribe } = result

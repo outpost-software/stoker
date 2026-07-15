@@ -182,6 +182,7 @@ export interface AdminConfig {
     }
     dashboard?: DashboardItem[]
     homePage?: Record<StokerRole, StokerCollection> | (() => Record<StokerRole, StokerCollection>)
+    searchAll?: boolean | (() => boolean)
 }
 
 export interface GenerateGlobalConfigParams {
@@ -331,6 +332,7 @@ export interface GlobalConfigCache {
         }
         dashboard?: DashboardItem[]
         homePage?: Record<StokerRole, StokerCollection>
+        searchAll?: boolean
     }
 }
 
