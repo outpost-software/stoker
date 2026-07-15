@@ -1,5 +1,19 @@
 # @stoker-platform/web-app
 
+## 0.5.209
+
+### Patch Changes
+
+- feat: improve default filters
+- feat: add image copy-to-clipboard button
+- feat: add temporary search all solution
+- feat: restore relation list state
+- feat: add support for many-to loadAll relation lists
+- fix: fix record page loading issues
+    - @stoker-platform/node-client@0.5.81
+    - @stoker-platform/utils@0.5.72
+    - @stoker-platform/web-client@0.5.85
+
 ## 0.5.208
 
 ### Patch Changes

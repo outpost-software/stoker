@@ -1,5 +1,12 @@
 # @stoker-platform/types
 
+## 0.5.60
+
+### Patch Changes
+
+- feat: improve default filters
+- feat: add temporary search all solution
+
 ## 0.5.59
 
 ### Patch Changes

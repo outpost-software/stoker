@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.128
+
+### Patch Changes
+
+- feat: add support for many-to loadAll relation lists
+- Updated dependencies
+    - @stoker-platform/types@0.5.60
+    - @stoker-platform/node-client@0.5.81
+    - @stoker-platform/utils@0.5.72
+
 ## 0.5.127
 
 ### Patch Changes

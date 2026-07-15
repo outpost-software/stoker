@@ -104,7 +104,7 @@ For example, a "Clients" collection might have lists of related "Sites", "Quotes
 
 `roles`: The roles that can see this relation list
 
-`loadAll`: When [preloadCache.range](#range) is enabled, setting this option will ignore the range restrictions and load all records available for the relation list. For this to work, the `field` referenced above must be a one-to-one or one-to-many field.
+`loadAll`: When [preloadCache.range](#range) is enabled, setting this option will ignore the range restrictions and load all records available for the relation list.
 
 `constraints`: Firestore constraints to apply to the relation list's query.
 
@@ -2136,8 +2136,19 @@ type SelectFilter = {
     field: string
     title?: string | (() => string)
     roles?: string[]
-    filterValues?: (value: boolean | string | number | undefined) => boolean
     style?: "select" | "radio" | "buttons"
+    titles?: (
+        value: string,
+        relationCollection?: CollectionSchema,
+        relationParent?: StokerRecord,
+        isAssigning?: boolean,
+    ) => string
+    filterValues?: (
+        value: boolean | string | number | undefined,
+        relationCollection?: CollectionSchema,
+        relationParent?: StokerRecord,
+        isAssigning?: boolean,
+    ) => boolean
     defaultValue?: string | number | ((
         parentCollection: CollectionSchema,
         parentRecord?: StokerRecord,
