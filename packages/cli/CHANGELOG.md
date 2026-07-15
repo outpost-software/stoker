@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.129
+
+### Patch Changes
+
+- feat: enable clipboard write access in CSP
+- Updated dependencies
+    - @stoker-platform/types@0.5.61
+    - @stoker-platform/node-client@0.5.82
+    - @stoker-platform/utils@0.5.73
+
 ## 0.5.128
 
 ### Patch Changes

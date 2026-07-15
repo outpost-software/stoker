@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.210
+
+### Patch Changes
+
+- feat: improve assigment behaviour
+- feat: enable clipboard write access in CSP
+- Updated dependencies
+    - @stoker-platform/web-client@0.5.86
+    - @stoker-platform/node-client@0.5.82
+    - @stoker-platform/utils@0.5.73
+
 ## 0.5.209
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.61
+
+### Patch Changes
+
+- feat: improve assigment behaviour
+
 ## 0.5.60
 
 ### Patch Changes

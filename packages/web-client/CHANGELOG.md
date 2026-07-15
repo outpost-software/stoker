@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.86
+
+### Patch Changes
+
+- fix: drop removed relation entries in subscribeOne
+- Updated dependencies
+    - @stoker-platform/types@0.5.61
+    - @stoker-platform/utils@0.5.73
+
 ## 0.5.85
 
 ### Patch Changes
