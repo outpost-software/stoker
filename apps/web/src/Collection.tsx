@@ -717,6 +717,8 @@ function Collection({
                             }
                         }
 
+                        const relationListField = getField(fields, relationList?.field)
+
                         const subscribeOptions = {
                             ...currentQuery.options,
                             constraints: combineQueryConstraints([
@@ -727,10 +729,23 @@ function Collection({
                             ]),
                             tempCache:
                                 isPreloadCacheEnabled && relationList?.loadAll
-                                    ? {
-                                          label: `${labels.collection}-${relationList?.field}`,
-                                          constraints: [[`${relationList?.field}_Single.id`, "==", relationParent?.id]],
-                                      }
+                                    ? ["OneToOne", "OneToMany"].includes(relationListField?.type)
+                                        ? {
+                                              label: `${labels.collection}-${relationList?.field}`,
+                                              constraints: [
+                                                  [`${relationList?.field}_Single.id`, "==", relationParent?.id],
+                                              ],
+                                          }
+                                        : {
+                                              label: `${labels.collection}-${relationList?.field}`,
+                                              constraints: [
+                                                  [
+                                                      `${relationList?.field}_Array`,
+                                                      "array-contains",
+                                                      relationParent?.id,
+                                                  ],
+                                              ],
+                                          }
                                     : undefined,
                             multipleQueries: multipleQueries.length > 0 ? multipleQueries : undefined,
                         } as SubscribeManyOptions

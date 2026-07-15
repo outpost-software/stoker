@@ -428,13 +428,6 @@ export const lintSchema = async (noLog = false) => {
                                     )
                                 }
                             }
-                            if (relation.loadAll) {
-                                if (!["OneToOne", "OneToMany"].includes(relationField.type)) {
-                                    errors.push(
-                                        `Collection ${collectionName} has a relation list for collection ${relation.collection} that has loadAll enabled but is not a one to one or one to many field`,
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -2091,6 +2084,19 @@ export const lintSchema = async (noLog = false) => {
                                     `Collection ${collectionName} has a select filter for role ${role} on field ${filter.field} that uses an array-contains filter, but an array-contains filter has already been used. This can be resolved by using the preload cache.`,
                                 )
                             }
+                        }
+                    }
+                }
+                if (hasArrayContains && preloadCache?.roles.includes(role)) {
+                    for (const [parentCollectionName, parentCollectionSchema] of collectionSchemas) {
+                        for (const relation of parentCollectionSchema.relationLists || []) {
+                            if (!relation.loadAll || relation.collection !== collectionName) continue
+                            if (relation.roles && !relation.roles.includes(role)) continue
+                            const relationField = getField(fields, relation.field)
+                            if (!relationField || !["ManyToOne", "ManyToMany"].includes(relationField.type)) continue
+                            errors.push(
+                                `Collection ${parentCollectionName} has a loadAll relation list on collection ${collectionName} using field ${relation.field} of relation type ${relationField.type}, for role ${role}. An array-contains filter has already been used for that collection (for access restrictions).`,
+                            )
                         }
                     }
                 }

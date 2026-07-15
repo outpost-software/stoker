@@ -267,7 +267,7 @@ export function Filters({
                     setState(`collection-filters-${labels.collection.toLowerCase()}`, "filters", "DELETE_STATE")
                 }
             } else {
-                saveFilters(location.pathname, relationList, filters)
+                saveFilters(location.pathname, relationList, newFilters)
             }
         },
         [preventChange, location.pathname, relationList],

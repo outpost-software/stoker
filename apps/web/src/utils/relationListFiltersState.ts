@@ -23,6 +23,7 @@ export const serializeFilters = (relationList: RelationList, filters: Filter[]) 
 
 export const saveFilters = (pathname: string, relationList: RelationList, filters: Filter[]) => {
     const filterParam = serializeFilters(relationList, filters)
+    if (!filterParam) return
     saveState(FILTERS_KEY, `${pathname}|${filterParam}`)
 }
 
