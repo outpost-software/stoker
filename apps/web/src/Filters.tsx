@@ -492,12 +492,24 @@ export function Filters({
                                 <Label htmlFor={title}>{title}:</Label>
                                 <RadioGroup defaultValue="no_selection" className="mt-2">
                                     {values.map((value: string) => {
-                                        if (filter.filterValues && filter.filterValues(value) === false) return null
+                                        if (
+                                            filter.filterValues &&
+                                            filter.filterValues(
+                                                value,
+                                                relationCollection,
+                                                relationParent,
+                                                isAssigning,
+                                            ) === false
+                                        )
+                                            return null
+                                        const title = filter.titles
+                                            ? filter.titles(value, relationCollection, relationParent, isAssigning)
+                                            : value
                                         return (
-                                            <div key={value} className="flex items-center space-x-2">
+                                            <div key={title} className="flex items-center space-x-2">
                                                 <RadioGroupItem
                                                     value={value}
-                                                    id={value}
+                                                    id={title}
                                                     // eslint-disable-next-line security/detect-object-injection
                                                     checked={inputValue[filter.field] === value}
                                                     disabled={disabled}
@@ -511,7 +523,7 @@ export function Filters({
                                                         })
                                                     }}
                                                 />
-                                                <Label htmlFor={value}>{value}</Label>
+                                                <Label htmlFor={title}>{title}</Label>
                                             </div>
                                         )
                                     })}
@@ -543,10 +555,23 @@ export function Filters({
                                 <Label htmlFor={title}>{title}:</Label>
                                 <div className="mt-2 flex flex-col gap-2">
                                     {values.map((value: string) => {
-                                        if (filter.filterValues && filter.filterValues(value) === false) return null
+                                        if (
+                                            filter.filterValues &&
+                                            filter.filterValues(
+                                                value,
+                                                relationCollection,
+                                                relationParent,
+                                                isAssigning,
+                                            ) === false
+                                        )
+                                            return null
+                                        const title = filter.titles
+                                            ? filter.titles(value, relationCollection, relationParent, isAssigning)
+                                            : value
                                         return (
                                             <Button
-                                                key={value}
+                                                key={title}
+                                                id={title}
                                                 // eslint-disable-next-line security/detect-object-injection
                                                 variant={inputValue[filter.field] === value ? "default" : "outline"}
                                                 disabled={disabled}
@@ -564,7 +589,7 @@ export function Filters({
                                                     isFilterInactive(filter) && "disabled:opacity-50",
                                                 )}
                                             >
-                                                {value}
+                                                {title}
                                             </Button>
                                         )
                                     })}
@@ -618,10 +643,27 @@ export function Filters({
                                         <SelectContent>
                                             <SelectItem value="no_selection">----</SelectItem>
                                             {values.map((value: string) => {
-                                                if (filter.filterValues && filter.filterValues(value) === false) return
+                                                if (
+                                                    filter.filterValues &&
+                                                    filter.filterValues(
+                                                        value,
+                                                        relationCollection,
+                                                        relationParent,
+                                                        isAssigning,
+                                                    ) === false
+                                                )
+                                                    return
+                                                const title = filter.titles
+                                                    ? filter.titles(
+                                                          value,
+                                                          relationCollection,
+                                                          relationParent,
+                                                          isAssigning,
+                                                      )
+                                                    : value
                                                 return (
-                                                    <SelectItem key={value} value={value}>
-                                                        {value}
+                                                    <SelectItem key={title} value={value}>
+                                                        {title}
                                                     </SelectItem>
                                                 )
                                             })}
@@ -842,12 +884,23 @@ export function Filters({
                             const field = getField(fields, filter.field)
                             if (!field) return
                             if (filter.type === "select") {
+                                let resetValue = "no_selection"
+                                if (filter.defaultValue) {
+                                    const defaultValue = tryFunction(filter.defaultValue, [
+                                        relationCollection,
+                                        relationParent,
+                                        isAssigning,
+                                    ])
+                                    if (defaultValue !== undefined && defaultValue !== null) {
+                                        resetValue = defaultValue.toString()
+                                    }
+                                }
                                 setValue((prev) => ({
                                     ...prev,
-                                    [filter.field]: "no_selection",
+                                    [filter.field]: resetValue,
                                 }))
                                 startTransition(() => {
-                                    handleChange(filter, "no_selection", field.type)
+                                    handleChange(filter, resetValue, field.type)
                                 })
                             }
                             if (filter.type === "relation") {
@@ -866,7 +919,7 @@ export function Filters({
                         })
                     }}
                 >
-                    Clear Filters
+                    Reset Filters
                 </Button>
             )}
         </div>

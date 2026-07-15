@@ -594,7 +594,18 @@ export type SelectFilter = {
     field: string
     title?: string | (() => string)
     roles?: StokerRole[]
-    filterValues?: (value: boolean | string | number | undefined) => boolean
+    titles?: (
+        value: string,
+        relationCollection?: CollectionSchema,
+        relationParent?: StokerRecord,
+        isAssigning?: boolean,
+    ) => string
+    filterValues?: (
+        value: boolean | string | number | undefined,
+        relationCollection?: CollectionSchema,
+        relationParent?: StokerRecord,
+        isAssigning?: boolean,
+    ) => boolean
     defaultValue?:
         | string
         | number

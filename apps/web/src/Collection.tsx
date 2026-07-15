@@ -238,7 +238,9 @@ function Collection({
     const [tab, setTab] = useState<string | undefined>("list")
     const tabRef = useRef<string | undefined>(undefined)
     const prevTabRef = useRef<string | undefined>(undefined)
-    const [statusFilter, setStatusFilter] = useState<"active" | "archived" | "all" | "trash" | undefined>("active")
+    const [statusFilter, setStatusFilter] = useState<"active" | "archived" | "all" | "trash" | undefined>(
+        relationList ? "all" : "active",
+    )
     const [firstTabLoadCards, setFirstTabLoadCards] = useState<boolean | undefined>(undefined)
     const [revertingStatusFilter, setRevertingStatusFilter] = useState(false)
     const [rangeSelector, setRangeSelector] = useState<"range" | "week" | "month" | undefined>(undefined)
@@ -996,7 +998,7 @@ function Collection({
             const statusField = await getCachedConfigValue(customization, [...collectionAdminPath, "statusField"])
             setStatusField(statusField)
             if (!statusFilterState) {
-                if (statusField?.active) {
+                if (!relationList && statusField?.active) {
                     setStatusFilter("active")
                 } else {
                     setStatusFilter("all")
@@ -1091,7 +1093,7 @@ function Collection({
             if (statusField || softDelete) {
                 if (!relationList && statusFilterState) {
                     filtersClone.push({ type: "status", value: statusFilterState })
-                } else if (statusField && statusField.active && statusField.active.length > 0) {
+                } else if (!relationList && statusField && statusField.active && statusField.active.length > 0) {
                     filtersClone.push({ type: "status", value: "active" })
                 } else {
                     filtersClone.push({ type: "status", value: "all" })
@@ -2085,7 +2087,7 @@ function Collection({
                                                     <ToggleGroup
                                                         onValueChange={onStatusFilterChange}
                                                         value={statusFilter}
-                                                        defaultValue="active"
+                                                        defaultValue={relationList ? "all" : "active"}
                                                         size="sm"
                                                         type="single"
                                                         variant="outline"
@@ -2094,12 +2096,15 @@ function Collection({
                                                         {statusField?.active &&
                                                             (tab !== "cards" || !autoUpdateStatusFilter) && (
                                                                 <ToggleGroupItem
-                                                                    className="h-7 bg-muted data-[state=on]:bg-background"
+                                                                    className="h-7 bg-muted data-[state=on]:bg-background relative"
                                                                     value="active"
                                                                     aria-label="Toggle active"
                                                                     disabled={isRouteLoading.has(location.pathname)}
                                                                 >
                                                                     Active
+                                                                    {relationList && statusFilter === "active" && (
+                                                                        <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
+                                                                    )}
                                                                 </ToggleGroupItem>
                                                             )}
                                                         {statusField?.archived &&
@@ -2124,6 +2129,7 @@ function Collection({
                                                         >
                                                             All
                                                             {statusField &&
+                                                                !relationList &&
                                                                 statusFilter === "all" &&
                                                                 tab !== "cards" &&
                                                                 !revertingStatusFilter && (
