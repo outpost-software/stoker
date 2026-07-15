@@ -150,6 +150,7 @@ import { Slider } from "./components/ui/slider"
 import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
 import { getFormattedFieldValue } from "./utils/getFormattedFieldValue"
 import { getSafeUrl } from "./utils/isSafeUrl"
+import { CopyImageOverlay } from "./utils/copyImageOverlay"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getAuth } from "firebase/auth"
 import Quill, { Delta, type Op } from "quill"
@@ -916,10 +917,11 @@ function ImageField({
                     <FormControl>
                         <div className="flex flex-col gap-2">
                             {formField.value && typeof formField.value === "string" && (
-                                <div
+                                <CopyImageOverlay
+                                    src={formField.value}
                                     className={cn(
                                         isDisabled || (formField.value && !imageLoaded) ? "h-[300px]" : "max-h-[300px]",
-                                        "max-w-full",
+                                        "max-w-full w-fit",
                                     )}
                                 >
                                     <img
@@ -929,7 +931,7 @@ function ImageField({
                                         onLoad={() => setImageLoaded(true)}
                                         onError={() => setImageLoaded(false)}
                                     />
-                                </div>
+                                </CopyImageOverlay>
                             )}
                             <input
                                 type="file"

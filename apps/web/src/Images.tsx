@@ -38,6 +38,7 @@ import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { Helmet } from "react-helmet"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getSafeUrl } from "./utils/isSafeUrl"
+import { CopyImageOverlay } from "./utils/copyImageOverlay"
 import { Switch } from "./components/ui/switch"
 import { Label } from "./components/ui/label"
 import { Badge } from "./components/ui/badge"
@@ -284,19 +285,26 @@ const Row = ({ index, style, data }: RowProps) => {
                                 </div>
                             )}
                             <div className={cn("grid", "gap-4", size)}>
-                                <button
-                                    className="relative w-full h-full flex items-center justify-center overflow-hidden"
-                                    onClick={() => goToRecord(collection, record)}
-                                >
-                                    {record[imagesConfig.imageField] ? (
-                                        <RowImage alt={title} src={record[imagesConfig.imageField]} />
-                                    ) : (
+                                {record[imagesConfig.imageField] ? (
+                                    <CopyImageOverlay src={record[imagesConfig.imageField]} className="w-full h-full">
+                                        <button
+                                            className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                                            onClick={() => goToRecord(collection, record)}
+                                        >
+                                            <RowImage alt={title} src={record[imagesConfig.imageField]} />
+                                        </button>
+                                    </CopyImageOverlay>
+                                ) : (
+                                    <button
+                                        className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                                        onClick={() => goToRecord(collection, record)}
+                                    >
                                         <Image
                                             size={imagesConfig.size === "sm" ? 30 : 100}
                                             className="text-muted-foreground stroke-1 opacity-50"
                                         />
-                                    )}
-                                </button>
+                                    </button>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
