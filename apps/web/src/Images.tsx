@@ -15,9 +15,10 @@ import {
     getCollectionConfigModule,
     getCurrentUserPermissions,
     onStokerPermissionsChange,
+    onStokerSignOut,
     subscribeOne,
 } from "@stoker-platform/web-client"
-import { createElement, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createElement, memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import { useGoToRecord } from "./utils/goToRecord"
 import { LoadingSpinner } from "./components/ui/loading-spinner"
@@ -118,6 +119,54 @@ interface RowProps {
     data: RowData
 }
 
+const pendingAssign = new Map<string, boolean>()
+const assignQueue = new Map<string, Promise<unknown>>()
+const assignSettledAt = new Map<string, number>()
+const assignListeners = new Set<() => void>()
+let assignVersion = 0
+
+const ASSIGN_SETTLE_MS = 3000
+
+const notifyAssign = () => {
+    assignVersion++
+    assignListeners.forEach((listener) => listener())
+}
+
+const subscribeAssign = (listener: () => void) => {
+    assignListeners.add(listener)
+    return () => {
+        assignListeners.delete(listener)
+    }
+}
+
+let setAssignGlobalLoading: (operation: "+" | "-", id: string, server?: boolean, cache?: boolean) => void | undefined
+
+onStokerSignOut(() => {
+    pendingAssign.clear()
+    assignQueue.clear()
+    assignSettledAt.clear()
+    assignListeners.clear()
+    assignVersion = 0
+})
+
+const assignKey = (recordId: string, parentId: string) => `${recordId}:${parentId}`
+
+const enqueueAssign = (recordId: string, call: () => Promise<unknown>) => {
+    const wasIdle = !assignQueue.has(recordId)
+    if (wasIdle) setAssignGlobalLoading?.("+", recordId)
+    const next = (assignQueue.get(recordId) ?? Promise.resolve()).catch(() => undefined).then(call)
+    assignQueue.set(recordId, next)
+    next.finally(() => {
+        if (assignQueue.get(recordId) === next) {
+            assignQueue.delete(recordId)
+            assignSettledAt.set(recordId, Date.now())
+            setAssignGlobalLoading?.("-", recordId)
+            setTimeout(notifyAssign, ASSIGN_SETTLE_MS + 50)
+        }
+    })
+    return next
+}
+
 const Row = ({ index, style, data }: RowProps) => {
     const goToRecord = useGoToRecord()
     const {
@@ -138,42 +187,85 @@ const Row = ({ index, style, data }: RowProps) => {
     const group = groupedRecords[index]
     const customization = getCollectionConfigModule(collection.labels.collection)
     const { setGlobalLoading } = useGlobalLoading()
+    setAssignGlobalLoading = setGlobalLoading
     const { toast } = useToast()
+    useSyncExternalStore(subscribeAssign, () => assignVersion)
 
-    const [checkedDisabled, setCheckedDisabled] = useState(false)
+    useEffect(() => {
+        if (!relationParent || !relationList?.field) return
+        let changed = false
+        for (const record of group) {
+            const key = assignKey(record.id, relationParent.id)
+            const pending = pendingAssign.get(key)
+            if (pending === undefined || assignQueue.has(record.id)) continue
+            const settledAt = assignSettledAt.get(record.id) ?? 0
+            if (Date.now() - settledAt < ASSIGN_SETTLE_MS) continue
+            // eslint-disable-next-line security/detect-object-injection
+            const serverChecked = !!record[relationList.field]?.[relationParent.id]
+            if (pending === serverChecked) {
+                pendingAssign.delete(key)
+                assignSettledAt.delete(record.id)
+                changed = true
+            }
+        }
+        if (changed) notifyAssign()
+    }, [group, relationParent, relationList?.field, assignVersion])
 
-    const handleCheckedChange = useCallback(async (checked: boolean, record: StokerRecord) => {
-        if (!relationCollection) return
-        setCheckedDisabled(true)
-        setGlobalLoading("+", record.id, true)
-        await callFunction(
-            `stoker-assign${relationCollection.labels.record.toLowerCase()}${collection.labels.collection.toLowerCase()}`,
-            {
-                operation: checked ? "add" : "remove",
-                parentId: relationParent?.id,
-                recordId: record.id,
-            },
-        ).catch(() => {
-            toast({
-                title: "Error",
-                description: `Error assigning ${collection.labels.record} to ${relationCollection.labels.record}`,
-                variant: "destructive",
-                duration: 10000000,
-            })
-        })
-        setGlobalLoading("-", record.id, true)
-        setCheckedDisabled(false)
-    }, [])
+    const handleCheckedChange = useCallback(
+        (checked: boolean, record: StokerRecord) => {
+            if (!relationCollection || !relationList?.field || !relationParent) return
+
+            const key = assignKey(record.id, relationParent.id)
+            pendingAssign.set(key, checked)
+            notifyAssign()
+
+            enqueueAssign(record.id, () =>
+                callFunction(
+                    `stoker-assign${relationCollection.labels.record.toLowerCase()}${collection.labels.collection.toLowerCase()}`,
+                    {
+                        operation: checked ? "add" : "remove",
+                        parentId: relationParent.id,
+                        recordId: record.id,
+                    },
+                ).catch(() => {
+                    if (pendingAssign.get(key) === checked) {
+                        pendingAssign.delete(key)
+                        notifyAssign()
+                    }
+                    toast({
+                        title: "Error",
+                        description: `Error assigning ${collection.labels.record} to ${relationCollection.labels.record}`,
+                        variant: "destructive",
+                        duration: 10000000,
+                    })
+                }),
+            )
+        },
+        [
+            relationCollection,
+            relationList?.field,
+            relationParent,
+            collection.labels.collection,
+            collection.labels.record,
+            toast,
+        ],
+    )
 
     return (
         <div style={style} className={cn("grid", "gap-4", "pb-4", cols)}>
             {group.map((record) => {
                 // eslint-disable-next-line security/detect-object-injection
                 const title = recordTitleField ? record[recordTitleField] : record.id
+                const pending =
+                    isAssigning && relationParent
+                        ? pendingAssign.get(assignKey(record.id, relationParent.id))
+                        : undefined
                 const checked =
                     isAssigning && relationList?.field && relationParent
-                        ? !!record[relationList.field]?.[relationParent.id]
+                        ? // eslint-disable-next-line security/detect-object-injection
+                          (pending ?? !!record[relationList.field]?.[relationParent.id])
                         : undefined
+                const hasPending = pending !== undefined
                 let unavailable
                 if (isAssigning) {
                     if (assignable?.unavailableField) {
@@ -258,17 +350,17 @@ const Row = ({ index, style, data }: RowProps) => {
                                             }),
                                             hooks: import.meta.glob("./hooks/*.{ts,tsx}", { eager: true }),
                                             utils: import.meta.glob("./lib/*.{ts,tsx}", { eager: true }),
+                                            setGlobalLoading,
                                         })}
                                     </div>
                                 )}
-                            {isAssigning && assignable && (assignable.isAvailable(record) || checked) && (
+                            {isAssigning && assignable && (assignable.isAvailable(record) || checked || hasPending) && (
                                 <div className="pb-4">
                                     <div className="flex items-center justify-center space-x-3 min-h-8">
                                         <Switch
                                             id={`${record.id}-assigned`}
                                             className="data-[state=checked]:bg-blue-500"
                                             checked={checked}
-                                            disabled={checkedDisabled}
                                             onCheckedChange={(checked) => handleCheckedChange(checked, record)}
                                         />
                                         {imagesConfig.size !== "sm" && (
@@ -277,13 +369,17 @@ const Row = ({ index, style, data }: RowProps) => {
                                     </div>
                                 </div>
                             )}
-                            {isAssigning && assignable && !assignable.isAvailable(record) && !checked && (
-                                <div className="pb-4">
-                                    <div className="flex items-center justify-center space-x-3 min-h-8">
-                                        {unavailable}
+                            {isAssigning &&
+                                assignable &&
+                                !assignable.isAvailable(record) &&
+                                !checked &&
+                                !hasPending && (
+                                    <div className="pb-4">
+                                        <div className="flex items-center justify-center space-x-3 min-h-8">
+                                            {unavailable}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
                             <div className={cn("grid", "gap-4", size)}>
                                 {record[imagesConfig.imageField] ? (
                                     <CopyImageOverlay src={record[imagesConfig.imageField]} className="w-full h-full">

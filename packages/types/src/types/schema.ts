@@ -522,6 +522,7 @@ export interface ImagesConfig {
             hooks: any
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             utils: any
+            setGlobalLoading: (operation: "+" | "-", id: string, server?: boolean, cache?: boolean) => void
         }>
         height: number
         condition?: (parentCollection?: CollectionSchema, parentRecord?: StokerRecord, isAssigning?: boolean) => boolean
