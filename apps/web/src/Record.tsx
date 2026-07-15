@@ -151,6 +151,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                             }
                         },
                         {
+                            only: "default",
                             noEmbeddingFields: true,
                             relations: { fields: relationFields },
                         },
@@ -206,7 +207,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
             </header>
             <main className="grid flex-1 items-start gap-4 p-4 lg:px-6 lg:py-0 md:gap-8">
                 <Card className="min-h-screen xl:min-h-full xl:h-[calc(100vh-160px)]">
-                    {record && (
+                    {record && record.id === id && (
                         <CardContent className="px-0">
                             <SidebarProvider defaultOpen={true} open={true} className="flex flex-col lg:flex-row">
                                 <RecordSidebar
@@ -223,6 +224,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                         element={
                                             <main className="p-4 w-full overflow-y-auto min-h-screen xl:min-h-full xl:h-[calc(100vh-160px)]">
                                                 <RecordForm
+                                                    key={record.id}
                                                     collection={collection}
                                                     operation="update"
                                                     path={path}
@@ -354,6 +356,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                         element={
                                             <main className="p-4 w-full overflow-y-auto min-h-screen xl:min-h-full xl:h-[calc(100vh-160px)]">
                                                 <RecordForm
+                                                    key={record.id}
                                                     collection={collection}
                                                     operation="update"
                                                     path={path}
