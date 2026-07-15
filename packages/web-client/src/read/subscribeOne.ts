@@ -386,7 +386,24 @@ export const subscribeOne = async (
                         const fields = getRelationFields(options?.relations)
                         for (const field of fields as CollectionField[]) {
                             if ("collection" in field && update[field.name]) {
-                                update[field.name] = docData?.[field.name]
+                                const previous = (docData?.[field.name] || {}) as Record<
+                                    string,
+                                    StokerRelation | StokerRecord
+                                >
+                                const incoming = update[field.name] as Record<string, StokerRelation | StokerRecord>
+                                for (const id of Object.keys(previous)) {
+                                    if (!(id in incoming)) {
+                                        // eslint-disable-next-line security/detect-object-injection
+                                        delete previous[id]
+                                    }
+                                }
+                                for (const [id, relation] of Object.entries(incoming)) {
+                                    // eslint-disable-next-line security/detect-object-injection
+                                    if (previous[id]?.id) continue
+                                    // eslint-disable-next-line security/detect-object-injection
+                                    previous[id] = relation
+                                }
+                                update[field.name] = previous
                             }
                         }
                     }
