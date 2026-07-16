@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.99
+
+### Patch Changes
+
+- fix(system-functions): await fullTextSearch Firestore transaction
+
 ## 0.5.98
 
 ### Patch Changes

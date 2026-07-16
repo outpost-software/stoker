@@ -48,7 +48,7 @@ export const fullTextSearch = (
         const client = algoliasearch(process.env.STOKER_ALGOLIA_ID, algoliaAdminKey.value());
 
         if (after) {
-            db.runTransaction(async (transaction) => {
+            await db.runTransaction(async (transaction) => {
                 const ref = getFirestorePathRef(db, after.Collection_Path, tenantId);
                 await transaction.get(ref.doc(snapshot.after.id));
                 const record = await getOne(after.Collection_Path, snapshot.after.id, {noComputedFields: true, noEmbeddingFields: true});
