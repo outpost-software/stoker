@@ -36,6 +36,10 @@ import { Breadcrumbs } from "./Breadcrumbs"
 import { Separator } from "./components/ui/separator"
 import { loadAssigning } from "./utils/relationListFiltersState"
 
+const customPageComponents = import.meta.glob("./components/ui/*.tsx", { eager: true })
+const customPageHooks = import.meta.glob("./hooks/*.{ts,tsx}", { eager: true })
+const customPageUtils = import.meta.glob("./lib/*.{ts,tsx}", { eager: true })
+
 export const Record = ({ collection }: { collection: CollectionSchema }) => {
     const { labels, fields, recordTitleField } = collection
     const { path: pathString, id } = useParams()
@@ -207,7 +211,9 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                     </Button>
                 </Card>
                 <Card className="flex items-center gap-2 h-12 min-w-[300px] p-5">
-                    <div>{icon ? createElement(icon) : null}</div>
+                    <div className="flex size-6 shrink-0 items-center justify-center">
+                        {icon ? createElement(icon) : null}
+                    </div>
                     <h1 className="truncate">{recordTitle}</h1>
                 </Card>
             </header>
@@ -346,11 +352,9 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                     {createElement(page.component, {
                                                         record,
                                                         collection,
-                                                        components: import.meta.glob("./components/ui/*.tsx", {
-                                                            eager: true,
-                                                        }),
-                                                        hooks: import.meta.glob("./hooks/*.{ts,tsx}", { eager: true }),
-                                                        utils: import.meta.glob("./lib/*.{ts,tsx}", { eager: true }),
+                                                        components: customPageComponents,
+                                                        hooks: customPageHooks,
+                                                        utils: customPageUtils,
                                                         ...page.props,
                                                     })}
                                                 </main>

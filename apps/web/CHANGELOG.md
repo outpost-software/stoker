@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.211
+
+### Patch Changes
+
+- perf: improve Record page performance
+
 ## 0.5.210
 
 ### Patch Changes

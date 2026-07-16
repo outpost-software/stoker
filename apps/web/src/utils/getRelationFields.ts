@@ -30,7 +30,7 @@ export const getRelationFields = (collection: CollectionSchema) => {
         if (refs.length === 0) continue
         const titleField = field.titleField
         if (
-            (!fieldCustomization.admin?.condition?.form || condition) &&
+            (fieldCustomization.admin?.condition?.form === undefined || condition) &&
             (!(titleField && field.includeFields?.includes(titleField)) || queryFullRecord)
         ) {
             relationFields.push(field.name)
