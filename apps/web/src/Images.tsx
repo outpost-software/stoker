@@ -36,6 +36,7 @@ import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import cloneDeep from "lodash/cloneDeep.js"
 import isEqual from "lodash/isEqual.js"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
+import { isServerFullTextSearch } from "./utils/fullTextSearch"
 import { Helmet } from "react-helmet"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getSafeUrl } from "./utils/isSafeUrl"
@@ -433,6 +434,7 @@ interface ImagesProps {
     isAssigning?: boolean
     assignable?: Assignable
     hasBreadcrumbs?: boolean
+    searchClearing?: boolean
 }
 
 export const Images = memo(
@@ -454,6 +456,7 @@ export const Images = memo(
         isAssigning,
         assignable,
         hasBreadcrumbs,
+        searchClearing,
     }: ImagesProps) => {
         const { labels, recordTitleField, fullTextSearch } = collection
         const customization = getCollectionConfigModule(labels.collection)
@@ -750,7 +753,6 @@ export const Images = memo(
 
         const groupedRecords = useMemo(() => {
             if (!list) return []
-            if (typeof orderByField !== "string") return []
             const removeEmptyRecords: StokerRecord[] = []
             let latestFiltered = latestList?.filter((record) => filterRecord(record)) || []
             let removedFiltered = removedList
@@ -772,6 +774,15 @@ export const Images = memo(
                     }
                 })
             const dedupedRecords = Array.from(new Map(removeEmptyRecords.map((record) => [record.id, record])).values())
+            if (isServerFullTextSearch(search, collection, isPreloadCacheEnabled, isServerReadOnly)) {
+                const groups: StokerRecord[][] = []
+                if (!columns) return []
+                for (let i = 0; i < dedupedRecords.length; i += columns) {
+                    groups.push(dedupedRecords.slice(i, i + columns))
+                }
+                return groups
+            }
+            if (typeof orderByField !== "string") return []
             const groups: StokerRecord[][] = []
             let sortedList = sortList(collection, dedupedRecords, orderByField, orderByDirection)
             if (search && (isPreloadCacheEnabled || isServerReadOnly)) {
@@ -783,7 +794,17 @@ export const Images = memo(
                 groups.push(sortedList.slice(i, i + columns))
             }
             return groups
-        }, [list, removedList, columns, orderByField, orderByDirection, search])
+        }, [
+            list,
+            removedList,
+            columns,
+            orderByField,
+            orderByDirection,
+            search,
+            fullTextSearch,
+            isPreloadCacheEnabled,
+            isServerReadOnly,
+        ])
 
         const [isFirstLoad, setIsFirstLoad] = useState(true)
         const [prevIds, setPrevIds] = useState<Set<string>>(new Set())
@@ -931,6 +952,8 @@ export const Images = memo(
                 </div>
             )
         }
+
+        if (searchClearing) return null
 
         if (isPreloadCacheEnabled || isServerReadOnly) {
             return (

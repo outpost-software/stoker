@@ -1,6 +1,6 @@
 import { CollectionSchema, StokerRecord } from "@stoker-platform/types"
-import { getCollectionConfigModule } from "@stoker-platform/web-client"
 import MiniSearch, { Options } from "minisearch"
+import { getSearchOptions, isExactPhraseSearch } from "./fullTextSearch"
 
 const flattenToSearchText = (value: unknown): string => {
     if (value == null) return ""
@@ -42,18 +42,14 @@ export const localFullTextSearch = (
 ) => {
     const { recordTitleField, fullTextSearch } = collection
     const fields = fullTextSearch || [recordTitleField]
-    const customization = getCollectionConfigModule(collection.labels.collection)
-    const searchOptions = customization.admin?.searchOptions || {
-        fuzzy: false,
-        prefix: false,
-    }
+    const searchOptions = getSearchOptions(collection)
 
     if (filter) {
         list = list.filter((record) => filter(record))
     }
 
     const phrase = query.trim().toLowerCase()
-    const exactPhrase = searchOptions.fuzzy === false && searchOptions.prefix === false
+    const exactPhrase = isExactPhraseSearch(collection)
 
     if (exactPhrase) {
         if (!phrase) return []

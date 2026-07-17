@@ -90,6 +90,7 @@ import { TooltipProvider } from "./components/ui/tooltip"
 import { Thread } from "./components/assistant-ui/thread"
 import { MyRuntimeProvider } from "./providers/RuntimeProvider"
 import { getFilterDisjunctions } from "./utils/getFilterDisjunctions"
+import { getSearchOptions, isServerFullTextSearch } from "./utils/fullTextSearch"
 import { performFullTextSearch } from "./utils/performFullTextSearch"
 import { CSVLink } from "react-csv"
 import { prepareCSVData } from "./utils/prepareCSVData"
@@ -236,6 +237,12 @@ function Collection({
     const [showCalendar, setShowCalendar] = useState(false)
 
     const [search, setSearch] = useState("")
+    const isServerFullTextSearchActive = isServerFullTextSearch(
+        search,
+        collection,
+        isPreloadCacheEnabled,
+        isServerReadOnly,
+    )
     const [tab, setTab] = useState<string | undefined>("list")
     const tabRef = useRef<string | undefined>(undefined)
     const prevTabRef = useRef<string | undefined>(undefined)
@@ -250,6 +257,19 @@ function Collection({
     const { filters, setFilters, order, setOrder, getFilterConstraints } = useFilters()
     const { orderByField, orderByDirection } = useMemo(() => getOrderBy(collection, order), [order])
     const searchResults = useRef<{ [key: string | number]: string[] | undefined }>({})
+    const [searchClearing, setSearchClearing] = useState(false)
+    const searchClearingRef = useRef(false)
+    const pendingSearchClearingKeys = useRef<Set<string | number>>(new Set())
+    const getSearchClearingKeys = useCallback(
+        (currentTab: string | undefined) =>
+            currentTab === "cards"
+                ? (statusValues.current || []).filter(
+                      (statusValue) =>
+                          !cardsConfig?.excludeValues?.some((excludedValue) => excludedValue === statusValue),
+                  )
+                : ["default"],
+        [cardsConfig],
+    )
     const additionalConstraintsRef = useRef(additionalConstraints)
     additionalConstraintsRef.current = additionalConstraints
     const { currentField: currentFieldAll } = useCache()
@@ -448,6 +468,14 @@ function Collection({
 
     const loadedKeys = useRef<Set<string | number>>(new Set())
     const keysLength = useRef(0)
+    const finishSearchClearingKey = useCallback((key: string | number) => {
+        if (!searchClearingRef.current || !pendingSearchClearingKeys.current.has(key)) return
+        pendingSearchClearingKeys.current.delete(key)
+        if (pendingSearchClearingKeys.current.size === 0) {
+            searchClearingRef.current = false
+            setSearchClearing(false)
+        }
+    }, [])
     const getKeysLength = useCallback(() => {
         let length = 1
         if (tab === "cards") {
@@ -555,18 +583,12 @@ function Collection({
                     relationList,
                     relationParent,
                 })
-                const searchOptions = customization.admin?.searchOptions
-                const exactPhrase = searchOptions?.fuzzy === false && searchOptions?.prefix === false
+                const searchOptions = getSearchOptions(collection)
                 const batchSize =
                     disjunctions === 0
                         ? Math.min(30, itemsPerPage || 10)
                         : Math.min(itemsPerPage || 10, Math.max(1, Math.floor(30 / disjunctions)))
-                let hitsPerPage = 0
-                if (exactPhrase && !(hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0)) {
-                    hitsPerPage = 500
-                } else {
-                    hitsPerPage = batchSize
-                }
+                const hitsPerPage = searchOptions?.hitsPerPage || itemsPerPage || 10
                 const constraints = getFilterConstraints(latestFilters, false, true) as [string, "==" | "in", unknown][]
                 const assigning =
                     queryIsAssigning && assignable && relationList && relationCollection && relationParent?.id
@@ -577,26 +599,7 @@ function Collection({
                     return
                 }
                 searchResults.current = { ...searchResults.current, [key]: objectIDs }
-                if (
-                    objectIDs.length > 0 &&
-                    (!exactPhrase || hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0)
-                ) {
-                    if (isServerReadOnly) {
-                        query.queries = query.queries.map((q) => ({
-                            ...q,
-                            constraints: [...q.constraints, ["id", "in", objectIDs]] as [
-                                string,
-                                WhereFilterOp,
-                                unknown,
-                            ][],
-                        }))
-                    } else {
-                        query.queries = query.queries.map((q) => ({
-                            ...q,
-                            constraints: [...q.constraints, where("id", "in", objectIDs)] as QueryConstraint[],
-                        }))
-                    }
-                } else if (objectIDs.length > 0 && exactPhrase) {
+                if (objectIDs.length > 0) {
                     for (let i = 0; i < objectIDs.length; i += batchSize) {
                         multipleQueries.push([where("id", "in", objectIDs.slice(i, i + batchSize))])
                     }
@@ -608,6 +611,7 @@ function Collection({
                     setCursor({})
                     setPages({})
                     setCount({})
+                    finishSearchClearingKey(key)
                     return
                 }
             }
@@ -713,6 +717,7 @@ function Collection({
                                     setPages((prev) => ({ ...prev, [key]: newPages || 1 }))
                                     setCount((prev) => ({ ...prev, [key]: newCount }))
                                 }
+                                finishSearchClearingKey(key)
                                 resolve()
                             }
                         }
@@ -772,6 +777,7 @@ function Collection({
                                 console.error(error)
                                 if (isCurrentData()) {
                                     releaseRouteLoading()
+                                    finishSearchClearingKey(key)
                                 }
                                 resolve()
                                 if (error instanceof FirestoreError && error.code === "not-found") {
@@ -793,6 +799,7 @@ function Collection({
                     } catch (error) {
                         if (isCurrentData()) {
                             releaseRouteLoading()
+                            finishSearchClearingKey(key)
                         }
                         reject(error)
                     }
@@ -1421,8 +1428,11 @@ function Collection({
         if (isInitialized) {
             loadedKeys.current = new Set()
             getKeysLength()
+            if (searchClearingRef.current) {
+                pendingSearchClearingKeys.current = new Set(getSearchClearingKeys(tab))
+            }
         }
-    }, [tab, isInitialized])
+    }, [tab, isInitialized, getSearchClearingKeys])
 
     const onChangeSearch = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1431,9 +1441,15 @@ function Collection({
                 setState(`collection-search-${labels.collection.toLowerCase()}`, "search", event.target.value)
             } else {
                 setState(`collection-search-${labels.collection.toLowerCase()}`, "search", "DELETE_STATE")
+                if (fullTextSearch && !isServerReadOnly && !isPreloadCacheEnabled) {
+                    const pendingKeys = getSearchClearingKeys(tabRef.current)
+                    pendingSearchClearingKeys.current = new Set(pendingKeys)
+                    searchClearingRef.current = pendingKeys.length > 0
+                    setSearchClearing(pendingKeys.length > 0)
+                }
             }
         },
-        [table, recordTitleField, isPreloadCacheEnabled, isServerReadOnly],
+        [table, recordTitleField, fullTextSearch, isPreloadCacheEnabled, isServerReadOnly, getSearchClearingKeys],
     )
 
     const excludedFilters = useMemo(() => {
@@ -2287,7 +2303,10 @@ function Collection({
                                                                 size="sm"
                                                                 variant="outline"
                                                                 className="h-7 gap-1"
-                                                                disabled={isRouteLoading.has(location.pathname)}
+                                                                disabled={
+                                                                    isRouteLoading.has(location.pathname) ||
+                                                                    isServerFullTextSearchActive
+                                                                }
                                                             >
                                                                 <ChevronsUpDown className="h-3.5 w-3.5" />
                                                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -2350,9 +2369,10 @@ function Collection({
                                                                                     )
                                                                                 }}
                                                                             >
-                                                                                {order?.field === field.name && (
-                                                                                    <Check className="absolute h-3.5 w-3.5 mr-1" />
-                                                                                )}
+                                                                                {order?.field === field.name &&
+                                                                                    !isServerFullTextSearchActive && (
+                                                                                        <Check className="absolute h-3.5 w-3.5 mr-1" />
+                                                                                    )}
                                                                                 <span className="ml-5">{label}</span>
                                                                             </DropdownMenuItem>
                                                                         )
@@ -2711,6 +2731,7 @@ function Collection({
                                                 backToStartKey={backToStartKey}
                                                 setBackToStartKey={setBackToStartKey}
                                                 search={search}
+                                                searchClearing={searchClearing}
                                                 defaultSort={defaultSort}
                                                 secondarySort={secondarySort}
                                                 setOptimisticList={setOptimisticList}
@@ -2741,6 +2762,7 @@ function Collection({
                                                 setOptimisticList={setOptimisticList}
                                                 autoUpdateStatusFilter={autoUpdateStatusFilter}
                                                 search={search}
+                                                searchClearing={searchClearing}
                                                 relationList={!!relationList}
                                                 formList={!!formList}
                                                 hasBreadcrumbs={hasBreadcrumbs}
@@ -2759,6 +2781,7 @@ function Collection({
                                                 getData={getData}
                                                 unsubscribe={unsubscribe}
                                                 search={search}
+                                                searchClearing={searchClearing}
                                                 backToStartKey={backToStartKey}
                                                 relationList={relationList}
                                                 relationCollection={relationCollection}

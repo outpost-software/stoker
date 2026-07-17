@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.62
+
+### Patch Changes
+
+- feat: improve Algolia search
+
 ## 0.5.61
 
 ### Patch Changes

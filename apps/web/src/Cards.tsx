@@ -51,6 +51,7 @@ import { useLocation } from "react-router"
 import { FirestoreError, QueryConstraint, Timestamp, where } from "firebase/firestore"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
+import { isServerFullTextSearch } from "./utils/fullTextSearch"
 import { Helmet } from "react-helmet"
 import { useConnection } from "./providers/ConnectionProvider"
 
@@ -525,6 +526,7 @@ interface DropZoneProps {
     backToStart: () => void
     setOptimisticList: (serverList?: StokerRecord[], key?: string | number) => void
     search: string | undefined
+    searchClearing: boolean
 }
 
 function DropZone({
@@ -544,8 +546,9 @@ function DropZone({
     backToStart,
     setOptimisticList,
     search,
+    searchClearing,
 }: DropZoneProps) {
-    const { labels } = collection
+    const { labels, fullTextSearch } = collection
     const { toast } = useToast()
     const { setGlobalLoading } = useGlobalLoading()
     const permissions = getCurrentUserPermissions()
@@ -810,7 +813,6 @@ function DropZone({
 
     const records = useMemo(() => {
         if (!statusList) return []
-        if (typeof orderByField !== "string") return []
         const removeEmptyRecords: StokerRecord[] = []
         let latestFiltered =
             latestList?.filter(
@@ -838,6 +840,10 @@ function DropZone({
                 }
             })
         const dedupedRecords = Array.from(new Map(removeEmptyRecords.map((record) => [record.id, record])).values())
+        if (isServerFullTextSearch(search, collection, isPreloadCacheEnabled, isServerReadOnly)) {
+            return dedupedRecords
+        }
+        if (typeof orderByField !== "string") return []
         let sortedList = sortList(collection, dedupedRecords, orderByField, orderByDirection)
         if (search && (isPreloadCacheEnabled || isServerReadOnly)) {
             const searchResults = localFullTextSearch(collection, search, sortedList).map((result) => result.id)
@@ -854,6 +860,9 @@ function DropZone({
         orderByField,
         orderByDirection,
         search,
+        fullTextSearch,
+        isPreloadCacheEnabled,
+        isServerReadOnly,
     ])
 
     const [isFirstLoad, setIsFirstLoad] = useState(true)
@@ -1044,47 +1053,49 @@ function DropZone({
                 </CardHeader>
             </Card>
             {isOverDebounced && <div className="bg-primary/50 rounded-lg h-full"></div>}
-            <div className={cn(className, "rounded-lg", "space-y-4")}>
-                {isPreloadCacheEnabled || isServerReadOnly ? (
-                    <FixedSizeList
-                        height={height}
-                        width="100%"
-                        itemSize={itemSize}
-                        itemCount={records.length}
-                        itemKey={itemKey}
-                        overscanCount={5}
-                        itemData={itemData}
-                    >
-                        {renderRow}
-                    </FixedSizeList>
-                ) : (
-                    // eslint-disable-next-line security/detect-object-injection
-                    <InfiniteLoader
-                        isItemLoaded={(index) => index < records.length}
+            {!searchClearing && (
+                <div className={cn(className, "rounded-lg", "space-y-4")}>
+                    {isPreloadCacheEnabled || isServerReadOnly ? (
+                        <FixedSizeList
+                            height={height}
+                            width="100%"
+                            itemSize={itemSize}
+                            itemCount={records.length}
+                            itemKey={itemKey}
+                            overscanCount={5}
+                            itemData={itemData}
+                        >
+                            {renderRow}
+                        </FixedSizeList>
+                    ) : (
                         // eslint-disable-next-line security/detect-object-injection
-                        itemCount={100000}
-                        loadMoreItems={() => loadMoreItems(statusValue)}
-                        minimumBatchSize={itemsPerPage || 10}
-                        threshold={itemsPerPage || 40}
-                    >
-                        {({ onItemsRendered, ref }) => (
-                            <FixedSizeList
-                                height={height}
-                                width="100%"
-                                itemSize={itemSize}
-                                itemCount={records.length}
-                                overscanCount={10}
-                                itemKey={itemKey}
-                                ref={ref}
-                                onItemsRendered={onItemsRendered}
-                                itemData={itemData}
-                            >
-                                {renderRow}
-                            </FixedSizeList>
-                        )}
-                    </InfiniteLoader>
-                )}
-            </div>
+                        <InfiniteLoader
+                            isItemLoaded={(index) => index < records.length}
+                            // eslint-disable-next-line security/detect-object-injection
+                            itemCount={100000}
+                            loadMoreItems={() => loadMoreItems(statusValue)}
+                            minimumBatchSize={itemsPerPage || 10}
+                            threshold={itemsPerPage || 40}
+                        >
+                            {({ onItemsRendered, ref }) => (
+                                <FixedSizeList
+                                    height={height}
+                                    width="100%"
+                                    itemSize={itemSize}
+                                    itemCount={records.length}
+                                    overscanCount={10}
+                                    itemKey={itemKey}
+                                    ref={ref}
+                                    onItemsRendered={onItemsRendered}
+                                    itemData={itemData}
+                                >
+                                    {renderRow}
+                                </FixedSizeList>
+                            )}
+                        </InfiniteLoader>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
@@ -1108,6 +1119,7 @@ interface CardsProps {
     setOptimisticList: () => void
     autoUpdateStatusFilter: boolean
     search: string | undefined
+    searchClearing: boolean
     relationList?: boolean
     formList?: boolean
     hasBreadcrumbs?: boolean
@@ -1129,6 +1141,7 @@ export function Cards({
     setOptimisticList,
     autoUpdateStatusFilter,
     search,
+    searchClearing,
     relationList,
     formList,
     hasBreadcrumbs,
@@ -1563,6 +1576,7 @@ export function Cards({
                         backToStart={backToStart}
                         setOptimisticList={setOptimisticList}
                         search={search}
+                        searchClearing={searchClearing}
                     />
                 ))}
             </div>

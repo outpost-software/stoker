@@ -83,6 +83,7 @@ import { getOrderBy } from "./utils/getOrderBy"
 import { useLocation } from "react-router"
 import { preloadCacheEnabled } from "./utils/preloadCacheEnabled"
 import { localFullTextSearch } from "./utils/localFullTextSearch"
+import { isExactPhraseSearch, isServerFullTextSearch } from "./utils/fullTextSearch"
 import {
     ChartConfig,
     ChartContainer,
@@ -216,6 +217,7 @@ interface ListProps {
     backToStartKey: number
     setBackToStartKey: React.Dispatch<React.SetStateAction<number>>
     search: string | undefined
+    searchClearing: boolean
     defaultSort:
         | {
               field: string
@@ -252,6 +254,7 @@ export function List({
     backToStartKey,
     setBackToStartKey,
     search,
+    searchClearing,
     defaultSort,
     secondarySort,
     setOptimisticList,
@@ -677,7 +680,12 @@ export function List({
         return allColumns
     }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus])
 
-    const isServerFullTextSearch = !!(search && fullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly)
+    const isServerFullTextSearchActive = isServerFullTextSearch(
+        search,
+        collection,
+        isPreloadCacheEnabled,
+        isServerReadOnly,
+    )
 
     const isSearchRelevanceOrder = !!(search && isPreloadCacheEnabled)
 
@@ -696,7 +704,7 @@ export function List({
         return list || []
     }, [isPreloadCacheEnabled, isServerReadOnly, list, search])
 
-    const tablePageSize = isServerFullTextSearch ? Math.max(searchList.length, 1) : pageSize
+    const tablePageSize = isServerFullTextSearchActive ? Math.max(searchList.length, 1) : pageSize
 
     const selectedRecords = useMemo(() => {
         const selectedIds = Object.keys(rowSelection)
@@ -706,11 +714,8 @@ export function List({
             .filter((record): record is StokerRecord => record !== undefined)
     }, [rowSelection, searchList])
 
-    const searchOptions = tryFunction(customization.admin?.searchOptions) || {
-        fuzzy: false,
-        prefix: false,
-    }
-    const exactPhrase = searchOptions.fuzzy === false && searchOptions.prefix === false
+    const exactPhrase = isExactPhraseSearch(collection)
+    const disableSortingForSearch = (isSearchRelevanceOrder && !exactPhrase) || isServerFullTextSearchActive
 
     const table = useReactTable<StokerRecord>({
         data: searchList,
@@ -719,7 +724,7 @@ export function List({
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: (sortingUpdater) => {
-            if (isSearchRelevanceOrder && !exactPhrase) return
+            if (disableSortingForSearch) return
             if (typeof sortingUpdater === "function") {
                 const newSorting = sortingUpdater(sorting)
                 const field = getField(fields, newSorting[0].id)
@@ -759,14 +764,14 @@ export function List({
         onRowSelectionChange: setRowSelection,
         pageCount,
         autoResetPageIndex: false,
-        enableSorting: !isSearchRelevanceOrder || exactPhrase,
+        enableSorting: !disableSortingForSearch,
         state: {
-            sorting: isSearchRelevanceOrder && !exactPhrase ? [] : sorting,
+            sorting: disableSortingForSearch ? [] : sorting,
             columnFilters,
             rowSelection,
             pagination: {
                 pageSize: tablePageSize,
-                pageIndex: isServerFullTextSearch ? 0 : pageIndex,
+                pageIndex: isServerFullTextSearchActive ? 0 : pageIndex,
             },
         },
         onPaginationChange: (updater) => {
@@ -876,7 +881,7 @@ export function List({
             search ? 750 : 250,
         )
 
-        if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly || isServerFullTextSearch)) {
+        if (isInitialized && (isPreloadCacheEnabled || isServerReadOnly || isServerFullTextSearchActive)) {
             setPageIndex(0)
             setState(`collection-page-number-${labels.collection.toLowerCase()}`, "page", 1)
         }
@@ -1078,7 +1083,7 @@ export function List({
     }, [table, list, pageSize, isLoading, cursor, pageNumber, pageCount, constraints, orderByField, orderByDirection])
 
     const canGetNextPage = useCallback(() => {
-        if (isServerFullTextSearch) {
+        if (isServerFullTextSearchActive) {
             return false
         }
         if (isPreloadCacheEnabled || isServerReadOnly) {
@@ -1086,7 +1091,7 @@ export function List({
         } else {
             return !isLoadingDebounced && pageCount && pageNumber < pageCount && list?.length === pageSize
         }
-    }, [table, isLoadingDebounced, pageNumber, pageCount, list, pageSize, isServerFullTextSearch])
+    }, [table, isLoadingDebounced, pageNumber, pageCount, list, pageSize, isServerFullTextSearchActive])
 
     const prevPage = useCallback(() => {
         if (isLoading) return
@@ -1172,7 +1177,7 @@ export function List({
     }, [table, list, pageSize, isLoading, cursor, prevCursor, pageNumber, constraints, orderByField, orderByDirection])
 
     const canGetPrevPage = useCallback(() => {
-        if (isServerFullTextSearch) {
+        if (isServerFullTextSearchActive) {
             return false
         }
         if (isPreloadCacheEnabled || isServerReadOnly) {
@@ -1180,7 +1185,7 @@ export function List({
         } else {
             return !isLoadingDebounced && pageNumber > 1
         }
-    }, [table, isLoadingDebounced, pageNumber, isServerFullTextSearch])
+    }, [table, isLoadingDebounced, pageNumber, isServerFullTextSearchActive])
 
     const onChangePageNumber = useCallback(
         (event: React.ChangeEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
@@ -1826,7 +1831,7 @@ export function List({
                                     )}
                             </div>
                         )}
-                        {pagesLoaded && list && (
+                        {!searchClearing && pagesLoaded && list && (
                             <Table className="list-table">
                                 <TableHeader>
                                     {table.getHeaderGroups().map((headerGroup) => (
@@ -2033,12 +2038,12 @@ export function List({
                 </ScrollArea>
             </Card>
             <div className="flex items-center justify-end space-x-2 py-4 print:hidden">
-                {isServerFullTextSearch && searchList.length > 0 && (
+                {isServerFullTextSearchActive && searchList.length > 0 && (
                     <Badge variant="secondary" className="hidden sm:block">
                         {searchList.length} {searchList.length === 1 ? "result" : "results"}
                     </Badge>
                 )}
-                {pagesLoaded && !isServerFullTextSearch && (
+                {pagesLoaded && !isServerFullTextSearchActive && (
                     <Badge variant="secondary" className="hidden sm:block">
                         Page{" "}
                         {isPreloadCacheEnabled || isServerReadOnly
@@ -2065,7 +2070,7 @@ export function List({
                         />
                     </div>
                 )}
-                {!isServerFullTextSearch && !isPreloadCacheEnabled && !isServerReadOnly && (
+                {!isServerFullTextSearchActive && !isPreloadCacheEnabled && !isServerReadOnly && (
                     <Button
                         type="button"
                         variant="outline"
@@ -2078,7 +2083,7 @@ export function List({
                         Back to start
                     </Button>
                 )}
-                {!isServerFullTextSearch &&
+                {!isServerFullTextSearchActive &&
                     !(
                         !isPreloadCacheEnabled &&
                         !isServerReadOnly &&
@@ -2095,7 +2100,7 @@ export function List({
                             Previous
                         </Button>
                     )}
-                {!isServerFullTextSearch && (
+                {!isServerFullTextSearchActive && (
                     <Button type="button" variant="outline" size="sm" onClick={nextPage} disabled={!canGetNextPage()}>
                         Next
                     </Button>

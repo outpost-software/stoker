@@ -798,7 +798,7 @@ export interface CollectionAdmin {
                     direction?: "asc" | "desc"
                 }>)
     itemsPerPage?: number | (() => number | Promise<number>)
-    searchOptions?: SearchOptions
+    searchOptions?: SearchOptions & { hitsPerPage?: number }
     list?: ListConfig | (() => ListConfig | Promise<ListConfig>)
     cards?: CardsConfig | (() => CardsConfig | Promise<CardsConfig>)
     images?: ImagesConfig | (() => ImagesConfig | Promise<ImagesConfig>)
@@ -871,7 +871,7 @@ export interface CollectionAdminCache {
         field: string
         direction?: "asc" | "desc"
     }
-    searchOptions?: SearchOptions
+    searchOptions?: SearchOptions & { hitsPerPage?: number }
     itemsPerPage?: number
     list?: ListConfig
     cards?: CardsConfig

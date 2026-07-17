@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/types",
-    "version": "0.5.61",
+    "version": "0.5.62",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "src/main.ts",
