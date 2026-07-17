@@ -1606,7 +1606,7 @@ The secondary field to sort the list by. Only works for collections with `preloa
 
 `SearchOptions | (() => SearchOptions)`
 
-Client-side full text search options. Only relevant for roles with the [preload cache](#preload-cache-config) or `access.serverReadOnly` enabled. Provide [MiniSeach settings](https://lucaong.github.io/minisearch/types/MiniSearch.SearchOptions.html).
+Full text search options. For roles with the [preload cache](#preload-cache-config) or `access.serverReadOnly` enabled, provide [MiniSeach settings](https://lucaong.github.io/minisearch/types/MiniSearch.SearchOptions.html). For other roles, provide `{ hitsPerPage?: number }` to specify the maximum number of results to retrieve from Algolia.
 
 ### rangeSelectorValues
 
