@@ -204,6 +204,9 @@ export const updateRecord = async (
     removeUndefined(partial)
     removeUndefined(originalRecord)
 
+    addRelationArrays(collectionSchema, partial, schema)
+    addRelationArrays(collectionSchema, originalRecord, schema)
+
     if (!retry && enableWriteLog) {
         writeLog(
             "update",

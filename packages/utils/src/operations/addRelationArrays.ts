@@ -1,9 +1,28 @@
-import { CollectionSchema, CollectionsSchema, StokerRecord } from "@stoker-platform/types"
+import { CollectionSchema, CollectionsSchema, StokerRecord, StokerRelation } from "@stoker-platform/types"
 import { isDeleteSentinel } from "./isDeleteSentinel.js"
 import { isRelationField } from "../schema/isRelationField.js"
 import { getSingleFieldRelations } from "./getSingleFieldRelations.js"
 import { getField } from "../schema/getField.js"
 import { getLowercaseFields } from "./getLowercaseFields.js"
+
+const normalizeRelationEntry = (
+    relation: StokerRelation,
+    includeFields: string[] | undefined,
+): Record<string, unknown> => {
+    const normalized: Record<string, unknown> = {
+        Collection_Path: relation.Collection_Path,
+    }
+    if (includeFields) {
+        for (const includeField of includeFields) {
+            // eslint-disable-next-line security/detect-object-injection
+            if (relation[includeField] !== undefined) {
+                // eslint-disable-next-line security/detect-object-injection
+                normalized[includeField] = relation[includeField]
+            }
+        }
+    }
+    return normalized
+}
 
 export const addRelationArrays = (collection: CollectionSchema, data: StokerRecord, schema: CollectionsSchema) => {
     const { fields } = collection
@@ -11,6 +30,12 @@ export const addRelationArrays = (collection: CollectionSchema, data: StokerReco
         if (isRelationField(field)) {
             if (data[field.name]) {
                 if (!isDeleteSentinel(data[field.name])) {
+                    Object.keys(data[field.name]).forEach((key) => {
+                        // eslint-disable-next-line security/detect-object-injection
+                        const relation = data[field.name][key]
+                        // eslint-disable-next-line security/detect-object-injection
+                        data[field.name][key] = normalizeRelationEntry(relation, field.includeFields)
+                    })
                     data[`${field.name}_Array`] = Object.keys(data[field.name] as object)
                     if (field.includeFields) {
                         for (const includeField of field.includeFields) {

@@ -136,6 +136,8 @@ export const addRecord = async (
 
     removeUndefined(data)
 
+    addRelationArrays(collectionSchema, record, schema)
+
     if (enableWriteLog && !options?.providedTransaction)
         await writeLog("create", "started", record, tenantId, path, docId, collectionSchema)
 

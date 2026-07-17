@@ -174,6 +174,8 @@ export const addRecord = async (
 
     removeUndefined(record)
 
+    addRelationArrays(collectionSchema, record, schema)
+
     if (!retry && enableWriteLog) {
         writeLog("create", "started", record, path, docId, collectionSchema, currentUser.uid)
     }
