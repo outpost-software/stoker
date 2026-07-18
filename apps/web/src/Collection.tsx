@@ -2051,6 +2051,9 @@ function Collection({
                                         relationList ? "xl:flex-row" : "lg:flex-row",
                                     )}
                                 >
+                                    {!isInitialized && !relationList && (
+                                        <div className="hidden lg:block h-9 shrink-0" aria-hidden="true" />
+                                    )}
                                     {isInitialized && (
                                         <>
                                             {formList && (
