@@ -14,9 +14,36 @@ import { Check, X } from "lucide-react"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
 import { preloadCacheEnabled } from "./preloadCacheEnabled"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { getSafeUrl } from "./isSafeUrl"
+
+const FormattedFieldImage = ({ src, alt, form }: { src: string; alt?: string; form?: boolean }) => {
+    const imgRef = useRef<HTMLImageElement | null>(null)
+    const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
+    const isLoaded = loadedSrc === src
+
+    useEffect(() => {
+        if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+            setLoadedSrc(src)
+        }
+    }, [src])
+
+    return (
+        <img
+            ref={imgRef}
+            src={getSafeUrl(src)}
+            alt={alt || ""}
+            decoding="async"
+            onLoad={() => setLoadedSrc(src)}
+            className={cn(
+                isLoaded ? "opacity-100" : "opacity-0",
+                form ? "max-h-[300px]" : "max-h-[60px]",
+                "transition-opacity duration-200 ease-in-out max-w-full object-contain rounded",
+            )}
+        />
+    )
+}
 
 export const getFormattedFieldValue = (
     customization: CollectionCustomization,
@@ -120,22 +147,6 @@ export const getFormattedFieldValue = (
         }
     }
 
-    const Image = ({ src, alt }: { src: string; alt?: string }) => {
-        const [loaded, setLoaded] = useState(false)
-        return (
-            <img
-                src={getSafeUrl(src)}
-                alt={alt || ""}
-                onLoad={() => setLoaded(true)}
-                className={cn(
-                    loaded ? "opacity-100" : "opacity-0",
-                    form ? "max-h-[300px]" : "max-h-[60px]",
-                    "transition-opacity duration-300 ease-in-out max-w-full object-contain rounded",
-                )}
-            />
-        )
-    }
-
     if (modified) {
         if (value === "tick") {
             return (
@@ -234,7 +245,7 @@ export const getFormattedFieldValue = (
                 if (image) {
                     return (
                         <div className="w-full min-w-[100px]">
-                            <Image src={value} alt={field.name} />
+                            <FormattedFieldImage src={value} alt={field.name} form={form} />
                         </div>
                     )
                 }

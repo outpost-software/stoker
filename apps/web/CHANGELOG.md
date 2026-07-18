@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.214
+
+### Patch Changes
+
+- fix: fix Safari form image flicker
+
 ## 0.5.213
 
 ### Patch Changes
