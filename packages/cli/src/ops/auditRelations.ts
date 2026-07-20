@@ -261,6 +261,16 @@ export const auditRelations = async (options: any) => {
                             }
                         }
                     }
+                    if (Array.isArray(record[`${field.name}_Array`])) {
+                        for (const id of record[`${field.name}_Array`]) {
+                            // eslint-disable-next-line security/detect-object-injection
+                            if (!record[field.name]?.[id]) {
+                                console.log(
+                                    `${collectionName} ${doc.id} - Field ${field.name}_Array contains ${id} but there is no matching ${field.name} map entry`,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

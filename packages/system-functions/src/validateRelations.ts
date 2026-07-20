@@ -369,7 +369,7 @@ export const validateRelations = (
                                     if (!before?.[field.name]?.[id] && field.twoWay && source && ref) {
                                         const invalid = await correctRelation("add", field, snapshot.after.id, id, main, ref, source, transaction);
                                         if (invalid) {
-                                            info(`Two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id} for record ${snapshot.after.id} in collection ${labels.collection} was invalid.`);
+                                            info(`Added two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id} for record ${snapshot.after.id} in collection ${labels.collection} was invalid.`);
                                             return;
                                         }
                                     }
@@ -526,7 +526,7 @@ export const validateRelations = (
                                         if (main?.[field.name]?.[id]) return;
                                         const invalid = await correctRelation("remove", field, snapshot.after.id, id, main, ref, source, transaction);
                                         if (invalid) {
-                                            info(`Two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id} for record ${snapshot.after.id} in collection ${labels.collection} was invalid.`);
+                                            info(`Removed two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id} for record ${snapshot.after.id} in collection ${labels.collection} was invalid.`);
                                         }
                                     }, {maxAttempts: 30}).catch((error) => {
                                         errorLogger(error);
@@ -560,7 +560,7 @@ export const validateRelations = (
                                 if (!targetField) errorLogger(`Field ${field.name} in collection ${labels.collection} has a two way relation in ${field.collection} but the target field does not exist.`);
                                 const invalid = await correctRelation("remove", field, snapshot.after.id, id, before, ref, source, transaction, targetField.preserve ? "preserve" : true);
                                 if (invalid) {
-                                    info(`Two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id} for record ${snapshot.after.id} in collection ${labels.collection} was invalid.`);
+                                    info(`Deleted record ${snapshot.after.id} in collection ${labels.collection} left an invalid two way relation between ${field.name} ${id} and ${field.twoWay} ${snapshot.after.id}.`);
                                 }
                             }, {maxAttempts: 30}).catch((error) => {
                                 errorLogger(error);

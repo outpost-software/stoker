@@ -1,5 +1,14 @@
 # @stoker-platform/system-functions
 
+## 0.5.101
+
+### Patch Changes
+
+- fix: improve relation handling
+- Updated dependencies
+    - @stoker-platform/utils@0.5.75
+    - @stoker-platform/node-client@0.5.84
+
 ## 0.5.100
 
 ### Patch Changes

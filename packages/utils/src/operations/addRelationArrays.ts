@@ -12,6 +12,9 @@ const normalizeRelationEntry = (
     const normalized: Record<string, unknown> = {
         Collection_Path: relation.Collection_Path,
     }
+    if (relation.deleted !== undefined) {
+        normalized.deleted = relation.deleted
+    }
     if (includeFields) {
         for (const includeField of includeFields) {
             // eslint-disable-next-line security/detect-object-injection

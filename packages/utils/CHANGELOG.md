@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.75
+
+### Patch Changes
+
+- fix: improve relation handling
+
 ## 0.5.74
 
 ### Patch Changes

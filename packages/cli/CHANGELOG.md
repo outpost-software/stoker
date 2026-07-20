@@ -1,5 +1,14 @@
 # @stoker-platform/cli
 
+## 0.5.131
+
+### Patch Changes
+
+- fix: improve relation handling
+- Updated dependencies
+    - @stoker-platform/utils@0.5.75
+    - @stoker-platform/node-client@0.5.84
+
 ## 0.5.130
 
 ### Patch Changes
