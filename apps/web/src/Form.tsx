@@ -4183,7 +4183,7 @@ function RecordForm({
                 }
 
                 const onValid = () => {
-                    if (!isServerReadOnly) {
+                    if (!(serverWrite || isServerReadOnly)) {
                         if (onSuccess) onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                     }
                 }
@@ -4211,6 +4211,8 @@ function RecordForm({
 
                         if (isServerReadOnly) {
                             setIsAddingServer(false)
+                        }
+                        if (serverWrite || isServerReadOnly) {
                             if (onSuccess)
                                 onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                         }
@@ -4276,7 +4278,11 @@ function RecordForm({
                     return
                 }
                 const serverWrite = isServerUpdate(collection, { ...recordToSave, id }, userData)
-                const optimisticUpdate = { ...originalRecord, ...cloneDeep(recordToSave) } as StokerRecord
+                const optimisticUpdate = {
+                    ...(originalRecord ?? record),
+                    ...cloneDeep(recordToSave),
+                    id,
+                } as StokerRecord
                 setOptimisticUpdate(labels.collection, optimisticUpdate)
 
                 setGlobalLoading("+", id, serverWrite, !(serverWrite || isServerReadOnly))

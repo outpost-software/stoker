@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.216
+
+### Patch Changes
+
+- fix: prevent redirect to newly created records before server write completes
+
 ## 0.5.215
 
 ### Patch Changes
