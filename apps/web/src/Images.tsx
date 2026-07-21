@@ -381,7 +381,7 @@ const Row = ({ index, style, data }: RowProps) => {
                                         </div>
                                     </div>
                                 )}
-                            <div className={cn("grid", "gap-4", size)}>
+                            <div className={cn("grid", "gap-4", "auto-rows-fr", size)}>
                                 {record[imagesConfig.imageField] ? (
                                     <CopyImageOverlay src={record[imagesConfig.imageField]} className="w-full h-full">
                                         <button

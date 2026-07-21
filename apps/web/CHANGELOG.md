@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.217
+
+### Patch Changes
+
+- fix: fix image height and flicker issues
+
 ## 0.5.216
 
 ### Patch Changes

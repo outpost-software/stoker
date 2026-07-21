@@ -14,7 +14,7 @@ import { Check, X } from "lucide-react"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
 import { preloadCacheEnabled } from "./preloadCacheEnabled"
-import { useEffect, useRef, useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { getSafeUrl } from "./isSafeUrl"
 
@@ -23,7 +23,7 @@ const FormattedFieldImage = ({ src, alt, form }: { src: string; alt?: string; fo
     const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
     const isLoaded = loadedSrc === src
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
             setLoadedSrc(src)
         }
