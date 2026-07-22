@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.132
+
+### Patch Changes
+
+- feat: add MFA status report command
+
 ## 0.5.131
 
 ### Patch Changes

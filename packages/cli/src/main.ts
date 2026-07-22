@@ -77,6 +77,7 @@ import { setUserRole } from "./ops/setUserRole.js"
 import { setUserCollection } from "./ops/setUserCollection.js"
 import { setUserDocument } from "./ops/setUserDocument.js"
 import { getUser } from "./ops/getUser.js"
+import { mfaStatus } from "./ops/mfaStatus.js"
 import { getUserRecord } from "./ops/getUserRecord.js"
 import { getUserPermissions } from "./ops/getUserPermissions.js"
 import { auditPermissions } from "./ops/auditPermissions.js"
@@ -467,6 +468,14 @@ program
     .requiredOption("-i, --id <id>", "the ID of the user")
     .action((options) => {
         getUser(options)
+    })
+
+program
+    .command("mfa-status")
+    .description("list user MFA statuses")
+    .option("-s, --status <status>", "filter by enabled / disabled")
+    .action((options) => {
+        mfaStatus(options)
     })
 
 program
