@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.90
+
+### Patch Changes
+
+- fix: remove record mutation when routing writes through server
+
 ## 0.5.89
 
 ### Patch Changes

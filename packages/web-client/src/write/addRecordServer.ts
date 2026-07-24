@@ -3,6 +3,7 @@ import { StokerPermissions, StokerRecord } from "@stoker-platform/types"
 import { serializeTimestamps } from "../utils/serializeTimestamps"
 import { getApp } from "firebase/app"
 import { getEnv } from "../initializeStoker"
+import cloneDeep from "lodash/cloneDeep.js"
 
 export const addRecordServer = async (
     path: string[],
@@ -14,11 +15,12 @@ export const addRecordServer = async (
     const env = getEnv()
     const firebaseFunctions = getFunctions(app, env.STOKER_FB_FUNCTIONS_REGION)
     const addRecordApi = httpsCallable(firebaseFunctions, "stoker-writeapi", { timeout: 9 * 60 * 1000 })
-    serializeTimestamps(record)
+    const serializedRecord = cloneDeep(record)
+    serializeTimestamps(serializedRecord)
     const addRecordResult = await addRecordApi({
         operation: "create",
         path,
-        record,
+        record: serializedRecord,
         user,
         id,
     })

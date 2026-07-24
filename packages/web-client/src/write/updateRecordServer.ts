@@ -4,6 +4,7 @@ import { serializeTimestamps } from "../utils/serializeTimestamps"
 import { serializeDeleteSentinels } from "../utils/serializeDeleteSentinels"
 import { getEnv } from "../initializeStoker"
 import { getApp } from "firebase/app"
+import cloneDeep from "lodash/cloneDeep.js"
 
 export const updateRecordServer = async (
     path: string[],
@@ -15,13 +16,14 @@ export const updateRecordServer = async (
     const env = getEnv()
     const firebaseFunctions = getFunctions(app, env.STOKER_FB_FUNCTIONS_REGION)
     const updateRecordApi = httpsCallable(firebaseFunctions, "stoker-writeapi", { timeout: 9 * 60 * 1000 })
-    serializeTimestamps(record)
-    serializeDeleteSentinels(record)
+    const serializedRecord = cloneDeep(record)
+    serializeTimestamps(serializedRecord)
+    serializeDeleteSentinels(serializedRecord)
     const updateRecordResult = await updateRecordApi({
         operation: "update",
         path,
         id,
-        record,
+        record: serializedRecord,
         user,
     })
     const data = updateRecordResult.data as { result: StokerRecord }
