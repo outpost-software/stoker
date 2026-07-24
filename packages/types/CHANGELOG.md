@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.63
+
+### Patch Changes
+
+- feat: add Calendar additional collections
+
 ## 0.5.62
 
 ### Patch Changes

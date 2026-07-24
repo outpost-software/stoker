@@ -61,6 +61,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
     window.history.replaceState(null, "", location.pathname)
 
     const fromRelationList = useRef(location.state?.relationList)
+    const fromCalendar = useRef(location.state?.fromCalendar)
 
     if (!pathString) {
         throw new Error("Path param is required")
@@ -243,6 +244,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                     record={record}
                                                     isLoading={isLoading}
                                                     fromRelationList={fromRelationList.current}
+                                                    fromCalendar={fromCalendar.current}
                                                 />
                                             </main>
                                         }
@@ -373,6 +375,7 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
                                                     record={record}
                                                     isLoading={isLoading}
                                                     fromRelationList={fromRelationList.current}
+                                                    fromCalendar={fromCalendar.current}
                                                 />
                                             </main>
                                         }

@@ -9,7 +9,12 @@ export const useGoToRecord = () => {
     const params = useParams()
     const location = useLocation()
 
-    const goToRecord = (collection: CollectionSchema, record: StokerRecord, relationField?: RelationField) => {
+    const goToRecord = (
+        collection: CollectionSchema,
+        record: StokerRecord,
+        relationField?: RelationField,
+        fromCalendar?: boolean,
+    ) => {
         const customization = getCollectionConfigModule(collection.labels.collection)
         if (!customization) return
         let route = "edit"
@@ -25,6 +30,7 @@ export const useGoToRecord = () => {
                         record,
                         relationList: params.id ? location.pathname : undefined,
                         relationField,
+                        fromCalendar,
                     },
                 },
             ),

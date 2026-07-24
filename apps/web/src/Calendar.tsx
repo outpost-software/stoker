@@ -93,6 +93,49 @@ function getInclusiveEnd(exclusiveEnd: Date, timezone: string): Date {
     return DateTime.fromJSDate(exclusiveEnd).setZone(timezone).startOf("day").minus({ days: 1 }).toJSDate()
 }
 
+const calendarConfigOverrideKeys: (keyof CalendarConfig)[] = [
+    "dataStart",
+    "dataEnd",
+    "dataStartOffset",
+    "dataEndOffset",
+    "fullCalendarLarge",
+    "fullCalendarSmall",
+    "roles",
+    "title",
+    "unscheduled",
+    "additionalCollections",
+]
+
+export function mergeCalendarConfig(main: CalendarConfig, additional: CalendarConfig): CalendarConfig {
+    const merged = { ...additional }
+    for (const key of calendarConfigOverrideKeys) {
+        // eslint-disable-next-line security/detect-object-injection
+        if (main[key] !== undefined) {
+            // eslint-disable-next-line security/detect-object-injection
+            ;(merged as Record<keyof CalendarConfig, unknown>)[key] = main[key]
+        }
+    }
+    return merged
+}
+
+function applyOptimisticUpdates(
+    records: StokerRecord[],
+    collectionOptimisticUpdates: StokerRecord[] | undefined,
+): StokerRecord[] {
+    if (!collectionOptimisticUpdates?.length) return records
+    const updatedRecords = cloneDeep(records)
+    collectionOptimisticUpdates.forEach((optimisticRecord) => {
+        const index = updatedRecords.findIndex((record) => record.id === optimisticRecord.id)
+        if (index !== -1) {
+            // eslint-disable-next-line security/detect-object-injection
+            updatedRecords[index] = optimisticRecord
+        } else {
+            updatedRecords.push(optimisticRecord)
+        }
+    })
+    return updatedRecords
+}
+
 function isAllDayEvent(record: StokerRecord, calendarConfig: CalendarConfig): boolean {
     if (calendarConfig.allDayField !== undefined) {
         return !!record[calendarConfig.allDayField]
@@ -137,11 +180,11 @@ function Row({
             ref={drag}
             tabIndex={0}
             onClick={() => {
-                goToRecord(collection, record)
+                goToRecord(collection, record, undefined, true)
             }}
             onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
-                    goToRecord(collection, record)
+                    goToRecord(collection, record, undefined, true)
                 }
             }}
             className={className}
@@ -169,6 +212,18 @@ interface CalendarProps {
     unsubscribe: React.MutableRefObject<{ [key: string | number]: ((direction?: "first" | "last") => void)[] }>
     setOptimisticList: () => void
     canAddRecords: boolean
+    disableCreate: boolean
+    creatableCalendarCollections: StokerCollection[]
+    additionalOfflineUpdateDisabled: Record<StokerCollection, boolean> | undefined
+    additionalTitles:
+        | Record<
+              StokerCollection,
+              {
+                  collection: string
+                  record: string
+              }
+          >
+        | undefined
     onDateSelection?: (dateSelectionData: { startDate: Date; endDate?: Date }) => void
     backToStartKey: number
     relationList?: boolean
@@ -185,6 +240,10 @@ export function Calendar({
     unsubscribe,
     setOptimisticList,
     canAddRecords,
+    disableCreate,
+    creatableCalendarCollections,
+    additionalOfflineUpdateDisabled,
+    additionalTitles,
     onDateSelection,
     backToStartKey,
     relationList,
@@ -222,10 +281,12 @@ export function Calendar({
     const { optimisticUpdates, removeOptimisticUpdate, setOptimisticUpdate, removeCacheOptimistic } = useOptimistic()
     const { isGlobalLoading, setGlobalLoading } = useGlobalLoading()
     const [isInitialized, setIsInitialized] = useState(false)
+    const [mainCollectionLoaded, setMainCollectionLoaded] = useState(false)
+    const [additionalConfigLoaded, setAdditionalConfigLoaded] = useState(false)
 
     const [hasStartUpdateAccess, setHasStartUpdateAccess] = useState<boolean>(false)
     const [hasEndUpdateAccess, setHasEndUpdateAccess] = useState<boolean>(false)
-    const [hasReourceUpdateAccess, setHasReourceUpdateAccess] = useState<boolean>(false)
+    const [hasResourceUpdateAccess, setHasResourceUpdateAccess] = useState<boolean>(false)
 
     const [currentViewLarge, setCurrentViewLarge] = useState<string | undefined>(undefined)
     const [currentViewSmall, setCurrentViewSmall] = useState<string | undefined>(undefined)
@@ -234,6 +295,10 @@ export function Calendar({
     const [resources, setResources] = useState<Set<{ id: string; title: string; Collection_Path?: string }>>(new Set())
     const [unscheduledRecords, setUnscheduledRecords] = useState<StokerRecord[]>([])
     const [unscheduledLoading, setUnscheduledLoading] = useState<boolean>(true)
+    const [additionalLists, setAdditionalLists] = useState<Record<string, StokerRecord[]>>({})
+    const [additionalConfig, setAdditionalConfig] = useState<
+        Record<string, { config: CalendarConfig; recordTitleField: string }>
+    >({})
 
     const { filters, getFilterConstraints } = useFilters()
     const [rangeFilter, setRangeFilter] = useState<RangeFilter | undefined>(undefined)
@@ -465,8 +530,8 @@ export function Calendar({
                 setHasEndUpdateAccess(hasEndUpdateAccess && (!allDayField || hasAllDayUpdateAccess))
             }
             if (resourceField) {
-                const hasReourceUpdateAccess = !!canUpdateField(collection, resourceFieldSchema, permissions)
-                setHasReourceUpdateAccess(hasReourceUpdateAccess)
+                const hasResourceUpdateAccess = !!canUpdateField(collection, resourceFieldSchema, permissions)
+                setHasResourceUpdateAccess(hasResourceUpdateAccess)
             }
 
             setList({})
@@ -493,11 +558,20 @@ export function Calendar({
                     },
                 ],
             }).then(() => {
-                setIsInitialized(true)
+                setMainCollectionLoaded(true)
             })
         }
         initialize()
     }, [])
+
+    useEffect(() => {
+        if (!mainCollectionLoaded || !additionalConfigLoaded) return
+        if (list === undefined) return
+        const expectedAdditional = Object.keys(additionalConfig)
+        // eslint-disable-next-line security/detect-object-injection
+        if (expectedAdditional.some((collectionName) => additionalLists[collectionName] === undefined)) return
+        setIsInitialized(true)
+    }, [mainCollectionLoaded, additionalConfigLoaded, list, additionalLists, additionalConfig])
 
     useEffect(() => {
         let unscheduledListener: (() => void) | undefined
@@ -549,6 +623,85 @@ export function Calendar({
             }
         }
     }, [calendarConfig, filters])
+
+    useEffect(() => {
+        if (!calendarConfig || !permissions?.Role) return
+
+        if (relationList || !calendarConfig.additionalCollections?.length) {
+            setAdditionalConfigLoaded(true)
+            return
+        }
+
+        let cancelled = false
+        const listeners: (() => void)[] = []
+
+        const subscribeToAdditional = async () => {
+            const collectionsConfig: Record<string, { config: CalendarConfig; recordTitleField: string }> = {}
+
+            for (const collectionName of calendarConfig.additionalCollections || []) {
+                // eslint-disable-next-line security/detect-object-injection
+                const additionalSchema = schema.collections[collectionName]
+                const isPreloadCacheEnabledAdditional = preloadCacheEnabled(additionalSchema)
+                if (!additionalSchema || !isPreloadCacheEnabledAdditional) continue
+
+                const additionalCustomization = getCollectionConfigModule(collectionName)
+                const additionalConfig = (await getCachedConfigValue(additionalCustomization, [
+                    "collections",
+                    collectionName,
+                    "admin",
+                    "calendar",
+                ])) as CalendarConfig | undefined
+                if (!additionalConfig) continue
+
+                const mergedConfig = mergeCalendarConfig(calendarConfig, additionalConfig)
+                // eslint-disable-next-line security/detect-object-injection
+                collectionsConfig[collectionName] = {
+                    config: mergedConfig,
+                    recordTitleField: additionalSchema.recordTitleField,
+                }
+
+                const rangeConstraints: QueryConstraint[] = [
+                    where(mergedConfig.startField, ">=", Timestamp.fromDate(getMinDate())),
+                    where(mergedConfig.startField, "<=", Timestamp.fromDate(getMaxDate())),
+                ]
+
+                if (additionalSchema.softDelete) {
+                    rangeConstraints.push(where(additionalSchema.softDelete.archivedField, "==", false))
+                }
+
+                const result = await subscribeMany(
+                    [collectionName],
+                    (docs) => {
+                        setAdditionalLists((prev) => ({ ...prev, [collectionName]: docs }))
+                    },
+                    (error) => {
+                        console.error(error)
+                        // eslint-disable-next-line security/detect-object-injection
+                        setAdditionalLists((prev) => ({ ...prev, [collectionName]: prev[collectionName] || [] }))
+                    },
+                    {
+                        constraints: rangeConstraints,
+                    },
+                )
+                if (cancelled) {
+                    result.unsubscribe()
+                    return
+                }
+                listeners.push(result.unsubscribe)
+            }
+
+            if (cancelled) return
+            setAdditionalConfig(collectionsConfig)
+            setAdditionalConfigLoaded(true)
+        }
+
+        subscribeToAdditional()
+
+        return () => {
+            cancelled = true
+            listeners.forEach((unsubscribe) => unsubscribe())
+        }
+    }, [calendarConfig, rangeFilter, isPreloadCacheEnabled, permissions?.Role])
 
     const plugins = useMemo(
         () => [
@@ -638,17 +791,7 @@ export function Calendar({
 
     const events: EventInput[] = useMemo(() => {
         if (!calendarConfig || !recordTitleField || !permissions || !list) return []
-        const collectionOptimisticUpdates = optimisticUpdates?.get(labels.collection)
-        const updatedList = cloneDeep(list)
-        collectionOptimisticUpdates?.forEach((optimisticRecord) => {
-            const index = updatedList.findIndex((record) => record.id === optimisticRecord.id)
-            if (index !== -1) {
-                // eslint-disable-next-line security/detect-object-injection
-                updatedList[index] = optimisticRecord
-            } else {
-                updatedList.push(optimisticRecord)
-            }
-        })
+        const updatedList = applyOptimisticUpdates(list, optimisticUpdates?.get(labels.collection))
         const mainEvents = updatedList
             .filter(
                 (record) =>
@@ -667,7 +810,7 @@ export function Calendar({
                     start: record[calendarConfig.startField].toDate(),
                     startEditable: !isPendingServer && !isUpdateDisabled && hasStartUpdateAccess,
                     durationEditable: !isPendingServer && !isUpdateDisabled && hasEndUpdateAccess,
-                    resourceEditable: !isPendingServer && !isUpdateDisabled && hasReourceUpdateAccess,
+                    resourceEditable: !isPendingServer && !isUpdateDisabled && hasResourceUpdateAccess,
                 }
                 if (calendarConfig.endField && record[calendarConfig.endField]) {
                     const rawEnd = record[calendarConfig.endField].toDate()
@@ -694,6 +837,10 @@ export function Calendar({
                 const color = tryFunction(calendarConfig.color, [record])
                 if (color) {
                     event.color = color
+                }
+                event.extendedProps = {
+                    collection: labels.collection,
+                    recordId: record.id,
                 }
                 return event
             })
@@ -724,11 +871,101 @@ export function Calendar({
                             editable: false,
                             allDay: true,
                             color: "#6b7280",
+                            extendedProps: {
+                                collection: labels.collection,
+                                recordId: record.id,
+                            },
                         }
                         additionalEvents.push(event)
                     })
             })
         }
+
+        Object.entries(additionalConfig).forEach(([collectionName, collectionData]) => {
+            // eslint-disable-next-line security/detect-object-injection
+            const additionalSchema = schema.collections[collectionName]
+            // eslint-disable-next-line security/detect-object-injection
+            const additionalList = additionalLists[collectionName]
+            const isPreloadCacheEnabledAdditional = preloadCacheEnabled(additionalSchema)
+            if (relationList || !additionalSchema || !additionalList || !isPreloadCacheEnabledAdditional) return
+
+            const { config: mergedConfig, recordTitleField: additionalRecordTitleField } = collectionData
+            const updatedAdditionalList = applyOptimisticUpdates(additionalList, optimisticUpdates?.get(collectionName))
+
+            updatedAdditionalList
+                .filter(
+                    (record) =>
+                        record[mergedConfig.startField] &&
+                        (!mergedConfig.filterRecords || mergedConfig.filterRecords(record)),
+                )
+                .forEach((record) => {
+                    const title =
+                        tryFunction(mergedConfig.eventTitle, [record]) ||
+                        // eslint-disable-next-line security/detect-object-injection
+                        record[additionalRecordTitleField] ||
+                        record.id
+
+                    const isPendingServerAdditional = isGlobalLoading.get(record.id)?.server
+                    const isUpdateDisabledAdditional =
+                        connectionStatus === "offline" &&
+                        // eslint-disable-next-line security/detect-object-injection
+                        (additionalOfflineUpdateDisabled?.[collectionName] || serverWriteOnly)
+
+                    const startField = collectionData.config.startField
+                    const startFieldSchema = getField(additionalSchema.fields, startField)
+                    const endField = collectionData.config?.endField
+                    const endFieldSchema = getField(additionalSchema.fields, endField)
+                    const allDayField = collectionData.config?.allDayField
+                    const allDayFieldSchema = getField(additionalSchema.fields, allDayField)
+                    const systemFields = getSystemFieldsSchema()
+
+                    const hasAllDayUpdateAccess =
+                        allDayFieldSchema && !!canUpdateField(additionalSchema, allDayFieldSchema, permissions)
+                    const hasStartUpdateAccessAdditional =
+                        !!(
+                            canUpdateField(additionalSchema, startFieldSchema, permissions) &&
+                            !systemFields.map((field) => field.name).includes(startField)
+                        ) &&
+                        (!allDayField || hasAllDayUpdateAccess)
+                    let hasEndUpdateAccessAdditional = false
+                    if (endField) {
+                        hasEndUpdateAccessAdditional = !!(
+                            canUpdateField(additionalSchema, endFieldSchema, permissions) &&
+                            !systemFields.map((field) => field.name).includes(endField) &&
+                            (!allDayField || hasAllDayUpdateAccess)
+                        )
+                    }
+
+                    const event: EventInput = {
+                        id: `${collectionName}:${record.id}`,
+                        title,
+                        start: record[mergedConfig.startField].toDate(),
+                        startEditable:
+                            !isPendingServerAdditional && !isUpdateDisabledAdditional && hasStartUpdateAccessAdditional,
+                        durationEditable:
+                            !isPendingServerAdditional && !isUpdateDisabledAdditional && hasEndUpdateAccessAdditional,
+                        extendedProps: {
+                            collection: collectionName,
+                            recordId: record.id,
+                        },
+                    }
+                    if (mergedConfig.endField && record[mergedConfig.endField]) {
+                        const rawEnd = record[mergedConfig.endField].toDate()
+                        event.end = isAllDayEvent(record, mergedConfig) ? getExclusiveEnd(rawEnd, timezone) : rawEnd
+                    }
+                    if (mergedConfig.allDayField !== undefined) {
+                        event.allDay = record[mergedConfig.allDayField]
+                    } else if (isAllDayEvent(record, mergedConfig)) {
+                        event.allDay = true
+                    }
+                    const color = tryFunction(mergedConfig.color, [record])
+                    if (color) {
+                        event.color = color
+                    }
+                    additionalEvents.push(event)
+                })
+        })
+
         return mainEvents.concat(additionalEvents)
     }, [
         calendarConfig,
@@ -738,26 +975,59 @@ export function Calendar({
         serverWriteOnly,
         hasStartUpdateAccess,
         hasEndUpdateAccess,
-        hasReourceUpdateAccess,
+        hasResourceUpdateAccess,
         isGlobalLoading,
         timezone,
+        additionalLists,
+        additionalConfig,
+        optimisticUpdates,
+        additionalOfflineUpdateDisabled,
+        connectionStatus,
     ])
 
     const updateEvent = useCallback(
         async (info: EventDropArg | EventResizeDoneArg | EventReceiveArg) => {
             if (!calendarConfig) return
-            const record = list
-                ?.concat(unscheduledRecords)
-                ?.find((record) => record.id === info.event.id) as StokerRecord
 
+            const eventCollectionName = (info.event.extendedProps.collection as string | undefined) || labels.collection
+            const recordId = (info.event.extendedProps.recordId as string | undefined) || info.event.id
+            const isAdditionalCollection = eventCollectionName !== labels.collection
+
+            // eslint-disable-next-line security/detect-object-injection
+            const eventCollectionSchema = isAdditionalCollection ? schema.collections[eventCollectionName] : collection
+            if (!eventCollectionSchema) return
+
+            const eventCalendarConfig = isAdditionalCollection
+                ? // eslint-disable-next-line security/detect-object-injection
+                  additionalConfig[eventCollectionName]?.config
+                : calendarConfig
+            if (!eventCalendarConfig) return
+
+            const eventRecordTitleField = isAdditionalCollection
+                ? // eslint-disable-next-line security/detect-object-injection
+                  additionalConfig[eventCollectionName]?.recordTitleField
+                : recordTitleField
+            const eventRecordTitle = isAdditionalCollection
+                ? // eslint-disable-next-line security/detect-object-injection
+                  additionalTitles?.[eventCollectionName]?.record || eventCollectionSchema.labels.record
+                : recordTitle
+
+            const eventList = isAdditionalCollection
+                ? // eslint-disable-next-line security/detect-object-injection
+                  additionalLists[eventCollectionName]
+                : list?.concat(unscheduledRecords)
+            const record = eventList?.find((record) => record.id === recordId) as StokerRecord | undefined
+            if (!record) return
+
+            const originalRecord = cloneDeep(record)
             const updatedFields: Partial<StokerRecord> = {}
-            if (calendarConfig.startField && info.event.start) {
+            if (eventCalendarConfig.startField && info.event.start) {
                 const startDate = info.event.allDay
                     ? DateTime.fromJSDate(info.event.start).setZone(timezone).startOf("day").toJSDate()
                     : info.event.start
-                updatedFields[calendarConfig.startField] = Timestamp.fromDate(startDate)
+                updatedFields[eventCalendarConfig.startField] = Timestamp.fromDate(startDate)
             }
-            if (calendarConfig.endField && info.event.start) {
+            if (eventCalendarConfig.endField && info.event.start) {
                 let endDate: Date
                 if (info.event.allDay) {
                     if (info.event.end) {
@@ -768,12 +1038,28 @@ export function Calendar({
                 } else {
                     endDate = info.event.end ?? info.event.start
                 }
-                updatedFields[calendarConfig.endField] = Timestamp.fromDate(endDate)
+                updatedFields[eventCalendarConfig.endField] = Timestamp.fromDate(endDate)
             }
-            if (calendarConfig.allDayField !== undefined) {
-                updatedFields[calendarConfig.allDayField] = info.event.allDay
+            if (eventCalendarConfig.allDayField !== undefined) {
+                updatedFields[eventCalendarConfig.allDayField] = info.event.allDay
             }
-            if (calendarConfig.resourceField && "newResource" in info && info.newResource) {
+
+            const optimisticUpdate = { ...record, ...updatedFields }
+            setOptimisticUpdate(eventCollectionName, optimisticUpdate)
+
+            const patchAdditionalList = (value: StokerRecord) => {
+                if (!isAdditionalCollection) return
+                setAdditionalLists((prev) => ({
+                    ...prev,
+                    // eslint-disable-next-line security/detect-object-injection
+                    [eventCollectionName]: (prev[eventCollectionName] ?? []).map((additionalRecord) =>
+                        additionalRecord.id === record.id ? value : additionalRecord,
+                    ),
+                }))
+            }
+            patchAdditionalList(optimisticUpdate)
+
+            if (!isAdditionalCollection && calendarConfig.resourceField && "newResource" in info && info.newResource) {
                 const field = getField(fields, calendarConfig.resourceField)
                 if (!isRelationField(field)) {
                     updatedFields[calendarConfig.resourceField] = info.newResource.title
@@ -796,59 +1082,74 @@ export function Calendar({
                         }
                     }
                 }
+                const resourceOptimisticUpdate = { ...record, ...updatedFields }
+                setOptimisticUpdate(eventCollectionName, resourceOptimisticUpdate)
+                patchAdditionalList(resourceOptimisticUpdate)
             }
 
-            const offlineDisabled = await isOfflineDisabledSync("update", collection, record)
+            const offlineDisabled = await isOfflineDisabledSync("update", eventCollectionSchema, record)
             if (offlineDisabled) {
                 alert(`You are offline and cannot update this record.`)
-                removeOptimisticUpdate(labels.collection, record.id)
+                info.revert()
+                removeOptimisticUpdate(eventCollectionName, record.id)
+                patchAdditionalList(originalRecord)
                 return
             }
 
-            const serverWrite = isServerUpdate(collection, record)
-            const isServerReadOnly = serverReadOnly(collection)
+            const serverWrite = isServerUpdate(eventCollectionSchema, record)
+            const isServerReadOnly = serverReadOnly(eventCollectionSchema)
 
-            const optimisticUpdate = {
-                ...record,
-                ...updatedFields,
-            }
-            setOptimisticUpdate(labels.collection, optimisticUpdate)
-
-            const originalRecord = cloneDeep(record)
             setGlobalLoading("+", record.id, serverWrite, !(serverWrite || isServerReadOnly))
             updateRecord(record.Collection_Path, record.id, updatedFields, { originalRecord })
                 .then(() => {
                     if (serverWrite || isServerReadOnly) {
                         toast({
                             // eslint-disable-next-line security/detect-object-injection
-                            description: `${recordTitle} ${recordTitleField ? record[recordTitleField] : record.id} updated successfully.`,
+                            description: `${eventRecordTitle} ${eventRecordTitleField ? record[eventRecordTitleField] : record.id} updated successfully.`,
                         })
+                        removeOptimisticUpdate(eventCollectionName, record.id)
                     }
-                    removeOptimisticUpdate(labels.collection, record.id)
                 })
                 .catch((error) => {
                     console.error(error)
                     info.revert()
                     toast({
                         // eslint-disable-next-line security/detect-object-injection
-                        description: `${recordTitle} ${recordTitleField ? record[recordTitleField] : record.id} failed to update.`,
+                        description: `${eventRecordTitle} ${eventRecordTitleField ? record[eventRecordTitleField] : record.id} failed to update.`,
                         variant: "destructive",
                     })
-                    removeOptimisticUpdate(labels.collection, record.id)
-                    setOptimisticList()
+                    removeOptimisticUpdate(eventCollectionName, record.id)
+                    patchAdditionalList(originalRecord)
+                    if (!isAdditionalCollection) {
+                        setOptimisticList()
+                    }
                 })
                 .finally(() => {
                     setGlobalLoading("-", record.id, undefined, !(serverWrite || isServerReadOnly))
                 })
             if (!serverWrite && !isServerReadOnly) {
-                removeCacheOptimistic(collection, record)
+                removeCacheOptimistic(eventCollectionSchema, record)
                 toast({
                     // eslint-disable-next-line security/detect-object-injection
-                    description: `${recordTitle} ${recordTitleField ? record[recordTitleField] : record.id} updated.`,
+                    description: `${eventRecordTitle} ${eventRecordTitleField ? record[eventRecordTitleField] : record.id} updated.`,
                 })
             }
         },
-        [calendarConfig, list, unscheduledRecords, recordTitleField, recordTitle, timezone],
+        [
+            calendarConfig,
+            additionalConfig,
+            additionalLists,
+            collection,
+            labels.collection,
+            list,
+            unscheduledRecords,
+            recordTitleField,
+            recordTitle,
+            schema.collections,
+            timezone,
+            fields,
+            setOptimisticList,
+        ],
     )
 
     const createEvent = useCallback(
@@ -988,11 +1289,26 @@ export function Calendar({
                     newRange.to = preloadCacheRange.end
                     if (!isEqual(newRange, preloadRange)) {
                         preloadCollection(labels.collection, undefined, preloadCacheRange)
+                        for (const additionalCollection of calendarConfig?.additionalCollections || []) {
+                            // eslint-disable-next-line security/detect-object-injection
+                            const additionalSchema = schema.collections[additionalCollection]
+                            if (!additionalSchema?.preloadCache?.range || !preloadCacheEnabled(additionalSchema))
+                                continue
+                            const preloadCacheRangeAdditional = cloneDeep(additionalSchema.preloadCache.range)
+                            preloadCacheRangeAdditional.start = preloadCacheRange.start
+                            preloadCacheRangeAdditional.end = preloadCacheRange.end
+                            preloadCollection(additionalCollection, undefined, preloadCacheRangeAdditional)
+                        }
                         setPreloadRange((prev) => {
-                            return {
+                            const next = {
                                 ...prev,
                                 [labels.collection]: newRange,
                             }
+                            for (const additionalCollection of calendarConfig?.additionalCollections || []) {
+                                // eslint-disable-next-line security/detect-object-injection
+                                next[additionalCollection] = newRange
+                            }
+                            return next
                         })
                     }
                 }
@@ -1028,17 +1344,34 @@ export function Calendar({
 
     const isCreateDisabled = connectionStatus === "offline" && (isOfflineCreateDisabled || serverWriteOnly)
 
+    let selectable = canAddRecords && !disableCreate && !isCreateDisabled && !!calendarConfig?.endField
+    for (const creatableCalendarCollection of creatableCalendarCollections) {
+        // eslint-disable-next-line security/detect-object-injection
+        if (additionalConfig?.[creatableCalendarCollection]?.config.endField) {
+            selectable = true
+        }
+    }
+
     const calendarProps: CalendarOptions = {
         timeZone: timezone || "UTC",
         firstDay: 1,
         plugins,
         events,
         resources: Array.from(resources),
-        selectable: canAddRecords && !isCreateDisabled && !!calendarConfig?.endField,
+        selectable,
         droppable: hasStartUpdateAccess,
         eventClick(info: EventClickArg) {
-            const record = list?.find((record) => record.id === info.event.id.split("-")[0]) as StokerRecord
-            goToRecord(collection, record)
+            const eventCollection = info.event.extendedProps.collection as string | undefined
+            const recordId = (info.event.extendedProps.recordId as string | undefined) || info.event.id.split("-")[0]
+            // eslint-disable-next-line security/detect-object-injection
+            const eventCollectionSchema = eventCollection ? schema.collections[eventCollection] : collection
+            const eventList =
+                // eslint-disable-next-line security/detect-object-injection
+                eventCollection && eventCollection !== labels.collection ? additionalLists[eventCollection] : list
+            const record = eventList?.find((record) => record.id === recordId) as StokerRecord
+            if (record && eventCollectionSchema) {
+                goToRecord(eventCollectionSchema, record, undefined, true)
+            }
         },
         eventDrop(info: EventDropArg) {
             updateEvent(info)
@@ -1097,7 +1430,7 @@ export function Calendar({
                         )}
                     >
                         <CardContent className="p-4 h-full">
-                            {currentViewLarge && (
+                            {currentViewLarge && isInitialized && (
                                 <FullCalendar
                                     schedulerLicenseKey={import.meta.env.STOKER_FULLCALENDAR_KEY}
                                     initialDate={currentDateLarge}
@@ -1129,7 +1462,7 @@ export function Calendar({
                     </ScrollArea>
                     <ScrollArea className="sm:hidden min-h-screen print:h-full">
                         <CardContent className="p-4 h-full">
-                            {currentViewSmall && (
+                            {currentViewSmall && isInitialized && (
                                 <FullCalendar
                                     schedulerLicenseKey={import.meta.env.STOKER_FULLCALENDAR_KEY}
                                     initialDate={currentDateSmall}

@@ -238,6 +238,7 @@ interface FormProps {
     onSaveRecord?: () => void
     rowSelection?: StokerRecord[]
     fromRelationList?: string
+    fromCalendar?: boolean
     parentCollection?: string
     parentRecord?: StokerRecord
 }
@@ -2408,6 +2409,7 @@ function RecordForm({
     onSaveRecord,
     rowSelection,
     fromRelationList,
+    fromCalendar,
     parentCollection,
     parentRecord,
 }: FormProps) {
@@ -4480,10 +4482,12 @@ function RecordForm({
                 description: `${recordTitle} ${recordTitleField ? originalRecord?.[recordTitleField] : id} deleted.`,
             })
         }
-        if (!(hidden && !fromRelationList)) {
+        if (!(hidden && !fromRelationList) && !fromCalendar) {
             navigate(fromRelationList ? fromRelationList : `/${labels.collection?.toLowerCase()}`)
+        } else if (fromCalendar) {
+            navigate(-1)
         }
-    }, [formValues, originalRecord, navigate, hidden])
+    }, [formValues, originalRecord, navigate, hidden, fromCalendar])
 
     const handleRestore = useCallback(async () => {
         if (!formValues) return
@@ -4536,11 +4540,13 @@ function RecordForm({
             })
         }
         if (!isServerReadOnly) {
-            if (!(hidden && !fromRelationList)) {
+            if (!(hidden && !fromRelationList) && !fromCalendar) {
                 navigate(fromRelationList ? fromRelationList : `/${labels.collection?.toLowerCase()}`)
+            } else if (fromCalendar) {
+                navigate(-1)
             }
         }
-    }, [formValues, originalRecord, navigate, hidden])
+    }, [formValues, originalRecord, navigate, hidden, fromCalendar])
 
     const revert = useCallback(() => {
         resetPermissions()

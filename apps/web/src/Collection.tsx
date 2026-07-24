@@ -58,7 +58,7 @@ import { useOptimistic } from "./providers/OptimisticProvider"
 import { serverReadOnly } from "./utils/serverReadOnly"
 import cloneDeep from "lodash/cloneDeep.js"
 import { Map as StokerMap } from "./Map"
-import { Calendar } from "./Calendar"
+import { Calendar, mergeCalendarConfig } from "./Calendar"
 import { useStokerState } from "./providers/StateProvider"
 import { loadFilters } from "./utils/relationListFiltersState"
 import { Filters } from "./Filters"
@@ -235,6 +235,25 @@ function Collection({
     const [showImages, setShowImages] = useState(false)
     const [showMap, setShowMap] = useState(false)
     const [showCalendar, setShowCalendar] = useState(false)
+    const [additionalTitles, setAdditionalTitles] = useState<
+        | Record<
+              StokerCollection,
+              {
+                  collection: string
+                  record: string
+              }
+          >
+        | undefined
+    >(undefined)
+    const [additionalDisableCreate, setSetAdditionalDisableCreate] = useState<
+        Record<StokerCollection, boolean> | undefined
+    >(undefined)
+    const [additionalOfflineCreateDisabled, setAdditionalOfflineCreateDisabled] = useState<
+        Record<StokerCollection, boolean> | undefined
+    >(undefined)
+    const [additionalOfflineUpdateDisabled, setAdditionalOfflineUpdateDisabled] = useState<
+        Record<StokerCollection, boolean> | undefined
+    >(undefined)
 
     const [search, setSearch] = useState("")
     const isServerFullTextSearchActive = isServerFullTextSearch(
@@ -956,6 +975,54 @@ function Collection({
                 | undefined
             setCalendarConfig(calendarConfig)
 
+            if (calendarConfig?.additionalCollections) {
+                for (const additionalCollection of calendarConfig.additionalCollections) {
+                    // eslint-disable-next-line security/detect-object-injection
+                    const additionalSchema = schema.collections[additionalCollection]
+                    const additionalCustomization = getCollectionConfigModule(additionalCollection)
+                    const additionalTitles = await getCachedConfigValue(
+                        additionalCustomization,
+                        ["collections", additionalCollection, "admin", "titles"],
+                        [relationList ? "relation-list" : undefined, relationCollection, relationParent],
+                        true,
+                    )
+                    setAdditionalTitles((prev) => ({
+                        ...prev,
+                        [additionalCollection]: additionalTitles || additionalSchema.labels,
+                    }))
+                    const additionalDisableCreate = await getCachedConfigValue(
+                        additionalCustomization,
+                        ["collections", additionalCollection, "admin", "hideCreate"],
+                        [relationCollection?.labels.collection],
+                        true,
+                    )
+                    setSetAdditionalDisableCreate((prev) => ({
+                        ...prev,
+                        [additionalCollection]: !!additionalDisableCreate,
+                    }))
+                    const additionalOfflineCreateDisabled = await getCachedConfigValue(additionalCustomization, [
+                        "collections",
+                        additionalCollection,
+                        "custom",
+                        "disableOfflineCreate",
+                    ])
+                    setAdditionalOfflineCreateDisabled((prev) => ({
+                        ...prev,
+                        [additionalCollection]: additionalOfflineCreateDisabled,
+                    }))
+                    const additionalOfflineUpdateDisabled = await getCachedConfigValue(additionalCustomization, [
+                        "collections",
+                        additionalCollection,
+                        "custom",
+                        "disableOfflineUpdate",
+                    ])
+                    setAdditionalOfflineUpdateDisabled((prev) => ({
+                        ...prev,
+                        [additionalCollection]: additionalOfflineUpdateDisabled,
+                    }))
+                }
+            }
+
             const showListConfig =
                 !!permissions.Role && (!listConfig?.roles || listConfig.roles.includes(permissions.Role))
             setShowList(showListConfig)
@@ -1662,36 +1729,123 @@ function Collection({
     }, [rangeSelector])
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+    const [isCollectionPickerOpen, setIsCollectionPickerOpen] = useState(false)
+    const [selectedCreateCollection, setSelectedCreateCollection] = useState<StokerCollection | undefined>(undefined)
+    const [createCalendarConfig, setCreateCalendarConfig] = useState<CalendarConfig | undefined>(undefined)
     const [selectedDateRange, setSelectedDateRange] = useState<{ startDate: Date; endDate?: Date } | null>(null)
 
-    const handleCalendarDateSelection = useCallback((dateSelectionData: { startDate: Date; endDate?: Date }) => {
-        setSelectedDateRange(dateSelectionData)
-        setIsCreateDialogOpen(true)
-    }, [])
+    const creatableCalendarCollections = useMemo(() => {
+        const collections = [labels.collection, ...(calendarConfig?.additionalCollections || [])]
+        return collections.filter((collectionName, index) => {
+            // eslint-disable-next-line security/detect-object-injection
+            const collectionSchema = schema.collections[collectionName]
+            const hasEntityRestrictions = getEntityRestrictions(collectionSchema, permissions)
+            // eslint-disable-next-line security/detect-object-injection
+            const isDisableCreate = (index === 0 && disableCreate) || additionalDisableCreate?.[collectionName]
+            const isOfflineCreateDisabled =
+                connectionStatus === "offline" &&
+                (index === 0
+                    ? isCreateDisabled
+                    : // eslint-disable-next-line security/detect-object-injection
+                      additionalOfflineCreateDisabled?.[collectionName] || collectionSchema.access.serverWriteOnly)
+            return (
+                // eslint-disable-next-line security/detect-object-injection
+                permissions.collections?.[collectionName]?.operations.includes("Create") &&
+                !hasEntityRestrictions.some((entityRestriction) => entityRestriction.type === "Individual") &&
+                !isOfflineCreateDisabled &&
+                !isDisableCreate
+            )
+        })
+    }, [
+        labels.collection,
+        calendarConfig?.additionalCollections,
+        permissions,
+        schema,
+        disableCreate,
+        additionalDisableCreate,
+        additionalOfflineCreateDisabled,
+        connectionStatus,
+        isCreateDisabled,
+    ])
+
+    const openCreateDialogForCollection = useCallback(
+        async (collectionName: StokerCollection) => {
+            setSelectedCreateCollection(collectionName)
+            if (collectionName === labels.collection) {
+                setCreateCalendarConfig(calendarConfig)
+            } else if (calendarConfig) {
+                const additionalCustomization = getCollectionConfigModule(collectionName)
+                const additionalConfig = (await getCachedConfigValue(additionalCustomization, [
+                    "collections",
+                    collectionName,
+                    "admin",
+                    "calendar",
+                ])) as CalendarConfig | undefined
+                if (additionalConfig) {
+                    setCreateCalendarConfig(mergeCalendarConfig(calendarConfig, additionalConfig))
+                } else {
+                    setCreateCalendarConfig(calendarConfig)
+                }
+            }
+            setIsCreateDialogOpen(true)
+        },
+        [calendarConfig, labels.collection],
+    )
+
+    const handleCalendarDateSelection = useCallback(
+        (dateSelectionData: { startDate: Date; endDate?: Date }) => {
+            if (creatableCalendarCollections.length === 0) return
+            setSelectedDateRange(dateSelectionData)
+            if (
+                !relationList &&
+                calendarConfig?.additionalCollections?.length &&
+                creatableCalendarCollections.length > 1
+            ) {
+                setIsCollectionPickerOpen(true)
+            } else {
+                openCreateDialogForCollection(creatableCalendarCollections[0] || labels.collection)
+            }
+        },
+        [calendarConfig, creatableCalendarCollections, labels.collection, openCreateDialogForCollection],
+    )
+
+    const createCollectionSchema = useMemo(() => {
+        const collectionName = selectedCreateCollection || labels.collection
+        // eslint-disable-next-line security/detect-object-injection
+        return schema.collections[collectionName] || collection
+    }, [selectedCreateCollection, labels.collection, schema, collection])
+
+    const createRecordTitle = useMemo(() => {
+        return (
+            additionalTitles?.[selectedCreateCollection || labels.collection]?.record ||
+            createCollectionSchema.labels.record
+        )
+    }, [createCollectionSchema, additionalTitles, selectedCreateCollection, labels.collection])
 
     const createPrePopulatedRecord = useCallback(() => {
         const prePopulatedRecord: Partial<StokerRecord> = {}
+        const activeCalendarConfig = createCalendarConfig || calendarConfig
 
-        if (selectedDateRange && calendarConfig) {
-            if (calendarConfig.startField) {
+        if (selectedDateRange && activeCalendarConfig) {
+            if (activeCalendarConfig.startField) {
                 const startDate = keepTimezone(
                     DateTime.fromJSDate(selectedDateRange.startDate).setZone(timezone).toJSDate(),
                     timezone,
                 )
-                prePopulatedRecord[calendarConfig.startField] = Timestamp.fromDate(startDate)
+                prePopulatedRecord[activeCalendarConfig.startField] = Timestamp.fromDate(startDate)
             }
 
-            if (calendarConfig.endField && selectedDateRange.endDate) {
+            if (activeCalendarConfig.endField && selectedDateRange.endDate) {
                 const endDate = keepTimezone(
                     DateTime.fromJSDate(selectedDateRange.endDate).setZone(timezone).toJSDate(),
                     timezone,
                 )
-                prePopulatedRecord[calendarConfig.endField] = Timestamp.fromDate(endDate)
+                prePopulatedRecord[activeCalendarConfig.endField] = Timestamp.fromDate(endDate)
             }
         }
 
         if (relationList && relationParent) {
-            const relationFieldSchema = getField(fields, relationList.field)
+            const relationFieldSchema = getField(createCollectionSchema.fields, relationList.field)
             if (relationFieldSchema && isRelationField(relationFieldSchema)) {
                 const value: Record<string, StokerRecord> = {}
                 value[relationParent.id] = relationParent
@@ -1702,7 +1856,18 @@ function Collection({
 
         if (Object.keys(prePopulatedRecord).length === 0) return
         return prePopulatedRecord as StokerRecord
-    }, [selectedDateRange, calendarConfig])
+    }, [
+        selectedDateRange,
+        createCalendarConfig,
+        createCollectionSchema,
+        calendarConfig,
+        relationList,
+        relationParent,
+        selectedCreateCollection,
+        labels.collection,
+        fields,
+        timezone,
+    ])
 
     const mainContentRef = useRef<HTMLDivElement>(null)
     const addButtonRef = useRef<HTMLButtonElement>(null)
@@ -2529,6 +2694,63 @@ function Collection({
                                                                 </Button>
                                                             )
                                                         })()}
+                                                        {isCollectionPickerOpen &&
+                                                            createPortal(
+                                                                <div
+                                                                    id="collection-picker-modal"
+                                                                    className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
+                                                                    aria-modal="true"
+                                                                    aria-live="polite"
+                                                                    role="dialog"
+                                                                >
+                                                                    <div className="fixed inset-0 bg-black/50" />
+                                                                    <div className="relative bg-background rounded-lg w-full max-w-md overflow-hidden border border-border p-6">
+                                                                        <div className="flex justify-end items-center mb-4">
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                onClick={() => {
+                                                                                    setIsCollectionPickerOpen(false)
+                                                                                    setSelectedDateRange(null)
+                                                                                }}
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                                <span className="sr-only">Close</span>
+                                                                            </Button>
+                                                                        </div>
+                                                                        <div className="flex flex-col gap-2">
+                                                                            {creatableCalendarCollections.map(
+                                                                                (collectionName) => {
+                                                                                    return (
+                                                                                        <Button
+                                                                                            key={collectionName}
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            className="justify-start"
+                                                                                            onClick={() => {
+                                                                                                setIsCollectionPickerOpen(
+                                                                                                    false,
+                                                                                                )
+                                                                                                openCreateDialogForCollection(
+                                                                                                    collectionName,
+                                                                                                )
+                                                                                            }}
+                                                                                        >
+                                                                                            Add{" "}
+                                                                                            {/* eslint-disable-next-line security/detect-object-injection */}
+                                                                                            {additionalTitles?.[
+                                                                                                collectionName
+                                                                                            ]?.record || recordTitle}
+                                                                                        </Button>
+                                                                                    )
+                                                                                },
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>,
+                                                                document.body,
+                                                            )}
                                                         {isCreateDialogOpen &&
                                                             createPortal(
                                                                 <div
@@ -2550,7 +2772,9 @@ function Collection({
                                                                                         id="dialog-title"
                                                                                         className="font-medium leading-none"
                                                                                     >
-                                                                                        Add {recordTitle}
+                                                                                        Add{" "}
+                                                                                        {createRecordTitle ||
+                                                                                            recordTitle}
                                                                                     </h4>
                                                                                     <Button
                                                                                         type="button"
@@ -2560,12 +2784,18 @@ function Collection({
                                                                                         onClick={() => {
                                                                                             setIsCreateDialogOpen(false)
                                                                                             setSelectedDateRange(null)
+                                                                                            setSelectedCreateCollection(
+                                                                                                undefined,
+                                                                                            )
+                                                                                            setCreateCalendarConfig(
+                                                                                                undefined,
+                                                                                            )
                                                                                             setTimeout(() => {
                                                                                                 addButtonRef.current?.focus()
                                                                                             }, 0)
 
                                                                                             localStorage.removeItem(
-                                                                                                `stoker-draft-${labels.collection}`,
+                                                                                                `stoker-draft-${selectedCreateCollection || labels.collection}`,
                                                                                             )
                                                                                         }}
                                                                                     >
@@ -2576,11 +2806,15 @@ function Collection({
                                                                                     </Button>
                                                                                 </div>
                                                                                 <RecordForm
-                                                                                    collection={collection}
+                                                                                    collection={createCollectionSchema}
                                                                                     operation="create"
-                                                                                    path={[labels.collection]}
+                                                                                    path={[
+                                                                                        selectedCreateCollection ||
+                                                                                            labels.collection,
+                                                                                    ]}
                                                                                     record={createPrePopulatedRecord()}
                                                                                     draft={true}
+                                                                                    fromCalendar={true}
                                                                                     parentCollection={
                                                                                         relationCollection?.labels
                                                                                             .collection
@@ -2589,6 +2823,12 @@ function Collection({
                                                                                     onSuccess={() => {
                                                                                         setIsCreateDialogOpen(false)
                                                                                         setSelectedDateRange(null)
+                                                                                        setSelectedCreateCollection(
+                                                                                            undefined,
+                                                                                        )
+                                                                                        setCreateCalendarConfig(
+                                                                                            undefined,
+                                                                                        )
                                                                                         setTimeout(() => {
                                                                                             addButtonRef.current?.focus()
                                                                                         }, 0)
@@ -2823,6 +3063,10 @@ function Collection({
                                                     unsubscribe={unsubscribe}
                                                     setOptimisticList={setOptimisticList}
                                                     canAddRecords={!!(canAddRecords && !isCreateDisabled)}
+                                                    disableCreate={disableCreate}
+                                                    creatableCalendarCollections={creatableCalendarCollections}
+                                                    additionalOfflineUpdateDisabled={additionalOfflineUpdateDisabled}
+                                                    additionalTitles={additionalTitles}
                                                     onDateSelection={handleCalendarDateSelection}
                                                     backToStartKey={backToStartKey}
                                                     relationList={!!relationList}

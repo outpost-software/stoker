@@ -566,6 +566,7 @@ export interface CalendarConfig {
     color?: string | ((record: StokerRecord) => string)
     eventTitle?: (record: StokerRecord) => string
     filterRecords?: (record: StokerRecord) => boolean
+    additionalCollections?: StokerCollection[]
 }
 
 export type StatusFilter = {
