@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.134
+
+### Patch Changes
+
+- feat: lint calendar additional collections
+
 ## 0.5.133
 
 ### Patch Changes

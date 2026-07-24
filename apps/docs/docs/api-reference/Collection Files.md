@@ -2065,6 +2065,7 @@ type CalendarConfig = {
         title: string
         roles?: string[]
     }
+    additionalCollections: string[]
     dataStart?: { days: number } | { weeks: number } | { months: number } | { years: number }
     dataEnd?: { days: number } | { weeks: number } | { months: number } | { years: number }
     dataStartOffset?: { days: number } | { weeks: number } | { months: number } | { years: number }
@@ -2103,6 +2104,8 @@ Show a calendar view.
 `resourceTitleField`: A field in the `resourceField` collection that will act as a title 
 
 `unscheduled`: Show a column of unscheduled records. Only relevant if [`preloadCache.range`](#range) is present for the user role. Records can be dragged onto the calendar.
+
+`additionalCollections`: A list of names of collections to display on the calendar alongside the main collection. Additonal collections will only work when the preload cache is enabled for the user's role for the given collection.
 
 `dataStart`: How far into the past to load records for
 

@@ -821,6 +821,27 @@ export const lintSchema = async (noLog = false) => {
                     }
                 }
             }
+
+            if (calendar.additionalCollections) {
+                for (const additionalCollection of calendar.additionalCollections) {
+                    if (!collectionNames.includes(additionalCollection)) {
+                        errors.push(
+                            `Collection ${collectionName} has a calendar additional collection ${additionalCollection} that does not exist`,
+                        )
+                    } else {
+                        // eslint-disable-next-line security/detect-object-injection
+                        const additionalCustomization = customizationModules[additionalCollection]
+                        const additionalCalendar = (await tryPromise(additionalCustomization?.admin?.calendar)) as
+                            | CalendarConfig
+                            | undefined
+                        if (!additionalCalendar) {
+                            errors.push(
+                                `Collection ${collectionName} has a calendar additional collection ${additionalCollection} that does not have a calendar configuration`,
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         const restrictExport = (await tryPromise(customization?.admin?.restrictExport)) as string[] | undefined
