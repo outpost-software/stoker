@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.220
+
+### Patch Changes
+
+- feat: show loading spinner for serverWriteOnly create operations
+
 ## 0.5.219
 
 ### Patch Changes

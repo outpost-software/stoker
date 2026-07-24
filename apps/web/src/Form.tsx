@@ -4180,7 +4180,7 @@ function RecordForm({
                 const docId = doc(dbCollection(db, "tenants", tenantId, labels.collection)).id
 
                 setGlobalLoading("+", docId, serverWrite, !(serverWrite || isServerReadOnly))
-                if (isServerReadOnly) {
+                if (serverWrite || isServerReadOnly) {
                     setIsAddingServer(true)
                 }
 
@@ -4211,9 +4211,6 @@ function RecordForm({
                             form.setValue("passwordConfirm", "", { shouldDirty: false })
                         }
 
-                        if (isServerReadOnly) {
-                            setIsAddingServer(false)
-                        }
                         if (serverWrite || isServerReadOnly) {
                             if (onSuccess)
                                 onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
@@ -4263,6 +4260,9 @@ function RecordForm({
                         }
                     })
                     .finally(() => {
+                        if (serverWrite || isServerReadOnly) {
+                            setIsAddingServer(false)
+                        }
                         setGlobalLoading("-", docId, undefined, !(serverWrite || isServerReadOnly))
                     })
                 if (!(serverWrite || isServerReadOnly)) {
@@ -5802,7 +5802,8 @@ function RecordForm({
                                             (operation === "create" && isCreateDisabled) ||
                                             (operation === "update" && (isUpdateDisabled || isPendingServer)) ||
                                             isGlobalLoading.has(id) ||
-                                            isSaving
+                                            isSaving ||
+                                            isAddingServer
                                         }
                                     >
                                         Save
