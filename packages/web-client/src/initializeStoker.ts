@@ -526,6 +526,11 @@ export const initializeStoker = async (
     let offlinePersistence: "ALL" | "WRITE" | "NONE"
 
     onAuthStateChanged(main, async (currentUser) => {
+        if (currentUser && user?.uid && currentUser.uid !== user.uid) {
+            window.location.reload()
+            return
+        }
+
         const generation = ++authLifecycleGeneration
         const isStale = () => generation !== authLifecycleGeneration
 

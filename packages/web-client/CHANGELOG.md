@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.91
+
+### Patch Changes
+
+- fix: fix re-auth as different user issue
+
 ## 0.5.90
 
 ### Patch Changes
