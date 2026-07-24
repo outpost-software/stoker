@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.103
+
+### Patch Changes
+
+- fix: skip over non-existent files when retrieving file metadata
+
 ## 0.5.102
 
 ### Patch Changes

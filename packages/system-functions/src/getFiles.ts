@@ -187,33 +187,37 @@ export const getFiles = async (
                 if (pathParts[0] === ".placeholder") {
                     continue;
                 }
-                const [metadata] = await file.getMetadata();
-                const customMetadata = metadata.metadata || {};
-                const readRoles =
-                    typeof customMetadata.read === "string" ?
-                        customMetadata.read.split(",") : [];
-                const updateRoles =
-                    typeof customMetadata.update === "string" ?
-                        customMetadata.update.split(",") : [];
-                const deleteRoles =
-                    typeof customMetadata.delete === "string" ?
-                        customMetadata.delete.split(",") : [];
-                const createdBy =
-                    typeof customMetadata.createdBy === "string" ?
-                        customMetadata.createdBy : undefined;
+                try {
+                    const [metadata] = await file.getMetadata();
+                    const customMetadata = metadata.metadata || {};
+                    const readRoles =
+                        typeof customMetadata.read === "string" ?
+                            customMetadata.read.split(",") : [];
+                    const updateRoles =
+                        typeof customMetadata.update === "string" ?
+                            customMetadata.update.split(",") : [];
+                    const deleteRoles =
+                        typeof customMetadata.delete === "string" ?
+                            customMetadata.delete.split(",") : [];
+                    const createdBy =
+                        typeof customMetadata.createdBy === "string" ?
+                            customMetadata.createdBy : undefined;
 
-                if (user === createdBy || readRoles.includes(userRole)) {
-                    items.push({
-                        name: pathParts[0],
-                        fullPath: file.name,
-                        isFolder: false,
-                        metadata: {
-                            read: readRoles,
-                            update: updateRoles,
-                            delete: deleteRoles,
-                            createdBy: createdBy,
-                        },
-                    });
+                    if (user === createdBy || readRoles.includes(userRole)) {
+                        items.push({
+                            name: pathParts[0],
+                            fullPath: file.name,
+                            isFolder: false,
+                            metadata: {
+                                read: readRoles,
+                                update: updateRoles,
+                                delete: deleteRoles,
+                                createdBy: createdBy,
+                            },
+                        });
+                    }
+                } catch {
+                    continue;
                 }
             }
         }
