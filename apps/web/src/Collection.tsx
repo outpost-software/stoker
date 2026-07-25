@@ -875,6 +875,7 @@ function Collection({
         }
     }, [location.pathname, setIsRouteLoading])
     const cacheLoaded = useCallback(() => {
+        if (!isCacheLoading.current) return
         isCacheLoading.current = false
         setIsRouteLoading("-", location.pathname, true)
         setCacheLoadingCompleted(true)
@@ -883,14 +884,18 @@ function Collection({
     const hasRunSingleton = useRef(false)
 
     useEffect(() => {
+        // Prevent UI flicker
+        const cacheLoadedDelayed = () => setTimeout(() => cacheLoaded(), 100)
         if (isPreloadCacheEnabled) {
             const isPreloading = getLoadingState()[labels.collection]
             if (!isPreloading || isPreloading === "Loading") {
                 cacheLoading()
+            } else if (isPreloading === "Loaded") {
+                cacheLoadingStarted.current = true
+                setCacheLoadingCompleted(true)
             }
             document.addEventListener(`stoker:loading:${labels.collection}`, cacheLoading)
-            // Prevent UI flicker
-            document.addEventListener(`stoker:loaded:${labels.collection}`, () => setTimeout(() => cacheLoaded(), 100))
+            document.addEventListener(`stoker:loaded:${labels.collection}`, cacheLoadedDelayed)
         }
 
         const getSingleton = async () => {
@@ -1480,7 +1485,7 @@ function Collection({
             unsubscribe.current = {}
             if (isPreloadCacheEnabled) {
                 document.removeEventListener(`stoker:loading:${labels.collection}`, cacheLoading)
-                document.removeEventListener(`stoker:loaded:${labels.collection}`, cacheLoaded)
+                document.removeEventListener(`stoker:loaded:${labels.collection}`, cacheLoadedDelayed)
             }
             if (relationList?.loadAll) {
                 const unsubscribes = getPreloadListeners()[`${labels.collection}-${relationList.field}`]

@@ -3,6 +3,7 @@ import {
     CollectionMeta,
     CollectionSchema,
     Filter,
+    PreloadCacheRange,
     RangeFilter,
     StokerCollection,
     StokerPermissions,
@@ -37,12 +38,13 @@ import {
     tryFunction,
 } from "@stoker-platform/utils"
 import cloneDeep from "lodash/cloneDeep.js"
-import { useGlobalLoading } from "./providers/LoadingProvider"
+import { useGlobalLoading, useRouteLoading } from "./providers/LoadingProvider"
 import { useToast } from "./hooks/use-toast"
 import { QueryConstraint, Timestamp, where } from "firebase/firestore"
 import { Table, TableBody, TableCell, TableRow } from "./components/ui/table"
 import { Grip } from "lucide-react"
 import { useDrag } from "react-dnd"
+import { useLocation } from "react-router"
 
 import {
     CalendarOptions,
@@ -257,6 +259,7 @@ export function Calendar({
     const customization = getCollectionConfigModule(labels.collection)
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
+    const location = useLocation()
     const goToRecord = useGoToRecord()
     const { toast } = useToast()
     const [connectionStatus] = useConnection()
@@ -280,6 +283,7 @@ export function Calendar({
 
     const { optimisticUpdates, removeOptimisticUpdate, setOptimisticUpdate, removeCacheOptimistic } = useOptimistic()
     const { isGlobalLoading, setGlobalLoading } = useGlobalLoading()
+    const { setIsRouteLoading } = useRouteLoading()
     const [isInitialized, setIsInitialized] = useState(false)
     const [mainCollectionLoaded, setMainCollectionLoaded] = useState(false)
     const [additionalConfigLoaded, setAdditionalConfigLoaded] = useState(false)
@@ -306,6 +310,10 @@ export function Calendar({
     const currentField = currentFieldAll?.[labels.collection]
     const preloadRange = preloadRangeAll?.[labels.collection]
     const isPreloadCacheEnabled = preloadCacheEnabled(collection)
+
+    const pendingPreload = useRef<{ preloadCacheRange: PreloadCacheRange; newRange: DateRange } | null>(null)
+    const isPreloading = useRef(false)
+    const isPreloadSpinnerShown = useRef(false)
 
     const constraintsWithoutRangeFilter = useCallback(
         (allFilters: Filter[]) => {
@@ -1259,57 +1267,116 @@ export function Calendar({
         }
     }, [currentViewSmall])
 
+    const runPreload = useCallback(
+        async (preloadCacheRange: PreloadCacheRange, newRange: DateRange) => {
+            const preloadedCollections: StokerCollection[] = [labels.collection]
+            const preloads: Promise<void>[] = [preloadCollection(labels.collection, undefined, preloadCacheRange)]
+            for (const additionalCollection of calendarConfig?.additionalCollections || []) {
+                // eslint-disable-next-line security/detect-object-injection
+                const additionalSchema = schema.collections[additionalCollection]
+                if (!additionalSchema?.preloadCache?.range || !preloadCacheEnabled(additionalSchema)) continue
+                const preloadCacheRangeAdditional = cloneDeep(additionalSchema.preloadCache.range)
+                preloadCacheRangeAdditional.start = preloadCacheRange.start
+                preloadCacheRangeAdditional.end = preloadCacheRange.end
+                preloads.push(preloadCollection(additionalCollection, undefined, preloadCacheRangeAdditional))
+                preloadedCollections.push(additionalCollection)
+            }
+            try {
+                await Promise.all(preloads)
+            } catch (error) {
+                console.error(error)
+                return
+            }
+            setPreloadRange((prev) => {
+                const next = { ...prev }
+                for (const preloadedCollection of preloadedCollections) {
+                    // eslint-disable-next-line security/detect-object-injection
+                    next[preloadedCollection] = newRange
+                }
+                return next
+            })
+        },
+        [calendarConfig, labels.collection, schema.collections, setPreloadRange],
+    )
+
+    const requestPreload = useCallback(
+        (preloadCacheRange: PreloadCacheRange, newRange: DateRange) => {
+            pendingPreload.current = { preloadCacheRange, newRange }
+            if (isPreloading.current) {
+                if (!isPreloadSpinnerShown.current) {
+                    isPreloadSpinnerShown.current = true
+                    setIsRouteLoading("+", location.pathname, true)
+                }
+                return
+            }
+            isPreloading.current = true
+            const run = async () => {
+                try {
+                    while (pendingPreload.current) {
+                        const request = pendingPreload.current
+                        pendingPreload.current = null
+                        await runPreload(request.preloadCacheRange, request.newRange)
+                    }
+                } finally {
+                    isPreloading.current = false
+                    if (isPreloadSpinnerShown.current) {
+                        isPreloadSpinnerShown.current = false
+                        setIsRouteLoading("-", location.pathname, true)
+                    }
+                }
+            }
+            run()
+        },
+        [runPreload, setIsRouteLoading, location.pathname],
+    )
+
+    useEffect(() => {
+        return () => {
+            if (isPreloadSpinnerShown.current) {
+                isPreloadSpinnerShown.current = false
+                setIsRouteLoading("-", location.pathname, true)
+            }
+        }
+    }, [])
+
     const handleDateChange = useCallback(
-        (date: Date) => {
+        (date: Date, viewStart: Date, viewEnd: Date) => {
             if (!isInitialized || (isPreloadCacheEnabled && !preloadRange)) return
             const datetime = DateTime.fromJSDate(date)
+            const requiredStart = DateTime.min(
+                DateTime.fromJSDate(viewStart),
+                datetime.minus(calendarConfig?.dataStartOffset || { months: 1 }),
+            )
+            const requiredEnd = DateTime.max(
+                DateTime.fromJSDate(viewEnd),
+                datetime.plus(calendarConfig?.dataEndOffset || { months: 1 }),
+            )
+            const expandStart = DateTime.min(
+                DateTime.fromJSDate(viewStart),
+                datetime.minus(calendarConfig?.dataStart || { months: 1 }),
+            ).toJSDate()
+            const expandEnd = DateTime.max(
+                DateTime.fromJSDate(viewEnd),
+                datetime.plus(calendarConfig?.dataEnd || { months: 1 }),
+            ).toJSDate()
             const newRange = {} as DateRange
             if (currentField && preloadCache?.range) {
                 if (preloadRange?.from && preloadRange?.to) {
                     const preloadCacheRange = cloneDeep(preloadCache.range)
-                    if (
-                        datetime
-                            .minus(calendarConfig?.dataStartOffset || { months: 1 })
-                            .diff(DateTime.fromJSDate(preloadRange?.from)).milliseconds < 0
-                    ) {
-                        preloadCacheRange.start = datetime.minus(calendarConfig?.dataStart || { months: 1 }).toJSDate()
+                    if (requiredStart.diff(DateTime.fromJSDate(preloadRange?.from)).milliseconds < 0) {
+                        preloadCacheRange.start = expandStart
                     } else {
                         preloadCacheRange.start = preloadRange?.from
                     }
-                    if (
-                        datetime
-                            .plus(calendarConfig?.dataEndOffset || { months: 1 })
-                            .diff(DateTime.fromJSDate(preloadRange?.to)).milliseconds > 0
-                    ) {
-                        preloadCacheRange.end = datetime.plus(calendarConfig?.dataEnd || { months: 1 }).toJSDate()
+                    if (requiredEnd.diff(DateTime.fromJSDate(preloadRange?.to)).milliseconds > 0) {
+                        preloadCacheRange.end = expandEnd
                     } else {
                         preloadCacheRange.end = preloadRange?.to
                     }
                     newRange.from = preloadCacheRange.start
                     newRange.to = preloadCacheRange.end
                     if (!isEqual(newRange, preloadRange)) {
-                        preloadCollection(labels.collection, undefined, preloadCacheRange)
-                        for (const additionalCollection of calendarConfig?.additionalCollections || []) {
-                            // eslint-disable-next-line security/detect-object-injection
-                            const additionalSchema = schema.collections[additionalCollection]
-                            if (!additionalSchema?.preloadCache?.range || !preloadCacheEnabled(additionalSchema))
-                                continue
-                            const preloadCacheRangeAdditional = cloneDeep(additionalSchema.preloadCache.range)
-                            preloadCacheRangeAdditional.start = preloadCacheRange.start
-                            preloadCacheRangeAdditional.end = preloadCacheRange.end
-                            preloadCollection(additionalCollection, undefined, preloadCacheRangeAdditional)
-                        }
-                        setPreloadRange((prev) => {
-                            const next = {
-                                ...prev,
-                                [labels.collection]: newRange,
-                            }
-                            for (const additionalCollection of calendarConfig?.additionalCollections || []) {
-                                // eslint-disable-next-line security/detect-object-injection
-                                next[additionalCollection] = newRange
-                            }
-                            return next
-                        })
+                        requestPreload(preloadCacheRange, newRange)
                     }
                 }
             } else {
@@ -1319,13 +1386,11 @@ export function Calendar({
                 if (
                     calendarConfig.dataStart &&
                     calendarConfig.dataEnd &&
-                    (datetime.minus(calendarConfig?.dataStartOffset || { months: 1 }).diff(DateTime.fromISO(range.from))
-                        .milliseconds < 0 ||
-                        datetime.plus(calendarConfig?.dataEndOffset || { months: 1 }).diff(DateTime.fromISO(range.to))
-                            .milliseconds > 0)
+                    (requiredStart.diff(DateTime.fromISO(range.from)).milliseconds < 0 ||
+                        requiredEnd.diff(DateTime.fromISO(range.to)).milliseconds > 0)
                 ) {
-                    newRange.from = datetime.minus(calendarConfig.dataStart).toJSDate()
-                    newRange.to = datetime.plus(calendarConfig.dataEnd).toJSDate()
+                    newRange.from = expandStart
+                    newRange.to = expandEnd
                     if (!isEqual(JSON.stringify(newRange), JSON.stringify(range))) {
                         const rangeFilterValue = {
                             type: "range" as const,
@@ -1337,7 +1402,16 @@ export function Calendar({
                 }
             }
         },
-        [calendarConfig, rangeFilter, preloadCache, currentField, preloadRange, isInitialized, isPreloadCacheEnabled],
+        [
+            calendarConfig,
+            rangeFilter,
+            preloadCache,
+            currentField,
+            preloadRange,
+            isInitialized,
+            isPreloadCacheEnabled,
+            requestPreload,
+        ],
     )
 
     if (!calendarConfig || !permissions || (isPreloadCacheEnabled && preloadCache?.range && !currentField)) return null
@@ -1448,7 +1522,7 @@ export function Calendar({
                                     datesSet={(arg: DatesSetArg) => {
                                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                         const date = (arg.view as any).getCurrentData().calendarApi.getDate()
-                                        handleDateChange(date)
+                                        handleDateChange(date, arg.start, arg.end)
                                         setState(
                                             `collection-calendar-large-date-${labels.collection.toLowerCase()}`,
                                             "calendar-large-date",
@@ -1480,7 +1554,7 @@ export function Calendar({
                                     datesSet={(arg: DatesSetArg) => {
                                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                         const date = (arg.view as any).getCurrentData().calendarApi.getDate()
-                                        handleDateChange(date)
+                                        handleDateChange(date, arg.start, arg.end)
                                         setState(
                                             `collection-calendar-small-date-${labels.collection.toLowerCase()}`,
                                             "calendar-small-date",

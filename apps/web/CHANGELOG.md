@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.222
+
+### Patch Changes
+
+- feat: improve calendar data loading
+
 ## 0.5.221
 
 ### Patch Changes
