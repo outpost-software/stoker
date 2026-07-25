@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.135
+
+### Patch Changes
+
+- fix: fix custom domain overwriting storage CORS issue
+
 ## 0.5.134
 
 ### Patch Changes

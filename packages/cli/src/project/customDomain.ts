@@ -140,28 +140,25 @@ export const customDomain = async (options: any) => {
             "describe",
             `gs://${projectId}`,
             `--project=${projectId}`,
+            "--raw",
             "--format=json",
         ])
         const corsConfigJson = JSON.parse(corsConfigString)
         const existingCors = corsConfigJson.cors || []
-
-        const allOrigins = new Set()
-        for (const corsEntry of existingCors) {
-            if (corsEntry.origin) {
-                for (const origin of corsEntry.origin) {
-                    allOrigins.add(origin)
-                }
-            }
-        }
-        allOrigins.add(`https://${options.domain}`)
-
-        const corsToWrite = [
-            {
-                origin: Array.from(allOrigins),
-                method: ["GET"],
-                maxAgeSeconds: 3600,
-            },
-        ]
+        const customDomainOrigin = `https://${options.domain}`
+        const corsToWrite =
+            existingCors.length > 0
+                ? existingCors.map((corsEntry: { origin?: string[] }) => ({
+                      ...corsEntry,
+                      origin: Array.from(new Set([...(corsEntry.origin || []), customDomainOrigin])),
+                  }))
+                : [
+                      {
+                          origin: [customDomainOrigin],
+                          method: ["GET"],
+                          maxAgeSeconds: 3600,
+                      },
+                  ]
 
         await writeFile("cors.json", JSON.stringify(corsToWrite))
 
