@@ -1,5 +1,14 @@
 # @stoker-platform/node-client
 
+## 0.5.86
+
+### Patch Changes
+
+- fix: standardise preValidate hook data argument
+- Updated dependencies
+    - @stoker-platform/types@0.5.64
+    - @stoker-platform/utils@0.5.77
+
 ## 0.5.85
 
 ### Patch Changes

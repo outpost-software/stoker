@@ -136,7 +136,7 @@ export const addRecord = async (
         }
         const preValidateArgs: PreValidateHookArgs = {
             operation: "create",
-            record: data as StokerRecord,
+            data: data as StokerRecord,
             context,
             batch,
         }
@@ -210,7 +210,7 @@ export const addRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                { operation: "create", record, context, batch },
+                { operation: "create", data: record, context, batch },
                 schema,
             )
             if (offlineDisabled) {

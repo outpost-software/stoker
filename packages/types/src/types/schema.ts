@@ -252,7 +252,7 @@ export type PostReadHookArgs = {
 export type PreDuplicateHookArgs = { data: Partial<StokerRecord> }
 export type PreValidateHookArgs = {
     operation: "create" | "update"
-    record: StokerRecord
+    data: StokerRecord
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: any
     batch?: WriteBatch

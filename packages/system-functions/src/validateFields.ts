@@ -78,7 +78,7 @@ export const validateFields = (
                     }
                     record[softDelete.timestampField] = FieldValue.serverTimestamp();
                 }
-                await validateRecord(operation, record as StokerRecord, collection, customization, {operation, record: after, context: {}, originalRecord: operation === "update" ? before : undefined}, schema);
+                await validateRecord(operation, record as StokerRecord, collection, customization, {operation, data: after, context: {}, originalRecord: operation === "update" ? before : undefined}, schema);
                 if (operation === "update" && before) {
                     validateSoftDelete("update", collection, after, before);
                 }

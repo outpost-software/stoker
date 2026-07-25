@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.64
+
+### Patch Changes
+
+- fix: standardise preValidate hook data argument
+
 ## 0.5.63
 
 ### Patch Changes

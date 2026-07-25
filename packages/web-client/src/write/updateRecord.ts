@@ -165,7 +165,7 @@ export const updateRecord = async (
         }
         const preValidateArgs: PreValidateHookArgs = {
             operation: "update",
-            record: { ...originalRecord, ...data },
+            data: data as StokerRecord,
             context,
             batch,
             originalRecord: cloneDeep(originalRecord),
@@ -254,7 +254,7 @@ export const updateRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                { operation: "update", record, context, batch, originalRecord: cloneDeep(originalRecord) },
+                { operation: "update", data: partial, context, batch, originalRecord: cloneDeep(originalRecord) },
                 schema,
             )
             if (offlineDisabled) {

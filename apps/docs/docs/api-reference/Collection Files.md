@@ -2320,7 +2320,7 @@ Fires before a read operation.
 ```
 ({
     operation: "create" | "update"
-    record: StokerRecord
+    data: StokerRecord
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord

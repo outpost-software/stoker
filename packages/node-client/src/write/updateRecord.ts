@@ -271,7 +271,7 @@ export const updateRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                { operation: "update", record: partial, context, originalRecord: cloneDeep(originalRecord) },
+                { operation: "update", data: partial, context, originalRecord: cloneDeep(originalRecord) },
                 schema,
             )
         }
@@ -300,7 +300,7 @@ export const updateRecord = async (
             record,
             collectionSchema,
             customization,
-            { operation: "update", record: partial, context, originalRecord: cloneDeep(originalRecord) },
+            { operation: "update", data: partial, context, originalRecord: cloneDeep(originalRecord) },
             schema,
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

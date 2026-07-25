@@ -163,7 +163,7 @@ export const addRecord = async (
                 record,
                 collectionSchema,
                 customization,
-                { operation: "create", record, context },
+                { operation: "create", data: record, context },
                 schema,
             )
         }
@@ -188,7 +188,7 @@ export const addRecord = async (
             record,
             collectionSchema,
             customization,
-            { operation: "create", record, context },
+            { operation: "create", data: record, context },
             schema,
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
