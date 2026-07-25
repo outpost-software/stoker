@@ -72,6 +72,15 @@ export const writeEmbedding = (
             }, {maxAttempts: 20}).catch((error) => {
                 errorLogger(error);
             });
+        } else if (!after && aiConfig?.embedding) {
+            const db = getStokerFirestore();
+            await db.collection("tenants").doc(tenantId)
+                .collection(`system_embeddings_${labels.collection}`)
+                .doc(snapshot.before.id)
+                .delete()
+                .catch((error) => {
+                    errorLogger(error);
+                });
         }
         return;
     })();

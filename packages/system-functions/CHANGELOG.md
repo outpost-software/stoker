@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.104
+
+### Patch Changes
+
+- feat: delete embedding on record delete
+
 ## 0.5.103
 
 ### Patch Changes
