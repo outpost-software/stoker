@@ -1,11 +1,13 @@
 import { fetchCurrentSchema, initializeFirebase, runChildProcess } from "@stoker-platform/node-client"
 import { setDeploymentStatus } from "./maintenance/setDeploymentStatus.js"
 import { getFunctionsData } from "./cloud-functions/getFunctionsData.js"
-import { retryOperation } from "@stoker-platform/utils"
+import { getFirestoreDatabaseId, retryOperation } from "@stoker-platform/utils"
 import { generateSchema } from "./schema/generateSchema.js"
 import isEqual from "lodash/isEqual.js"
 import cloneDeep from "lodash/cloneDeep.js"
 import { CollectionsSchema } from "@stoker-platform/types"
+import { readFile, writeFile } from "node:fs/promises"
+import { join } from "node:path"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const deployProject = async (options: any) => {
@@ -76,6 +78,38 @@ export const deployProject = async (options: any) => {
         }
 
         await initializeFirebase()
+
+        const firebaseJsonPath = join(process.cwd(), "firebase.json")
+        const firebaseJson = JSON.parse(await readFile(firebaseJsonPath, "utf8"))
+        if ((process.env.FB_FIRESTORE_EDITION || "enterprise") === "enterprise") {
+            firebaseJson.firestore = [
+                {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    database: getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT!),
+                    rules: "firebase-rules/firestore.rules",
+                    indexes: "firebase-rules/firestore.indexes.json",
+                },
+            ]
+        } else {
+            firebaseJson.firestore = {
+                rules: "firebase-rules/firestore.rules",
+                indexes: "firebase-rules/firestore.indexes.json",
+            }
+        }
+        await writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 4), "utf8")
+
+        const extensionEnvPath = join(process.cwd(), "extensions", "firestore-send-email.env")
+        const extensionEnvFile = await readFile(extensionEnvPath, "utf8")
+        const extensionEnvFileLines = extensionEnvFile.split("\n")
+        const linesToRemove = ["DATABASE="]
+        const filteredLines = extensionEnvFileLines.filter(
+            (line) => !linesToRemove.some((removeStr) => line.startsWith(removeStr)),
+        )
+        filteredLines.push(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            `DATABASE=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT!)}`,
+        )
+        await writeFile(extensionEnvPath, filteredLines.join("\n"))
 
         if (options.initial) {
             await retryOperation(

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.137
+
+### Patch Changes
+
+- fix: dynamically update project ID in config files on deploy
+
 ## 0.5.136
 
 ### Patch Changes
