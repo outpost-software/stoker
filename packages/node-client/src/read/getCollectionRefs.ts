@@ -15,7 +15,9 @@ import { Query, WhereFilterOp } from "firebase-admin/firestore"
 import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import {
     collectionAccess,
+    evaluateFieldAccessCondition,
     getField,
+    getFieldAccessGroupFields,
     getRoleGroup,
     hasDependencyAccess,
     getEntityParentFilters,
@@ -30,6 +32,7 @@ export const getCollectionRefs = (
     schema: CollectionsSchema,
     userId?: string,
     permissions?: StokerPermissions,
+    claims?: Record<string, unknown>,
 ): Query[] => {
     const db = getStokerFirestore()
     const collectionName = path.at(-1)
@@ -52,7 +55,7 @@ export const getCollectionRefs = (
         }
 
         const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
-        const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions)
+        const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions, claims ?? {})
         const hasAttributeRestrictions: AttributeRestriction[] = getAttributeRestrictions(collectionSchema, permissions)
         const hasEntityRestrictions: EntityRestriction[] = getEntityRestrictions(collectionSchema, permissions)
         const hasEntityParentFilters: { parentFilter: EntityParentFilter; parentRestriction: EntityRestriction }[] =
@@ -77,6 +80,23 @@ export const getCollectionRefs = (
                     query = query.where(...constraint)
                 })
                 queries.push(query)
+                const fieldAccessGroupFields = getFieldAccessGroupFields(collectionSchema)
+                Object.entries(collectionSchema.fieldAccessGroups || {}).forEach(([groupKey, condition]) => {
+                    // eslint-disable-next-line security/detect-object-injection
+                    if (!fieldAccessGroupFields[groupKey]?.length) return
+                    if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims ?? {})) return
+                    let groupQuery = db
+                        .collection("tenants")
+                        .doc(tenantId)
+                        .collection("system_fields")
+                        .doc(labels.collection)
+                        .collection(`${labels.collection}-${groupKey}`)
+                        .where("Collection_Path_String", "==", path.join("/"))
+                    constraints.forEach((constraint: [string, WhereFilterOp, unknown]) => {
+                        groupQuery = groupQuery.where(...constraint)
+                    })
+                    queries.push(groupQuery)
+                })
             } else if (dependencyAccess) {
                 for (const field of dependencyAccess) {
                     let query = db

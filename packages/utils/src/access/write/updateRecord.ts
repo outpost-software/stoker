@@ -15,6 +15,7 @@ export const updateRecordAccessControl = (
     userOperation?: string,
     permissions?: StokerPermissions,
     originalPermissions?: StokerPermissions | undefined,
+    claims?: Record<string, unknown>,
 ) => {
     const { labels, fields } = collectionSchema
     // eslint-disable-next-line security/detect-object-injection
@@ -86,12 +87,12 @@ export const updateRecordAccessControl = (
     for (const field of fields) {
         const value = partial[field.name]
         if (field.access) {
-            if (!privateFieldAccess(field, currentUserPermissions) && value !== undefined) {
+            if (!privateFieldAccess(field, currentUserPermissions, collectionSchema, claims) && value !== undefined) {
                 errorDetails = `Authenticated user does not have access to field ${field.name}`
                 granted = false
             }
         }
-        if (value !== undefined && !restrictUpdateAccess(field, currentUserPermissions)) {
+        if (value !== undefined && !restrictUpdateAccess(field, currentUserPermissions, labels.collection, claims)) {
             errorDetails = `Authenticated user does not have Update access to field ${field.name}`
             granted = false
         }

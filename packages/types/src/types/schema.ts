@@ -997,6 +997,42 @@ export interface SingleFieldExemption {
     arrayConfig?: "CONTAINS" | "CONTAINS_ANY"
 }
 
+export interface FieldAccessCondition {
+    /** All roles that this field group CAN apply to */
+    applicableRoles: StokerRole[]
+    match?: "any" | "all"
+    /** Require collection auth access to equal this value for the current user */
+    collectionAuth?: boolean
+    /** The current user's role must be one of these */
+    roles?: StokerRole[]
+    /** How to combine the provided checks */
+    /**
+     * Auth token claim checks. A scalar value requires equality.
+     * An array requires the claim value to be one of the listed values.
+     * All entries must match.
+     */
+    claims?: Record<string, string | number | boolean | (string | number | boolean)[]>
+    /**
+     * Required state of this collection's permission restrictions for the current user.
+     * All entries must match.
+     */
+    restrictions?: {
+        /** collection recordOwner restriction must equal this */
+        recordOwner?: boolean
+        /** collection recordUser restriction must equal this */
+        recordUser?: boolean
+        /** collection recordProperty restriction must equal this */
+        recordProperty?: boolean
+        /** collection restrictEntities restriction must equal this */
+        restrictEntities?: boolean
+    }
+}
+
+export interface FieldAccessGroupReference {
+    /** Key of a fieldAccessGroups entry on the collection */
+    group: string
+}
+
 export interface StandardField {
     name: string
     description?: string | (() => string | Promise<string>)
@@ -1014,9 +1050,9 @@ export interface StandardField {
 
     saveToAuthToken?: boolean
 
-    access?: StokerRole[]
-    restrictCreate?: StokerRole[] | boolean
-    restrictUpdate?: StokerRole[] | boolean
+    access?: StokerRole[] | FieldAccessGroupReference
+    restrictCreate?: StokerRole[] | boolean | FieldAccessCondition
+    restrictUpdate?: StokerRole[] | boolean | FieldAccessCondition
     skipRulesValidation?: boolean
 
     custom?: FieldCustom
@@ -1146,6 +1182,12 @@ export interface CollectionSchema {
     auth?: boolean
     singleton?: boolean
     parentCollection?: StokerCollection
+
+    /**
+     * Named conditional field access groups. Fields reference a group with
+     * access: { group }.
+     */
+    fieldAccessGroups?: Record<string, FieldAccessCondition>
 
     preloadCache?: PreloadCache
     softDelete?: {

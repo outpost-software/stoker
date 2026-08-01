@@ -3,6 +3,7 @@ import {
     getCollectionRefs,
     initializeStoker,
     getStokerFirestore,
+    getUser,
 } from "@stoker-platform/node-client"
 import { tryPromise, getRange } from "@stoker-platform/utils"
 import { Filter, Firestore, Query, WhereFilterOp } from "firebase-admin/firestore"
@@ -58,6 +59,11 @@ export const explainPreloadQueries = async (options: any) => {
     if (!permissionsSnapshot.exists) {
         throw new Error("User not found")
     }
+    const user = await getUser(options.id)
+    if (!user) {
+        throw new Error("User not found")
+    }
+    const claims = user.customClaims ?? {}
 
     const permissions = permissionsSnapshot.data()
 
@@ -90,7 +96,7 @@ export const explainPreloadQueries = async (options: any) => {
             unknown,
         ][]
 
-        const queries = getCollectionRefs(options.tenant, [collection], schema, options.id, permissions).map(
+        const queries = getCollectionRefs(options.tenant, [collection], schema, options.id, permissions, claims).map(
             (ref: Query) => {
                 const disjunctions: Filter[] = []
                 if (rangeConstraints) {

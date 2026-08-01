@@ -1250,6 +1250,70 @@
             ]
         },
         {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "Users-1",
             "queryScope": "COLLECTION",
             "fields": [
@@ -1530,6 +1594,164 @@
             ]
         },
         {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "Users-1",
             "queryScope": "COLLECTION",
             "fields": [
@@ -2521,6 +2743,582 @@
         },
         {
             "collectionGroup": "Users-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Address_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2807,6 +3605,160 @@
             "fields": [
                 {
                     "fieldPath": "Month",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Created_By",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Status",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Site_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Establishment_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "State",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Users_Array",
                     "arrayConfig": "CONTAINS"
                 },
                 {
@@ -4189,6 +5141,16 @@
             ]
         },
         {
+            "collectionGroup": "Users-Auth",
+            "fieldPath": "Collection_Path_String",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "Users-1",
             "fieldPath": "Role",
             "indexes": [
@@ -4240,6 +5202,36 @@
         },
         {
             "collectionGroup": "Users-2",
+            "fieldPath": "Enabled",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "fieldPath": "Role",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
+            "fieldPath": "Work_Orders_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth",
             "fieldPath": "Enabled",
             "indexes": [
                 {
@@ -4325,6 +5317,11 @@
         },
         {
             "collectionGroup": "Users-2",
+            "fieldPath": "*",
+            "indexes": []
+        },
+        {
+            "collectionGroup": "Users-Auth",
             "fieldPath": "*",
             "indexes": []
         },
@@ -4675,6 +5672,126 @@
             ]
         },
         {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Collection_Path_String",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Archived",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Area",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Month",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Establishment_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "User_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Site_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Start",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Status",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Created_By",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "State",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "Users_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
             "collectionGroup": "Work_Orders-1",
             "fieldPath": "Establishment_Single.id",
             "indexes": [
@@ -4696,6 +5813,16 @@
         },
         {
             "collectionGroup": "Work_Orders-3",
+            "fieldPath": "Establishment_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User",
             "fieldPath": "Establishment_Single.id",
             "indexes": [
                 {
@@ -4785,6 +5912,11 @@
             "indexes": []
         },
         {
+            "collectionGroup": "Work_Orders-No-Record-User",
+            "fieldPath": "*",
+            "indexes": []
+        },
+        {
             "collectionGroup": "Work_Orders-Start",
             "fieldPath": "*",
             "indexes": []
@@ -4792,36 +5924,6 @@
         {
             "collectionGroup": "Work_Orders-Start",
             "fieldPath": "Collection_Path_String",
-            "indexes": [
-                {
-                    "queryScope": "COLLECTION",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "Work_Orders-Start",
-            "fieldPath": "Created_At",
-            "indexes": [
-                {
-                    "queryScope": "COLLECTION",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "Work_Orders-Start",
-            "fieldPath": "Start",
-            "indexes": [
-                {
-                    "queryScope": "COLLECTION",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "Work_Orders-Start",
-            "fieldPath": "End",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
@@ -4872,6 +5974,36 @@
         {
             "collectionGroup": "Work_Orders-Start",
             "fieldPath": "State",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-Start",
+            "fieldPath": "Created_At",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-Start",
+            "fieldPath": "Start",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-Start",
+            "fieldPath": "End",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",

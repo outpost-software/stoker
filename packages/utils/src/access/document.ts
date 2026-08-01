@@ -261,6 +261,7 @@ export const dependencyAccess = (
     userId: string,
     permissions: StokerPermissions,
     record: StokerRecord,
+    claims: Record<string, unknown>,
 ) => {
     let granted = true
 
@@ -269,7 +270,7 @@ export const dependencyAccess = (
         return granted
     }
 
-    if (hasDependencyAccess(collectionSchema, schema, permissions).length === 0) granted = false
+    if (hasDependencyAccess(collectionSchema, schema, permissions, claims).length === 0) granted = false
 
     if (!filterAccess("Read", collectionSchema, schema, userId, permissions, record, true)) granted = false
 

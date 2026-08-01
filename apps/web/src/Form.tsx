@@ -33,6 +33,7 @@ import {
     tryFunction,
     getInputSchema,
     getField,
+    privateFieldAccess,
     restrictCreateAccess,
     restrictUpdateAccess,
     collectionAccess,
@@ -42,6 +43,7 @@ import {
     addRecord,
     deleteRecord,
     getCollectionConfigModule,
+    getCurrentUser,
     getCurrentUserPermissions,
     getOne,
     updateRecord,
@@ -296,6 +298,7 @@ const RecordFormField = (props: FieldProps) => {
     const customization = getFieldCustomization(field, customizationFile)
     const admin = customization.admin
     const permissions = getCurrentUserPermissions()
+    const userClaims = getCurrentUser()?.token.claims ?? {}
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
 
     const [label, setLabel] = useState("")
@@ -402,7 +405,7 @@ const RecordFormField = (props: FieldProps) => {
         return null
     }
 
-    if (operation === "create" && !restrictCreateAccess(field, permissions)) {
+    if (operation === "create" && !restrictCreateAccess(field, permissions, collection.labels.collection, userClaims)) {
         return null
     }
 
@@ -413,7 +416,11 @@ const RecordFormField = (props: FieldProps) => {
     if (operation === "update-many") {
         if ("unique" in field && field.unique) return null
         if (customization?.admin && "readOnly" in customization.admin) return null
-        if ("restrictUpdate" in field && !restrictUpdateAccess(field, permissions)) return null
+        if (
+            "restrictUpdate" in field &&
+            !restrictUpdateAccess(field, permissions, collection.labels.collection, userClaims)
+        )
+            return null
 
         if (collection.auth && field.name === "Role") return null
         if (connectionStatus === "offline" && collection.auth) return null
@@ -425,7 +432,7 @@ const RecordFormField = (props: FieldProps) => {
     const isReadOnly =
         (readOnly && !isRelationField(field)) ||
         (operation === "update" &&
-            (!restrictUpdateAccess(field, permissions) ||
+            (!restrictUpdateAccess(field, permissions, collection.labels.collection, userClaims) ||
                 (collection.auth && field.name === "Role" && record?.User_ID) ||
                 !hasUpdateAccess ||
                 isUpdateDisabled))
@@ -3948,22 +3955,25 @@ function RecordForm({
                     delete values[field.name]
                 }
 
-                if (field.access && permissions?.Role && !field.access.includes(permissions.Role)) {
+                const userClaims = getCurrentUser()?.token.claims ?? {}
+                if (
+                    field.access &&
+                    permissions?.Role &&
+                    !privateFieldAccess(field, permissions, collection, userClaims)
+                ) {
                     delete values[field.name]
                 }
                 if (
                     operation === "create" &&
                     field.restrictCreate &&
-                    (field.restrictCreate === true ||
-                        (permissions?.Role && !field.restrictCreate.includes(permissions.Role)))
+                    !restrictCreateAccess(field, permissions, collection.labels.collection, userClaims)
                 ) {
                     delete values[field.name]
                 }
                 if (
                     operation === "update" &&
                     field.restrictUpdate &&
-                    (field.restrictUpdate === true ||
-                        (permissions?.Role && !field.restrictUpdate.includes(permissions.Role)))
+                    !restrictUpdateAccess(field, permissions, collection.labels.collection, userClaims)
                 ) {
                     delete values[field.name]
                 }
@@ -4568,11 +4578,12 @@ function RecordForm({
         const recordToDuplicate: Partial<StokerRecord> = {}
         for (const field of fields) {
             const fieldCustomization = getFieldCustomization(field, customization)
+            const userClaims = getCurrentUser()?.token.claims ?? {}
             if (
                 field.type !== "Computed" &&
                 !(field.type === "Number" && field.autoIncrement) &&
                 !(collection.auth && field.name === "User_ID") &&
-                restrictCreateAccess(field, permissions) &&
+                restrictCreateAccess(field, permissions, collection.labels.collection, userClaims) &&
                 fieldCustomization.custom?.initialValue === undefined
             ) {
                 recordToDuplicate[field.name] = record[field.name]

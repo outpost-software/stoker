@@ -20,6 +20,7 @@ import {
 } from "@stoker-platform/utils"
 import {
     getCollectionConfigModule,
+    getCurrentUser,
     getCurrentUserPermissions,
     getOne,
     getSchema,
@@ -77,6 +78,7 @@ export function Filters({
     const schema = getSchema()
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
+    const claims = getCurrentUser()?.token.claims ?? {}
     const customization = getCollectionConfigModule(labels.collection)
 
     const { filters, setFilters } = useFilters()
@@ -125,19 +127,22 @@ export function Filters({
     const { offset: keyboardOffset, viewportHeight } = useKeyboardOffset(isMobile && someFilterOpen)
     const sheetHeight = Math.max(240, Math.min(viewportHeight - 16, viewportHeight * 0.9))
 
-    const hasRelationFilterAccess = useCallback((filter: Filter) => {
-        if (filter.type === "status" || filter.type === "range") return false
-        const field = getField(fields, filter.field)
-        if (!field || !isRelationField(field)) return false
-        const relationCollection = schema.collections[field.collection]
-        if (!relationCollection) return false
-        const collectionPermissions = permissions?.collections?.[relationCollection.labels.collection]
-        const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
-        const dependencyAccess = hasDependencyAccess(relationCollection, schema, permissions)
-        if (!fullCollectionAccess && dependencyAccess.length === 0) return false
-        if (relationList && relationList.field === filter.field) return false
-        return true
-    }, [])
+    const hasRelationFilterAccess = useCallback(
+        (filter: Filter) => {
+            if (filter.type === "status" || filter.type === "range") return false
+            const field = getField(fields, filter.field)
+            if (!field || !isRelationField(field)) return false
+            const relationCollection = schema.collections[field.collection]
+            if (!relationCollection) return false
+            const collectionPermissions = permissions?.collections?.[relationCollection.labels.collection]
+            const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
+            const dependencyAccess = hasDependencyAccess(relationCollection, schema, permissions, claims)
+            if (!fullCollectionAccess && dependencyAccess.length === 0) return false
+            if (relationList && relationList.field === filter.field) return false
+            return true
+        },
+        [permissions, claims, schema],
+    )
 
     useEffect(() => {
         const initialize = async () => {

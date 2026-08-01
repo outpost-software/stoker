@@ -1,5 +1,5 @@
 import { Unsubscribe, onSnapshot, onSnapshotsInSync, SnapshotMetadata } from "firebase/firestore"
-import { getStokerFirestore } from "../initializeStoker.js"
+import { getCurrentUser, getStokerFirestore } from "../initializeStoker.js"
 import {
     CollectionField,
     PostOperationHookArgs,
@@ -49,6 +49,7 @@ export const subscribeOne = async (
     if (!collection) throw new Error("EMPTY_PATH")
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSIONS_NOT_FOUND")
+    const claims = getCurrentUser()?.token.claims ?? {}
     const schema = getSchema(true)
     const roleGroups = getCurrentUserRoleGroups()
     // eslint-disable-next-line security/detect-object-injection
@@ -138,12 +139,16 @@ export const subscribeOne = async (
                       (field) =>
                           typeof field === "object" &&
                           isRelationField(field) &&
-                          getRelatedCollections(collectionSchema, schema, permissions).includes(field.collection),
+                          getRelatedCollections(collectionSchema, schema, permissions, claims).includes(
+                              field.collection,
+                          ),
                   )
                 : collectionSchema.fields.filter(
                       (field) =>
                           isRelationField(field) &&
-                          getRelatedCollections(collectionSchema, schema, permissions).includes(field.collection),
+                          getRelatedCollections(collectionSchema, schema, permissions, claims).includes(
+                              field.collection,
+                          ),
                   )
         return fields
     }

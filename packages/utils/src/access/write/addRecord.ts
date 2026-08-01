@@ -11,6 +11,7 @@ export const addRecordAccessControl = (
     currentUserId?: string,
     currentUserPermissions?: StokerPermissions,
     permissions?: StokerPermissions,
+    claims?: Record<string, unknown>,
 ) => {
     const { labels, fields } = collectionSchema
     // eslint-disable-next-line security/detect-object-injection
@@ -53,11 +54,12 @@ export const addRecordAccessControl = (
     for (const field of fields) {
         const value = record[field.name]
         if (field.access) {
-            if (!privateFieldAccess(field, currentUserPermissions) && value !== undefined) {
+            if (!privateFieldAccess(field, currentUserPermissions, collectionSchema, claims) && value !== undefined) {
                 granted = false
             }
         }
-        if (value !== undefined && !restrictCreateAccess(field, currentUserPermissions)) granted = false
+        if (value !== undefined && !restrictCreateAccess(field, currentUserPermissions, labels.collection, claims))
+            granted = false
     }
 
     if (!granted) throw new Error("PERMISSION_DENIED")

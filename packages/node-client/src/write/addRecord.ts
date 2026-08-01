@@ -1,4 +1,3 @@
-import { uniqueValidation } from "./uniqueValidation.js"
 import { writeLog } from "./writeLog.js"
 import { DocumentSnapshot, FieldValue, Timestamp, Transaction } from "firebase-admin/firestore"
 import { getStokerFirestore } from "../utils/getStokerFirestore.js"
@@ -16,6 +15,7 @@ import {
     addLowercaseFields,
     getAllRoleGroups,
     getFieldCustomization,
+    privateFieldAccess,
 } from "@stoker-platform/utils"
 import {
     CollectionField,
@@ -46,6 +46,7 @@ import { getAuth } from "firebase-admin/auth"
 import { fetchCurrentSchema } from "../utils/fetchSchema.js"
 import { validateSoftDelete } from "./validateSoftDelete.js"
 import { entityRestrictionAccess } from "./entityRestrictionAccess.js"
+import { getUser } from "../utils/getUser.js"
 
 export const addRecord = async (
     path: string[],
@@ -96,6 +97,7 @@ export const addRecord = async (
     const currentUserRole = currentUser?.customClaims?.role
 
     let currentUserPermissions: StokerPermissions | undefined
+    let currentUserClaims: Record<string, unknown> | undefined
     if (userId) {
         await validateCollectionPath(path, collectionSchema)
     }
@@ -148,7 +150,11 @@ export const addRecord = async (
 
     addRelationArrays(collectionSchema, record, schema)
     addLowercaseFields(collectionSchema, record)
-    await addInitialValues(record, collectionSchema, customization, currentUserRole)
+    const initialPermissionsSnapshot = userId
+        ? await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId).get()
+        : undefined
+    const initialPermissions = initialPermissionsSnapshot?.data()
+    await addInitialValues(record, collectionSchema, customization, initialPermissions, currentUser?.customClaims || {})
 
     removeUndefined(record)
 
@@ -157,7 +163,6 @@ export const addRecord = async (
             if (!user.password) throw new Error("Password is required")
         }
         if (!options?.providedTransaction) {
-            await uniqueValidation("create", tenantId, docId, record, collectionSchema, schema)
             await validateRecord(
                 "create",
                 record,
@@ -221,7 +226,7 @@ export const addRecord = async (
     }
 
     const preWriteChecks = async (transaction: Transaction, batchSize?: { size: number }) => {
-        const [latestDeploy, maintenanceMode, permissionsSnapshot, latestSchema] = await Promise.all([
+        const [latestDeploy, maintenanceMode, permissionsSnapshot, latestSchema, latestUser] = await Promise.all([
             !options?.providedTransaction
                 ? transaction.get(db.collection("system_deployment").doc("latest_deploy"))
                 : Promise.resolve({} as DocumentSnapshot),
@@ -234,6 +239,7 @@ export const addRecord = async (
                   )
                 : Promise.resolve({} as DocumentSnapshot),
             !options?.providedSchema ? fetchCurrentSchema() : Promise.resolve(options.providedSchema),
+            userId ? getUser(userId) : Promise.resolve(undefined),
         ])
         if (batchSize) batchSize.size += 3
 
@@ -257,14 +263,18 @@ export const addRecord = async (
             currentUserPermissions = permissionsSnapshot.data()!
             if (!currentUserPermissions.Role) throw new Error("USER_ERROR")
             if (!currentUserPermissions.Enabled) throw new Error("PERMISSION_DENIED")
+            currentUserClaims = latestUser?.customClaims ?? {}
         }
 
         if (!options?.providedTransaction) {
             const uniqueFields = fields.filter((field) => "unique" in field && field.unique)
             const uniqueFieldPromises = uniqueFields.map(async (field) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                if (!userId || !field.access || field.access.includes(currentUserPermissions!.Role!)) {
-                    if (!data[field.name]) return
+                if (
+                    !userId ||
+                    !field.access ||
+                    privateFieldAccess(field, currentUserPermissions, collectionSchema, currentUserClaims)
+                ) {
+                    if (!record[field.name]) return
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const allowField =
                         userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
@@ -274,7 +284,7 @@ export const addRecord = async (
                               ])
                             : true
                     if (!allowField) throw new Error("PERMISSION_DENIED")
-                    const fieldName = data[field.name]
+                    const fieldName = record[field.name]
                         .toString()
                         .toLowerCase()
                         .replace(/\s/g, "---")
@@ -314,6 +324,7 @@ export const addRecord = async (
             userId,
             currentUserPermissions,
             user?.permissions,
+            currentUserClaims,
         )
 
         if (user?.permissions && userId && currentUserPermissions) {
@@ -328,6 +339,7 @@ export const addRecord = async (
             userId,
             currentUserPermissions,
             user?.permissions,
+            currentUserClaims,
         )
     }
 
@@ -369,6 +381,8 @@ export const addRecord = async (
                     batchSize,
                     userId,
                     currentUserPermissions,
+                    undefined,
+                    currentUserClaims,
                 )
             }
 

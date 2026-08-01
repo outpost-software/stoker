@@ -1,6 +1,17 @@
 import { StokerPermissions, RoleGroup } from "@stoker-platform/types"
-import { getCurrentUserPermissions, getSchema, getStokerFirestore, getTenant } from "../initializeStoker"
-import { collectionAccess, hasDependencyAccess } from "@stoker-platform/utils"
+import {
+    getCurrentUser,
+    getCurrentUserPermissions,
+    getSchema,
+    getStokerFirestore,
+    getTenant,
+} from "../initializeStoker"
+import {
+    collectionAccess,
+    evaluateFieldAccessCondition,
+    getFieldAccessGroupFields,
+    hasDependencyAccess,
+} from "@stoker-platform/utils"
 import { doc } from "firebase/firestore"
 
 export const getDocumentRefs = (path: string[], recordId: string, roleGroup: RoleGroup) => {
@@ -8,6 +19,7 @@ export const getDocumentRefs = (path: string[], recordId: string, roleGroup: Rol
     const tenantId = getTenant()
     const schema = getSchema()
     const permissions = getCurrentUserPermissions() as StokerPermissions
+    const claims = getCurrentUser()?.token.claims ?? {}
     const collectionName = path.at(-1)
     if (!collectionName) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line security/detect-object-injection
@@ -20,7 +32,7 @@ export const getDocumentRefs = (path: string[], recordId: string, roleGroup: Rol
     }
 
     const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
-    const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions)
+    const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions, claims)
 
     const queries = []
     if (fullCollectionAccess) {
@@ -35,6 +47,23 @@ export const getDocumentRefs = (path: string[], recordId: string, roleGroup: Rol
                 recordId,
             ),
         )
+        const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
+        Object.entries(collectionSchema.fieldAccessGroups || {}).forEach(([groupKey, condition]) => {
+            // eslint-disable-next-line security/detect-object-injection
+            if (!fieldAccessGroups[groupKey]?.length) return
+            if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims)) return
+            queries.push(
+                doc(
+                    db,
+                    "tenants",
+                    tenantId,
+                    "system_fields",
+                    labels.collection,
+                    `${labels.collection}-${groupKey}`,
+                    recordId,
+                ),
+            )
+        })
     } else if (dependencyAccess) {
         for (const field of dependencyAccess) {
             queries.push(

@@ -3,6 +3,7 @@ import {
     getSchema,
     getGlobalConfigModule,
     getConnectionStatus,
+    getCurrentUser,
     getCurrentUserPermissions,
     getAllRoleGroups,
     getTenant,
@@ -86,6 +87,7 @@ export const updateRecord = async (
     const retry = options?.retry
 
     const currentUser = auth.currentUser
+    const claims = getCurrentUser()?.token.claims ?? {}
     if (!currentUser) throw new Error("NOT_AUTHENTICATED")
     if (!permissions) throw new Error("PERMISSION_DENIED")
 
@@ -259,7 +261,7 @@ export const updateRecord = async (
             )
             if (offlineDisabled) {
                 checkOnline()
-                await uniqueValidation("update", recordId, partial, collectionSchema, permissions)
+                await uniqueValidation("update", recordId, partial, collectionSchema, permissions, claims)
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -267,7 +269,19 @@ export const updateRecord = async (
         }
     }
 
-    updateRecordAccessControl(partial, originalRecord, recordId, collectionSchema, schema, currentUser.uid, permissions)
+    updateRecordAccessControl(
+        partial,
+        originalRecord,
+        recordId,
+        collectionSchema,
+        schema,
+        currentUser.uid,
+        permissions,
+        undefined,
+        undefined,
+        undefined,
+        claims,
+    )
 
     removeUndefined(partial)
 
@@ -358,6 +372,7 @@ export const updateRecord = async (
         currentUser.uid,
         enableWriteLog || false,
         permissions,
+        claims,
         !!retry,
         originalRecord,
     )

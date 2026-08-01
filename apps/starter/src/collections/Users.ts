@@ -224,6 +224,9 @@ const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
                 },
             ],
         },
+        fieldAccessGroups: {
+            Auth: { applicableRoles: ["Office", "Area Manager"], collectionAuth: true },
+        },
         fields: [
             {
                 name: "Name",
@@ -252,6 +255,7 @@ const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
                         form: false,
                     },
                 },
+                access: { group: "Auth" },
             },
             {
                 name: "Role",

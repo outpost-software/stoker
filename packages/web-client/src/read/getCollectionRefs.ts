@@ -13,6 +13,7 @@ import {
 import { Query, QueryFieldFilterConstraint, collection, query, where } from "firebase/firestore"
 import {
     getCollectionConfigModule,
+    getCurrentUser,
     getCurrentUserPermissions,
     getSchema,
     getStokerFirestore,
@@ -20,7 +21,9 @@ import {
 } from "../initializeStoker"
 import {
     collectionAccess,
+    evaluateFieldAccessCondition,
     getField,
+    getFieldAccessGroupFields,
     hasDependencyAccess,
     getEntityParentFilters,
     getEntityRestrictions,
@@ -32,6 +35,7 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
     const tenantId = getTenant()
     const schema = getSchema()
     const permissions = getCurrentUserPermissions() as StokerPermissions
+    const claims = getCurrentUser()?.token.claims ?? {}
     const collectionName = path.at(-1)
     if (!collectionName) throw new Error("EMPTY_PATH")
     // eslint-disable-next-line security/detect-object-injection
@@ -45,7 +49,7 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
     }
 
     const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
-    const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions)
+    const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions, claims)
     const hasAttributeRestrictions: AttributeRestriction[] = getAttributeRestrictions(collectionSchema, permissions)
     const hasEntityRestrictions: EntityRestriction[] = getEntityRestrictions(collectionSchema, permissions)
     const hasEntityParentFilters: { parentFilter: EntityParentFilter; parentRestriction: EntityRestriction }[] =
@@ -68,6 +72,26 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
                     ...constraints,
                 ),
             )
+            const fieldAccessGroupFields = getFieldAccessGroupFields(collectionSchema)
+            Object.entries(collectionSchema.fieldAccessGroups || {}).forEach(([groupKey, condition]) => {
+                // eslint-disable-next-line security/detect-object-injection
+                if (!fieldAccessGroupFields[groupKey]?.length) return
+                if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims)) return
+                queries.push(
+                    query(
+                        collection(
+                            db,
+                            "tenants",
+                            tenantId,
+                            "system_fields",
+                            labels.collection,
+                            `${labels.collection}-${groupKey}`,
+                        ),
+                        where("Collection_Path_String", "==", path.join("/")),
+                        ...constraints,
+                    ),
+                )
+            })
         } else if (dependencyAccess) {
             for (const field of dependencyAccess) {
                 queries.push(

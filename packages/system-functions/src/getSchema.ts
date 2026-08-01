@@ -16,6 +16,7 @@ import {collectionAccess,
     getUserRoleGroups,
     hasDependencyAccess,
     isRelationField,
+    privateFieldAccess,
 } from "@stoker-platform/utils";
 import {error as errorLogger} from "firebase-functions/logger";
 import {
@@ -72,7 +73,7 @@ export const getSchema = async (
             const {labels, fields, access} = collectionSchema;
             const collectionPermissions = permissions.collections?.[labels.collection];
             const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions);
-            const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions);
+            const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions, token);
             const entityRestrictions = access.entityRestrictions;
             let hasDependentParentFilters = false;
             const hasDependentRelationFields = new Set<string>();
@@ -90,7 +91,7 @@ export const getSchema = async (
             }
             for (const childCollection of Object.values(schema.collections)) {
                 for (const field of childCollection.fields) {
-                    if (isRelationField(field) && permissions.collections?.[childCollection.labels.collection] && (collectionAccess("Create", permissions.collections[childCollection.labels.collection]) || collectionAccess("Update", permissions.collections[childCollection.labels.collection])) && field.collection === labels.collection && (!field.access || field.access?.includes(permissions.Role))) {
+                    if (isRelationField(field) && permissions.collections?.[childCollection.labels.collection] && (collectionAccess("Create", permissions.collections[childCollection.labels.collection]) || collectionAccess("Update", permissions.collections[childCollection.labels.collection])) && field.collection === labels.collection && (!field.access || privateFieldAccess(field, permissions, childCollection, token))) {
                         field.includeFields?.forEach((includeField) => {
                             hasDependentRelationFields.add(includeField);
                         });
@@ -104,8 +105,7 @@ export const getSchema = async (
             if (fullCollectionAccess) {
                 userSchema.collections[labels.collection] = {fields: [], ...rest};
                 fields.forEach((field) => {
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    if (!field.access || field.access?.includes(permissions.Role!)) {
+                    if (!field.access || privateFieldAccess(field, permissions, collectionSchema, token)) {
                         userSchema.collections[labels.collection].fields.push(field);
                     }
                 });

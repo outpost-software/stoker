@@ -124,8 +124,8 @@ export const searchResults = async (
     // eslint-disable-next-line security/detect-object-injection
     const collectionPermissions = permissions.collections?.[collection];
     const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions);
-    const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions);
-    if (!fullCollectionAccess && !dependencyAccess) {
+    const dependencyAccess = hasDependencyAccess(collectionSchema, schema, permissions, token);
+    if (!fullCollectionAccess && dependencyAccess.length === 0) {
         throw new HttpsError("permission-denied", "User does not have permission to access search for this collection");
     }
 

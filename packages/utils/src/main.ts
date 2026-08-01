@@ -30,12 +30,22 @@ export {
     getRoleFields,
     getDependencyAccessFields,
     getDependencyIndexFields,
+    getFieldAccessGroupIndexFields,
     getRoleGroups,
     getRoleGroup,
     getRoleExcludedFields,
     getUserRoleGroups,
     getAllRoleGroups,
 } from "./schema/getIndexFields.js"
+export {
+    isFieldAccessGroupReference,
+    getFieldAccessRoles,
+    fieldRoleProjectionAccess,
+    getFieldAccessGroupCondition,
+    getFieldAccessGroupFields,
+    evaluateFieldAccessCondition,
+    fieldAccessGroupAccess,
+} from "./access/fieldAccess.js"
 export { getAccessFields } from "./schema/getAccessFields.js"
 export { getSystemFieldsSchema } from "./schema/getSystemFieldsSchema.js"
 export { isRelationField } from "./schema/isRelationField.js"

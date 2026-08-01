@@ -11,6 +11,7 @@ import { canUpdateField, getCachedConfigValue, getField, getSystemFieldsSchema }
 import {
     getAppCheck,
     getCollectionConfigModule,
+    getCurrentUser,
     getCurrentUserPermissions,
     onStokerPermissionsChange,
     updateRecord,
@@ -135,6 +136,7 @@ export function Map({
     if (!permissions) {
         throw new Error("PERMISSION_DENIED")
     }
+    const claims = getCurrentUser()?.token.claims ?? {}
     const location = useLocation()
     const [connectionStatus] = useConnection()
     const goToRecord = useGoToRecord()
@@ -221,11 +223,16 @@ export function Map({
             const coordinatesField = mapConfig?.coordinatesField
             if (addressField && fields.map((field) => field.name).includes(addressField)) {
                 const addressFieldSchema = getField(allFields, addressField)
-                const hasAddressUpdateAccess = !!canUpdateField(collection, addressFieldSchema, permissions)
+                const hasAddressUpdateAccess = !!canUpdateField(collection, addressFieldSchema, permissions, claims)
                 setHasLocationUpdateAccess(hasAddressUpdateAccess)
             } else if (coordinatesField && fields.map((field) => field.name).includes(coordinatesField)) {
                 const coordinatesFieldSchema = getField(allFields, coordinatesField)
-                const hasCoordinatesUpdateAccess = !!canUpdateField(collection, coordinatesFieldSchema, permissions)
+                const hasCoordinatesUpdateAccess = !!canUpdateField(
+                    collection,
+                    coordinatesFieldSchema,
+                    permissions,
+                    claims,
+                )
                 setHasLocationUpdateAccess(hasCoordinatesUpdateAccess)
             }
 

@@ -10,6 +10,9 @@ import {
     getSystemFieldsSchema,
     getAccessFields,
     getDependencyIndexFields,
+    getFieldAccessGroupFields,
+    getFieldAccessRoles,
+    isFieldAccessGroupReference,
     isPaginationEnabled,
     roleHasOperationAccess,
     tryFunction,
@@ -35,10 +38,105 @@ import {
     RelationField,
     StringField,
     SystemField,
+    FieldAccessCondition,
+    CollectionSchema,
+    CollectionsSchema,
 } from "@stoker-platform/types"
 import { getCustomizationFiles } from "@stoker-platform/node-client"
 import { join } from "path"
 import { pathToFileURL } from "url"
+
+const lintFieldAccessCondition = (
+    condition: FieldAccessCondition,
+    label: string,
+    collectionSchema: CollectionSchema,
+    roles: string[],
+    errors: string[],
+    warnings: string[],
+    schema: CollectionsSchema,
+    options?: {
+        requireCollectionReadAccess?: boolean
+    },
+) => {
+    const checks = [
+        condition.collectionAuth !== undefined,
+        condition.roles !== undefined,
+        condition.claims !== undefined,
+        condition.restrictions !== undefined,
+    ].filter(Boolean).length
+
+    if (checks === 0) {
+        errors.push(
+            `${label} has no checks. At least one of collectionAuth, roles, claims or restrictions is required.`,
+        )
+    }
+    if (checks > 1 && condition.match === undefined) {
+        errors.push(`${label} has multiple checks but no explicit match. Set match to "any" or "all".`)
+    }
+
+    if (!condition.applicableRoles.length) {
+        errors.push(`${label} must include at least one applicable role`)
+    }
+
+    condition.applicableRoles.forEach((role) => {
+        if (!roles.includes(role)) {
+            errors.push(`${label} has an applicable role ${role} that does not exist`)
+        } else if (options?.requireCollectionReadAccess && !roleHasOperationAccess(collectionSchema, role, "read")) {
+            errors.push(`${label} includes applicable role ${role}, but that role does not have collection read access`)
+        }
+    })
+
+    condition.roles?.forEach((role) => {
+        if (!roles.includes(role)) {
+            errors.push(`${label} has a role ${role} that does not exist`)
+        } else if (!condition.applicableRoles.includes(role)) {
+            errors.push(`${label} has a role ${role} that is not included in applicable roles`)
+        }
+    })
+
+    if (condition.claims) {
+        const standardClaims = ["role", "doc", "collection", "tenant"]
+        const tokenFields = new Set<string>()
+        Object.values(schema.collections).forEach((tokenCollection) => {
+            tokenCollection.fields
+                .filter((field) => field.saveToAuthToken)
+                .forEach((field) => tokenFields.add(field.name))
+        })
+        Object.keys(condition.claims).forEach((claim) => {
+            if (!standardClaims.includes(claim) && !tokenFields.has(claim)) {
+                warnings.push(
+                    `${label} references claim ${claim} which is not a standard claim or a saveToAuthToken field of an auth collection. Ensure the claim is set on the auth token.`,
+                )
+            }
+        })
+    }
+
+    if (condition.restrictions) {
+        const attributeTypes: string[] =
+            collectionSchema.access.attributeRestrictions?.map((restriction) => restriction.type) || []
+        const restrictionKeys: [keyof NonNullable<typeof condition.restrictions>, string][] = [
+            ["recordOwner", "Record_Owner"],
+            ["recordUser", "Record_User"],
+            ["recordProperty", "Record_Property"],
+        ]
+        restrictionKeys.forEach(([key, type]) => {
+            // eslint-disable-next-line security/detect-object-injection
+            if (condition.restrictions?.[key] !== undefined && !attributeTypes.includes(type)) {
+                errors.push(
+                    `${label} references restriction ${key} but the collection does not declare a ${type} attribute restriction`,
+                )
+            }
+        })
+        if (
+            condition.restrictions.restrictEntities !== undefined &&
+            !collectionSchema.access.entityRestrictions?.restrictions
+        ) {
+            errors.push(
+                `${label} references restriction restrictEntities but the collection does not declare entity restrictions`,
+            )
+        }
+    }
+}
 
 export const lintSchema = async (noLog = false) => {
     const path = join(process.cwd(), "lib", "main.js")
@@ -52,8 +150,8 @@ export const lintSchema = async (noLog = false) => {
     )
     const customizationModules = getCustomization(Object.keys(schema.collections), customizationFiles, "node")
 
-    const warnings = []
-    const errors = []
+    const warnings: string[] = []
+    const errors: string[] = []
 
     const roles = schema.config.roles
     const collectionNames = Object.keys(schema.collections)
@@ -217,6 +315,44 @@ export const lintSchema = async (noLog = false) => {
         const readRoles = roles.filter((role) => roleHasOperationAccess(collectionSchema, role, "read"))
 
         const fieldNames = fields.map((field) => field.name)
+
+        if (collectionSchema.fieldAccessGroups) {
+            const groupFields = getFieldAccessGroupFields(collectionSchema)
+            const groupKeyRegex = /^[A-Za-z][A-Za-z0-9-]*$/
+            for (const [groupKey, condition] of Object.entries(collectionSchema.fieldAccessGroups)) {
+                if (!groupKeyRegex.test(groupKey)) {
+                    errors.push(
+                        `Collection ${collectionName} has a field access group key ${groupKey} that is invalid. Keys must start with a letter and contain only letters, digits and hyphens.`,
+                    )
+                }
+                if (fieldNames.includes(groupKey)) {
+                    errors.push(
+                        `Collection ${collectionName} has a field access group key ${groupKey} that collides with a field name`,
+                    )
+                }
+                if (roles.includes(groupKey)) {
+                    errors.push(
+                        `Collection ${collectionName} has a field access group key ${groupKey} that collides with a role name`,
+                    )
+                }
+                // eslint-disable-next-line security/detect-object-injection
+                if (!groupFields[groupKey]?.length) {
+                    warnings.push(
+                        `Collection ${collectionName} has a field access group ${groupKey} that is not referenced by any field`,
+                    )
+                }
+                lintFieldAccessCondition(
+                    condition,
+                    `Collection ${collectionName} field access group ${groupKey}`,
+                    collectionSchema,
+                    roles,
+                    errors,
+                    warnings,
+                    schema,
+                    { requireCollectionReadAccess: true },
+                )
+            }
+        }
 
         const firestoreRegex = /^(?!\/)(?!.*\/)(?!\.$)(?!\.\.$)(?!__.*__)[^/\s]{1,1500}$/
         if (!firestoreRegex.test(collectionName)) {
@@ -408,17 +544,24 @@ export const lintSchema = async (noLog = false) => {
                                 `Collection ${collectionName} has a relation list field ${relation.field} that does not exist in collection ${relation.collection}`,
                             )
                         } else {
-                            if (relation.roles) {
+                            if (isFieldAccessGroupReference(relationField.access)) {
+                                errors.push(
+                                    `Collection ${collectionName} has a relation list field ${relation.field} for collection ${relation.collection} that is in a field access group. Field access group fields cannot be used as relation list fields.`,
+                                )
+                            } else if (relation.roles) {
                                 for (const role of relation.roles) {
                                     if (!roles.includes(role)) {
                                         errors.push(
                                             `Collection ${collectionName} has a relation list field ${relation.field} for collection ${relation.collection} with role ${role} that does not exist`,
                                         )
                                     }
-                                    if (relationField.access && !relationField.access.includes(role)) {
-                                        errors.push(
-                                            `Collection ${collectionName} has a relation list field ${relation.field} for collection ${relation.collection} with role ${role} that does not have access to the field`,
-                                        )
+                                    if (relationField.access) {
+                                        const accessibleRoles = getFieldAccessRoles(relationField.access)
+                                        if (!accessibleRoles?.includes(role)) {
+                                            errors.push(
+                                                `Collection ${collectionName} has a relation list field ${relation.field} for collection ${relation.collection} with role ${role} that does not have access to the field`,
+                                            )
+                                        }
                                     }
                                 }
                             } else {
@@ -468,9 +611,14 @@ export const lintSchema = async (noLog = false) => {
                             `Collection ${collectionName} has a preload cache range field ${field} that must be nullable`,
                         )
                     }
-                    if (rangeField.access) {
+                    if (isFieldAccessGroupReference(rangeField.access)) {
+                        errors.push(
+                            `Collection ${collectionName} has a preload cache range field ${field} that is in a field access group. Field access group fields cannot be used as preload cache range fields.`,
+                        )
+                    } else if (rangeField.access) {
                         preloadCache.roles.forEach((role) => {
-                            if (!rangeField.access?.includes(role)) {
+                            const accessibleRoles = getFieldAccessRoles(rangeField.access)
+                            if (!accessibleRoles?.includes(role)) {
                                 errors.push(
                                     `Collection ${collectionName} has a preload cache range field ${field} that can't be accessed by role ${role}`,
                                 )
@@ -585,6 +733,19 @@ export const lintSchema = async (noLog = false) => {
                 errors.push(
                     `Collection ${collectionName} has a status field ${statusField.field} with values that do not match the matching field's values`,
                 )
+            } else if (isFieldAccessGroupReference(statusFieldSchema.access)) {
+                errors.push(
+                    `Collection ${collectionName} has a status field ${statusField.field} that is in a field access group. Field access group fields cannot be used as status fields.`,
+                )
+            } else if (statusFieldSchema.access) {
+                for (const role of readRoles) {
+                    const accessibleRoles = getFieldAccessRoles(statusFieldSchema.access)
+                    if (!accessibleRoles?.includes(role)) {
+                        errors.push(
+                            `Collection ${collectionName} has a status field ${statusField.field} that can't be accessed by role ${role}`,
+                        )
+                    }
+                }
             }
         }
 
@@ -614,6 +775,11 @@ export const lintSchema = async (noLog = false) => {
                         )
                     }
                 }
+                if (isFieldAccessGroupReference(fieldSchema.access)) {
+                    errors.push(
+                        `Collection ${collectionName} has a default sort field ${defaultSort.field} that is in a field access group. Field access group fields cannot be used as default sort fields.`,
+                    )
+                }
             }
         }
 
@@ -628,9 +794,14 @@ export const lintSchema = async (noLog = false) => {
 
         const cards = (await tryPromise(customization?.admin?.cards)) as CardsConfig | undefined
         if (cards) {
+            const cardsStatusFieldSchema = getField(fields, cards.statusField)
             if (cards.statusField && !fieldNames.includes(cards.statusField)) {
                 errors.push(
                     `Collection ${collectionName} has a cards status field ${cards.statusField} that does not exist`,
+                )
+            } else if (cards.statusField && isFieldAccessGroupReference(cardsStatusFieldSchema.access)) {
+                errors.push(
+                    `Collection ${collectionName} has a cards status field ${cards.statusField} that is in a field access group. Field access group fields cannot be used as status fields.`,
                 )
             }
             if (!fieldNames.concat(systemFields).includes(cards.headerField)) {
@@ -897,17 +1068,26 @@ export const lintSchema = async (noLog = false) => {
                 if (!field) {
                     errors.push(`Collection ${collectionName} has a filter field ${filter.field} that does not exist`)
                 } else {
-                    if ("roles" in filter && filter.roles) {
+                    if (field.access) {
+                        if (isFieldAccessGroupReference(field.access)) {
+                            errors.push(
+                                `Collection ${collectionName} has a filter for field ${filter.field} that is in a field access group. Field access group fields cannot be used as filter fields.`,
+                            )
+                        }
+                    } else if ("roles" in filter && filter.roles) {
                         for (const role of filter.roles) {
                             if (!roles.includes(role)) {
                                 errors.push(
                                     `Collection ${collectionName} has a filter for field ${filter.field} that has an access role ${role} that does not exist`,
                                 )
                             }
-                            if (field.access && !field.access.includes(role)) {
-                                errors.push(
-                                    `Collection ${collectionName} has a filter for field ${filter.field} that has an access role ${role} that does not have access to the field`,
-                                )
+                            if (field.access) {
+                                const accessibleRoles = getFieldAccessRoles(field.access)
+                                if (!accessibleRoles?.includes(role)) {
+                                    errors.push(
+                                        `Collection ${collectionName} has a filter for field ${filter.field} that has an access role ${role} that does not have access to the field`,
+                                    )
+                                }
                             }
                         }
                     }
@@ -1042,7 +1222,29 @@ export const lintSchema = async (noLog = false) => {
             }
             for (const role of operations.delete) {
                 for (const field of fields) {
-                    if (field.access && !field.access.includes(role)) {
+                    if (!field.access) continue
+                    const accessibleRoles = getFieldAccessRoles(field.access)
+                    if (isFieldAccessGroupReference(field.access)) {
+                        const fieldAccessGroup = collectionSchema.fieldAccessGroups?.[field.access.group]
+                        const checks = [
+                            fieldAccessGroup?.collectionAuth !== undefined,
+                            fieldAccessGroup?.roles !== undefined,
+                            fieldAccessGroup?.claims !== undefined,
+                            fieldAccessGroup?.restrictions !== undefined,
+                        ].filter(Boolean).length
+                        if (
+                            !(
+                                fieldAccessGroup?.applicableRoles?.some((applicableRole) => applicableRole === role) &&
+                                fieldAccessGroup?.roles?.includes(role) &&
+                                (checks === 1 || fieldAccessGroup?.match === "any")
+                            ) &&
+                            !(collectionSchema.auth && checks === 1 && fieldAccessGroup?.collectionAuth !== undefined)
+                        ) {
+                            warnings.push(
+                                `Collection ${collectionName} can be deleted by role ${role}, who may not have access to field ${field.name} because it is in a field access group`,
+                            )
+                        }
+                    } else if (!accessibleRoles?.includes(role)) {
                         warnings.push(
                             `Collection ${collectionName} can be deleted by role ${role}, who does not have access to field ${field.name}`,
                         )
@@ -1603,10 +1805,17 @@ export const lintSchema = async (noLog = false) => {
             const accessFields = getAccessFields(collectionSchema, role)
             for (const field of accessFields) {
                 allAccessFields.add(field)
-                if (field.access && !field.access.includes(role)) {
-                    errors.push(
-                        `Role ${role} requires access to field ${field.name}, as it is required for access control.`,
-                    )
+                if (field.access) {
+                    const accessibleRoles = getFieldAccessRoles(field.access)
+                    if (isFieldAccessGroupReference(field.access)) {
+                        errors.push(
+                            `Role ${role} requires access to field ${field.name} for access control, but the field is in a field access group so access may not be determinable.`,
+                        )
+                    } else if (!accessibleRoles?.includes(role)) {
+                        errors.push(
+                            `Role ${role} requires access to field ${field.name}, as it is required for access control.`,
+                        )
+                    }
                 }
             }
         }
@@ -1688,7 +1897,13 @@ export const lintSchema = async (noLog = false) => {
                 errors.push(`Collection ${collectionName} has a field ${name} with an invalid type ${type}`)
             }
 
-            if (access) {
+            if (isFieldAccessGroupReference(access)) {
+                if (!collectionSchema.fieldAccessGroups?.[access.group]) {
+                    errors.push(
+                        `Collection ${collectionName} has a field ${name} with access group ${access.group} that does not exist`,
+                    )
+                }
+            } else if (access) {
                 for (const role of access) {
                     if (!roles.includes(role)) {
                         errors.push(
@@ -1698,29 +1913,59 @@ export const lintSchema = async (noLog = false) => {
                 }
             }
 
-            if (typeof restrictCreate === "object") {
-                for (const role of restrictCreate) {
-                    if (!roles.includes(role)) {
-                        errors.push(
-                            `Collection ${collectionName} has a field ${name} with restrict create role ${role} that does not exist`,
-                        )
+            const lintRestrictWrite = (
+                restriction: typeof restrictCreate | typeof restrictUpdate,
+                label: "restrict create" | "restrict update",
+            ) => {
+                if (Array.isArray(restriction)) {
+                    for (const role of restriction) {
+                        if (!roles.includes(role)) {
+                            errors.push(
+                                `Collection ${collectionName} has a field ${name} with ${label} role ${role} that does not exist`,
+                            )
+                        }
                     }
+                } else if (typeof restriction === "object" && restriction !== null) {
+                    lintFieldAccessCondition(
+                        restriction,
+                        `Collection ${collectionName} field ${name} ${label} condition`,
+                        collectionSchema,
+                        roles,
+                        errors,
+                        warnings,
+                        schema,
+                    )
                 }
             }
-            if (typeof restrictUpdate === "object") {
-                for (const role of restrictUpdate) {
-                    if (!roles.includes(role)) {
-                        errors.push(
-                            `Collection ${collectionName} has a field ${name} with restrict update role ${role} that does not exist`,
-                        )
-                    }
-                }
-            }
+            lintRestrictWrite(restrictCreate, "restrict create")
+            lintRestrictWrite(restrictUpdate, "restrict update")
 
             if (required) {
                 const createRoles = operations.create || []
                 for (const role of createRoles) {
-                    if (access && !access.includes(role)) {
+                    if (!access) continue
+                    const accessibleRoles = getFieldAccessRoles(access)
+                    if (isFieldAccessGroupReference(access)) {
+                        const fieldAccessGroup = collectionSchema.fieldAccessGroups?.[access.group]
+                        const checks = [
+                            fieldAccessGroup?.collectionAuth !== undefined,
+                            fieldAccessGroup?.roles !== undefined,
+                            fieldAccessGroup?.claims !== undefined,
+                            fieldAccessGroup?.restrictions !== undefined,
+                        ].filter(Boolean).length
+                        if (
+                            !(
+                                fieldAccessGroup?.applicableRoles?.some((applicableRole) => applicableRole === role) &&
+                                fieldAccessGroup?.roles?.includes(role) &&
+                                (checks === 1 || fieldAccessGroup?.match === "any")
+                            ) &&
+                            !(collectionSchema.auth && checks === 1 && fieldAccessGroup?.collectionAuth !== undefined)
+                        ) {
+                            warnings.push(
+                                `Collection ${collectionName} has a required field ${name} that role ${role} with create access may not be able to access because it is in a field access group`,
+                            )
+                        }
+                    } else if (!accessibleRoles?.includes(role)) {
                         errors.push(
                             `Collection ${collectionName} has a required field ${name} that is not accessible to role ${role} which has create access`,
                         )
@@ -1968,17 +2213,24 @@ export const lintSchema = async (noLog = false) => {
                         `Collection ${collectionName} has sorting enabled for relation field ${name}, but no title field has been set`,
                     )
                 }
-                if (typeof sorting === "object" && sorting.roles) {
+                if (isFieldAccessGroupReference(field.access)) {
+                    errors.push(
+                        `Collection ${collectionName} has a sorting field ${field.name} that is in a field access group. Field access group fields cannot be used as sorting fields.`,
+                    )
+                } else if (typeof sorting === "object" && sorting.roles) {
                     for (const role of sorting.roles) {
                         if (!roles.includes(role)) {
                             errors.push(
                                 `Collection ${collectionName} has sorting enabled for field ${name} with role ${role} that does not exist`,
                             )
                         }
-                        if (field.access && !field.access.includes(role)) {
-                            errors.push(
-                                `Collection ${collectionName} has sorting enabled for field ${name} with role ${role} that does not have access to the field`,
-                            )
+                        if (field.access) {
+                            const accessibleRoles = getFieldAccessRoles(field.access)
+                            if (!accessibleRoles?.includes(role)) {
+                                errors.push(
+                                    `Collection ${collectionName} has sorting enabled for field ${name} with role ${role} that does not have access to the field`,
+                                )
+                            }
                         }
                     }
                 }

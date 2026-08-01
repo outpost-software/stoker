@@ -3,6 +3,7 @@ import {
     getSchema,
     getGlobalConfigModule,
     getConnectionStatus,
+    getCurrentUser,
     getCurrentUserPermissions,
     getAllRoleGroups,
     getTenant,
@@ -65,6 +66,7 @@ export const deleteRecord = async (
     const retry = options?.retry
 
     const currentUser = auth.currentUser
+    const claims = getCurrentUser()?.token.claims ?? {}
     if (!currentUser) throw new Error("NOT_AUTHENTICATED")
     if (!permissions) throw new Error("PERMISSION_DENIED")
 
@@ -232,6 +234,7 @@ export const deleteRecord = async (
         currentUser.uid,
         enableWriteLog || false,
         permissions,
+        claims,
         !!retry,
     )
 

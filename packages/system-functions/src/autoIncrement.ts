@@ -12,6 +12,8 @@ import {
 import {error as errorLogger} from "firebase-functions/logger";
 import {
     getDependencyIndexFields,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
     getRoleGroups,
     isDependencyField,
 } from "@stoker-platform/utils";
@@ -110,6 +112,23 @@ export const autoIncrement = (
                                                     .collection("system_fields")
                                                     .doc(labels.collection)
                                                     .collection(`${labels.collection}-${roleGroup.key}`)
+                                                    .doc(mainRef.id),
+                                                {[field.name]: newNumber},
+                                            );
+                                        }
+                                    }
+                                    const fieldAccessGroups = getFieldAccessGroupFields(collection);
+                                    for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+                                        if (groupFields.length === 0) continue;
+                                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
+                                        if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                            transaction.update(
+                                                db
+                                                    .collection("tenants")
+                                                    .doc(tenantId)
+                                                    .collection("system_fields")
+                                                    .doc(labels.collection)
+                                                    .collection(`${labels.collection}-${groupKey}`)
                                                     .doc(mainRef.id),
                                                 {[field.name]: newNumber},
                                             );

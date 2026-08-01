@@ -1,4 +1,5 @@
-import { CollectionSchema, CollectionCustomization, StokerRecord, StokerRole } from "@stoker-platform/types"
+import { CollectionSchema, CollectionCustomization, StokerPermissions, StokerRecord } from "@stoker-platform/types"
+import { privateFieldAccess } from "../access/collection.js"
 import { tryPromise } from "../getConfigValue.js"
 import { getField } from "../schema/getField.js"
 import { isRelationField } from "../schema/isRelationField.js"
@@ -8,14 +9,15 @@ export const addInitialValues = async (
     data: StokerRecord,
     collectionSchema: CollectionSchema,
     customization: CollectionCustomization,
-    role?: StokerRole,
+    permissions?: StokerPermissions,
+    claims?: Record<string, unknown>,
 ) => {
     const { fields } = collectionSchema
     for (const field of customization.fields) {
         const fieldSchema = getField(fields, field.name)
         if (
             field.custom?.initialValue !== undefined &&
-            !(role && fieldSchema.access && !fieldSchema.access.includes(role))
+            (!fieldSchema.access || privateFieldAccess(fieldSchema, permissions, collectionSchema, claims || {}))
         ) {
             data[field.name] = await tryPromise(field.custom.initialValue, [data])
             const lowercaseFields = getLowercaseFields(collectionSchema, [fieldSchema])
@@ -25,7 +27,7 @@ export const addInitialValues = async (
         }
     }
     for (const field of fields) {
-        if (!(role && field.access && !field.access.includes(role))) {
+        if (!field.access || privateFieldAccess(field, permissions, collectionSchema, claims || {})) {
             if ("autoIncrement" in field && field.autoIncrement && !data[field.name]) {
                 data[field.name] = "Pending"
             }

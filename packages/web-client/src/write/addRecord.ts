@@ -3,6 +3,7 @@ import {
     getSchema,
     getGlobalConfigModule,
     getConnectionStatus,
+    getCurrentUser,
     getCurrentUserPermissions,
     getAllRoleGroups,
     getTenant,
@@ -88,6 +89,7 @@ export const addRecord = async (
     const retry = options?.retry
 
     const currentUser = auth.currentUser
+    const claims = getCurrentUser()?.token.claims ?? {}
     if (!currentUser) throw new Error("NOT_AUTHENTICATED")
     if (!permissions) throw new Error("PERMISSION_DENIED")
 
@@ -201,7 +203,7 @@ export const addRecord = async (
 
     addRelationArrays(collectionSchema, record, schema)
     addLowercaseFields(collectionSchema, record)
-    if (!retry) await addInitialValues(record, collectionSchema, customization, permissions.Role)
+    if (!retry) await addInitialValues(record, collectionSchema, customization, permissions, claims)
 
     if (!retry) {
         try {
@@ -215,7 +217,7 @@ export const addRecord = async (
             )
             if (offlineDisabled) {
                 checkOnline()
-                await uniqueValidation("create", docId, record, collectionSchema, permissions)
+                await uniqueValidation("create", docId, record, collectionSchema, permissions, claims)
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -229,7 +231,7 @@ export const addRecord = async (
 
     removeUndefined(record)
 
-    addRecordAccessControl(record, docId, collectionSchema, schema, currentUser.uid, permissions)
+    addRecordAccessControl(record, docId, collectionSchema, schema, currentUser.uid, permissions, undefined, claims)
 
     addDenormalized(
         "create",
@@ -307,6 +309,7 @@ export const addRecord = async (
         currentUser.uid,
         enableWriteLog || false,
         permissions,
+        claims,
         !!retry,
     )
 

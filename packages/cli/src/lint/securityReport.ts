@@ -3,10 +3,14 @@ import {
     getAccessFields,
     getField,
     getDependencyIndexFields,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
+    getRoleFields,
     isDependencyField,
     isRelationField,
     getRoleGroups,
     getFieldCustomization,
+    roleHasOperationAccess,
 } from "@stoker-platform/utils"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -59,6 +63,11 @@ export const securityReport = async () => {
         roleGroups.forEach(() => {
             writeRuleReads[collectionName].batch.add("Main Document")
         })
+        const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
+        Object.values(fieldAccessGroups).forEach((groupFields) => {
+            if (groupFields.length === 0) return
+            writeRuleReads[collectionName].batch.add(`Main Document`)
+        })
 
         if (auth) {
             writeRuleReads[collectionName].main.add("Document Lock Lookup")
@@ -93,7 +102,7 @@ export const securityReport = async () => {
         roles[role] = {}
         for (const [collectionName, collectionSchema] of Object.entries(schema.collections)) {
             const { fields, access } = collectionSchema
-            if (access.operations.read?.includes(role)) {
+            if (roleHasOperationAccess(collectionSchema, role, "read")) {
                 for (const field of fields) {
                     if (field.access) continue
                     const path = join(process.cwd(), "lib", "collections", `${collectionName}.js`)
@@ -185,10 +194,10 @@ export const securityReport = async () => {
                             }
                             const restrictCreate =
                                 field.restrictCreate === true ||
-                                (typeof field.restrictCreate === "object" && field.restrictCreate.includes(role))
+                                (Array.isArray(field.restrictCreate) && field.restrictCreate.includes(role))
                             const restrictUpdate =
                                 field.restrictUpdate === true ||
-                                (typeof field.restrictUpdate === "object" && field.restrictUpdate.includes(role))
+                                (Array.isArray(field.restrictUpdate) && field.restrictUpdate.includes(role))
                             if (
                                 access.operations.assignable === true ||
                                 (typeof access.operations.assignable === "object" &&
@@ -215,6 +224,31 @@ export const securityReport = async () => {
                                 ].add("Read Only")
                             }
                         }
+                    }
+                }
+            }
+
+            if (roleHasOperationAccess(collectionSchema, role, "read")) {
+                const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
+                const roleFields = getRoleFields(collectionSchema, role)
+                const roleFieldNames = new Set(roleFields.map((field) => field.name))
+                for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+                    if (groupFields.length === 0) continue
+                    // eslint-disable-next-line security/detect-object-injection
+                    if (!collectionSchema.fieldAccessGroups?.[groupKey]?.applicableRoles.includes(role)) continue
+                    const groupFieldNames = new Set(groupFields.map((field) => field.name))
+                    const overlayFields = getFieldAccessGroupIndexFields(groupKey, collectionSchema)
+                    for (const overlayField of overlayFields) {
+                        if (overlayField.name === "id" || overlayField.name === "Collection_Path") {
+                            continue
+                        }
+                        if (groupFieldNames.has(overlayField.name)) continue
+                        if (roleFieldNames.has(overlayField.name)) continue
+                        roles[role][collectionName] ||= {}
+                        if (!roles[role][collectionName][overlayField.name]) {
+                            roles[role][collectionName][overlayField.name] = new Set()
+                        }
+                        roles[role][collectionName][overlayField.name].add(`Field Access Group ${groupKey}- Index`)
                     }
                 }
             }
@@ -247,6 +281,9 @@ export const securityReport = async () => {
     }
 
     console.log("\n\nPossible Excess Permissions:\n")
+    console.log(
+        "(Includes fields on field access group overlays that are not on the role's mirror, after filtering overlay metadata to the roles declared on each field access group.)\n",
+    )
 
     for (const [role, collections] of Object.entries(roles)) {
         console.log(`${role.toUpperCase()}\n`)

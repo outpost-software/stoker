@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.106
+
+### Patch Changes
+
+- feat: add field access groups feature
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.87
+    - @stoker-platform/types@0.5.65
+    - @stoker-platform/utils@0.5.78
+
 ## 0.5.105
 
 ### Patch Changes

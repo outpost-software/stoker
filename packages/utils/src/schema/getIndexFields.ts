@@ -16,6 +16,7 @@ import { getAccessFields } from "./getAccessFields.js"
 import { getDependencyFields } from "./getDependencyFields.js"
 import { roleHasOperationAccess } from "../access/roleHasOperationAccess.js"
 import { isRelationField } from "./isRelationField.js"
+import { fieldRoleProjectionAccess, getFieldAccessGroupFields } from "../access/fieldAccess.js"
 
 export const getRoleFields = (collection: CollectionSchema, role: StokerRole) => {
     const indexFields: CollectionField[] = []
@@ -30,7 +31,7 @@ export const getRoleFields = (collection: CollectionSchema, role: StokerRole) =>
     })
 
     fields.forEach((field) => {
-        if (!field.access || field.access.includes(role)) {
+        if (fieldRoleProjectionAccess(field, role)) {
             indexFields.push(field)
         }
     })
@@ -57,7 +58,7 @@ export const getRoleFields = (collection: CollectionSchema, role: StokerRole) =>
         if (
             (!query.roles || query.roles.includes(role)) &&
             queryField &&
-            (!queryField.access || queryField.access?.includes(role)) &&
+            fieldRoleProjectionAccess(queryField, role) &&
             systemFields.includes(query.field as SystemField)
         ) {
             indexFields.push(getField(systemFieldsSchema, query.field))
@@ -83,17 +84,6 @@ export const getDependencyAccessFields = (
     const { fields, preloadCache } = collection
 
     const systemFieldsSchema = getSystemFieldsSchema()
-
-    if (preloadCache?.range) {
-        preloadCache.range.fields.forEach((field) => {
-            if (systemFields.includes(field as SystemField)) {
-                indexFields.push(getField(systemFieldsSchema, field))
-            } else {
-                indexFields.push(getField(fields, field))
-            }
-        })
-    }
-
     const dependentRoles = new Set<StokerRole>()
     const dependentFields = getDependencyFields(collection, schema)
     Object.entries(dependentFields).map(([fieldName, collectionValues]) => {
@@ -108,6 +98,18 @@ export const getDependencyAccessFields = (
     dependentRoles.forEach((role) => {
         indexFields.push(...getAccessFields(collection, role))
     })
+
+    if (preloadCache?.range) {
+        preloadCache.range.fields.forEach((field) => {
+            if (systemFields.includes(field as SystemField)) {
+                indexFields.push(getField(systemFieldsSchema, field))
+            } else if (
+                Array.from(dependentRoles).some((role) => fieldRoleProjectionAccess(getField(fields, field), role))
+            ) {
+                indexFields.push(getField(fields, field))
+            }
+        })
+    }
 
     return [...new Set(indexFields)]
 }
@@ -166,6 +168,78 @@ export const getDependencyIndexFields = (
     }
 
     indexFields.push(...getDependencyAccessFields(field, collection, schema))
+
+    return [...new Set(indexFields)]
+}
+
+export const getFieldAccessGroupIndexFields = (groupKey: string, collection: CollectionSchema) => {
+    // eslint-disable-next-line security/detect-object-injection
+    if (!collection.fieldAccessGroups?.[groupKey]) return []
+    const indexFields: CollectionField[] = []
+    const { fields, softDelete, preloadCache, roleSystemFields, queries } = collection
+    const systemFieldsSchema = getSystemFieldsSchema()
+
+    indexFields.push({
+        name: "Collection_Path",
+        type: "Array",
+        required: true,
+    })
+
+    indexFields.push({
+        name: "id",
+        type: "String",
+        required: true,
+    })
+
+    // eslint-disable-next-line security/detect-object-injection
+    const groupFields = getFieldAccessGroupFields(collection)[groupKey] || []
+    indexFields.push(...groupFields)
+
+    // eslint-disable-next-line security/detect-object-injection
+    const applicableRoles = collection.fieldAccessGroups[groupKey].applicableRoles
+
+    if (softDelete) {
+        const softDeleteField = getField(fields, softDelete.archivedField)
+        if (softDeleteField && !groupFields.includes(softDeleteField)) {
+            indexFields.push(softDeleteField)
+        }
+    }
+
+    if (preloadCache?.range) {
+        preloadCache.range.fields.forEach((field) => {
+            if (systemFields.includes(field as SystemField)) {
+                indexFields.push(getField(systemFieldsSchema, field))
+            } else if (applicableRoles.some((role) => fieldRoleProjectionAccess(getField(fields, field), role))) {
+                indexFields.push(getField(fields, field))
+            }
+        })
+    }
+
+    roleSystemFields
+        ?.filter(
+            (systemField) =>
+                systemField.field !== "Collection_Path" &&
+                applicableRoles.some((role) => !systemField.roles || systemField.roles.includes(role)),
+        )
+        .forEach((systemField) => {
+            indexFields.push(getField(systemFieldsSchema, systemField.field))
+        })
+
+    queries?.forEach((query: Query) => {
+        const queryField = getField(fields.concat(systemFieldsSchema), query.field)
+        if (
+            queryField &&
+            applicableRoles.some(
+                (role) => (!query.roles || query.roles.includes(role)) && fieldRoleProjectionAccess(queryField, role),
+            )
+        ) {
+            indexFields.push(queryField)
+        }
+    })
+
+    for (const role of applicableRoles) {
+        indexFields.push(...getAccessFields(collection, role))
+    }
 
     return [...new Set(indexFields)]
 }
@@ -257,7 +331,7 @@ export const getAllRoleGroups = (
         roleGroupsArray.map((roleGroup) => {
             roleGroup.fields.forEach((field) => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                if (permissions && field.access && !field.access?.includes(permissions.Role!)) {
+                if (permissions && field.access && !fieldRoleProjectionAccess(field, permissions.Role!)) {
                     roleGroup.fields = roleGroup.fields.filter((groupField) => groupField.name !== field.name)
                 }
             })

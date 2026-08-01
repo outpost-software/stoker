@@ -295,6 +295,16 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
                 },
             ],
         },
+        fieldAccessGroups: {
+            "No-Record-User": {
+                applicableRoles: ["Office", "Area Manager", "Subcontractor"],
+                match: "any",
+                roles: ["Office", "Area Manager"],
+                restrictions: {
+                    recordUser: false,
+                },
+            },
+        },
         fields: [
             {
                 name: "Name",
@@ -400,6 +410,7 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
                 type: "OneToMany",
                 collection: "Contacts",
                 includeFields: ["Name"],
+                access: { group: "No-Record-User" },
             },
             {
                 name: "State",

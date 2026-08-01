@@ -27,6 +27,7 @@ export const saveRecord = async (
     userId: string,
     enableWriteLog: boolean,
     permissions: StokerPermissions,
+    claims: Record<string, unknown>,
     retry?: boolean,
     originalRecord?: StokerRecord,
 ) => {
@@ -57,7 +58,7 @@ export const saveRecord = async (
 
             if (operation !== "delete" && mainError.code === "permission-denied") {
                 try {
-                    await uniqueValidation(operation, docId, record, collectionSchema, permissions)
+                    await uniqueValidation(operation, docId, record, collectionSchema, permissions, claims)
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (uniqueValidationError: any) {
                     const uniqueValidationFailures = uniqueValidationError.message.split(", ")

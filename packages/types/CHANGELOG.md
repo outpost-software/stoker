@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.65
+
+### Patch Changes
+
+- feat: add field access groups feature
+
 ## 0.5.64
 
 ### Patch Changes

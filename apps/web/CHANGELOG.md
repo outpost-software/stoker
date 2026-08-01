@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.224
+
+### Patch Changes
+
+- feat: add field access groups feature
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.87
+    - @stoker-platform/web-client@0.5.93
+    - @stoker-platform/utils@0.5.78
+
 ## 0.5.223
 
 ### Patch Changes

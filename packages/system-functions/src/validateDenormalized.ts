@@ -13,6 +13,8 @@ import {
 import {error as errorLogger} from "firebase-functions/logger";
 import {
     getDependencyIndexFields,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
     getLowercaseFields,
     getRoleGroups,
     getSystemFieldsSchema,
@@ -59,6 +61,7 @@ export const validateDenormalized = (
                 const dependencyUpdates = new Map<string, Record<string, unknown>>();
                 const roleGroupUpdates = new Map<string, Record<string, unknown>>();
                 const roleGroups = getRoleGroups(collection, schema);
+                const fieldAccessGroups = getFieldAccessGroupFields(collection);
 
                 for (const field of changedFields) {
                     if (isDependencyField(field, collection, schema)) {
@@ -85,6 +88,22 @@ export const validateDenormalized = (
                     for (const roleGroup of roleGroups) {
                         if (roleGroup.fields.some((groupField) => groupField.name === field.name)) {
                             const subcollection = `${labels.collection}-${roleGroup.key}`;
+                            const existing = roleGroupUpdates.get(subcollection) || {};
+                            const update: Record<string, unknown> = {
+                                [field.name]: record[field.name] ?? FieldValue.delete(),
+                            };
+                            const lowercaseFields = getLowercaseFields(collection, [field]);
+                            if (lowercaseFields.size === 1) {
+                                update[`${field.name}_Lowercase`] = record[field.name]?.toLowerCase() ?? FieldValue.delete();
+                            }
+                            roleGroupUpdates.set(subcollection, {...existing, ...update});
+                        }
+                    }
+                    for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+                        if (groupFields.length === 0) continue;
+                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
+                        if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                            const subcollection = `${labels.collection}-${groupKey}`;
                             const existing = roleGroupUpdates.get(subcollection) || {};
                             const update: Record<string, unknown> = {
                                 [field.name]: record[field.name] ?? FieldValue.delete(),

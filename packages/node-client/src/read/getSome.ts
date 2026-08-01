@@ -21,10 +21,12 @@ import {
     runHooks,
     getFieldCustomization,
     tryPromise,
+    privateFieldAccess,
 } from "@stoker-platform/utils"
 import { getOne } from "./getOne.js"
 import cloneDeep from "lodash/cloneDeep.js"
 import { fetchCurrentSchema } from "../utils/fetchSchema.js"
+import { getUser } from "../utils/getUser.js"
 
 const getSubcollections = async (
     tenantId: string,
@@ -249,7 +251,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
     let docs: Map<string, StokerRecord>
 
     const runTransaction = async (transaction: Transaction) => {
-        const [permissionsSnapshot, maintenanceMode, latestSchema] = await Promise.all([
+        const [permissionsSnapshot, maintenanceMode, latestSchema, latestUser] = await Promise.all([
             options?.userId
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.userId),
@@ -257,6 +259,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
                 : Promise.resolve({} as DocumentSnapshot),
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
             fetchCurrentSchema(true),
+            options?.userId ? getUser(options.userId) : Promise.resolve(undefined),
         ])
 
         if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
@@ -286,8 +289,15 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
             if (!permissions.Enabled) throw new Error("PERMISSION_DENIED")
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        let refs = getCollectionRefs(tenantId, path, schema, options?.userId, permissions!)
+        let refs = getCollectionRefs(
+            tenantId,
+            path,
+            schema,
+            options?.userId,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            permissions!,
+            latestUser?.customClaims ?? {},
+        )
         if (refs.length === 0) return { cursor: {}, pages: 0, records: [] }
         if (constraints) {
             refs = refs.map((ref) => {
@@ -489,7 +499,9 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
                     continue
                 }
                 for (const field of collectionSchema.fields) {
-                    const accessible = !field.access || field.access.includes(role)
+                    const accessible =
+                        !field.access ||
+                        privateFieldAccess(field, permissions, collectionSchema, latestUser?.customClaims ?? {})
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const allowField =
                         fieldCustomization?.custom?.serverAccess?.read !== undefined

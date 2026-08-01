@@ -159,6 +159,7 @@ export const validateRelations = async (
     userId?: string,
     permissions?: StokerPermissions,
     originalRecord?: StokerRecord,
+    claims?: Record<string, unknown>,
 ) => {
     const { fields } = collectionSchema
     const db = getStokerFirestore()
@@ -327,7 +328,7 @@ export const validateRelations = async (
             if (userId && permissions) {
                 for (const field of addedFields) {
                     const targetField = getField(relationCollection.fields, field.twoWay) as RelationField
-                    if (!canUpdateField(relationCollection, targetField, permissions)) {
+                    if (!canUpdateField(relationCollection, targetField, permissions, claims ?? {})) {
                         deleteRelation(field, partial, id)
                         continue
                     }
@@ -335,7 +336,7 @@ export const validateRelations = async (
                 for (const field of removedFields) {
                     const targetField = getField(relationCollection.fields, field.twoWay) as RelationField
                     const singleFieldRelations = getSingleFieldRelations(relationCollection, [targetField])
-                    if (!canUpdateField(relationCollection, targetField, permissions)) {
+                    if (!canUpdateField(relationCollection, targetField, permissions, claims ?? {})) {
                         restoreRelation(
                             field,
                             partial,

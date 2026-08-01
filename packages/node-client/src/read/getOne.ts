@@ -22,10 +22,12 @@ import {
     runHooks,
     getFieldCustomization,
     tryPromise,
+    privateFieldAccess,
 } from "@stoker-platform/utils"
 import { DocumentSnapshot, Transaction } from "firebase-admin/firestore"
 import { getStokerFirestore } from "../utils/getStokerFirestore.js"
 import { fetchCurrentSchema } from "../utils/fetchSchema.js"
+import { getUser } from "../utils/getUser.js"
 
 const getSubcollections = async (
     tenantId: string,
@@ -198,7 +200,7 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
     let docData: StokerRecord
 
     const runTransaction = async (transaction: Transaction) => {
-        const [permissionsSnapshot, maintenanceMode, latestSchema] = await Promise.all([
+        const [permissionsSnapshot, maintenanceMode, latestSchema, latestUser] = await Promise.all([
             options?.userId
                 ? transaction.get(
                       db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(options.userId),
@@ -206,6 +208,7 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
                 : Promise.resolve({} as DocumentSnapshot),
             transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
             fetchCurrentSchema(true),
+            options?.userId ? getUser(options.userId) : Promise.resolve(undefined),
         ])
 
         if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
@@ -245,7 +248,7 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
         }
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const refs = getDocumentRefs(tenantId, path, recordId, schema, permissions!)
+        const refs = getDocumentRefs(tenantId, path, recordId, schema, permissions!, latestUser?.customClaims ?? {})
         if (refs.length === 0) throw new Error("PERMISSION_DENIED")
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -343,7 +346,9 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
                     : true
             if (!allowedCollection) throw new Error("PERMISSION_DENIED")
             for (const field of collectionSchema.fields) {
-                const accessible = !field.access || field.access.includes(role)
+                const accessible =
+                    !field.access ||
+                    privateFieldAccess(field, permissions, collectionSchema, latestUser?.customClaims ?? {})
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const allowField =
                     fieldCustomization?.custom?.serverAccess?.read !== undefined

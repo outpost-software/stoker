@@ -37,6 +37,7 @@ import {
     SubscribeManyOptions,
     updateRecord,
     getPreloadListeners,
+    getCurrentUser,
 } from "@stoker-platform/web-client"
 import { createElement, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
@@ -163,6 +164,7 @@ function Collection({
     const timezone = getTimezone()
     const [permissions, setPermissions] = useState<StokerPermissions | null>(() => getCurrentUserPermissions())
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
+    const claims = getCurrentUser()?.token.claims ?? {}
     const { toast } = useToast()
 
     const isServerReadOnly = serverReadOnly(collection)
@@ -720,7 +722,7 @@ function Collection({
                                 }
                             }
                             if (!isPreloadCacheEnabled || relationList?.loadAll) {
-                                if (!isPreloadCacheEnabled) loadedKeys.current.add(key)
+                                loadedKeys.current.add(key)
                                 if (loadedKeys.current.size === keysLength.current) {
                                     setIsRouteLoading("-", location.pathname)
                                 }
@@ -1596,13 +1598,13 @@ function Collection({
                 if (!relationCollection?.fullTextSearch) return false
                 const collectionPermissions = permissions.collections?.[relationCollection.labels.collection]
                 const fullCollectionAccess = collectionPermissions && collectionAccess("Read", collectionPermissions)
-                const dependencyAccess = hasDependencyAccess(relationCollection, schema, permissions)
+                const dependencyAccess = hasDependencyAccess(relationCollection, schema, permissions, claims)
                 if (!fullCollectionAccess && dependencyAccess.length === 0) return false
             }
 
             return true
         })
-    }, [filters, excludedFilters, fields, permissions, schema])
+    }, [filters, excludedFilters, fields, permissions, schema, claims])
 
     const hasRangeFilter = useMemo(() => {
         return filters.some((filter) => filter.type === "range" && !isPreloadCacheEnabled)
@@ -1820,11 +1822,8 @@ function Collection({
         return schema.collections[collectionName] || collection
     }, [selectedCreateCollection, labels.collection, schema, collection])
 
-    const createRecordTitle = useMemo(() => {
-        return (
-            additionalTitles?.[selectedCreateCollection || labels.collection]?.record ||
-            createCollectionSchema.labels.record
-        )
+    const additionalRecordTitle = useMemo(() => {
+        return additionalTitles?.[selectedCreateCollection || labels.collection]?.record
     }, [createCollectionSchema, additionalTitles, selectedCreateCollection, labels.collection])
 
     const createPrePopulatedRecord = useCallback(() => {
@@ -2778,7 +2777,7 @@ function Collection({
                                                                                         className="font-medium leading-none"
                                                                                     >
                                                                                         Add{" "}
-                                                                                        {createRecordTitle ||
+                                                                                        {additionalRecordTitle ||
                                                                                             recordTitle}
                                                                                     </h4>
                                                                                     <Button

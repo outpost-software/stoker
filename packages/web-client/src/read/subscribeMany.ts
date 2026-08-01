@@ -47,7 +47,7 @@ import {
     tryPromise,
     updateFieldReference,
 } from "@stoker-platform/utils"
-import { Cursor, getOne, preloadCollection } from "../main"
+import { Cursor, getCurrentUser, getOne, preloadCollection } from "../main"
 import { subscribeOne } from "./subscribeOne"
 
 export interface SubscribeManyOptions {
@@ -110,6 +110,7 @@ export const subscribeMany = async (
     if (!collection) throw new Error("EMPTY_PATH")
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
+    const claims = getCurrentUser()?.token.claims ?? {}
     const schema = getSchema(true)
     const roleGroups = getCurrentUserRoleGroups()
     // eslint-disable-next-line security/detect-object-injection
@@ -387,12 +388,16 @@ export const subscribeMany = async (
                       (field) =>
                           typeof field === "object" &&
                           isRelationField(field) &&
-                          getRelatedCollections(collectionSchema, schema, permissions).includes(field.collection),
+                          getRelatedCollections(collectionSchema, schema, permissions, claims).includes(
+                              field.collection,
+                          ),
                   )
                 : collectionSchema.fields.filter(
                       (field) =>
                           isRelationField(field) &&
-                          getRelatedCollections(collectionSchema, schema, permissions).includes(field.collection),
+                          getRelatedCollections(collectionSchema, schema, permissions, claims).includes(
+                              field.collection,
+                          ),
                   )
         const relationsLoaded = new Map()
         const alreadyInitialized = new Map()
@@ -586,12 +591,16 @@ export const subscribeMany = async (
                       (field) =>
                           typeof field === "object" &&
                           isRelationField(field) &&
-                          getRelatedCollections(collectionSchema, schema, permissions).includes(field.collection),
+                          getRelatedCollections(collectionSchema, schema, permissions, claims).includes(
+                              field.collection,
+                          ),
                   )
                 : collectionSchema.fields.filter(
                       (field) =>
                           isRelationField(field) &&
-                          getRelatedCollections(collectionSchema, schema, permissions).includes(field.collection),
+                          getRelatedCollections(collectionSchema, schema, permissions, claims).includes(
+                              field.collection,
+                          ),
                   )
         for (const field of fields as CollectionField[]) {
             // eslint-disable-next-line security/detect-object-injection

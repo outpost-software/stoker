@@ -7,6 +7,8 @@ import {
 import {
     getDependencyIndexFields,
     getField,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
     getFieldNames,
     getRoleGroups,
     getSingleFieldRelations,
@@ -120,6 +122,28 @@ export const removeRelations = (
                                             roleGroupUpdate);
                                     }
                                 });
+                                const fieldAccessGroups = getFieldAccessGroupFields(relatedCollection);
+                                Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                                    if (groupFields.length === 0) return;
+                                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, relatedCollection);
+                                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                        const overlayUpdate = {
+                                            [`${field.name}.${snapshot.id}.deleted`]: true,
+                                        };
+                                        if (singleRelationFields.size === 1) {
+                                            overlayUpdate[`${field.name}_Single.deleted`] = true;
+                                        }
+                                        batch.update(
+                                            db
+                                                .collection("tenants")
+                                                .doc(tenantId)
+                                                .collection("system_fields")
+                                                .doc(relatedCollection.labels.collection)
+                                                .collection(`${relatedCollection.labels.collection}-${groupKey}`)
+                                                .doc(record.id),
+                                            overlayUpdate);
+                                    }
+                                });
                             } else {
                                 batch.update(record.ref, {
                                     [`${field.name}.${snapshot.id}`]: FieldValue.delete(),
@@ -168,6 +192,25 @@ export const removeRelations = (
                                                 .collection("system_fields")
                                                 .doc(relatedCollection.labels.collection)
                                                 .collection(`${relatedCollection.labels.collection}-${roleGroup.key}`)
+                                                .doc(record.id), {
+                                                [`${field.name}.${snapshot.id}`]: FieldValue.delete(),
+                                                [`${field.name}_Array`]: FieldValue.arrayRemove(snapshot.id),
+                                                [`${field.name}_Single`]: FieldValue.delete(),
+                                            });
+                                    }
+                                });
+                                const fieldAccessGroups = getFieldAccessGroupFields(relatedCollection);
+                                Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                                    if (groupFields.length === 0) return;
+                                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, relatedCollection);
+                                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                        batch.update(
+                                            db
+                                                .collection("tenants")
+                                                .doc(tenantId)
+                                                .collection("system_fields")
+                                                .doc(relatedCollection.labels.collection)
+                                                .collection(`${relatedCollection.labels.collection}-${groupKey}`)
                                                 .doc(record.id), {
                                                 [`${field.name}.${snapshot.id}`]: FieldValue.delete(),
                                                 [`${field.name}_Array`]: FieldValue.arrayRemove(snapshot.id),

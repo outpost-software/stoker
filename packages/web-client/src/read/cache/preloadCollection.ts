@@ -1,5 +1,5 @@
 import { PreloadCacheInitial, PreloadCacheRange, StokerCollection } from "@stoker-platform/types"
-import { getCurrentUserPermissions, getLoadingState, getSchema } from "../../initializeStoker"
+import { getCurrentUser, getCurrentUserPermissions, getLoadingState, getSchema } from "../../initializeStoker"
 import { collectionAccess, getRelatedCollections, hasDependencyAccess, tryPromise } from "@stoker-platform/utils"
 import { preloadData } from "./preloadData"
 import { WhereFilterOp } from "firebase/firestore"
@@ -16,10 +16,10 @@ export const preloadCollection = async (
     const schema = getSchema()
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
+    const claims = getCurrentUser()?.token.claims ?? {}
     // eslint-disable-next-line security/detect-object-injection
     const collectionSchema = schema.collections[collection]
     const { labels, preloadCache } = collectionSchema
-
     const state = getLoadingState()
     let location = labels.collection
     if (tempCache) {
@@ -34,7 +34,7 @@ export const preloadCollection = async (
     if (
         !(
             (collectionPermissions && collectionAccess("Read", collectionPermissions)) ||
-            hasDependencyAccess(collectionSchema, schema, permissions).length > 0
+            hasDependencyAccess(collectionSchema, schema, permissions, claims).length > 0
         )
     ) {
         state[location] = "Error"
@@ -48,7 +48,7 @@ export const preloadCollection = async (
         if (preloadCache?.relationCollections && !tempCache) {
             const waitForRelationCollections = await tryPromise(preloadCache.relationCollections)
             if (waitForRelationCollections) {
-                const relatedCollections = getRelatedCollections(collectionSchema, schema, permissions)
+                const relatedCollections = getRelatedCollections(collectionSchema, schema, permissions, claims)
                 for (const relatedCollection of relatedCollections) {
                     if (!initial?.[relatedCollection]) {
                         const relatedCollectionSchema = schema.collections[relatedCollection]

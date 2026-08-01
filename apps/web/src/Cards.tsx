@@ -19,6 +19,7 @@ import {
 import {
     Cursor,
     getCollectionConfigModule,
+    getCurrentUser,
     getCurrentUserPermissions,
     onStokerPermissionsChange,
     subscribeOne,
@@ -94,11 +95,12 @@ function CardItem({ index, style, data }: CardItemProps) {
     const systemFields = getSystemFieldsSchema()
     const customization = getCollectionConfigModule(labels.collection)
     const permissions = getCurrentUserPermissions()
+    const claims = getCurrentUser()?.token.claims ?? {}
     const location = useLocation()
     if (!permissions) {
         throw new Error("PERMISSION_DENIED")
     }
-    const hasUpdateAccess = !!canUpdateField(collection, statusField, permissions)
+    const hasUpdateAccess = !!canUpdateField(collection, statusField, permissions, claims)
     const goToRecord = useGoToRecord()
     const [connectionStatus] = useConnection()
     const { isGlobalLoading } = useGlobalLoading()

@@ -6,6 +6,7 @@ export const hasDependencyAccess = (
     collection: CollectionSchema,
     schema: CollectionsSchema,
     permissions: StokerPermissions,
+    claims: Record<string, unknown>,
 ) => {
     const collections: CollectionSchema[] = Object.values(schema.collections)
     const { labels } = collection
@@ -13,7 +14,7 @@ export const hasDependencyAccess = (
     for (const collectionSchema of collections) {
         const { fields: dependencyFields } = collectionSchema
         for (const field of dependencyFields) {
-            if (field.access && !privateFieldAccess(field, permissions)) continue
+            if (field.access && !privateFieldAccess(field, permissions, collectionSchema, claims)) continue
             if (!permissions.Role) continue
             if (isRelationField(field) && field.collection === labels.collection && field.dependencyFields) {
                 for (const dependencyField of field.dependencyFields) {

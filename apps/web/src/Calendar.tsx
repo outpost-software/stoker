@@ -21,6 +21,7 @@ import {
     preloadCollection,
     subscribeMany,
     onStokerPermissionsChange,
+    getCurrentUser,
 } from "@stoker-platform/web-client"
 import { useGoToRecord } from "./utils/goToRecord"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -259,6 +260,7 @@ export function Calendar({
     const customization = getCollectionConfigModule(labels.collection)
     const permissions = getCurrentUserPermissions()
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
+    const claims = getCurrentUser()?.token.claims ?? {}
     const location = useLocation()
     const goToRecord = useGoToRecord()
     const { toast } = useToast()
@@ -524,21 +526,21 @@ export function Calendar({
             const allDayFieldSchema = getField(allFields, allDayField)
 
             const hasStartUpdateAccess = !!(
-                canUpdateField(collection, startFieldSchema, permissions) &&
+                canUpdateField(collection, startFieldSchema, permissions, claims) &&
                 !systemFields.map((field) => field.name).includes(startField)
             )
             const hasAllDayUpdateAccess =
-                allDayFieldSchema && !!canUpdateField(collection, allDayFieldSchema, permissions)
+                allDayFieldSchema && !!canUpdateField(collection, allDayFieldSchema, permissions, claims)
             setHasStartUpdateAccess(hasStartUpdateAccess && (!allDayField || hasAllDayUpdateAccess))
             if (endField) {
                 const hasEndUpdateAccess = !!(
-                    canUpdateField(collection, endFieldSchema, permissions) &&
+                    canUpdateField(collection, endFieldSchema, permissions, claims) &&
                     !systemFields.map((field) => field.name).includes(endField)
                 )
                 setHasEndUpdateAccess(hasEndUpdateAccess && (!allDayField || hasAllDayUpdateAccess))
             }
             if (resourceField) {
-                const hasResourceUpdateAccess = !!canUpdateField(collection, resourceFieldSchema, permissions)
+                const hasResourceUpdateAccess = !!canUpdateField(collection, resourceFieldSchema, permissions, claims)
                 setHasResourceUpdateAccess(hasResourceUpdateAccess)
             }
 
@@ -928,17 +930,17 @@ export function Calendar({
                     const systemFields = getSystemFieldsSchema()
 
                     const hasAllDayUpdateAccess =
-                        allDayFieldSchema && !!canUpdateField(additionalSchema, allDayFieldSchema, permissions)
+                        allDayFieldSchema && !!canUpdateField(additionalSchema, allDayFieldSchema, permissions, claims)
                     const hasStartUpdateAccessAdditional =
                         !!(
-                            canUpdateField(additionalSchema, startFieldSchema, permissions) &&
+                            canUpdateField(additionalSchema, startFieldSchema, permissions, claims) &&
                             !systemFields.map((field) => field.name).includes(startField)
                         ) &&
                         (!allDayField || hasAllDayUpdateAccess)
                     let hasEndUpdateAccessAdditional = false
                     if (endField) {
                         hasEndUpdateAccessAdditional = !!(
-                            canUpdateField(additionalSchema, endFieldSchema, permissions) &&
+                            canUpdateField(additionalSchema, endFieldSchema, permissions, claims) &&
                             !systemFields.map((field) => field.name).includes(endField) &&
                             (!allDayField || hasAllDayUpdateAccess)
                         )

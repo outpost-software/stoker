@@ -1,7 +1,7 @@
 import { doc, getDoc } from "firebase/firestore"
 import { getStokerFirestore } from "../initializeStoker.js"
 import { CollectionSchema, StokerPermissions, StokerRecord } from "@stoker-platform/types"
-import { isValidUniqueFieldValue, isDeleteSentinel } from "@stoker-platform/utils"
+import { isValidUniqueFieldValue, isDeleteSentinel, privateFieldAccess } from "@stoker-platform/utils"
 import { getTenant } from "../initializeStoker"
 
 export const uniqueValidation = async (
@@ -10,6 +10,7 @@ export const uniqueValidation = async (
     data: StokerRecord,
     collectionSchema: CollectionSchema,
     permissions: StokerPermissions,
+    claims: Record<string, unknown>,
 ) => {
     const tenantId = getTenant()
     const db = getStokerFirestore()
@@ -23,8 +24,7 @@ export const uniqueValidation = async (
 
     await Promise.all(
         uniqueFields.map(async (field) => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (!field.access || field.access.includes(permissions.Role!)) {
+            if (!field.access || privateFieldAccess(field, permissions, collectionSchema, claims)) {
                 if (data[field.name] === undefined || isDeleteSentinel(data[field.name])) return
                 const fieldName = data[field.name].toString().toLowerCase().replace(/\s/g, "---").replaceAll("/", "|||")
                 if (!isValidUniqueFieldValue(fieldName)) {

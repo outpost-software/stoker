@@ -11,3 +11,4 @@ node_modules/
 
 src/system-custom
 project-data.json
+local-packages/

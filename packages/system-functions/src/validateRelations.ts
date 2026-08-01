@@ -24,6 +24,8 @@ import {
     documentAccess,
     getDependencyIndexFields,
     getField,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
     getFieldNames,
     getLowercaseFields,
     getRoleGroups,
@@ -33,6 +35,7 @@ import {
 import {
     getFirestorePathRef,
     getStokerFirestore,
+    getUser,
 } from "@stoker-platform/node-client";
 
 /* eslint-disable max-len */
@@ -148,6 +151,25 @@ export const validateRelations = (
                         });
                 }
             });
+            const fieldAccessGroups = getFieldAccessGroupFields(collection);
+            Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                if (groupFields.length === 0) return;
+                const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
+                if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                    transaction.update(
+                        db
+                            .collection("tenants")
+                            .doc(tenantId)
+                            .collection("system_fields")
+                            .doc(labels.collection)
+                            .collection(`${labels.collection}-${groupKey}`)
+                            .doc(docId), {
+                            [`${field.name}.${relationId}`]: FieldValue.delete(),
+                            [`${field.name}_Array`]: FieldValue.arrayRemove(relationId),
+                            [`${field.name}_Single`]: FieldValue.delete(),
+                        });
+                }
+            });
         };
 
         const deleteSourceRelation = (
@@ -214,6 +236,25 @@ export const validateRelations = (
                             });
                     }
                 });
+                const fieldAccessGroups = getFieldAccessGroupFields(sourceSchema);
+                Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                    if (groupFields.length === 0) return;
+                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, sourceSchema);
+                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                        transaction.update(
+                            db
+                                .collection("tenants")
+                                .doc(tenantId)
+                                .collection("system_fields")
+                                .doc(sourceSchema.labels.collection)
+                                .collection(`${sourceSchema.labels.collection}-${groupKey}`)
+                                .doc(docId), {
+                                [`${field.name}.${relationId}`]: FieldValue.delete(),
+                                [`${field.name}_Array`]: FieldValue.arrayRemove(relationId),
+                                [`${field.name}_Single`]: FieldValue.delete(),
+                            });
+                    }
+                });
             } else {
                 const singleRelationFields = getSingleFieldRelations(sourceSchema, [field]);
                 const mainUpdate = {
@@ -253,6 +294,26 @@ export const validateRelations = (
                             .doc(sourceSchema.labels.collection)
                             .collection(`${sourceSchema.labels.collection}-${roleGroup.key}`)
                             .doc(docId), roleGroupUpdate);
+                    }
+                });
+                const fieldAccessGroups = getFieldAccessGroupFields(sourceSchema);
+                Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                    if (groupFields.length === 0) return;
+                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, sourceSchema);
+                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                        const overlayUpdate = {
+                            [`${field.name}.${relationId}.deleted`]: true,
+                        };
+                        if (singleRelationFields.size === 1) {
+                            overlayUpdate[`${field.name}_Single.deleted`] = true;
+                        }
+                        transaction.update(db.
+                            collection("tenants")
+                            .doc(tenantId)
+                            .collection("system_fields")
+                            .doc(sourceSchema.labels.collection)
+                            .collection(`${sourceSchema.labels.collection}-${groupKey}`)
+                            .doc(docId), overlayUpdate);
                     }
                 });
             }
@@ -355,7 +416,8 @@ export const validateRelations = (
                                     // eslint-disable-next-line security/detect-object-injection
                                     if (!before?.[field.name]?.[id] && after.Last_Write_By !== "System" && source && ref && !field.writeAny) {
                                         const permissions = await transaction.get(db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(after.Last_Write_By));
-                                        if (!permissions.exists || !(documentAccess("Read", relationCollection, schema, after.Last_Write_By, permissions.data() as StokerPermissions, source) || dependencyAccess(relationCollection, schema, after.Last_Write_By, permissions.data() as StokerPermissions, source))) {
+                                        const user = await getUser(after.Last_Write_By);
+                                        if (!permissions.exists || !(documentAccess("Read", relationCollection, schema, after.Last_Write_By, permissions.data() as StokerPermissions, source) || dependencyAccess(relationCollection, schema, after.Last_Write_By, permissions.data() as StokerPermissions, source, user?.customClaims ?? {}))) {
                                             deleteMainRelation(field, snapshot.after.id, id, transaction);
                                             if (field.twoWay) {
                                                 const sourceField = getField(relationCollection.fields, field.twoWay) as RelationField;
@@ -488,6 +550,23 @@ export const validateRelations = (
                                                         .collection("system_fields")
                                                         .doc(labels.collection)
                                                         .collection(`${labels.collection}-${roleGroup.key}`)
+                                                        .doc(snapshot.after.id),
+                                                    fieldUpdateWithSingle,
+                                                );
+                                            }
+                                        });
+                                        const fieldAccessGroups = getFieldAccessGroupFields(collection);
+                                        Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                                            if (groupFields.length === 0) return;
+                                            const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
+                                            if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                                transaction.update(
+                                                    db
+                                                        .collection("tenants")
+                                                        .doc(tenantId)
+                                                        .collection("system_fields")
+                                                        .doc(labels.collection)
+                                                        .collection(`${labels.collection}-${groupKey}`)
                                                         .doc(snapshot.after.id),
                                                     fieldUpdateWithSingle,
                                                 );

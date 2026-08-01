@@ -1,4 +1,3 @@
-import { uniqueValidation } from "./uniqueValidation.js"
 import { writeLog } from "./writeLog.js"
 import { DocumentSnapshot, FieldValue, Timestamp, Transaction } from "firebase-admin/firestore"
 import { getStokerFirestore } from "../utils/getStokerFirestore.js"
@@ -19,6 +18,7 @@ import {
     addLowercaseFields,
     getAllRoleGroups,
     getFieldCustomization,
+    privateFieldAccess,
 } from "@stoker-platform/utils"
 import {
     CollectionField,
@@ -54,6 +54,7 @@ import { fetchCurrentSchema } from "../utils/fetchSchema.js"
 import { getDocumentRefs } from "../read/getDocumentRefs.js"
 import { entityRestrictionAccess } from "./entityRestrictionAccess.js"
 import { isReservedClaimKey } from "../utils/reservedAuthClaims.js"
+import { getUser } from "../utils/getUser.js"
 
 export const updateRecord = async (
     path: string[],
@@ -105,6 +106,7 @@ export const updateRecord = async (
     const db = getStokerFirestore()
 
     let currentUserPermissions: StokerPermissions | undefined
+    let currentUserClaims: Record<string, unknown> | undefined
     if (userId) {
         await validateCollectionPath(path, collectionSchema)
     }
@@ -264,7 +266,6 @@ export const updateRecord = async (
         }
         if (!options?.providedTransaction) {
             const record = { ...fullOriginalRecord, ...partial }
-            await uniqueValidation("update", tenantId, recordId, record, collectionSchema, schema)
             removeDeleteSentinels(record)
             await validateRecord(
                 "update",
@@ -314,7 +315,7 @@ export const updateRecord = async (
     }
 
     const preWriteChecks = async (transaction: Transaction, initial?: boolean, batchSize?: { size: number }) => {
-        const [latestDeploy, maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema] =
+        const [latestDeploy, maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema, latestUser] =
             await Promise.all([
                 !options?.providedTransaction
                     ? transaction.get(db.collection("system_deployment").doc("latest_deploy"))
@@ -335,6 +336,7 @@ export const updateRecord = async (
                       )
                     : Promise.resolve({} as DocumentSnapshot),
                 !options?.providedSchema ? fetchCurrentSchema() : Promise.resolve(options.providedSchema),
+                userId ? getUser(userId) : Promise.resolve(undefined),
             ])
         if (batchSize) batchSize.size += 3
 
@@ -362,10 +364,18 @@ export const updateRecord = async (
             currentUserPermissions = permissionsSnapshot.data()!
             if (!currentUserPermissions.Role) throw new Error("USER_ERROR")
             if (!currentUserPermissions.Enabled) throw new Error("PERMISSION_DENIED")
+            currentUserClaims = latestUser?.customClaims ?? {}
         }
 
         if (batchSize)
-            batchSize.size += getDocumentRefs(tenantId, path, recordId, schema, currentUserPermissions).length
+            batchSize.size += getDocumentRefs(
+                tenantId,
+                path,
+                recordId,
+                schema,
+                currentUserPermissions,
+                currentUserClaims,
+            ).length
 
         if ((createUserRequest && originalRecord.User_ID) || (deleteUserRequest && !originalRecord.User_ID)) {
             throw new Error("USER_ERROR")
@@ -405,8 +415,11 @@ export const updateRecord = async (
         if (!options?.providedTransaction) {
             const uniqueFields = fields.filter((field) => "unique" in field && field.unique)
             const uniqueFieldPromises = uniqueFields.map(async (field) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                if (!userId || !field.access || field.access.includes(currentUserPermissions!.Role!)) {
+                if (
+                    !userId ||
+                    !field.access ||
+                    privateFieldAccess(field, currentUserPermissions, collectionSchema, currentUserClaims)
+                ) {
                     if (partial[field.name] === undefined || isDeleteSentinel(partial[field.name])) return
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const finalRecord = { ...originalRecord, ...partial }
@@ -484,6 +497,7 @@ export const updateRecord = async (
             user?.operation ? user.operation : updateUserRequest ? "update" : undefined,
             user?.permissions,
             originalPermissions,
+            currentUserClaims,
         )
 
         if (user?.permissions && userId && currentUserPermissions) {
@@ -509,6 +523,7 @@ export const updateRecord = async (
             user?.operation ? user.operation : updateUserRequest ? "update" : undefined,
             user?.permissions,
             originalPermissions,
+            currentUserClaims,
         )
 
         if (initial && (createUserRequest || updateUserRequired(originalRecord) || deleteUserRequest)) {
@@ -550,6 +565,7 @@ export const updateRecord = async (
                     userId,
                     currentUserPermissions,
                     originalRecord,
+                    currentUserClaims,
                 )
             }
 

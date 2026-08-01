@@ -17,6 +17,8 @@ import {
 import {error as errorLogger} from "firebase-functions/logger";
 import {
     getField,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
     getLowercaseFields,
     getRoleGroups,
     getSingleFieldRelations,
@@ -218,6 +220,23 @@ export const updateIncludeFields = (
                                                             .collection("system_fields")
                                                             .doc(collection.labels.collection)
                                                             .collection(`${collection.labels.collection}-${roleGroup.key}`)
+                                                            .doc(dataRef.id)
+                                                        , updateDataWithSingle
+                                                    );
+                                                }
+                                            });
+                                            const fieldAccessGroups = getFieldAccessGroupFields(collection);
+                                            Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+                                                if (groupFields.length === 0) return;
+                                                const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
+                                                if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                                    transaction.update(
+                                                        db
+                                                            .collection("tenants")
+                                                            .doc(tenantId)
+                                                            .collection("system_fields")
+                                                            .doc(collection.labels.collection)
+                                                            .collection(`${collection.labels.collection}-${groupKey}`)
                                                             .doc(dataRef.id)
                                                         , updateDataWithSingle
                                                     );

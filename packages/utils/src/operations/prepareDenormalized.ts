@@ -9,7 +9,12 @@ import {
     StokerRole,
 } from "@stoker-platform/types"
 import { isRelationField } from "../schema/isRelationField.js"
-import { getDependencyIndexFields, getRoleExcludedFields } from "../schema/getIndexFields.js"
+import {
+    getDependencyIndexFields,
+    getFieldAccessGroupIndexFields,
+    getRoleExcludedFields,
+} from "../schema/getIndexFields.js"
+import { getFieldAccessGroupFields } from "../access/fieldAccess.js"
 import { isDependencyField } from "../schema/isDependencyField.js"
 import { getFieldNames } from "../schema/getFieldNames.js"
 import { getField } from "../schema/getField.js"
@@ -110,6 +115,39 @@ export const prepareDenormalized = (
         }
     })
 
+    const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
+    Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
+        if (groupFields.length === 0) return
+        const overlayFieldsSchema = getFieldAccessGroupIndexFields(groupKey, collectionSchema)
+        const overlayRecord = {} as StokerRecord
+        overlayFieldsSchema.forEach((overlayField) => {
+            const names = [
+                overlayField.name,
+                `${overlayField.name}_Array`,
+                `${overlayField.name}_Single`,
+                `${overlayField.name}_Lowercase`,
+            ]
+            names.forEach((name) => {
+                // eslint-disable-next-line security/detect-object-injection
+                if (record[name] !== undefined) overlayRecord[name] = record[name]
+            })
+        })
+        if (operation === "create") {
+            overlayRecord.Collection_Path ||= path
+            overlayRecord.Collection_Path_String = path.join("/")
+            batch.set(privateRef(groupKey), overlayRecord)
+            if (batchSize) batchSize.size++
+        }
+        if (operation === "update" && Object.keys(overlayRecord).length > 0) {
+            batch.update(privateRef(groupKey), overlayRecord)
+            if (batchSize) batchSize.size++
+        }
+        if (operation === "delete") {
+            batch.delete(privateRef(groupKey))
+            if (batchSize) batchSize.size++
+        }
+    })
+
     const roleGroups = allRoleGroups[collectionSchema.labels.collection]
     for (const group of roleGroups) {
         const excludedFields = getRoleExcludedFields(group, collectionSchema)
@@ -160,6 +198,17 @@ export const prepareDenormalized = (
                 batchSize++
             }
         }
+        const fieldAccessGroups = getFieldAccessGroupFields(targetSchema)
+        for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+            if (groupFields.length === 0) continue
+            const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, targetSchema)
+            if (
+                overlayIndexFields.some((overlayField) => overlayField.name === targetField.name) &&
+                isRelationField(targetField)
+            ) {
+                batchSize++
+            }
+        }
         return batchSize
     }
 
@@ -201,6 +250,17 @@ export const prepareDenormalized = (
                 isRelationField(targetField)
             ) {
                 batch.update(twoWayPrivateRef(field, group.key, id), fieldUpdate)
+            }
+        }
+        const fieldAccessGroups = getFieldAccessGroupFields(targetSchema)
+        for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+            if (groupFields.length === 0) continue
+            const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, targetSchema)
+            if (
+                overlayIndexFields.some((overlayField) => overlayField.name === targetField.name) &&
+                isRelationField(targetField)
+            ) {
+                batch.update(twoWayPrivateRef(field, groupKey, id), fieldUpdate)
             }
         }
     }
@@ -312,6 +372,24 @@ export const prepareDenormalized = (
                             })
                             if (Object.keys(groupFieldUpdate).length > 0) {
                                 batch.update(twoWayPrivateRef(field, group.key, id), groupFieldUpdate)
+                                batchSize.size++
+                            }
+                        }
+                    }
+                    const fieldAccessGroups = getFieldAccessGroupFields(targetSchema)
+                    for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+                        if (groupFields.length === 0) continue
+                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, targetSchema)
+                        if (overlayIndexFields.some((overlayField) => overlayField.name === targetField.name)) {
+                            const overlayFieldUpdate = { ...fieldUpdate }
+                            Object.keys(systemFields).forEach((systemField) => {
+                                if (overlayIndexFields.some((overlayField) => overlayField.name === systemField)) {
+                                    // eslint-disable-next-line security/detect-object-injection
+                                    overlayFieldUpdate[systemField] = systemFields[systemField]
+                                }
+                            })
+                            if (Object.keys(overlayFieldUpdate).length > 0) {
+                                batch.update(twoWayPrivateRef(field, groupKey, id), overlayFieldUpdate)
                                 batchSize.size++
                             }
                         }

@@ -7,11 +7,13 @@ export const getRelatedCollections = (
     collectionSchema: CollectionSchema,
     schema: CollectionsSchema,
     permissions?: StokerPermissions,
+    claims?: Record<string, unknown>,
 ): string[] => {
     const relatedCollections = []
     for (const field of collectionSchema.fields) {
         if (isRelationField(field)) {
-            if (field.access && (!permissions || !privateFieldAccess(field, permissions))) continue
+            if (field.access && (!permissions || !privateFieldAccess(field, permissions, collectionSchema, claims)))
+                continue
             const relatedCollection = schema.collections[field.collection]
             if (!relatedCollection) continue
             const relatedCollectionPermissions = permissions?.collections?.[field.collection]
@@ -19,7 +21,7 @@ export const getRelatedCollections = (
             if (
                 !permissions ||
                 collectionAccess("Read", relatedCollectionPermissions) ||
-                hasDependencyAccess(collectionSchema, schema, permissions)
+                hasDependencyAccess(collectionSchema, schema, permissions, claims ?? {})
             ) {
                 relatedCollections.push(field.collection)
             }

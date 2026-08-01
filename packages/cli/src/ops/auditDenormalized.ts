@@ -1,6 +1,8 @@
 import { fetchCurrentSchema, initializeStoker, getStokerFirestore } from "@stoker-platform/node-client"
 import {
     getDependencyIndexFields,
+    getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
     getLowercaseFields,
     getRoleGroups,
     getSingleFieldRelations,
@@ -136,6 +138,65 @@ export const auditDenormalized = async (options: any) => {
                         if (!isEqual(dependencyValue, collectionValue)) {
                             console.log(
                                 `${collectionName} ${dependency.id} Private ${roleGroup.key}: ${indexField.name}_Lowercase - ${JSON.stringify(dependencyValue)} !== ${JSON.stringify(collectionValue)}`,
+                            )
+                        }
+                    }
+                }
+            })
+        }
+        const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
+        for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+            if (groupFields.length === 0) continue
+            const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collectionSchema)
+            const overlaySnapshot = await db
+                .collection("tenants")
+                .doc(options.tenant)
+                .collection("system_fields")
+                .doc(collectionName)
+                .collection(`${collectionName}-${groupKey}`)
+                .get()
+            const overlayIds = new Set<string>()
+            const lowercaseFields = getLowercaseFields(collectionSchema, overlayIndexFields)
+            const lowercaseFieldNames = Array.from(lowercaseFields).map((field) => field.name)
+            overlaySnapshot.forEach((overlay) => {
+                overlayIds.add(overlay.id)
+                const overlayData = overlay.data()
+                for (const indexField of overlayIndexFields) {
+                    if (indexField.name === "Collection_Path_String") continue
+                    if (isRelationField(indexField)) {
+                        const overlayValue = {
+                            [indexField.name]: overlayData[indexField.name],
+                            [`${indexField.name}_Array`]: overlayData[`${indexField.name}_Array`],
+                        }
+                        const collectionValue = {
+                            [indexField.name]: collectionData[overlay.id]?.[indexField.name],
+                            [`${indexField.name}_Array`]: collectionData[overlay.id]?.[`${indexField.name}_Array`],
+                        }
+                        if (singleFieldRelationNames.includes(indexField.name)) {
+                            overlayValue[`${indexField.name}_Single`] = overlayData[`${indexField.name}_Single`]
+                            collectionValue[`${indexField.name}_Single`] =
+                                collectionData[overlay.id]?.[`${indexField.name}_Single`]
+                        }
+                        if (!isEqual(overlayValue, collectionValue)) {
+                            console.log(
+                                `${collectionName} ${overlay.id} Field Access Group ${groupKey}: ${indexField.name} - ${JSON.stringify(overlayValue)} !== ${JSON.stringify(collectionValue)}`,
+                            )
+                        }
+                    } else {
+                        const overlayValue = overlayData[indexField.name]
+                        const collectionValue = collectionData[overlay.id]?.[indexField.name]
+                        if (!isEqual(overlayValue, collectionValue)) {
+                            console.log(
+                                `${collectionName} ${overlay.id} Field Access Group ${groupKey}: ${indexField.name} - ${JSON.stringify(overlayValue)} !== ${JSON.stringify(collectionValue)}`,
+                            )
+                        }
+                    }
+                    if (lowercaseFieldNames.includes(indexField.name)) {
+                        const overlayValue = overlayData[`${indexField.name}_Lowercase`]
+                        const collectionValue = collectionData[overlay.id]?.[`${indexField.name}_Lowercase`]
+                        if (!isEqual(overlayValue, collectionValue)) {
+                            console.log(
+                                `${collectionName} ${overlay.id} Field Access Group ${groupKey}: ${indexField.name}_Lowercase - ${JSON.stringify(overlayValue)} !== ${JSON.stringify(collectionValue)}`,
                             )
                         }
                     }
