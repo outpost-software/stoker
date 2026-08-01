@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.79
+
+### Patch Changes
+
+- feat: denormalise field access groups per role group
+
 ## 0.5.78
 
 ### Patch Changes

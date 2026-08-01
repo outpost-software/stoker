@@ -1,5 +1,13 @@
 # @stoker-platform/web-client
 
+## 0.5.94
+
+### Patch Changes
+
+- feat: denormalise field access groups per role group
+- Updated dependencies
+    - @stoker-platform/utils@0.5.79
+
 ## 0.5.93
 
 ### Patch Changes

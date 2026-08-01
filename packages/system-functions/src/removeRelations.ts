@@ -9,6 +9,7 @@ import {
     getField,
     getFieldAccessGroupFields,
     getFieldAccessGroupIndexFields,
+    getFieldAccessGroupKey,
     getFieldNames,
     getRoleGroups,
     getSingleFieldRelations,
@@ -125,24 +126,27 @@ export const removeRelations = (
                                 const fieldAccessGroups = getFieldAccessGroupFields(relatedCollection);
                                 Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
                                     if (groupFields.length === 0) return;
-                                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, relatedCollection);
-                                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
-                                        const overlayUpdate = {
-                                            [`${field.name}.${snapshot.id}.deleted`]: true,
-                                        };
-                                        if (singleRelationFields.size === 1) {
-                                            overlayUpdate[`${field.name}_Single.deleted`] = true;
+                                    roleGroups.forEach((roleGroup) => {
+                                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, relatedCollection, roleGroup);
+                                        const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key);
+                                        if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                            const overlayUpdate = {
+                                                [`${field.name}.${snapshot.id}.deleted`]: true,
+                                            };
+                                            if (singleRelationFields.size === 1) {
+                                                overlayUpdate[`${field.name}_Single.deleted`] = true;
+                                            }
+                                            batch.update(
+                                                db
+                                                    .collection("tenants")
+                                                    .doc(tenantId)
+                                                    .collection("system_fields")
+                                                    .doc(relatedCollection.labels.collection)
+                                                    .collection(`${relatedCollection.labels.collection}-${overlayKey}`)
+                                                    .doc(record.id),
+                                                overlayUpdate);
                                         }
-                                        batch.update(
-                                            db
-                                                .collection("tenants")
-                                                .doc(tenantId)
-                                                .collection("system_fields")
-                                                .doc(relatedCollection.labels.collection)
-                                                .collection(`${relatedCollection.labels.collection}-${groupKey}`)
-                                                .doc(record.id),
-                                            overlayUpdate);
-                                    }
+                                    });
                                 });
                             } else {
                                 batch.update(record.ref, {
@@ -202,21 +206,24 @@ export const removeRelations = (
                                 const fieldAccessGroups = getFieldAccessGroupFields(relatedCollection);
                                 Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
                                     if (groupFields.length === 0) return;
-                                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, relatedCollection);
-                                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
-                                        batch.update(
-                                            db
-                                                .collection("tenants")
-                                                .doc(tenantId)
-                                                .collection("system_fields")
-                                                .doc(relatedCollection.labels.collection)
-                                                .collection(`${relatedCollection.labels.collection}-${groupKey}`)
-                                                .doc(record.id), {
-                                                [`${field.name}.${snapshot.id}`]: FieldValue.delete(),
-                                                [`${field.name}_Array`]: FieldValue.arrayRemove(snapshot.id),
-                                                [`${field.name}_Single`]: FieldValue.delete(),
-                                            });
-                                    }
+                                    roleGroups.forEach((roleGroup) => {
+                                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, relatedCollection, roleGroup);
+                                        const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key);
+                                        if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                            batch.update(
+                                                db
+                                                    .collection("tenants")
+                                                    .doc(tenantId)
+                                                    .collection("system_fields")
+                                                    .doc(relatedCollection.labels.collection)
+                                                    .collection(`${relatedCollection.labels.collection}-${overlayKey}`)
+                                                    .doc(record.id), {
+                                                    [`${field.name}.${snapshot.id}`]: FieldValue.delete(),
+                                                    [`${field.name}_Array`]: FieldValue.arrayRemove(snapshot.id),
+                                                    [`${field.name}_Single`]: FieldValue.delete(),
+                                                });
+                                        }
+                                    });
                                 });
                             }
                             await batch.commit();

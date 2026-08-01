@@ -19,6 +19,7 @@ import {
     getField,
     getFieldAccessGroupFields,
     getFieldAccessGroupIndexFields,
+    getFieldAccessGroupKey,
     getLowercaseFields,
     getRoleGroups,
     getSingleFieldRelations,
@@ -228,19 +229,22 @@ export const updateIncludeFields = (
                                             const fieldAccessGroups = getFieldAccessGroupFields(collection);
                                             Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
                                                 if (groupFields.length === 0) return;
-                                                const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
-                                                if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
-                                                    transaction.update(
-                                                        db
-                                                            .collection("tenants")
-                                                            .doc(tenantId)
-                                                            .collection("system_fields")
-                                                            .doc(collection.labels.collection)
-                                                            .collection(`${collection.labels.collection}-${groupKey}`)
-                                                            .doc(dataRef.id)
-                                                        , updateDataWithSingle
-                                                    );
-                                                }
+                                                roleGroups.forEach((roleGroup) => {
+                                                    const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection, roleGroup);
+                                                    const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key);
+                                                    if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                                        transaction.update(
+                                                            db
+                                                                .collection("tenants")
+                                                                .doc(tenantId)
+                                                                .collection("system_fields")
+                                                                .doc(collection.labels.collection)
+                                                                .collection(`${collection.labels.collection}-${overlayKey}`)
+                                                                .doc(dataRef.id)
+                                                            , updateDataWithSingle
+                                                        );
+                                                    }
+                                                });
                                             });
                                         }
                                     } else return;

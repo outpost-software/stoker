@@ -172,9 +172,25 @@ export const getDependencyIndexFields = (
     return [...new Set(indexFields)]
 }
 
-export const getFieldAccessGroupIndexFields = (groupKey: string, collection: CollectionSchema) => {
+export const getFieldAccessGroupRoles = (groupKey: string, collection: CollectionSchema, roleGroup: RoleGroup) => {
+    // eslint-disable-next-line security/detect-object-injection
+    const applicableRoles = collection.fieldAccessGroups?.[groupKey]?.applicableRoles || []
+    return roleGroup.roles.filter((role) => applicableRoles.includes(role))
+}
+
+export const getFieldAccessGroupKey = (groupKey: string, roleGroupKey: string) => {
+    return `${groupKey}-${roleGroupKey}`
+}
+
+export const getFieldAccessGroupIndexFields = (
+    groupKey: string,
+    collection: CollectionSchema,
+    roleGroup: RoleGroup,
+) => {
     // eslint-disable-next-line security/detect-object-injection
     if (!collection.fieldAccessGroups?.[groupKey]) return []
+    const overlayRoles = getFieldAccessGroupRoles(groupKey, collection, roleGroup)
+    if (overlayRoles.length === 0) return []
     const indexFields: CollectionField[] = []
     const { fields, softDelete, preloadCache, roleSystemFields, queries } = collection
     const systemFieldsSchema = getSystemFieldsSchema()
@@ -195,9 +211,6 @@ export const getFieldAccessGroupIndexFields = (groupKey: string, collection: Col
     const groupFields = getFieldAccessGroupFields(collection)[groupKey] || []
     indexFields.push(...groupFields)
 
-    // eslint-disable-next-line security/detect-object-injection
-    const applicableRoles = collection.fieldAccessGroups[groupKey].applicableRoles
-
     if (softDelete) {
         const softDeleteField = getField(fields, softDelete.archivedField)
         if (softDeleteField && !groupFields.includes(softDeleteField)) {
@@ -209,7 +222,7 @@ export const getFieldAccessGroupIndexFields = (groupKey: string, collection: Col
         preloadCache.range.fields.forEach((field) => {
             if (systemFields.includes(field as SystemField)) {
                 indexFields.push(getField(systemFieldsSchema, field))
-            } else if (applicableRoles.some((role) => fieldRoleProjectionAccess(getField(fields, field), role))) {
+            } else if (overlayRoles.some((role) => fieldRoleProjectionAccess(getField(fields, field), role))) {
                 indexFields.push(getField(fields, field))
             }
         })
@@ -219,7 +232,7 @@ export const getFieldAccessGroupIndexFields = (groupKey: string, collection: Col
         ?.filter(
             (systemField) =>
                 systemField.field !== "Collection_Path" &&
-                applicableRoles.some((role) => !systemField.roles || systemField.roles.includes(role)),
+                overlayRoles.some((role) => !systemField.roles || systemField.roles.includes(role)),
         )
         .forEach((systemField) => {
             indexFields.push(getField(systemFieldsSchema, systemField.field))
@@ -229,7 +242,7 @@ export const getFieldAccessGroupIndexFields = (groupKey: string, collection: Col
         const queryField = getField(fields.concat(systemFieldsSchema), query.field)
         if (
             queryField &&
-            applicableRoles.some(
+            overlayRoles.some(
                 (role) => (!query.roles || query.roles.includes(role)) && fieldRoleProjectionAccess(queryField, role),
             )
         ) {
@@ -237,7 +250,7 @@ export const getFieldAccessGroupIndexFields = (groupKey: string, collection: Col
         }
     })
 
-    for (const role of applicableRoles) {
+    for (const role of overlayRoles) {
         indexFields.push(...getAccessFields(collection, role))
     }
 

@@ -1,5 +1,14 @@
 # @stoker-platform/cli
 
+## 0.5.139
+
+### Patch Changes
+
+- feat: denormalise field access groups per role group
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.88
+    - @stoker-platform/utils@0.5.79
+
 ## 0.5.138
 
 ### Patch Changes

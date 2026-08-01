@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/utils",
-    "version": "0.5.78",
+    "version": "0.5.79",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "lib/src/main.js",

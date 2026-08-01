@@ -31,6 +31,8 @@ export {
     getDependencyAccessFields,
     getDependencyIndexFields,
     getFieldAccessGroupIndexFields,
+    getFieldAccessGroupRoles,
+    getFieldAccessGroupKey,
     getRoleGroups,
     getRoleGroup,
     getRoleExcludedFields,

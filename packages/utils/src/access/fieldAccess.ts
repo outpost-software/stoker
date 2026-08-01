@@ -54,6 +54,7 @@ export const evaluateFieldAccessCondition = (
     claims?: Record<string, unknown>,
 ): boolean => {
     if (!permissions) return true
+    if (permissions.Role && !condition.applicableRoles.includes(permissions.Role)) return false
     // eslint-disable-next-line security/detect-object-injection
     const collectionPermissions = permissions.collections?.[collectionName]
 

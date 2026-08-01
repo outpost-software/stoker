@@ -1,18 +1,18 @@
 {
   "projects": {},
   "targets": {
-    "platform-project-test-1388": {
+    "platform-project-test-1389": {
       "storage": {
         "default": [
-          "platform-project-test-1388"
+          "platform-project-test-1389"
         ]
       }
     }
   },
   "etags": {
-    "platform-project-test-1388": {
+    "platform-project-test-1389": {
       "extensionInstances": {
-        "firestore-send-email": "84195ff088446eaf97e13aeb65c7a66c27517116f47194aaffe33c7f313eeae1"
+        "firestore-send-email": "cfd483aec553fd6253170dfe08ef16fd2b7667831aaccdca8232a7d485c0fca3"
       }
     }
   },

@@ -4,6 +4,7 @@ import {
     collectionAccess,
     evaluateFieldAccessCondition,
     getFieldAccessGroupFields,
+    getFieldAccessGroupKey,
     getRoleGroup,
     hasDependencyAccess,
 } from "@stoker-platform/utils"
@@ -60,13 +61,14 @@ export const getDocumentRefs = (
                 // eslint-disable-next-line security/detect-object-injection
                 if (!fieldAccessGroups[groupKey]?.length) return
                 if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims ?? {})) return
+                const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key)
                 queries.push(
                     db
                         .collection("tenants")
                         .doc(tenantId)
                         .collection("system_fields")
                         .doc(labels.collection)
-                        .collection(`${labels.collection}-${groupKey}`)
+                        .collection(`${labels.collection}-${overlayKey}`)
                         .doc(recordId),
                 )
             })

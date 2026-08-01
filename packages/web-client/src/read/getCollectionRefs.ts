@@ -24,6 +24,7 @@ import {
     evaluateFieldAccessCondition,
     getField,
     getFieldAccessGroupFields,
+    getFieldAccessGroupKey,
     hasDependencyAccess,
     getEntityParentFilters,
     getEntityRestrictions,
@@ -77,6 +78,7 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
                 // eslint-disable-next-line security/detect-object-injection
                 if (!fieldAccessGroupFields[groupKey]?.length) return
                 if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims)) return
+                const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key)
                 queries.push(
                     query(
                         collection(
@@ -85,7 +87,7 @@ export const getCollectionRefs = (path: string[], roleGroup: RoleGroup) => {
                             tenantId,
                             "system_fields",
                             labels.collection,
-                            `${labels.collection}-${groupKey}`,
+                            `${labels.collection}-${overlayKey}`,
                         ),
                         where("Collection_Path_String", "==", path.join("/")),
                         ...constraints,

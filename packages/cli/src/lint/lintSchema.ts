@@ -325,14 +325,9 @@ export const lintSchema = async (noLog = false) => {
                         `Collection ${collectionName} has a field access group key ${groupKey} that is invalid. Keys must start with a letter and contain only letters, digits and hyphens.`,
                     )
                 }
-                if (fieldNames.includes(groupKey)) {
+                if (/-\d+$/.test(groupKey)) {
                     errors.push(
-                        `Collection ${collectionName} has a field access group key ${groupKey} that collides with a field name`,
-                    )
-                }
-                if (roles.includes(groupKey)) {
-                    errors.push(
-                        `Collection ${collectionName} has a field access group key ${groupKey} that collides with a role name`,
+                        `Collection ${collectionName} has a field access group key ${groupKey} that ends with a hyphen followed by digits.`,
                     )
                 }
                 // eslint-disable-next-line security/detect-object-injection

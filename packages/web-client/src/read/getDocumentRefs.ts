@@ -10,6 +10,7 @@ import {
     collectionAccess,
     evaluateFieldAccessCondition,
     getFieldAccessGroupFields,
+    getFieldAccessGroupKey,
     hasDependencyAccess,
 } from "@stoker-platform/utils"
 import { doc } from "firebase/firestore"
@@ -52,6 +53,7 @@ export const getDocumentRefs = (path: string[], recordId: string, roleGroup: Rol
             // eslint-disable-next-line security/detect-object-injection
             if (!fieldAccessGroups[groupKey]?.length) return
             if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims)) return
+            const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key)
             queries.push(
                 doc(
                     db,
@@ -59,7 +61,7 @@ export const getDocumentRefs = (path: string[], recordId: string, roleGroup: Rol
                     tenantId,
                     "system_fields",
                     labels.collection,
-                    `${labels.collection}-${groupKey}`,
+                    `${labels.collection}-${overlayKey}`,
                     recordId,
                 ),
             )

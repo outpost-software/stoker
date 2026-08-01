@@ -18,6 +18,7 @@ import {
     evaluateFieldAccessCondition,
     getField,
     getFieldAccessGroupFields,
+    getFieldAccessGroupKey,
     getRoleGroup,
     hasDependencyAccess,
     getEntityParentFilters,
@@ -85,12 +86,13 @@ export const getCollectionRefs = (
                     // eslint-disable-next-line security/detect-object-injection
                     if (!fieldAccessGroupFields[groupKey]?.length) return
                     if (!evaluateFieldAccessCondition(condition, labels.collection, permissions, claims ?? {})) return
+                    const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key)
                     let groupQuery = db
                         .collection("tenants")
                         .doc(tenantId)
                         .collection("system_fields")
                         .doc(labels.collection)
-                        .collection(`${labels.collection}-${groupKey}`)
+                        .collection(`${labels.collection}-${overlayKey}`)
                         .where("Collection_Path_String", "==", path.join("/"))
                     constraints.forEach((constraint: [string, WhereFilterOp, unknown]) => {
                         groupQuery = groupQuery.where(...constraint)

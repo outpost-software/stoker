@@ -15,6 +15,7 @@ import {
     getDependencyIndexFields,
     getFieldAccessGroupFields,
     getFieldAccessGroupIndexFields,
+    getFieldAccessGroupKey,
     getLowercaseFields,
     getRoleGroups,
     getSystemFieldsSchema,
@@ -101,18 +102,21 @@ export const validateDenormalized = (
                     }
                     for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
                         if (groupFields.length === 0) continue;
-                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
-                        if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
-                            const subcollection = `${labels.collection}-${groupKey}`;
-                            const existing = roleGroupUpdates.get(subcollection) || {};
-                            const update: Record<string, unknown> = {
-                                [field.name]: record[field.name] ?? FieldValue.delete(),
-                            };
-                            const lowercaseFields = getLowercaseFields(collection, [field]);
-                            if (lowercaseFields.size === 1) {
-                                update[`${field.name}_Lowercase`] = record[field.name]?.toLowerCase() ?? FieldValue.delete();
+                        for (const roleGroup of roleGroups) {
+                            const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection, roleGroup);
+                            const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key);
+                            if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                const subcollection = `${labels.collection}-${overlayKey}`;
+                                const existing = roleGroupUpdates.get(subcollection) || {};
+                                const update: Record<string, unknown> = {
+                                    [field.name]: record[field.name] ?? FieldValue.delete(),
+                                };
+                                const lowercaseFields = getLowercaseFields(collection, [field]);
+                                if (lowercaseFields.size === 1) {
+                                    update[`${field.name}_Lowercase`] = record[field.name]?.toLowerCase() ?? FieldValue.delete();
+                                }
+                                roleGroupUpdates.set(subcollection, {...existing, ...update});
                             }
-                            roleGroupUpdates.set(subcollection, {...existing, ...update});
                         }
                     }
                 }

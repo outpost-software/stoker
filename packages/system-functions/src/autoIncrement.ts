@@ -14,6 +14,7 @@ import {
     getDependencyIndexFields,
     getFieldAccessGroupFields,
     getFieldAccessGroupIndexFields,
+    getFieldAccessGroupKey,
     getRoleGroups,
     isDependencyField,
 } from "@stoker-platform/utils";
@@ -120,18 +121,21 @@ export const autoIncrement = (
                                     const fieldAccessGroups = getFieldAccessGroupFields(collection);
                                     for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
                                         if (groupFields.length === 0) continue;
-                                        const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection);
-                                        if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
-                                            transaction.update(
-                                                db
-                                                    .collection("tenants")
-                                                    .doc(tenantId)
-                                                    .collection("system_fields")
-                                                    .doc(labels.collection)
-                                                    .collection(`${labels.collection}-${groupKey}`)
-                                                    .doc(mainRef.id),
-                                                {[field.name]: newNumber},
-                                            );
+                                        for (const roleGroup of roleGroups) {
+                                            const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, collection, roleGroup);
+                                            const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key);
+                                            if (overlayIndexFields.some((overlayField) => overlayField.name === field.name)) {
+                                                transaction.update(
+                                                    db
+                                                        .collection("tenants")
+                                                        .doc(tenantId)
+                                                        .collection("system_fields")
+                                                        .doc(labels.collection)
+                                                        .collection(`${labels.collection}-${overlayKey}`)
+                                                        .doc(mainRef.id),
+                                                    {[field.name]: newNumber},
+                                                );
+                                            }
                                         }
                                     }
                                 }
