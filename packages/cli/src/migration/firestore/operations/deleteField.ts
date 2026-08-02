@@ -61,7 +61,7 @@ export const deleteField = async (currentSchema: CollectionsSchema, lastSchema: 
                         .doc(tenantId)
                         .collection("system_migration")
                         .doc(currentSchema.version.toString())
-                        .collection(collection)
+                        .collection(`Migration-${collection}`)
                         .doc(doc.id),
                     {
                         [fieldName]: doc.get(fieldName),

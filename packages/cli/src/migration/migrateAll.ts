@@ -9,7 +9,7 @@ import { generateSchema } from "../deploy/schema/generateSchema.js"
 export const migrateAll = async () => {
     await initializeFirebase()
 
-    const currentSchema: CollectionsSchema = await generateSchema()
+    const currentSchema: CollectionsSchema = await generateSchema(true)
     const lastSchema: CollectionsSchema | undefined = await fetchLastSchema()
 
     console.log("Migration started...")

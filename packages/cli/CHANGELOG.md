@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.140
+
+### Patch Changes
+
+- feat: add projection replays
+
 ## 0.5.139
 
 ### Patch Changes
