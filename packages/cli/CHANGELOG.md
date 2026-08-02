@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.141
+
+### Patch Changes
+
+- fix: fix projection replay bulk writer issue
+
 ## 0.5.140
 
 ### Patch Changes

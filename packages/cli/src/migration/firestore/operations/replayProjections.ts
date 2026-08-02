@@ -12,6 +12,8 @@ import {
     getAllRoleGroups,
     getDependencyIndexFields,
     getFieldAccessGroupFields,
+    getFieldAccessGroupIndexFields,
+    getFieldAccessGroupKey,
     getRoleGroups,
     isDependencyField,
 } from "@stoker-platform/utils"
@@ -54,6 +56,30 @@ const getFieldAccessGroupFieldShape = (collectionSchema: CollectionSchema) => {
     return shape
 }
 
+const getProjectionKeys = (collectionSchema: CollectionSchema, schema: CollectionsSchema) => {
+    const keys = new Set<string>()
+    const roleGroups = getRoleGroups(collectionSchema, schema)
+    for (const group of roleGroups) {
+        keys.add(group.key)
+    }
+    const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
+    for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
+        if (groupFields.length === 0) continue
+        for (const group of roleGroups) {
+            const indexFields = getFieldAccessGroupIndexFields(groupKey, collectionSchema, group)
+            if (indexFields.length === 0) continue
+            const overlayKey = getFieldAccessGroupKey(groupKey, group.key)
+            keys.add(overlayKey)
+        }
+    }
+    for (const field of collectionSchema.fields) {
+        if (isDependencyField(field, collectionSchema, schema)) {
+            keys.add(field.name)
+        }
+    }
+    return keys
+}
+
 const replayProjectionsForCollection = async (
     collection: string,
     currentSchema: CollectionsSchema,
@@ -72,8 +98,30 @@ const replayProjectionsForCollection = async (
     const lastCollectionSchema = lastSchema.collections[collection]
     // eslint-disable-next-line security/detect-object-injection
     const currentCollectionSchema = currentSchema.collections[collection]
-    const lastRoleGroups = getAllRoleGroups(lastSchema)
     const currentRoleGroups = getAllRoleGroups(currentSchema)
+
+    const projectionKeys = new Set([
+        ...getProjectionKeys(lastCollectionSchema, lastSchema),
+        ...getProjectionKeys(currentCollectionSchema, currentSchema),
+    ])
+    const uniqueFieldNames = new Set([
+        ...getUniqueFieldNames(lastCollectionSchema),
+        ...getUniqueFieldNames(currentCollectionSchema),
+    ])
+
+    const tenants = await db.collection("tenants").listDocuments()
+    for (const tenant of tenants) {
+        for (const key of projectionKeys) {
+            await db.recursiveDelete(
+                tenant.collection("system_fields").doc(collection).collection(`${collection}-${key}`),
+            )
+        }
+        for (const fieldName of uniqueFieldNames) {
+            await db.recursiveDelete(
+                tenant.collection("system_unique").doc(collection).collection(`Unique-${collection}-${fieldName}`),
+            )
+        }
+    }
 
     const querySnapshot = await db.collectionGroup(collection).get()
     for (const doc of querySnapshot.docs) {
@@ -128,42 +176,6 @@ const replayProjectionsForCollection = async (
                 .doc(field.collection)
                 .collection(`${field.collection}-${role.replaceAll(" ", "-")}`)
                 .doc(id)
-
-        for (const field of lastCollectionSchema.fields) {
-            if (
-                "unique" in field &&
-                field.unique &&
-                (typeof record[field.name] === "string" || typeof record[field.name] === "number")
-            ) {
-                bulkWriter.delete(
-                    uniqueRef(
-                        field,
-                        record[field.name].toString().toLowerCase().replace(/\s/g, "---").replaceAll("/", "|||"),
-                    ),
-                )
-            }
-        }
-
-        addDenormalized(
-            "delete",
-            bulkWriter,
-            path,
-            doc.id,
-            record,
-            lastSchema,
-            lastCollectionSchema,
-            { noTwoWay: true },
-            lastRoleGroups,
-            FieldValue.arrayUnion,
-            FieldValue.arrayRemove,
-            FieldValue.delete,
-            dependencyRef,
-            uniqueRef,
-            privateRef,
-            twoWayIncludeRef,
-            twoWayDependencyRef,
-            twoWayPrivateRef,
-        )
 
         addDenormalized(
             "create",
