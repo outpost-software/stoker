@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.226
+
+### Patch Changes
+
+- feat: apply search to list metrics
+
 ## 0.5.225
 
 ### Patch Changes

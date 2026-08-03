@@ -1345,9 +1345,9 @@ export function List({
             if (permissions?.Role && (!metric.roles || metric.roles.includes(permissions?.Role))) {
                 if (metric.type === "custom" && metric.formula) {
                     // eslint-disable-next-line security/detect-object-injection
-                    values[index] = metric.formula(list).toString() || ""
+                    values[index] = metric.formula(searchList).toString() || ""
                 } else if (metric.type === "count") {
-                    let value = (list?.length || 0).toString()
+                    let value = (searchList.length || 0).toString()
                     if (metric.prefix) {
                         value = `${metric.prefix}${value}`
                     }
@@ -1361,7 +1361,7 @@ export function List({
                     let value: string
                     const field = getField(fields, metric.field)
                     const fieldCustomization = getFieldCustomization(field, customization)
-                    list?.forEach((record: StokerRecord) => {
+                    searchList.forEach((record: StokerRecord) => {
                         if (!metric.field) return
                         const value = record[metric.field]
                         if (field.type === "Number" && typeof value === "number") {
@@ -1395,7 +1395,7 @@ export function List({
                     let value: string
                     const field = getField(fields, metric.field)
                     const fieldCustomization = getFieldCustomization(field, customization)
-                    list?.forEach((record: StokerRecord) => {
+                    searchList.forEach((record: StokerRecord) => {
                         if (!metric.field) return
                         const value = record[metric.field]
                         if (field.type === "Number" && typeof value === "number") {
@@ -1406,7 +1406,7 @@ export function List({
                             total = newTotal
                         }
                     })
-                    const average = total / list?.length || 0
+                    const average = total / searchList.length || 0
                     const currency = tryFunction(fieldCustomization?.admin?.currency)
                     if (currency) {
                         value = `${currency}${average.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -1424,7 +1424,7 @@ export function List({
                 } else if (metric.type === "area") {
                     if (metric.metricField1) {
                         const chartData: MetricValue = []
-                        list?.forEach((record: StokerRecord) => {
+                        searchList.forEach((record: StokerRecord) => {
                             if (!record[metric.dateField] || !metric.metricField1) return
                             const date = DateTime.fromJSDate((record[metric.dateField] as Timestamp).toDate(), {
                                 zone: timezone,
@@ -1460,7 +1460,7 @@ export function List({
                         const chartData: MetricValue = []
                         const dateMap = new Map<string, number>()
 
-                        list?.forEach((record: StokerRecord) => {
+                        searchList.forEach((record: StokerRecord) => {
                             if (!record[metric.dateField]) return
                             const date = DateTime.fromJSDate((record[metric.dateField] as Timestamp).toDate(), {
                                 zone: timezone,
@@ -1489,7 +1489,7 @@ export function List({
             }
         })
         return values
-    }, [list])
+    }, [list, searchList])
 
     const [timeRange, setTimeRange] = useState<Record<string, string>>({})
 
