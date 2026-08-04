@@ -343,7 +343,7 @@ export const validateRelations = (
             const sourceSchema = schema.collections[field.collection];
             const sourceField = getField(sourceSchema.fields, field.twoWay) as RelationField;
             if (!sourceField) errorLogger(`Field ${field.name} in collection ${labels.collection} has a two way relation in ${field.collection} but the target field does not exist.`);
-            else if (!sourceField.access) {
+            else {
                 if (detectInvalidTwoWayRelation(operation, field, sourceField, mainId, sourceId, main, source, deleteOperation)) {
                     if (main && !deleteOperation) {
                         deleteMainRelation(field, mainId, sourceId, transaction);

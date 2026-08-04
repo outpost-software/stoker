@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.108
+
+### Patch Changes
+
+- fix: remove vestigial field access guard
+
 ## 0.5.107
 
 ### Patch Changes
