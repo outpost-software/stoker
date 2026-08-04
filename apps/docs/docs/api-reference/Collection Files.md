@@ -152,6 +152,58 @@ You can make them accessible by defining an array of objects containing the name
 `Saved_At` and `Last_Save_At` are safely generated on the server. `Created_At` and `Last_Write_At` are set on the client, and may not be reliable. The purpose of these fields is to log when offline writes occured.
 :::
 
+### fieldAccessGroups
+
+`Record<string, FieldAccessCondition>`
+
+Named groups of fields that are only visible when a condition is met for the current user. Use this when a static role list on [`field.access`](#access) is not enough — for example when visibility depends on auth token claims.
+
+Define the groups on the collection, then reference them from fields with `access: { group: "Group-Key" }`.
+
+```ts
+fieldAccessGroups: {
+    "Private-Notes": {
+        applicableRoles: ["Admin", "User"],
+        match: "any",
+        roles: ["Admin"],
+        claims: { Private_Notes_Access: true },
+    },
+},
+fields: [
+    {
+        name: "Private_Field",
+        type: "Map",
+        access: { group: "Private-Notes" },
+    },
+]
+```
+
+In this example, Admins always see the field, and standard Users see it only when their auth token has `Private_Notes_Access: true`.
+
+#### Group keys
+
+Keys must start with a letter and contain only letters, digits, and hyphens. They must not end with a hyphen followed by digits (for example `Notes-1`).
+
+#### FieldAccessCondition
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `applicableRoles` | `string[]` | **Required.** Roles that this group can ever apply to. The user's role must be in this list or access is denied. |
+| `match` | `"any" \| "all"` | How to combine the checks below. Required when more than one of `collectionAuth`, `roles`, `claims`, or `restrictions` is set. |
+| `collectionAuth` | `boolean` | Require the user's collection `auth` permission to equal this value. |
+| `roles` | `string[]` | The user's role must be one of these. |
+| `claims` | `Record<string, scalar \| scalar[]>` | Auth token claim checks. A scalar requires equality; an array requires the claim to be one of the listed values. All entries must match. |
+| `restrictions` | object | Required state of this collection's permission restrictions for the current user. All provided entries must match. See below. |
+
+`restrictions` may include:
+
+- `recordOwner`: collection Record Owner restriction must equal this
+- `recordUser`: collection Record User restriction must equal this
+- `recordProperty`: collection Record Property restriction must equal this
+- `restrictEntities`: collection entity restrictions must equal this
+
+At least one of `collectionAuth`, `roles`, `claims`, or `restrictions` is required.
+
 ### allowSchemalessFields
 
 `boolean`
@@ -720,9 +772,21 @@ The name of the field. It must not have spaces (use underscores). You can set a 
 
 #### access
 
-`string[]`
+`string[] | { group: string }`
 
-An array of user roles that can access the field.
+Controls which users can access the field.
+
+Provide an array of user roles for static access:
+
+```ts
+access: ["Administrator", "Management"]
+```
+
+Or reference a [field access group](#fieldaccessgroups) for conditional access:
+
+```ts
+access: { group: "Ground-Notes" }
+```
 
 :::danger
 Omitting the access property altogether allows access by ALL roles.
@@ -730,19 +794,19 @@ Omitting the access property altogether allows access by ALL roles.
 
 #### restrictCreate
 
-`boolean | string[]`
+`boolean | string[] | FieldAccessCondition`
 
 Set to `true` to prevent this field from being included when the record is created.
 
-Alternatively, provide an array of user roles that CAN provide the field when creating a record.
+Alternatively, provide an array of user roles that CAN provide the field when creating a record, or provide a [`FieldAccessCondition`](#fieldaccesscondition) for even more granular access control.
 
 #### restrictUpdate
 
-`boolean | string[]`
+`boolean | string[] | FieldAccessCondition`
 
 Set to `true` to prevent this field from being changed when the record is updated.
 
-Alternatively, provide an array of user roles that CAN change the field when updating a record.
+Alternatively, provide an array of user roles that CAN change the field when updating a record, or provide a [`FieldAccessCondition`](#fieldaccesscondition) for even more granular access control.
 
 #### required
 
@@ -799,6 +863,10 @@ You should consider exempting [incrementally increasing monotonic fields](/docs/
 `boolean`
 
 In auth collections, set to `true` to add the field to the linked user's auth token.
+
+:::warning
+Be sure to control access to auth token fields using [`restrictCreate`](#restrictcreate) and [`restrictUpdate`](#restrictupdate)
+:::
 
 #### custom.initialValue
 
