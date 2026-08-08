@@ -18,7 +18,7 @@ All [web helper functions](/docs/api-reference/Application%20State#utils-web) ar
 
 Initialize a Stoker app.
 
-```
+```ts
 (
     config: any,
     collectionFiles: any,
@@ -45,7 +45,7 @@ A boolean indicating whether a user is logged in.
 
 Authenticate a user.
 
-```
+```ts
 (
     email: string,
     password: string,
@@ -89,7 +89,7 @@ Returns a listener removal function.
 
 Enroll the currently authenticated user in MFA.
 
-```
+```ts
 (
     user: User,
     getMultiFactorCode: (secret: string, totpUri: string) => Promise<string>
@@ -104,7 +104,7 @@ Enroll the currently authenticated user in MFA.
 
 Add a record to the database.
 
-```
+```ts
 (
     path: string[],
     data: Partial<StokerRecord>,
@@ -128,7 +128,7 @@ Add a record to the database.
 
 `options.user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in this structure:
 
-```
+```ts
 type StokerPermissions = {
     Role?: string
     Enabled?: boolean
@@ -176,7 +176,7 @@ You can [transactionally increment or decrement a field value](https://firebase.
 The `originalRecord` value provided to hooks in the Web SDK may be stale. If you need the latest value for `originalRecord`, you'll need to set [`access.serverReadOnly`](/docs/api-reference/Collection%20Files#serverreadonly).
 :::
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -213,7 +213,7 @@ The updated record.
 
 Delete a record from the database.
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -234,7 +234,7 @@ The deleted record.
 
 Retrieve a record from the database.
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -284,7 +284,7 @@ The record.
 
 Retrieve multiple records from the database.
 
-```
+```ts
 (
     path: string[],
     options?: {
@@ -351,7 +351,7 @@ Retrieve multiple records from the database.
 
 Add a listener to a record in the database.
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -394,7 +394,7 @@ An unsubscribe function.
 
 Add a listener to a collection in the database.
 
-```
+```ts
 (
     path: string[],
     callback: (
@@ -484,7 +484,7 @@ An array of Firebase Storage items.
 
 Load or reload the [preload cache](/docs/api-reference/Collection%20Files#preload-cache-config) for a collection.
 
-```
+```ts
 (
     collection: string,
     constraints?: [string, WhereFilterOp, unknown][],
@@ -495,7 +495,7 @@ Load or reload the [preload cache](/docs/api-reference/Collection%20Files#preloa
 
 Send an email out of the system. You'll need to add Firestore Security Rules in `firebase-rules/firestore.custom.rules`.
 
-```
+```ts
 (
     to: string | string[],
     subject: string,
@@ -517,7 +517,7 @@ Send an email out of the system. You'll need to add Firestore Security Rules in 
 
 Send an email to the system administrator email defined in `ADMIN_EMAIL` in `.env/.env`.
 
-```
+```ts
 (
     subject: string,
     text?: string,

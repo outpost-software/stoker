@@ -82,12 +82,12 @@ For collections without `preloadCache` or `serverReadOnly` set to `true`, you wi
 
 ### relationLists
 
-```
+```ts
 {
-    collection: string,
-    field: string,
-    roles?: string[],
-    loadAll?: boolean,
+    collection: string
+    field: string
+    roles?: string[]
+    loadAll?: boolean
     constraints?: [string, "==" | "in", unknown][]
     showMetrics?: boolean
     showFilters?: string[]
@@ -98,19 +98,15 @@ Define "child lists" that will appear in the Admin UI for records in this collec
 
 For example, a "Clients" collection might have lists of related "Sites", "Quotes" and "Invoices" on its record page.
 
-`collection`: The collection for the relation list
-
-`field`: The field in the current collection that relates to the collection above.
-
-`roles`: The roles that can see this relation list
-
-`loadAll`: When [preloadCache.range](#range) is enabled, setting this option will ignore the range restrictions and load all records available for the relation list.
-
-`constraints`: Firestore constraints to apply to the relation list's query.
-
-`showMetrics`: Show [metrics](#metrics) above the list in the Admin UI.
-
-`showFilters`: A list of [filters](#filters) to show in the LHS sidebar when the relation list is active.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collection` | `string` | The collection for the relation list. |
+| `field` | `string` | The field in the current collection that relates to the collection above. |
+| `roles` | `string[]` | The roles that can see this relation list. |
+| `loadAll` | `boolean` | When [`preloadCache.range`](#range) is enabled, setting this option will ignore the range restrictions and load all records available for the relation list. |
+| `constraints` | `[string, "==" \| "in", unknown][]` | Firestore constraints to apply to the relation list query. |
+| `showMetrics` | `boolean` | Show [metrics](#metrics) above the list in the Admin UI. |
+| `showFilters` | `string[]` | A list of [filters](#filters) to show in the LHS sidebar when the relation list is active. |
 
 ### enableWriteLog
 
@@ -149,7 +145,7 @@ By default, the following system fields are not accessible to your app's users:
 You can make them accessible by defining an array of objects containing the name of a field and the roles that can access that field.
 
 :::note
-`Saved_At` and `Last_Save_At` are safely generated on the server. `Created_At` and `Last_Write_At` are set on the client, and may not be reliable. The purpose of these fields is to log when offline writes occured.
+`Saved_At` and `Last_Save_At` are safely generated on the server. `Created_At` and `Last_Write_At` are set on the client, and may not be reliable. The purpose of these fields is to log when offline writes occurred.
 :::
 
 ### fieldAccessGroups
@@ -234,11 +230,11 @@ Alternatively, you can set [`access.serverWriteOnly`](#serverwriteonly) to true.
 
 `number`
 
-The priority of this collection when seeding test data using [`stoker seed-data`](/docs/api-reference/CLI#seed-data-options).
+The priority of this collection when seeding test data using [`stoker seed-data`](/docs/api-reference/CLI#data-commands).
 
 ### queries
 
-```
+```ts
 {
     field: string
     range?: boolean
@@ -253,13 +249,12 @@ This is an advanced option that is only relevant if you are using Stoker as a he
 
 Define fields that will be indexed for querying.
 
-`field`: The name of the field.
-
-`range`: Set to `true` if the field is a Timestamp field.
-
-`standalone`: Set to `true` if the field needs to be indexed independent of sorting.
-
-`roles`: The user roles that will run the query.
+| Property | Type | Description |
+| --- | --- | --- |
+| `field` | `string` | The name of the field. |
+| `range` | `boolean` | Set to `true` if the field is a Timestamp field. |
+| `standalone` | `boolean` | Set to `true` if the field needs to be indexed independently of sorting. |
+| `roles` | `string[]` | The user roles that will run the query. |
 
 ### custom.autoCorrectUnique
 
@@ -299,7 +294,7 @@ Access config is specified using the `access` property.
 An array of roles that must read data via the server. This allows more granular access control (specified in `serverAccess` at the [collection](#customserveraccess) or [field](#customserveraccess-1) level).
 
 :::warning
-This option slows performance and removes offline and realtime capabilites, so it is not recommended unless you absolutely need more granular access control.
+This option slows performance and removes offline and realtime capabilities, so it is not recommended unless you absolutely need more granular access control.
 :::
 
 ### serverWriteOnly
@@ -313,14 +308,14 @@ This option is required if your collection has fields that perform [two-way rela
 This option is automatically enabled for collections with `auth` set to `true`.
 
 :::warning
-The above scenarios aside, we do not recommend enabling this option as it slows performance and removes offline write capablities.
+The above scenarios aside, we do not recommend enabling this option as it slows performance and removes offline write capabilities.
 :::
 
 On the other hand, this option can greatly reduce the amount of Firestore Security Rules used by the collection. If you are exceeding the 256KB rules limit, you might consider enabling this option for collections that don't require offline writes.
 
 ### operations
 
-```
+```ts
 {
     assignable?: boolean | string[]
     read?: string[]
@@ -332,7 +327,13 @@ On the other hand, this option can greatly reduce the amount of Firestore Securi
 
 Define which roles can perform which CRUD operations for the collection.
 
-Set `assignable` to `true` or an array of user roles to allow disabling of access in the user's profile.
+| Property | Type | Description |
+| --- | --- | --- |
+| `assignable` | `boolean \| string[]` | Set to `true` or an array of user roles to allow disabling of access in the user's profile. |
+| `read` | `string[]` | Roles that can read records in the collection. |
+| `create` | `string[]` | Roles that can create records in the collection. |
+| `update` | `string[]` | Roles that can update records in the collection. |
+| `delete` | `string[]` | Roles that can delete records in the collection. |
 
 ### auth
 
@@ -359,7 +360,7 @@ Provide an array of the following attribute restrictions:
 
 Users will only be able to access records that they created themselves.
 
-```
+```ts
 type RecordOwnerRestriction = {
     type: "Record_Owner"
     roles: { role: string, assignable?: boolean }[]
@@ -367,9 +368,10 @@ type RecordOwnerRestriction = {
 }
 ```
 
-`roles`: The roles that this restriction applies to. If `assignable` is set to true, this restriction can be removed for individual users.
-
-`operations`: If provided, the restriction will only apply to the provided operations. The restriction will NOT be applied for unlisted operations.
+| Property | Type | Description |
+| --- | --- | --- |
+| `roles` | `{ role: string, assignable?: boolean }[]` | The roles that this restriction applies to. If `assignable` is `true`, this restriction can be removed for individual users. |
+| `operations` | `("Read" \| "Create" \| "Update" \| "Delete")[]` | If provided, the restriction only applies to the listed operations. |
 
 #### Record User Restriction
 
@@ -377,7 +379,7 @@ Users will only be able to access records that they have been assigned to.
 
 For example, if the collection has an "Assigned To" field, the user will only be able to access the record if they have been added to that field.
 
-```
+```ts
 type RecordUserRestriction = {
     type: "Record_User"
     roles: { role: string, assignable?: boolean }[]
@@ -386,11 +388,11 @@ type RecordUserRestriction = {
 }
 ```
 
-`collectionField`: The field that will be used to assign access. Must be a relational field linked to a users collection.
-
-`roles`: The roles that this restriction applies to. If `assignable` is set to true, this restriction can be removed for individual users.
-
-`operations`: If provided, the restriction will only apply to the provided operations. The restriction will NOT be applied for unlisted operations.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collectionField` | `string` | The field used to assign access. Must be a relational field linked to a users collection. |
+| `roles` | `{ role: string, assignable?: boolean }[]` | The roles that this restriction applies to. If `assignable` is `true`, this restriction can be removed for individual users. |
+| `operations` | `("Read" \| "Create" \| "Update" \| "Delete")[]` | If provided, the restriction only applies to the listed operations. |
 
 #### Record Property Restriction
 
@@ -398,7 +400,7 @@ Users will only be able to access records that have specified values for a selec
 
 For example, if the collection has a "Status" field, you can ensure that a user role only sees "Not Started" and "In Progress" records, but not "Completed" or "Archived" records.
 
-```
+```ts
 type RecordPropertyRestriction = {
     type: "Record_Property"
     roles: { role: string, assignable?: boolean, values: string[] }[]
@@ -407,11 +409,11 @@ type RecordPropertyRestriction = {
 }
 ```
 
-`propertyField`: Must be a String field with `values` set.
-
-`roles`: The roles that this restriction applies to, and which property values they can access.  If `assignable` is set to true, this restriction can be removed for individual users.
-
-`operations`: If provided, the restriction will only apply to the provided operations. The restriction will NOT be applied for unlisted operations.
+| Property | Type | Description |
+| --- | --- | --- |
+| `propertyField` | `string` | Must be a String field with `values` set. |
+| `roles` | `{ role: string, assignable?: boolean, values: string[] }[]` | The roles this restriction applies to, and which property values they can access. If `assignable` is `true`, this restriction can be removed for individual users. |
+| `operations` | `("Read" \| "Create" \| "Update" \| "Delete")[]` | If provided, the restriction only applies to the listed operations. |
 
 ### entityRestrictions.restrictions
 
@@ -421,7 +423,7 @@ Provide an array of the following entity restrictions:
 
 Assign individual records to a user in their profile.
 
-```
+```ts
 type IndividualEntityRestriction = {
     type: "Individual"
     roles: { role: string }[]
@@ -429,15 +431,16 @@ type IndividualEntityRestriction = {
 }
 ```
 
-`roles`: The roles that this restriction applies to. If `assignable` is set to true, this restriction can be removed for individual users.
-
-`singleQuery`: Advanced. Force read operations to get all records in a single API call.
+| Property | Type | Description |
+| --- | --- | --- |
+| `roles` | `{ role: string }[]` | The roles that this restriction applies to. |
+| `singleQuery` | `number` | Advanced. Force read operations to get all records in a single API call. |
 
 #### Parent Entity Restriction
 
 Assign all records for a parent record to a user in their profile. For example, you might assign a user "All Sites for Company X" or "All Tasks for Project X".
 
-```
+```ts
 type ParentEntityRestriction  = {
     type: "Parent"
     roles: { role: string }[]
@@ -446,17 +449,17 @@ type ParentEntityRestriction  = {
 }
 ```
 
-`collectionField`: The field that parent records can be selected from. Must be a relational field.
-
-`roles`: The roles that this restriction applies to. If `assignable` is set to true, this restriction can be removed for individual users.
-
-`singleQuery`: Advanced. Force read operations to get all records in a single API call.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collectionField` | `string` | The field that parent records can be selected from. Must be a relational field. |
+| `roles` | `{ role: string }[]` | The roles that this restriction applies to. |
+| `singleQuery` | `number` | Advanced. Force read operations to get all records in a single API call. |
 
 #### Parent Property Entity Restriction
 
 Assign all records for a parent record to a user in their profile, by attribute. For example, you might assign a user "All Sites for Company X in State NY" or "All Tasks for Project X assigned to Team B".
 
-```
+```ts
 type ParentPropertyEntityRestriction = {
     type: "Parent_Property"
     roles: { role: string }[]
@@ -465,11 +468,11 @@ type ParentPropertyEntityRestriction = {
 }
 ```
 
-`collectionField`: The field that parent records can be selected from. Must be a relational field.
-
-`propertyField`: The field that defines the attribute.
-
-`roles`: The roles that this restriction applies to. If `assignable` is set to true, this restriction can be removed for individual users.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collectionField` | `string` | The field that parent records can be selected from. Must be a relational field. |
+| `propertyField` | `string` | The field that defines the attribute. |
+| `roles` | `{ role: string }[]` | The roles that this restriction applies to. |
 
 :::warning
 Soft-deleting assigned records does not block access to them. See [`softDelete`](#softdelete).
@@ -491,7 +494,7 @@ For example, you could assign a user access to "All Jobs on Sites for Company X 
 
 Assign an individual entity restriction from a parent collection.
 
-```
+```ts
 type IndividualEntityParentFilter = {
     type: "Individual"
     collectionField: string
@@ -499,15 +502,16 @@ type IndividualEntityParentFilter = {
 }
 ```
 
-`collectionField`: The relational field that links to the collection that the individual entity restriction is on.
-
-`roles`: The roles that this parent filter applies to.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collectionField` | `string` | The relational field that links to the collection that the individual entity restriction is on. |
+| `roles` | `{ role: string }[]` | The roles that this parent filter applies to. |
 
 #### Parent Entity Parent Filters
 
 Assign a parent entity restriction from a parent collection.
 
-```
+```ts
 type ParentEntityParentFilter = {
     type: "Parent"
     collectionField: string
@@ -516,17 +520,17 @@ type ParentEntityParentFilter = {
 }
 ```
 
-`collectionField`: The relational field that links to the collection that the individual entity restriction is on.
-
-`parentCollectionField`: The relational field that matches the parent entity restriction's collection field.
-
-`roles`: The roles that this parent filter applies to.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collectionField` | `string` | The relational field that links to the collection that the individual entity restriction is on. |
+| `parentCollectionField` | `string` | The relational field that matches the parent entity restriction's collection field. |
+| `roles` | `{ role: string }[]` | The roles that this parent filter applies to. |
 
 #### Parent Property Entity Parent Filters
 
-Assign a parent propery entity restriction from a parent collection.
+Assign a parent property entity restriction from a parent collection.
 
-```
+```ts
 type ParentPropertyEntityParentFilter = {
     type: "Parent_Property"
     collectionField: string
@@ -536,13 +540,12 @@ type ParentPropertyEntityParentFilter = {
 }
 ```
 
-`collectionField`: The relational field that links to the collection that the individual entity restriction is on.
-
-`parentCollectionField`: The relational field that matches the parent entity restriction's collection field.
-
-`parentPropertyField`: The field that matches the parent entity restriction's property field.
-
-`roles`: The roles that this parent filter applies to.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collectionField` | `string` | The relational field that links to the collection that the individual entity restriction is on. |
+| `parentCollectionField` | `string` | The relational field that matches the parent entity restriction's collection field. |
+| `parentPropertyField` | `string` | The field that matches the parent entity restriction's property field. |
+| `roles` | `{ role: string }[]` | The roles that this parent filter applies to. |
 
 :::warning
 When parent filters are used, the collection and property fields used in entity restrictions and parent filters should have updates disabled using [`restrictUpdate`](#restrictupdate). This is because you will likely be denormalizing data for these fields.
@@ -578,7 +581,7 @@ This allows a flexible yet secure hierarchy of access assignment.
 
 Your config should look like this:
 
-```
+```ts
 type permissionWriteRestriction = {
     userRole: string
     recordRole: string
@@ -592,11 +595,11 @@ type permissionWriteRestriction = {
 }
 ```
 
-`userRole`: The user role you are applying restrictions to.
-
-`recordRole`: A role that the user above can assign access to.
-
-`collections`: Define which operations and restrictions are to be applied for each collection.
+| Property | Type | Description |
+| --- | --- | --- |
+| `userRole` | `string` | The user role you are applying restrictions to. |
+| `recordRole` | `string` | A role that the user above can assign access to. |
+| `collections` | `object[]` | Define which operations and restrictions are applied for each collection. |
 
 ### files
 
@@ -606,7 +609,7 @@ You can define access rules for file uploads.
 
 Your config should look like this:
 
-```
+```ts
 type AccessFiles = {
     assignment?: {
         [role: string]: {
@@ -631,22 +634,22 @@ type AccessFiles = {
 }
 ```
 
-`assignment`: Define the user roles that the user must assign access to for each file.
-
-`metadata`: Enforce Firebase Storage metadata constraints.
-
-`customMetadata`: Enforce custom metadata constraints.
+| Property | Type | Description |
+| --- | --- | --- |
+| `assignment` | `object` | Define the user roles that the user must assign access to for each file. |
+| `metadata` | `Record<string, string>` | Enforce Firebase Storage metadata constraints. |
+| `customMetadata` | `Record<string, string>` | Enforce custom metadata constraints. |
 
 For example:
 
-```
+```ts
 {
     assignment: {
         Client: {
             required: {
-                read: ["Manager, "Supervisor"]
-                update: ["Manager, "Supervisor"]
-                delete: ["Manager]
+                read: ["Manager", "Supervisor"],
+                update: ["Manager", "Supervisor"],
+                delete: ["Manager"],
             }
         }
     },
@@ -662,7 +665,7 @@ For example:
 
 ### custom.serverAccess
 
-```
+```ts
 {
     read?: (role: string, record?: StokerRecord) => boolean | Promise<boolean>
     create?: (role: string, record: StokerRecord) => boolean | Promise<boolean>
@@ -713,7 +716,7 @@ Whether to wait for related collections to load before signalling to the app tha
 
 Use this option to preload a range of time-series data. The user will be able to update the preloaded range using a date picker in the Admin UI.
 
-```
+```ts
 type PreloadCacheRange = {
     fields: string[]
     ranges?: [string, string][]
@@ -728,31 +731,24 @@ type PreloadCacheRange = {
 }
 ```
 
-`fields`: An array of Timestamp fields in the collection that time-series data can be preloaded by. The user will be able to select which field to preload data by.
-
-`ranges`: An array of ranges of data that can be preloaded. For example ["Start", "End"]. This will preload all data that overlaps with the range selected by the user. Fields used must also be defined in `fields` above.
-
-`labels`: Human-readable labels for the `fields` listed above, if they are not already human-readable, i.e. the field names contain underscores.
-
-`start`: The default start date for the preloaded range.
-
-`startOffsetDays`: Offset the default start date by x days
-
-`startOffsetHours`: Offset the default start date by x hours
-
-`end`: The default end date for the preloaded range.
-
-`endOffsetDays`: Offset the default end date by x days
-
-`endOffsetHours`: Offset the default end date by x hours
-
-`selector`: Whether the range picker should show the week, month or custom range selectors.
+| Property | Type | Description |
+| --- | --- | --- |
+| `fields` | `string[]` | Timestamp fields the user can preload by. |
+| `ranges` | `[string, string][]` | Ranges of fields to preload, for example `["Start", "End"]`. Fields must also be listed in `fields`. |
+| `labels` | `string[]` | Human-readable labels for the fields listed above. |
+| `start` | `"Today" \| "Week" \| "Month" \| "Year" \| Date \| number` | The default start date for the preloaded range. |
+| `startOffsetDays` | `number` | Offset the default start date by this many days. |
+| `startOffsetHours` | `number` | Offset the default start date by this many hours. |
+| `end` | `Date \| number` | The default end date for the preloaded range. |
+| `endOffsetDays` | `number` | Offset the default end date by this many days. |
+| `endOffsetHours` | `number` | Offset the default end date by this many hours. |
+| `selector` | `"range" \| "week" \| "month" \| ("range" \| "week" \| "month")[]` | Which selectors to show in the range picker. |
 
 ### constraints
 
 `[string, WhereFilterOp, unknown][] | (() => [string, WhereFilterOp, unknown][] | Promise<[string, WhereFilterOp, unknown][]>)`
 
-Additonal Firestore constraints to apply to the preload cache. This is an advanced option.
+Additional Firestore constraints to apply to the preload cache. This is an advanced option.
 
 ## Collection Fields Config
 
@@ -844,7 +840,7 @@ A description for the field for LLMs. Only relevant if [`ai`](#ai-chat-config) i
 
 #### singleFieldExemption
 
-```
+```ts
 {
     queryScope: "COLLECTION" | "COLLECTION_GROUP"
     order?: "ASCENDING" | "DESCENDING"
@@ -856,7 +852,7 @@ Place a single field exemption on the field in Firestore.
 
 If you have set `indexExemption` at the collection level, this option will re-enable indexing for the field.
 
-You should consider exempting [incrementally increasing monotonic fields](/docs/advanced-google-cloud/Limitations#no-support-for-high-collection-write-rates-for-collections-with-sequential-indexed-values), large String fields, Map fields and Array fields. 
+You should consider exempting [incrementally increasing monotonic fields](/docs/advanced-google-cloud/Limitations#write-rate-limitations), large String fields, Map fields and Array fields. 
 
 #### saveToAuthToken
 
@@ -876,7 +872,7 @@ Calculate an initial value for this field when creating the record.
 
 #### custom.serverAccess
 
-```
+```ts
 {
     read?: (role: string, record?: StokerRecord) => boolean | Promise<boolean>
     create?: (role: string, record: StokerRecord) => boolean | Promise<boolean>
@@ -1105,7 +1101,7 @@ Set the maximum length for this field.
 :::warning
 Stoker records are limited to Firestore's per-document limits:
 - 1MB max document size
-- 40,000 max index enrtries
+- 40,000 max index entries
 
 This limits the maximum number of relations you can have per document.
 :::
@@ -1214,9 +1210,10 @@ Set [Firestore where() query](https://firebase.google.com/docs/firestore/query-d
 
 Enforce the relational integrity of the field. For example, ensure that the record's "Site" is actually related to the record's "Company".
 
-`field`: Another relational field in the collection that is above the current field in the relational hierarchy.
-
-`recordLinkField`: The field in the field above's collection that has the same collection as the current field.
+| Property | Type | Description |
+| --- | --- | --- |
+| `field` | `string` | Another relational field in the collection that is above the current field in the relational hierarchy. |
+| `recordLinkField` | `string` | The field in the related collection above that links to the same collection as the current field. |
 
 #### length
 
@@ -1275,11 +1272,11 @@ Override the field name shown in the list view.
 
 `{ component: React.FC, className?: string } | (() => { component: React.FC, className?: string }  | Promise<{ component: React.FC, className?: string } >)`
 
-An icon that will be shown for the field on the form page. Provide additional Tailwind classess using `className`.
+An icon that will be shown for the field on the form page. Provide additional Tailwind classes using `className`.
 
 #### condition
 
-```
+```ts
 {
     list?: boolean | ((parentCollection?: CollectionSchema, parentRecord?: StokerRecord) => boolean)
     form?: boolean | ((operation?: "create" | "update", record?: StokerRecord, isExport?: boolean) => boolean)
@@ -1288,7 +1285,7 @@ An icon that will be shown for the field on the form page. Provide additional Ta
 
 Show or hide the field in the list view and on the form page. 
 
-The list method recieves the parent collection and parent record when shown on a relation list page.
+The list method receives the parent collection and parent record when shown on a relation list page.
 
 The form method receives isExport as true during CSV export operations.
 
@@ -1318,14 +1315,14 @@ Set the position of the field in the list and the form. Defaults to the position
 
 #### description
 
-```
+```ts
 {
     message: string | ((record?: StokerRecord) => string | Promise<string>)
     condition?: boolean | ((record?: StokerRecord) => boolean | Promise<boolean>)
 }
 ```
 
-Display a conditoinal description message under the field in the Admin UI.
+Display a conditional description message under the field in the Admin UI.
 
 #### live
 
@@ -1517,14 +1514,14 @@ Fields can have any of the hooks defined in [Collection Hooks](#collection-hooks
 
 **Important:** Code outside of these guard blocks WILL be sent to the client and will run on the client.
 
-For highly sensitive server operations, consider using [custom cloud functions](Other%20Project%20Files#custom-cloud-functions) instead.
+For highly sensitive server operations, consider using [custom cloud functions](Other%20Project%20Files) instead.
 :::
 
 ## AI Chat Config
 
 ![AI Chat](./img/ai.png)
 
-```
+```ts
 {
     embedding?: boolean
     chat?: {
@@ -1537,13 +1534,12 @@ For highly sensitive server operations, consider using [custom cloud functions](
 
 You can enable an AI chat bot for the collection. The chat bot uses Retrieval Augmented Generation (RAG) to converse with the user about the data in the collection.
 
-`embedding`: Set to `true` to save embeddings for records in this collection. This will only work if the [`custom.setEmbedding`](#setembedding) hook has been enabled.
-
-`chat.name`: The name for the chat bot. This is not currently used anywhere, but may be in future.
-
-`chat.defaultQueryLimit`: The number of records the LLM should retrieve for context.
-
-`chat.roles`: The roles that can view the chat bot.
+| Property | Type | Description |
+| --- | --- | --- |
+| `embedding` | `boolean` | Set to `true` to save embeddings for records in this collection. This only works if the [`custom.setEmbedding`](#setembedding) hook has been enabled. |
+| `chat.name` | `string` | The name for the chat bot. |
+| `chat.defaultQueryLimit` | `number` | The number of records the LLM should retrieve for context. |
+| `chat.roles` | `string[]` | The roles that can view the chat bot. |
 
 :::danger
 Only assign AI chat access to roles that have access to ALL fields used to calculate embeddings!
@@ -1567,7 +1563,7 @@ The collection's position in the navbar.
 
 ### titles
 
-```
+```ts
 { collection: string, record: string } | 
 (
     (
@@ -1600,6 +1596,12 @@ Define a field that will be used to sort records into "Active" and "Archived" li
 
 For example: `{ field: "Status", active: ["Not Started", "In Progress"], archived: ["Completed"]}`
 
+| Property | Type | Description |
+| --- | --- | --- |
+| `field` | `string` | The field that defines the active / archived status. |
+| `active` | `unknown[]` | Values considered active. |
+| `archived` | `unknown[]` | Values considered archived. |
+
 ### breadcrumbs
 
 `string[] | (() => string[] | Promise<string[]>)`
@@ -1614,7 +1616,7 @@ Return `true` to show the `Duplicate` button on the form page.
 
 ### convert
 
-```
+```ts
 type Convert = {
     collection: string
     convert: (record: StokerRecord) => Partial<StokerRecord> | Promise<Partial<StokerRecord>>
@@ -1628,11 +1630,11 @@ Converting a record creates a new record in the target collection and keeps the 
 
 Return an array of objects defining which collections records can be converted to. A "Convert" button will be shown on the form page.
 
-`collection`: The collection to convert records to.
-
-`convert`: A function that modifies the record before conversion.
-
-`roles`: The roles that can perform this conversion.
+| Property | Type | Description |
+| --- | --- | --- |
+| `collection` | `string` | The collection to convert records to. |
+| `convert` | `(record: StokerRecord) => Partial<StokerRecord> \| Promise<Partial<StokerRecord>>` | A function that modifies the record before conversion. |
+| `roles` | `string[]` | The roles that can perform this conversion. |
 
 ### defaultView
 
@@ -1648,7 +1650,7 @@ The default route for the record page. Can be "edit", "files", a relation list c
 
 ### defaultSort
 
-```
+```ts
 { field: string, direction?: "asc" | "desc" } | 
 (
     () => { field: string, direction?: "asc" | "desc" } |
@@ -1660,7 +1662,7 @@ The default field to sort the list by.
 
 ### secondarySort
 
-```
+```ts
 { field: string, direction?: "asc" | "desc" } | 
 (
     () => { field: string, direction?: "asc" | "desc" } |
@@ -1706,7 +1708,7 @@ Restrict CSV export to the defined roles.
 
 ### customListActions
 
-```
+```ts
 type CustomListAction = {
     title: string
     icon?: React.FC<{ className?: string }>
@@ -1743,7 +1745,7 @@ This option only disables editing client side. Do not use it if you need to secu
 
 ### onFormOpen
 
-```
+```ts
 (
     operation: "create" | "update",
     record: StokerRecord,
@@ -1758,7 +1760,7 @@ When the "create" form is opened from within another record's relation list, the
 
 ### onChange
 
-```
+```ts
 (
     operation: "create" | "update",
     record: StokerRecord,
@@ -1780,13 +1782,16 @@ Live forms reduce the risk of conflicts and are great for collaboration. However
 
 ### meta
 
-`{ title?: string, description?: string } | (() => { title?: string, description?: string } | Promise<{ title?: string, description?: string }>)`
+```ts
+{ title?: string, description?: string } |
+(() => { title?: string, description?: string } | Promise<{ title?: string, description?: string }>)
+```
 
 Define a custom meta title and description for the collection's pages.
 
 ### rowHighlight
 
-```
+```ts
 type RowHighlight = {
     condition: (record: StokerRecord) => boolean
     className: string
@@ -1798,15 +1803,15 @@ type RowHighlight = {
 
 Highlight rows in the list view.
 
-`condition`: Return `true` to highlight the row for the given record.
-
-`className`: The Tailwind classes to be applied to the highlighted row.
-
-`roles`: The user roles to highlight rows for.
+| Property | Type | Description |
+| --- | --- | --- |
+| `condition` | `(record: StokerRecord) => boolean` | Return `true` to highlight the row for the given record. |
+| `className` | `string` | The Tailwind classes to apply to the highlighted row. |
+| `roles` | `string[]` | The user roles to highlight rows for. |
 
 ### formButtons
 
-```
+```ts
 type FormButton = {
     title: string
     icon?: React.FC<{ className?: string }>
@@ -1825,17 +1830,14 @@ type FormButton = {
 
 Show custom buttons at the bottom of the edit record form.
 
-`title`: The title text for the custom button
-
-`icon`: The icon shown on the button
-
-`variant`: The style of the button
-
-`action`: The function that fires when the button is clicked
-
-`condition`: Show or hide the button
-
-`setIsLoading`: A loading function that will be called when the button is pressed.
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | The title text for the custom button. |
+| `icon` | `React.FC<{ className?: string }>` | The icon shown on the button. |
+| `variant` | `"default" \| "destructive" \| "outline" \| "secondary" \| "ghost" \| "link"` | The style of the button. |
+| `action` | `(...) => void \| Promise<void>` | The function that fires when the button is clicked. |
+| `condition` | `boolean \| ((operation: ..., record?: StokerRecord) => boolean)` | Show or hide the button. |
+| `setIsLoading` | `(isLoading: boolean) => void` | A loading callback that will be called when the button is pressed. |
 
 ### formUpload
 
@@ -1851,7 +1853,7 @@ Show an image carousel at the top of the edit record form. All image files uploa
 
 ### formLists
 
-```
+```ts
 type FormList {
     collection: string
     fields: string[]
@@ -1865,19 +1867,17 @@ type FormList {
 
 Show [relation lists](#relationlists) directly on the edit record form page.
 
-`collection`: The collection to show the relation list for
-
-`fields`: Which columns to show in the list
-
-`sortField`: The field to sort records by
-
-`sortDirection`: The direction to sort records by
-
-`label`: The title for the relation list
+| Property | Type | Description |
+| --- | --- | --- |
+| `collection` | `string` | The collection to show the relation list for. |
+| `fields` | `string[]` | Which columns to show in the list. |
+| `sortField` | `string` | The field to sort records by. |
+| `sortDirection` | `"asc" \| "desc"` | The direction to sort records by. |
+| `label` | `string` | The title for the relation list. |
 
 ### fileOptions
 
-```
+```ts
 type FileOptions {
     maxImageWidth?: number
     thumbnails: boolean
@@ -1886,13 +1886,14 @@ type FileOptions {
 
 `FileOptions[] | (() => FileOptions[] | Promise<FileOptions[]>)`
 
-`maxImageWidth`: The maximum width for uploaded image files. Images above this size will be downscaled.
-
-`thumbnails`: Set to true to show thumbnails for images in the files list.
+| Property | Type | Description |
+| --- | --- | --- |
+| `maxImageWidth` | `number` | The maximum width for uploaded image files. Images above this size will be downscaled. |
+| `thumbnails` | `boolean` | Set to `true` to show thumbnails for images in the files list. |
 
 ### customFields
 
-```
+```ts
 type CustomField = {
     position?: number | ((record?: StokerRecord) => number)
     component?: React.FC
@@ -1905,17 +1906,16 @@ type CustomField = {
 
 Create custom form field components.
 
-`position`: The position of the custom component in the form
-
-`component`: The React component
-
-`props`: Props to be passed to the React component
-
-`condition`: Show or hide the custom component
+| Property | Type | Description |
+| --- | --- | --- |
+| `position` | `number \| ((record?: StokerRecord) => number)` | The position of the custom component in the form. |
+| `component` | `React.FC` | The React component. |
+| `props` | `Record<string, unknown>` | Props to pass to the React component. |
+| `condition` | `(operation: "create" \| "update" \| "update-many", record?: StokerRecord) => boolean` | Show or hide the custom component. |
 
 ### customRecordPages
 
-```
+```ts
 type CustomRecordPage = {
     title: string
     icon?: React.FC<{ className?: string }>
@@ -1936,17 +1936,14 @@ type CustomRecordPage = {
 
 Create custom pages for the collection.
 
-`title`: The title for the custom page in the sidebar
-
-`icon`: The icon to be shown in the sidebar
-
-`url`: The url that the page will load on
-
-`component`: The custom component.
-
-`props`: Props to pass to the custom component.
-
-`condition`: Show or hide the custom component
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | The title for the custom page in the sidebar. |
+| `icon` | `React.FC<{ className?: string }>` | The icon shown in the sidebar. |
+| `url` | `string` | The URL segment that the page will load on. |
+| `component` | `React.FC<...>` | The custom component. |
+| `props` | `Record<string, unknown>` | Props to pass to the custom component. |
+| `condition` | `(record: StokerRecord \| undefined) => boolean` | Show or hide the custom page. |
 
 ### retriever
 
@@ -1960,11 +1957,14 @@ Use this method to load data for use in your [computed fields](#computed-field-p
 
 ![List](./img/list-light.png)
 
-`{ roles?: string[], title?: string } | (() => { title?: string } | Promise<{ title?: string }>)`
+```ts
+{ roles?: string[], title?: string } | (() => { title?: string } | Promise<{ title?: string }>)
+```
 
-`title`: Customise the title for the list tab. Defaults to "List".
-
-`roles`: Limit which user roles can view the list
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | Customise the title for the list tab. Defaults to `"List"`. |
+| `roles` | `string[]` | Limit which user roles can view the list. |
 
 ### cards
 
@@ -1974,7 +1974,7 @@ Show a board view with drag and drop and infinite scroll.
 
 ![Board](./img/board-light.png)
 
-```
+```ts
 type CardsConfig = {
     title?: string
     roles?: string[]
@@ -1998,41 +1998,34 @@ type CardsConfig = {
 
 `CardsConfig | (() => CardsConfig | Promise<CardsConfig>)`
 
-`title`: Customise the title for the board tab. Defaults to "Board".
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | Customise the title for the board tab. Defaults to `"Board"`. |
+| `roles` | `string[]` | Limit which user roles can view the board. |
+| `statusField` | `string` | The field that defines the board columns. Must be a String or Number field with `values`, or a Boolean field. Not required if [`admin.statusField`](#statusfield) has already been set. |
+| `excludeValues` | `string[] \| number[]` | Exclude status values from the board. |
+| `headerField` | `string` | The header field shown on cards. |
+| `maxHeaderLines` | `1 \| 2` | The number of lines for the header field text. |
+| `sections` | `object[]` | Sections to display on cards. |
+| `footerField` | `string` | The footer field shown on cards. |
+| `maxFooterLines` | `1 \| 2` | The number of lines for the footer field text. |
+| `cardClass` | `string` | Tailwind classes to apply to the card component. |
 
-`roles`: Limit which user roles can view the board
+For `sections`, each entry supports:
 
-`statusField`: The field that will define the columns for the board. Must be a String or Number field with `values` set, or a Boolean field. Not required if [`admin.statusField`](#statusfield) has already been set.
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | The title for the section. |
+| `fields` | `string[]` | The fields to display in the section. |
+| `blocks` | `boolean` | Show multiple columns of fields, rather than listing fields down the card vertically. |
+| `large` | `boolean` | Show a large field value. |
+| `maxSectionLines` | `1 \| 2 \| 3 \| 4` | The number of lines for field text. |
+| `collapse` | responsive size or callback | Only relevant when `blocks` is set to `true`. Hide the outermost block at this screen size. Helps with responsiveness. |
 
-`excludeValues`: Exclude status field values from the board
-
-`headerField`: The header to be shown on cards on the board
-
-`maxHeaderLines`: The number of lines for the header field text
-
-`sections`: Return an array of sections that will display on cards.
-
-`section.title`: The title for the section
-
-`section.fields`: The fields to display in the section
-
-`section.blocks`: Show multiple columns of fields, rather than listing fields down the card vertically.
-
-`section.large`: Show a large field value
-
-`section.maxSectionLines`: the number of lines for field text.
-
-`footerField`: The header to be shown on cards on the board
-
-`maxFooterLines`: The number of lines for the footer field text
-
-`collapse`: Only relevant when blocks is set to true. Hide the outermost block at this screen size. Helps with responsiveness.
-
-`cardClass`: Tailwind classes to apply to the card component
 
 ### images
 
-```
+```ts
 type ImagesConfig = {
     title?: string
     roles?: string[]
@@ -2059,17 +2052,14 @@ type ImagesConfig = {
 
 Show a list of image cards with infinite scroll.
 
-`title`: Customise the title for the images tab. Defaults to "Pics".
-
-`roles`: Limit which user roles can view the images page
-
-`imageField`: The field that contains the image URL for the record. Must be a String field.
-
-`size`: The size for images.
-
-`maxHeaderLines`: The number of lines for the header field text
-
-`customComponent`: An optional custom component that will be shown above each image.
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | Customise the title for the images tab. Defaults to `"Pics"`. |
+| `roles` | `string[]` | Limit which user roles can view the images page. |
+| `imageField` | `string` | The field that contains the image URL for the record. Must be a String field. |
+| `size` | `"sm" \| "md" \| "lg" \| "xl"` | The image size. |
+| `maxHeaderLines` | `1 \| 2` | The number of lines for the header field text. |
+| `customComponent` | `object` | An optional custom component shown above each image. |
 
 ### map
 
@@ -2079,7 +2069,7 @@ Show a map view.
 
 ![Map](./img/map-light.png)
 
-```
+```ts
 type MapConfig = {
     title?: string
     roles?: string[]
@@ -2098,23 +2088,19 @@ type MapConfig = {
 
 `MapConfig | (() => MapConfig | Promise<MapConfig>)`
 
-`title`: Customise the title for the map tab. Defaults to "Map".
-
-`roles`: Limit which user roles can view the map page
-
-`coordinatesField`: The field that contains coordinate values for the record. Must be an Array field.
-
-`addressField`: Alternatively to the above, provide a String field with an address.
-
-`center`: The starting coordinates for the map
-
-`zoom`: The starting zoom value for the map.
-
-`noLocation`: Provide a title (i.e. "No Address") to show a column of records without coordinates / an address. Records can be dragged onto the map (coordinatesField only).
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | Customise the title for the map tab. Defaults to `"Map"`. |
+| `roles` | `string[]` | Limit which user roles can view the map page. |
+| `coordinatesField` | `string` | The field containing coordinates. Must be an Array field. |
+| `addressField` | `string` | Alternatively, provide a String field containing an address. |
+| `center` | `{ lat: number, lng: number }` | The starting coordinates for the map. |
+| `zoom` | `number` | The starting zoom value for the map. |
+| `noLocation` | `{ title: string }` | Show a column of records without coordinates or an address. Records can be dragged onto the map (only when coordinatesField is provided). |
 
 ### calendar
 
-```
+```ts
 type CalendarConfig = {
     title?: string
     roles?: string[]
@@ -2145,43 +2131,27 @@ type CalendarConfig = {
 
 Show a calendar view.
 
-`title`: Customise the title for the calendar tab. Defaults to "Calendar".
-
-`roles`: Limit which user roles can view the calendar page
-
-`startField`: A Timestamp field that specifies the start date for records on the calendar.
-
-`endField`: A Timestamp field that specifies the end date for records on the calendar. If omitted, the start date will be used.
-
-`additionalFields`: Additional Timestamp fields to include on the calendar for each record. These will appear as all day events.
-
-`allDayField`: A Boolean field indicating whether records are all-day.
-
-`eventTitle`: A custom title for the provided record's event on the calendar
-
-`color`: The color for the provided record's event on the calendar
-
-`filterRecords`: An optional function that determines whether a record should be displayed on the calendar. This filter only runs in the client, so it should not be used for access control purposes.
-
-`fullCalendarLarge`: [Fullcalendar](https://fullcalendar.io/docs) options for the calendar at desktop screen sizes
-
-`fullCalendarSmall`: [Fullcalendar](https://fullcalendar.io/docs) options for the calendar at mobile screen sizes
-
-`resourceField`: A relational field that specifies a parent resource. Used for Fullcalendar features that require "resources".
-
-`resourceTitleField`: A field in the `resourceField` collection that will act as a title 
-
-`unscheduled`: Show a column of unscheduled records. Only relevant if [`preloadCache.range`](#range) is present for the user role. Records can be dragged onto the calendar.
-
-`additionalCollections`: A list of names of collections to display on the calendar alongside the main collection. Additonal collections will only work when the preload cache is enabled for the user's role for the given collection.
-
-`dataStart`: How far into the past to load records for
-
-`dataEnd`: How far into the future to load records for
-
-`dataStartOffset`: The threshold at which more past records will be loaded
-
-`dataEndOffset`: The threshold at which more future records will be loaded
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | Customise the title for the calendar tab. Defaults to `"Calendar"`. |
+| `roles` | `string[]` | Limit which user roles can view the calendar page. |
+| `startField` | `string` | Timestamp field specifying the start date. |
+| `endField` | `string` | Timestamp field specifying the end date. If omitted, the start date is used. |
+| `additionalFields` | `string[]` | Additional Timestamp fields to include as all-day events. |
+| `allDayField` | `string` | Boolean field indicating whether records are all-day. |
+| `eventTitle` | `(record: StokerRecord) => string` | A custom title for the provided record's event on the calendar. |
+| `color` | `string \| ((record: StokerRecord) => string)` | The color for the provided record's event on the calendar. |
+| `filterRecords` | `(record: StokerRecord) => boolean` | An optional function that determines whether a record should be displayed on the calendar. This filter only runs in the client, so it should not be used for access control purposes. |
+| `fullCalendarLarge` | `CalendarOptions` | [Fullcalendar](https://fullcalendar.io/docs) options for desktop screen sizes. |
+| `fullCalendarSmall` | `CalendarOptions` | [Fullcalendar](https://fullcalendar.io/docs) options for mobile screen sizes. |
+| `resourceField` | `string` | Relational field specifying a parent resource. Used for Fullcalendar features that require "resources". |
+| `resourceTitleField` | `string` | Field in the `resourceField` collection that acts as the resource title. |
+| `unscheduled` | `object` | Show a column of unscheduled records. Only relevant if [`preloadCache.range`](#range) is present for the user's role. Records can be dragged onto the calendar. |
+| `additionalCollections` | `string[]` | Additional collections to show on the calendar. Additional collections will only work when the preload cache is enabled for the user's role for the given collection. |
+| `dataStart` | `object` | How far into the past to load records for. |
+| `dataEnd` | `object` | How far into the future to load records for. |
+| `dataStartOffset` | `object` | Threshold at which more past records will be loaded. |
+| `dataEndOffset` | `object` | Threshold at which more future records will be loaded. |
 
 :::tip
 When both the [preload cache](#preload-cache-config) range and the calendar are enabled, the system will calculate the maximum possible date range from the start and end dates for each. It will then load data for the calculated date range. You may want to keep the initial date ranges for each small, in order to reduce the amount of data initially loaded.
@@ -2201,7 +2171,7 @@ The calendar requires a [Fullcalendar](https://fullcalendar.io/license) license
 
 ### filters
 
-```
+```ts
 type SelectFilter = {
     type: "select"
     field: string
@@ -2229,7 +2199,7 @@ type SelectFilter = {
         parentCollection?: CollectionSchema,
         parentRecord?: StokerRecord,
         isAssigning?: boolean,
-    ) => bolean
+    ) => boolean
 }
 
 type RelationFilter = {
@@ -2274,7 +2244,7 @@ Display a counter in the title bar showing the number of items in the list.
 
 ### metrics
 
-```
+```ts
 type Metric = {
     type: "sum" | "average" | "count" | "custom"
     field?: string
@@ -2307,14 +2277,41 @@ We recommend 1-2 metrics and a chart.
 
 For "custom" metrics, use the formula method to calculate the value to display.
 
+`Metric` supports:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `type` | `"sum" \| "average" \| "count" \| "custom"` | The metric type. |
+| `field` | `string` | The field to aggregate. Not required for `count` or `custom`. |
+| `title` | `string` | The title shown above the metric. |
+| `roles` | `string[]` | Limit which user roles can view the metric. |
+| `decimal` | `number` | Maximum decimal places to display. |
+| `prefix` | `string` | Prefix text, for example a currency symbol. |
+| `suffix` | `string` | Suffix text, for example units. |
+| `textSize` | `"text-xl" \| "text-2xl" \| "text-3xl"` | Tailwind text size for the metric value. |
+| `formula` | `(records: StokerRecord[]) => number \| string` | Custom metric calculation. |
+
+`Chart` supports:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `type` | `"area"` | The chart type. |
+| `dateField` | `string` | The date field used to group points. |
+| `metricField1` | `string` | First metric field. |
+| `metricField2` | `string` | Optional second metric field. |
+| `title` | `string` | Title shown above the chart. |
+| `roles` | `string[]` | Limit which user roles can view the chart. |
+| `defaultRange` | `"90d" \| "30d" \| "7d"` | Default chart date range. |
+| `currency` | `string \| (() => string)` | Currency symbol to display. |
+
 ## Collection Hooks
 
 :::info
 When importing modules that are web-only or server-only, be sure to:
 
-1. Install them using [`external.packages.json`](Other%20Project%20Files#install-custom-npm-packages)
+1. Install them using [`external.packages.json`](Other%20Project%20Files)
 2. Guard their use by wrapping code in: 
-    ```
+    ```ts
     if(sdk === "web") { 
         ...your web code goes here...
     }
@@ -2338,7 +2335,7 @@ You can also write your own modules in the `src/web` and `src/node` folders and 
 
 **Important:** Code outside of these guard blocks WILL be sent to the client and will run on the client.
 
-For highly sensitive server operations, consider using [custom cloud functions](Other%20Project%20Files#custom-cloud-functions) instead.
+For highly sensitive server operations, consider using [custom cloud functions](Other%20Project%20Files) instead.
 :::
 
 :::note
@@ -2354,7 +2351,7 @@ In the Web SDK, postWrite, postError and postOperation hooks will not fire if th
 
 ### preOperation
 
-```
+```ts
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
@@ -2371,7 +2368,7 @@ Return `false` to cancel the operation.
 
 ### preRead
 
-```
+```ts
 ({
     context: any
     refs: unknown[]
@@ -2385,7 +2382,7 @@ Fires before a read operation.
 
 ### preValidate
 
-```
+```ts
 ({
     operation: "create" | "update"
     data: StokerRecord
@@ -2403,7 +2400,7 @@ When [serverWriteOnly](#serverwriteonly) is set to true, this hook will fire in 
 
 ### preWrite
 
-```
+```ts
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
@@ -2420,7 +2417,9 @@ Return `false` to cancel the operation.
 
 ### preDuplicate
 
-`({ data: Partial<StokerRecord> }) => boolean | void | Promise<boolean | void>`
+```ts
+({ data: Partial<StokerRecord> }) => boolean | void | Promise<boolean | void>
+```
 
 Fires before a duplicate operation in the Admin UI.
 
@@ -2428,7 +2427,7 @@ Return `false` to cancel the operation.
 
 ### postOperation
 
-```
+```ts
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
@@ -2443,7 +2442,7 @@ Fires after a read or write operation.
 
 ### postRead
 
-```
+```ts
 ({
     context: any
     refs: unknown[]
@@ -2456,7 +2455,7 @@ Fires after a read operation.
 
 ### postWrite
 
-```
+```ts
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
@@ -2471,7 +2470,7 @@ Fires after a write operation.
 
 ### postWriteError
 
-```
+```ts
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
@@ -2491,7 +2490,7 @@ This hook may fire multiple times per write, so be sure to write idempotent code
 
 ### preFileAdd
 
-```
+```ts
 ({
     record: StokerRecord
     fullPath: string
@@ -2506,7 +2505,7 @@ Return `false` to cancel the operation.
 
 ### preFileUpdate
 
-```
+```ts
 ({
     record: StokerRecord
     update:
@@ -2526,7 +2525,7 @@ Return `false` to cancel the operation.
 
 ### postFileAdd
 
-```
+```ts
 ({
     record: StokerRecord
     fullPath: string
@@ -2539,7 +2538,7 @@ Fires after a file is uploaded.
 
 ### postFileAddError
 
-```
+```ts
 ({
     record: StokerRecord
     fullPath: string
@@ -2553,7 +2552,7 @@ Fires when a file upload fails.
 
 ### postFileUpdate
 
-```
+```ts
 ({
     record: StokerRecord
     update:

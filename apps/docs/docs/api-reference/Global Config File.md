@@ -84,7 +84,7 @@ The offline persistence strategy for your app.
 This strategy creates a security risk if your app is used on public computers, as app data is stored in IndexedDB beyond the user's session.
 :::
 
-`"WRITE"`: Writes are persisted across sessions. Offline writes will be retried when the connection is restored, even if the window is closed while still offline. [`enableWriteLog`](/docs/api-reference/Collection%20Files#enablewritelog) must be set to `true` for offline persitent writes to work for a collection.
+`"WRITE"`: Writes are persisted across sessions. Offline writes will be retried when the connection is restored, even if the window is closed while still offline. [`enableWriteLog`](/docs/api-reference/Collection%20Files#enablewritelog) must be set to `true` for offline persistent writes to work for a collection.
 
 :::warning
 This strategy creates a security risk if your app is used on public computers, as app data is stored in IndexedDB beyond the user's session. However, this option is more secure than `"ALL"` because read data is not persisted.
@@ -166,7 +166,7 @@ This access restriction is only enforced on the client. Users can still log in, 
 
 ### background
 
-```
+```ts
 type Background = {
     light?: {
         color: string
@@ -192,7 +192,7 @@ Return image urls to be used for the navbar title and the login page. If not pro
 
 ### menu.groups
 
-```
+```ts
 type MenuGroup = {
     title: string
     position: number
@@ -215,7 +215,7 @@ The [Luxon date format](https://moment.github.io/luxon/#/formatting?id=table-of-
 
 ### meta
 
-```
+```ts
 type MetaIcon = {
     rel: string
     type: string
@@ -239,7 +239,7 @@ If the user role has access to the Dashboard, that will take precedence.
 
 For example:
 
-```
+```ts
 {
     Manager: "Projects",
     Client: "Invoices,
@@ -260,7 +260,7 @@ We recommend that each row contains any of:
 - 3 reminders
 
 Display a metric (numerical counter):
-```
+```ts
 type DashboardMetric = {
     kind: "metric"
     collection: string
@@ -277,7 +277,7 @@ type DashboardMetric = {
 ```
 
 Display a chart:
-```
+```ts
 type DashboardChart = {
     kind: "chart"
     collection: string
@@ -303,7 +303,7 @@ type DashboardChart = {
 
 
 Display a reminder (a list of pertinent records):
-```
+```ts
 type DashboardReminder = {
     kind: "reminder"
     collection: string
@@ -435,9 +435,9 @@ An object with a `subject` and a `html` message that will be sent to the user.
 :::info
 When importing modules that are web-only or server-only, be sure to:
 
-1. Install them using [`external.packages.json`](Other%20Project%20Files#install-custom-npm-packages)
+1. Install them using [`external.packages.json`](Other%20Project%20Files)
 2. Guard their use by wrapping code in: 
-    ```
+    ```ts
     if(sdk === "web") { 
         ...your web code goes here...
     }
@@ -461,7 +461,7 @@ You can also write your own modules in the `src/web` and `src/node` folders and 
 
 **Important:** Code outside of these guard blocks WILL be sent to the client and will run on the client.
 
-For highly sensitive server operations, consider using [custom cloud functions](Other%20Project%20Files#custom-cloud-functions) instead.
+For highly sensitive server operations, consider using [custom cloud functions](Other%20Project%20Files) instead.
 :::
 
 ### preLogin
@@ -508,7 +508,7 @@ A boolean defining whether or not the user may proceed with sign out.
 
 ### postLogout
 
-```
+```ts
 (
     errorDetails: {
         error: boolean
@@ -528,7 +528,7 @@ Fires when the user has logged out. If an error is encountered during sign out, 
 
 ### preOperation
 
-```
+```ts
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
@@ -545,7 +545,7 @@ Return `false` to cancel the operation.
 
 ### preRead
 
-```
+```ts
 ({
     context: any
     refs: unknown[]
@@ -559,10 +559,10 @@ Fires before all read operations.
 
 ### preValidate
 
-```
+```ts
 ({
     operation: "create" | "update"
-    record: StokerRecord
+    data: StokerRecord
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
@@ -573,9 +573,11 @@ Fires at write validation time for all write operations. This is where you can d
 
 Return an object with a boolean indicating whether validation passed, and a message to display to the user if validation has failed.
 
+When `serverWriteOnly` is set to true, this hook will fire in the Web SDK before the write is handed off to the Node SDK. This lets you run web code such as warning dialogs before the write is sent to the server. Be sure to guard web code in [`if(sdk === "web")`](/docs/api-reference/Application%20State#sdk) to ensure it doesn't run on the server.
+
 ### preWrite
 
-```
+```ts
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
@@ -592,7 +594,9 @@ Return `false` to cancel the operation.
 
 ### preDuplicate
 
-`({ data: Partial<StokerRecord> }) => boolean | void | Promise<boolean | void>`
+```ts
+({ data: Partial<StokerRecord> }) => boolean | void | Promise<boolean | void>
+```
 
 Fires before all duplicate operations in the Admin UI.
 
@@ -600,7 +604,7 @@ Return `false` to cancel the operation.
 
 ### postOperation
 
-```
+```ts
 ({
     operation: "read" | "create" | "update" | "delete"
     data?: StokerRecord
@@ -615,7 +619,7 @@ Fires after all read and write operations.
 
 ### postRead
 
-```
+```ts
 ({
     context: any
     refs: unknown[]
@@ -628,7 +632,7 @@ Fires after all read operations.
 
 ### postWrite
 
-```
+```ts
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
@@ -643,13 +647,14 @@ Fires after all write operations.
 
 ### postWriteError
 
-```
+```ts
 ({
     operation: "create" | "update" | "delete"
     data: StokerRecord
     recordId: string
     context: any
     error: unknown
+    batch?: WriteBatch
     retry?: boolean
     retries?: number
     originalRecord?: StokerRecord
@@ -664,7 +669,7 @@ This hook may fire multiple times per write, so be sure to write idempotent code
 
 ### preFileAdd
 
-```
+```ts
 ({
     record: StokerRecord
     fullPath: string
@@ -679,7 +684,7 @@ Return `false` to cancel the operation.
 
 ### preFileUpdate
 
-```
+```ts
 ({
     record: StokerRecord
     update:
@@ -699,7 +704,7 @@ Return `false` to cancel the operation.
 
 ### postFileAdd
 
-```
+```ts
 ({
     record: StokerRecord
     fullPath: string
@@ -712,7 +717,7 @@ Fires after a file is uploaded.
 
 ### postFileAddError
 
-```
+```ts
 ({
     record: StokerRecord
     fullPath: string
@@ -726,7 +731,7 @@ Fires when a file upload fails.
 
 ### postFileUpdate
 
-```
+```ts
 ({
     record: StokerRecord
     update:
@@ -744,7 +749,7 @@ Fires after a file is updated.
 
 ### onVersionUpdate
 
-```
+```ts
 (
     versionInfo: {
         version: number

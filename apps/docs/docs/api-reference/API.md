@@ -16,13 +16,12 @@ To access your app's API:
 
 #### Request Parameters
 
-`path`: The path to the collection for the record(s) i.e. `["Clients"]`. If the record(s) are in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
-
-`id`: Include an id to get a single record.
-
-`constraints`: Only relevant when retrieving multiple records. Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query in the format `[string, WhereFilterOp, unknown][]`.
-
-`options`: Any of the options that can be provided to [getOne](/docs/api-reference/Node%20SDK#getone) or [getSome](/docs/api-reference/Node%20SDK#getsome) in the Node SDK.
+| Property | Type | Description |
+| --- | --- | --- |
+| `path` | `string[]` | The path to the collection for the record(s) i.e. `["Clients"]`. If the record(s) are in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`. |
+| `id` | `string` | Include an id to get a single record. |
+| `constraints` | `[string, WhereFilterOp, unknown][]` | Only relevant when retrieving multiple records. Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the query. |
+| `options` | `object` | Any of the options that can be provided to [getOne](/docs/api-reference/Node%20SDK#getone) or [getSome](/docs/api-reference/Node%20SDK#getsome) in the Node SDK. |
 
 #### Returns
 
@@ -32,15 +31,13 @@ A `result` object containing either the single record or an array of records.
 
 #### Request Parameters
 
-`operation`: `"create"`, `"update"` or `"delete"`
-
-`path`: The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`.
-
-`id`: The id of the record, if this is an update or delete operation.
-
-`record`: The record to save, if this is a create or update operation.
-
-`userData`: Access credentials for the record, if this is a create or update operation. See [addRecord](/docs/api-reference/Node%20SDK#parameters-1) and [updateRecord](/docs/api-reference/Node%20SDK#parameters-2) in the Node SDK.
+| Property | Type | Description |
+| --- | --- | --- |
+| `operation` | `"create" \| "update" \| "delete"` | The write operation to perform. |
+| `path` | `string[]` | The path to the collection for the record i.e. `["Clients"]`. If the record is in a subcollection, the path will look more like `["Clients", "D89X6ZQ1sclE71BfsWmv", "Sites"]`. |
+| `id` | `string` | The id of the record, if this is an update or delete operation. |
+| `record` | `object` | The record to save, if this is a create or update operation. |
+| `userData` | `object` | Access credentials for the record, if this is a create or update operation. See [addRecord](/docs/api-reference/Node%20SDK#parameters-1) and [updateRecord](/docs/api-reference/Node%20SDK#parameters-2) in the Node SDK. |
 
 #### Returns
 
@@ -50,13 +47,12 @@ A `result` object containing the record that was written.
 
 #### Request Parameters
 
-`collection`: The collection to search.
-
-`query`: The search query
-
-`hitsPerPage`: The number of results to return
-
-`constraints`: Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the search query
+| Property | Type | Description |
+| --- | --- | --- |
+| `collection` | `string` | The collection to search. |
+| `query` | `string` | The search query. |
+| `hitsPerPage` | `number` | The number of results to return. |
+| `constraints` | `[string, WhereFilterOp, unknown][]` | Provide [Firestore where()](https://firebase.google.com/docs/firestore/query-data/queries#simple_queries) query constraints to the search query. |
 
 #### Returns
 

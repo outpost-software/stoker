@@ -25,29 +25,21 @@ The cost of running your development environment on Google Cloud Platform will b
 
 ## Installation
 
-Prerequisites:
+#### Prerequisites
 
-- Google Account (must have a [Google Cloud billing account](https://docs.cloud.google.com/billing/docs/how-to/create-billing-account))
-- Node JS 22+
-- Firebase CLI:
-    - `npm i -g firebase-tools`
-    - `firebase login`
-- Google Cloud CLI:
-    - Prerequisites:
-        - Python 3.13
-        - [Java](https://www.oracle.com/au/java/technologies/downloads/)
-    - Installation:
-        - [Install](https://docs.cloud.google.com/sdk/docs/install)
-        - `gcloud init`
-        - `gcloud auth application-default login`
-- Genkit CLI:
-    - `npm i -g genkit-cli`
+| Requirement | Details |
+| --- | --- |
+| Google Account | Your Google account must have a [Google Cloud billing account](https://docs.cloud.google.com/billing/docs/how-to/create-billing-account). |
+| Node.js | `22+` |
+| Firebase CLI | `npm i -g firebase-tools` and `firebase login` |
+| Google Cloud CLI | Prerequisites: Python 3.13 and [Java](https://www.oracle.com/au/java/technologies/downloads/).<br></br>Installation: Install the [Google Cloud CLI](https://docs.cloud.google.com/sdk/docs/install), then run `gcloud init` and <br></br>`gcloud auth application-default login`. |
+| Genkit CLI | `npm i -g genkit-cli` |
 
-Stoker:
+#### Stoker
 
-- `npm i -g @stoker-platform/cli`
-- Create a new directory i.e. "my-app" and open it in your IDE
-- `stoker init && git init && npm i && npm --prefix functions i`
+1. `npm i -g @stoker-platform/cli`
+2. Create a new directory i.e. "my-app" and open it in your IDE
+3. `stoker init && git init && npm i && npm --prefix functions i`
 
 You might also want to update your package name in package.json.
 
@@ -65,26 +57,26 @@ The back end config for your app is found at `.env/.env` in your project directo
 
 You can use the defaults to get started, but you MUST provide:
 
-- General:
-    - `ADMIN_EMAIL`: The email address to be used for system notifications
-    - `ADMIN_SMS`: The phone number to be used for system notifications. Must start with a + and an international code.
-    - `GCP_BILLING_ACCOUNT`: [Google Cloud Billing Account ID](https://docs.cloud.google.com/billing/docs/how-to/find-billing-account-id)
-
-- Mail (used to send email out of the system):
-    - `MAIL_REGION`: A Google Cloud region supported by [Eventarc](https://docs.cloud.google.com/eventarc/docs/locations)
-    - `MAIL_SENDER`: i.e. `Stoker Platform <username@gmail.com>`
-    - `MAIL_SMTP_CONNECTION_URI`: i.e. `smtps://username@gmail.com@smtp.gmail.com:465`
-    - `MAIL_SMTP_PASSWORD`: i.e. a Gmail app password
+| Variable | Description |
+| --- | --- |
+| `ADMIN_EMAIL` | The email address to be used for system notifications |
+| `ADMIN_SMS` | The phone number to be used for system notifications. Must start with a `+` and an international code. |
+| `GCP_BILLING_ACCOUNT` | [Google Cloud Billing Account ID](https://docs.cloud.google.com/billing/docs/how-to/find-billing-account-id) |
+| `MAIL_REGION` | A Google Cloud region supported by [Eventarc](https://docs.cloud.google.com/eventarc/docs/locations) |
+| `MAIL_SENDER` | i.e. `Stoker Platform <username@gmail.com>` |
+| `MAIL_SMTP_CONNECTION_URI` | i.e. `smtps://username@gmail.com@smtp.gmail.com:465` |
+| `MAIL_SMTP_PASSWORD` | i.e. a Gmail app password |
 
 Recommended but not required:
 
-- Google Analytics Account ID
-- Sentry DSN
-- Algolia credentials. Used for full text search in collections with large volumes of data. For collections with small amounts of data, client side full text search is used by default.
-- Twilio credentials (used to send SMS out of the system):
-    - `TWILIO_ACCOUNT_SID`
-    - `TWILIO_AUTH_TOKEN`
-    - `TWILIO_PHONE_NUMBER`: Must start with a + and an international code.
+| Item | Notes |
+| --- | --- |
+| Google Analytics Account ID | Optional |
+| Sentry DSN | Optional |
+| Algolia credentials | Used for full text search in collections with large volumes of data. For collections with small amounts of data, client side full text search is used by default. |
+| `TWILIO_ACCOUNT_SID` | Twilio credential used to send SMS out of the system |
+| `TWILIO_AUTH_TOKEN` | Twilio credential used to send SMS out of the system |
+| `TWILIO_PHONE_NUMBER` | Must start with a `+` and an international code |
 
 For more information, see [Env Files - Back End Setup](/docs/api-reference/Env%20Files-%20Back%20End%20Setup).
 
@@ -114,9 +106,11 @@ Your app's global config file is found at `src/main.ts`.
 
 We recommend using the defaults to get started, but you MUST provide:
 
-- [roles](/docs/api-reference/Global%20Config%20File#roles): This is the big one. Name the access roles that will be used in your app. Each role will have its own permissions.
-- [appName](/docs/api-reference/Global%20Config%20File#appname): The name of your app. Shorter is better, as this will be used for page titles etc.
-- [timezone](/docs/api-reference/Global%20Config%20File#timezone): Your app will be based in this timezone. Must be a valid IANA timezone.
+| Property | Description |
+| --- | --- |
+| [roles](/docs/api-reference/Global%20Config%20File#roles) | This is the big one. Name the access roles that will be used in your app. Each role will have its own permissions. |
+| [appName](/docs/api-reference/Global%20Config%20File#appname) | The name of your app. Shorter is better, as this will be used for page titles etc. |
+| [timezone](/docs/api-reference/Global%20Config%20File#timezone) | Your app will be based in this timezone. Must be a valid IANA timezone. |
 
 For more information, see [Global Config File](/docs/api-reference/Global%20Config%20File).
 
@@ -135,12 +129,12 @@ If you are not using the default roles "Admin" and "User", you will need to:
 
 The most important concepts to know are:
 
-- Views: [List](/docs/api-reference/Collection%20Files#list), [Board](/docs/api-reference/Collection%20Files#cards), [Images](/docs/api-reference/Collection%20Files#images), [Map](/docs/api-reference/Collection%20Files#map) & [Calendar](/docs/api-reference/Collection%20Files#calendar)
-- [Access control policies](/docs/api-reference/Collection%20Files#access-control-policies) and [field-level access restrictions](/docs/api-reference/Collection%20Files#access)
-- [Preload Cache](/docs/api-reference/Collection%20Files#preload-cache-config)
-- Relational Fields:
-    - [Include Fields](/docs/api-reference/Collection%20Files#includefields) and [Title Field](/docs/api-reference/Collection%20Files#titlefield)
-    - [Dependency Fields](/docs/api-reference/Collection%20Files#dependencyfields)
+| Concept | Details |
+| --- | --- |
+| Views | [List](/docs/api-reference/Collection%20Files#list), [Board](/docs/api-reference/Collection%20Files#cards), [Images](/docs/api-reference/Collection%20Files#images), [Map](/docs/api-reference/Collection%20Files#map) and [Calendar](/docs/api-reference/Collection%20Files#calendar) |
+| Access control | [Access control policies](/docs/api-reference/Collection%20Files#access-control-policies) and [field-level access restrictions](/docs/api-reference/Collection%20Files#access) |
+| Preload Cache | [Preload Cache](/docs/api-reference/Collection%20Files#preload-cache-config) |
+| Relational Fields | [Include Fields](/docs/api-reference/Collection%20Files#includefields), [Title Field](/docs/api-reference/Collection%20Files#titlefield), and [Dependency Fields](/docs/api-reference/Collection%20Files#dependencyfields) |
 
 For more information, see [Collection Files](/docs/api-reference/Collection%20Files).
 
@@ -184,8 +178,8 @@ We recommend setting up notifications in [Error Reporting](https://console.cloud
 
 To deploy your latest changes to a project:
 
-- Navigate to the project by running `export GCP_PROJECT=<PROJECT_NAME> && stoker set-project`
-- `stoker deploy`
+1. Navigate to the project by running `export GCP_PROJECT=<PROJECT_NAME> && stoker set-project`
+2. Run `stoker deploy`
 
 <br></br>
 :::info

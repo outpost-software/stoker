@@ -16,10 +16,7 @@ You'll have to write code for data migrations yourself at this stage.
 
 ## Write rate limitations
 
-#### No support for high document write rates
-
-In Cloud Firestore, you can't update a single document at an unlimited rate. Firestore offers a solution using ["Distributed Counters"](https://firebase.google.com/docs/firestore/solutions/counters), but we haven't implemented that solution into Stoker at this stage.
-
-#### No support for high collection write rates for collections with sequential indexed values
-
-If a Firestore collection contains documents with sequential indexed values, Cloud Firestore limits the write rate to 500 writes per second. Firestore offers a solution using ["Sharded Timestamps"](https://firebase.google.com/docs/firestore/solutions/shard-timestamp), but we haven't implemented that solution into Stoker at this stage.
+| Limitation | Details |
+| --- | --- |
+| No support for high document write rates | In Cloud Firestore, you can't update a single document at an unlimited rate. Firestore offers a solution using ["Distributed Counters"](https://firebase.google.com/docs/firestore/solutions/counters), but we haven't implemented that solution into Stoker at this stage. |
+| No support for high collection write rates for collections with sequential indexed values | If a Firestore collection contains documents with sequential indexed values, Cloud Firestore limits the write rate to 500 writes per second. Firestore offers a solution using ["Sharded Timestamps"](https://firebase.google.com/docs/firestore/solutions/shard-timestamp), but we haven't implemented that solution into Stoker at this stage. |

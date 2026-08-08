@@ -278,7 +278,7 @@ You can provide a key-value list of secrets that for use in your custom Cloud Fu
 
 If you want to use secrets in you Node [hooks](/docs/api-reference/Collection%20Files#collection-hooks), add them to `EXTERNAL_SECRETS` and the Write API function, for example:
 
-```
+```ts
 const xeroId = defineSecret("XERO_ID");
 const xeroSecret = defineSecret("XERO_SECRET");
 

@@ -14,7 +14,7 @@ The Stoker CLI uses this SDK under the hood.
 
 Initialize a Stoker app.
 
-```
+```ts
 (
     modeEnv: "development" | "production",
     configFilePath: string,
@@ -51,7 +51,7 @@ Retrieve you app's previous schema.
 
 ## addRecord
 
-```
+```ts
 (
     path: string[],
     data: Partial<StokerRecord>,
@@ -82,7 +82,7 @@ Retrieve you app's previous schema.
 
 `options.user`: Optional user credentials, if this collection has `auth` enabled. Permissions must be provided in this structure:
 
-```
+```ts
 type StokerPermissions = {
     Role?: string
     Enabled?: boolean
@@ -140,7 +140,7 @@ To delete a field, provide a [Firestore delete sentinel](https://firebase.google
 
 You can [transactionally increment or decrement a field value](https://firebase.google.com/docs/firestore/manage-data/add-data)
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -194,7 +194,7 @@ The updated record.
 
 ## deleteRecord
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -226,7 +226,7 @@ The deleted record.
 
 Retrieve a record from the database.
 
-```
+```ts
 (
     path: string[],
     recordId: string,
@@ -279,7 +279,7 @@ The record.
 
 Retrieve multiple records from the database.
 
-```
+```ts
 (
     path: string[],
     options?: {
@@ -352,7 +352,7 @@ Retrieve multiple records from the database.
 
 Send an email out of the system.
 
-```
+```ts
 (
     to: string | string[],
     subject: string,

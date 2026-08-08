@@ -78,7 +78,7 @@ Return's a collection's config. Use this to access the `custom` and `admin` prop
 
 ### getVersionInfo
 
-```
+```ts
 type VersionInfo = {
     version: number
     force: boolean
@@ -106,7 +106,9 @@ Returns the currently logged in user's permissions.
 
 ### getLoadingState
 
-`() => { [collection: string]: "Loading" | "Loaded" | "Error" }`
+```ts
+() => { [collection: string]: "Loading" | "Loaded" | "Error" }
+```
 
 Returns the loading state for collections with the [preload cache](/docs/api-reference/Collection%20Files#preload-cache-config) enabled.
 
@@ -194,7 +196,7 @@ Return's a collection's config. Use this to access the `custom` and `admin` prop
 
 ### getVersionInfo
 
-```
+```ts
 type VersionInfo = {
     version: number
     force: boolean
@@ -242,7 +244,7 @@ Show a dialog.
 
 `(dialogContent: DialogContent | null) => void`
 
-```
+```ts
 type DialogContent = {
     title: string
     description: string
@@ -268,7 +270,7 @@ Signal to the app that a record is pending and show the global loading spinner.
 
 Show the create record form for a collection.
 
-```
+```ts
 (
     collection: CollectionSchema,
     collectionPath: string[],
