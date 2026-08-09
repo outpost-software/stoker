@@ -122,6 +122,11 @@ export const addRecord = async (
             if (user.password !== user.passwordConfirm) {
                 throw new Error("VALIDATION_ERROR: Passwords do not match")
             }
+            if (!data.Role) throw new Error("VALIDATION_ERROR: Role field is required")
+            if (!data.Email) throw new Error("VALIDATION_ERROR: Email field is required")
+            if (data.Enabled === undefined || data.Enabled === null) {
+                throw new Error("VALIDATION_ERROR: Enabled field is required")
+            }
             const enableEmulators = await getCachedConfigValue(globalConfig, ["global", "firebase", "enableEmulators"])
             if (!enableEmulators) {
                 checkOnline()

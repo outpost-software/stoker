@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.90
+
+### Patch Changes
+
+- feat: allow non-required auth fields
+
 ## 0.5.89
 
 ### Patch Changes

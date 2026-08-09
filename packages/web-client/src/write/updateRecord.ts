@@ -165,6 +165,19 @@ export const updateRecord = async (
                 }
             }
         }
+        if (createUserRequest) {
+            const record = { ...originalRecord, ...data }
+            removeDeleteSentinels(record)
+            if (!record.Role) {
+                throw new Error("VALIDATION_ERROR: Role field is required")
+            }
+            if (record.Enabled === undefined || record.Enabled === null) {
+                throw new Error("VALIDATION_ERROR: Enabled field is required")
+            }
+            if (!record.Email) {
+                throw new Error("VALIDATION_ERROR: Email field is required")
+            }
+        }
         const preValidateArgs: PreValidateHookArgs = {
             operation: "update",
             data: data as StokerRecord,

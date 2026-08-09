@@ -419,13 +419,13 @@ export const updateRecord = async (
         if (createUserRequest) {
             const record = { ...originalRecord, ...partial }
             removeDeleteSentinels(record)
-            if (record.Role === undefined || record.Role === null || record.Role === "") {
+            if (!record.Role) {
                 throw new Error("VALIDATION_ERROR: Role field is required")
             }
             if (record.Enabled === undefined || record.Enabled === null) {
                 throw new Error("VALIDATION_ERROR: Enabled field is required")
             }
-            if (record.Email === undefined || record.Email === null || record.Email === "") {
+            if (!record.Email) {
                 throw new Error("VALIDATION_ERROR: Email field is required")
             }
         }

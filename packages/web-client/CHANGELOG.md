@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.95
+
+### Patch Changes
+
+- feat: allow non-required auth fields
+
 ## 0.5.94
 
 ### Patch Changes

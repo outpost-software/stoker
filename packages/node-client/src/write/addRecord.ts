@@ -161,6 +161,11 @@ export const addRecord = async (
     try {
         if (collectionSchema.auth && user) {
             if (!user.password) throw new Error("Password is required")
+            if (!record.Role) throw new Error("Role field is required")
+            if (!record.Email) throw new Error("Email field is required")
+            if (record.Enabled === undefined || record.Enabled === null) {
+                throw new Error("Enabled field is required")
+            }
         }
         if (!options?.providedTransaction) {
             await validateRecord(
