@@ -403,12 +403,30 @@ export const updateRecord = async (
             if (user?.permissions) {
                 user.permissions.Role ||= partial.Role || originalRecord.Role
                 user.permissions.Enabled ??= partial.Enabled ?? originalRecord.Enabled
-                if (isDeleteSentinel(user.permissions.Role)) {
+                if (isDeleteSentinel(user.permissions.Role) || !user.permissions.Role) {
                     throw new Error("VALIDATION_ERROR: Role field is required")
                 }
-                if (isDeleteSentinel(user.permissions.Enabled)) {
+                if (
+                    isDeleteSentinel(user.permissions.Enabled) ||
+                    user.permissions.Enabled === undefined ||
+                    user.permissions.Enabled === null
+                ) {
                     throw new Error("VALIDATION_ERROR: Enabled field is required")
                 }
+            }
+        }
+
+        if (createUserRequest) {
+            const record = { ...originalRecord, ...partial }
+            removeDeleteSentinels(record)
+            if (record.Role === undefined || record.Role === null || record.Role === "") {
+                throw new Error("VALIDATION_ERROR: Role field is required")
+            }
+            if (record.Enabled === undefined || record.Enabled === null) {
+                throw new Error("VALIDATION_ERROR: Enabled field is required")
+            }
+            if (record.Email === undefined || record.Email === null || record.Email === "") {
+                throw new Error("VALIDATION_ERROR: Email field is required")
             }
         }
 

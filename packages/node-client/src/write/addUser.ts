@@ -19,6 +19,16 @@ export const addUser = async (
     const db = getStokerFirestore()
     const { labels, fields } = collection
 
+    if (record.Email === undefined || record.Email === null || isDeleteSentinel(record.Email) || record.Email === "") {
+        throw new Error("VALIDATION_ERROR: Email field is required")
+    }
+    if (record.Role === undefined || record.Role === null || isDeleteSentinel(record.Role) || record.Role === "") {
+        throw new Error("VALIDATION_ERROR: Role field is required")
+    }
+    if (record.Enabled === undefined || record.Enabled === null || isDeleteSentinel(record.Enabled)) {
+        throw new Error("VALIDATION_ERROR: Enabled field is required")
+    }
+
     const message = "USER_ERROR"
 
     const rollback = async (record: StokerRecord, message: string) => {

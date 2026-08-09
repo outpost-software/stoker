@@ -449,13 +449,13 @@ export const lintSchema = async (noLog = false) => {
                 errors.push(`Auth collection ${collectionName} must have a string field named "User_ID"`)
             }
             const enabledField = fields.find((field) => field.name === "Enabled")
-            if (!enabledField || enabledField.type !== "Boolean" || !enabledField.required) {
-                errors.push(`Auth collection ${collectionName} must have a required boolean field named "Enabled"`)
+            if (!enabledField || enabledField.type !== "Boolean") {
+                errors.push(`Auth collection ${collectionName} must have a boolean field named "Enabled"`)
             }
             const roleField = fields.find((field) => field.name === "Role")
-            if (!roleField || roleField.type !== "String" || !roleField.required || !roleField.values) {
+            if (!roleField || roleField.type !== "String" || !roleField.values) {
                 errors.push(
-                    `Auth collection ${collectionName} must have a required string field named "Role" with a values property`,
+                    `Auth collection ${collectionName} must have a string field named "Role" with a values property`,
                 )
             } else {
                 roleField.values.forEach((role) => {
@@ -467,14 +467,8 @@ export const lintSchema = async (noLog = false) => {
                 })
             }
             const emailField = fields.find((field) => field.name === "Email")
-            if (
-                !emailField ||
-                emailField.type !== "String" ||
-                !emailField.email ||
-                !emailField.unique ||
-                !emailField.required
-            ) {
-                errors.push(`Auth collection ${collectionName} must have a required, unique string field named "Email"`)
+            if (!emailField || emailField.type !== "String" || !emailField.email || !emailField.unique) {
+                errors.push(`Auth collection ${collectionName} must have a unique email string field named "Email"`)
             }
 
             if (parentCollection) {
