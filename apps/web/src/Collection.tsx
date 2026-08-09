@@ -1541,9 +1541,14 @@ function Collection({
             }
         }
         if (relationList) {
+            const relationListField = getField(fields, relationList.field)
+            const relationListUsesArrayContains = ["ManyToOne", "ManyToMany"].includes(relationListField.type)
             filters.forEach((filter) => {
                 if (filter.type === "relation") {
-                    if (!isPreloadCacheEnabled || filter.field === relationList.field) {
+                    if (
+                        filter.field === relationList.field ||
+                        (!isPreloadCacheEnabled && relationListUsesArrayContains)
+                    ) {
                         excluded.push(filter.field)
                     }
                 }
@@ -1553,7 +1558,7 @@ function Collection({
             }
         }
         return excluded
-    }, [isPreloadCacheEnabled, cardsConfig, statusField, tab, filters])
+    }, [isPreloadCacheEnabled, cardsConfig, statusField, tab, filters, relationList, fields])
 
     const filtersActive = useMemo(() => {
         return (

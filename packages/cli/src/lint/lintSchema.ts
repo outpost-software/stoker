@@ -2341,9 +2341,12 @@ export const lintSchema = async (noLog = false) => {
                         if (filter.type === "range") continue
                         if (filter.roles && !filter.roles.includes(role)) continue
                         if (filter.type === "relation" && hasArrayContains) {
-                            errors.push(
-                                `Collection ${collectionName} has a relation filter for role ${role} on field ${filter.field} that uses an array-contains filter, but an array-contains filter has already been used. This can be resolved by using the preload cache.`,
-                            )
+                            const field = getField(fields, filter.field)
+                            if (["ManyToOne", "ManyToMany"].includes(field.type)) {
+                                errors.push(
+                                    `Collection ${collectionName} has a relation filter for role ${role} on field ${filter.field} that uses an array-contains filter, but an array-contains filter has already been used. This can be resolved by using the preload cache.`,
+                                )
+                            }
                         }
                         if (filter.type === "select") {
                             const field = getField(fields, filter.field)

@@ -163,7 +163,14 @@ export const searchResults = async (
             const assignables = (await tryPromise(customization?.admin?.assignable)) as Assignable[] | undefined;
             assignable = assignables?.find((item) => item.collection === collection);
             if (assignable) {
-                assignedArrayFilter = `${sanitizeAlgoliaFieldName(relationList.field)}_Array:"${sanitizeAlgoliaFilterValue(assigning.id)}"`;
+                const relationField = getField(fields, relationList.field);
+                const sanitizedFieldName = sanitizeAlgoliaFieldName(relationList.field);
+                const sanitizedAssigningId = sanitizeAlgoliaFilterValue(assigning.id);
+                if (relationField && ["OneToOne", "OneToMany"].includes(relationField.type)) {
+                    assignedArrayFilter = `${sanitizedFieldName}_Single.id:"${sanitizedAssigningId}"`;
+                } else {
+                    assignedArrayFilter = `${sanitizedFieldName}_Array:"${sanitizedAssigningId}"`;
+                }
             }
         }
     }
@@ -175,12 +182,30 @@ export const searchResults = async (
             const operator = constraint[1];
             let sanitizedFieldName = sanitizeAlgoliaFieldName(constraint[0]);
             const isArrayField = sanitizedFieldName.includes("_Array");
+            const isSingleIdField = sanitizedFieldName.endsWith("_Single.id");
             if (isArrayField) {
                 sanitizedFieldName = sanitizedFieldName.replace("_Array", "");
+            }
+            if (isSingleIdField) {
+                sanitizedFieldName = sanitizedFieldName.replace(/_Single\.id$/, "");
             }
             const field = getField(fields, sanitizedFieldName);
             if (!field) {
                 throw new HttpsError("invalid-argument", `Field ${sanitizedFieldName} not found`);
+            }
+            if (isSingleIdField) {
+                if (!isRelationField(field) || !["OneToOne", "OneToMany"].includes(field.type)) {
+                    throw new HttpsError(
+                        "invalid-argument",
+                        `Field ${sanitizedFieldName}_Single.id is only valid for OneToOne or OneToMany relations`,
+                    );
+                }
+                if (operator !== "==") {
+                    throw new HttpsError(
+                        "invalid-argument",
+                        `Field ${sanitizedFieldName}_Single.id only supports the "==" operator`,
+                    );
+                }
             }
 
             if (operator === "array-contains") {
@@ -193,9 +218,16 @@ export const searchResults = async (
                 }
             } else if (operator === "==") {
                 const sanitizedValue = sanitizeAlgoliaFilterValue(constraint[2]);
+                const filterAttribute = isSingleIdField ?
+                    `${sanitizedFieldName}_Single.id` :
+                    sanitizedFieldName;
                 const valueFilter = typeof constraint[2] === "string" ?
-                    `${sanitizedFieldName}:"${sanitizedValue}"` :
-                    `${sanitizedFieldName}:${sanitizedValue}`;
+                    `${filterAttribute}:"${sanitizedValue}"` :
+                    `${filterAttribute}:${sanitizedValue}`;
+                if (isSingleIdField) {
+                    filters.push(valueFilter);
+                    return;
+                }
                 const includeValueInFilters = assignable?.includeValueInFilters?.find(
                     (include) => include.field === sanitizedFieldName && include.values.includes(constraint[2]),
                 );

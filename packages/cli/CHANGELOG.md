@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.142
+
+### Patch Changes
+
+- feat: use equality filter for one-to relation filters
+
 ## 0.5.141
 
 ### Patch Changes

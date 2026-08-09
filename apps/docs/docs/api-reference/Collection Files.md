@@ -77,7 +77,7 @@ For collections without `preloadCache` or `serverReadOnly` set to `true`, you wi
 - Set searchable attributes for your index (in the "Configuration" section of the index). These attributes should match the fields provided to `fullTextSearch`.
 - Set facets for your index (in the "Configuration" section of the index). The `tenant_id` attribute is required. You will also need to add any fields that your app uses to query records in the collection. This usually means:
     - The "Archived" field if your collection has [soft delete](#softdelete) enabled.
-    - All fields used for [filters](#filters) in the admin app. So, if your app filters the collection by "Status", add a "Status" attribute to the facets section. For relation filters, append "_Array" to the end of the field name. For example, "Project_Array".
+    - All fields used for [filters](#filters) in the admin app. So, if your app filters the collection by "Status", add a "Status" attribute to the facets section. For ManyToOne / ManyToMany relation filters, append "_Array" to the end of the field name (for example, "Project_Array"). For OneToOne / OneToMany relation filters, use "Field_Single.id" (for example, "Project_Single.id").
     - All fields used for [attribute restrictions](Collection%20Files#attributerestrictions).
 
 ### relationLists

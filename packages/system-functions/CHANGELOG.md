@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.109
+
+### Patch Changes
+
+- feat: use equality filter for one-to relation filters
+
 ## 0.5.108
 
 ### Patch Changes

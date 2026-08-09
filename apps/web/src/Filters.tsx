@@ -103,9 +103,12 @@ export function Filters({
 
     const preventChange = isRouteLoadingImmediate.has(location.pathname)
 
-    const isArrayOrRelationFilter = useCallback(
+    const isArrayContainsFilter = useCallback(
         (filter: Filter): filter is SelectFilter | RelationFilter => {
-            if (filter.type === "relation") return true
+            if (filter.type === "relation") {
+                const fieldSchema = getField(fields, filter.field)
+                return ["ManyToOne", "ManyToMany"].includes(fieldSchema.type)
+            }
             if (filter.type === "select") {
                 const fieldSchema = getField(fields, filter.field)
                 return fieldSchema.type === "Array"
@@ -116,11 +119,13 @@ export function Filters({
     )
 
     const isIncludeAssignedActive = useCallback(() => {
-        if (!isAssigning || !assignable?.includeAssignedInFilters?.length) return false
+        if (!isAssigning || !assignable?.includeAssignedInFilters?.length || !relationList) return false
+        const relationField = getField(fields, relationList.field)
+        if (["OneToOne", "OneToMany"].includes(relationField.type)) return false
         return assignable.includeAssignedInFilters.some((field) =>
             filters.some((filter) => filter.type === "select" && filter.field === field && filter.value),
         )
-    }, [isAssigning, assignable, filters])
+    }, [isAssigning, assignable, filters, relationList, fields])
 
     const isMobile = useIsMobile()
     const someFilterOpen = Object.values(open).some(Boolean)
@@ -213,14 +218,14 @@ export function Filters({
             }
         }
 
-        const arrayOrRelationFilter = filters.find(
-            (filter): filter is SelectFilter | RelationFilter => !!filter.value && isArrayOrRelationFilter(filter),
+        const arrayContainsFilter = filters.find(
+            (filter): filter is SelectFilter | RelationFilter => !!filter.value && isArrayContainsFilter(filter),
         )
-        if (arrayOrRelationFilter) {
-            arrayOrRelationField = arrayOrRelationFilter.field
+        if (arrayContainsFilter) {
+            arrayOrRelationField = arrayContainsFilter.field
         }
         setArrayContainsFilterSet(arrayOrRelationField)
-    }, [filters, isAssigning, assignable, isPreloadCacheEnabled, isIncludeAssignedActive, isArrayOrRelationFilter])
+    }, [filters, isAssigning, assignable, isPreloadCacheEnabled, isIncludeAssignedActive, isArrayContainsFilter])
 
     const handleChange = useCallback(
         (filter: Filter, value: string, type: CollectionField["type"]) => {
@@ -454,19 +459,36 @@ export function Filters({
         (filter: Filter) => {
             if (filter.type === "range" || filter.type === "status") return false
             const fieldSchema = getField(fields, filter.field)
+            const relationField = relationList ? getField(fields, relationList.field) : undefined
+            const includeAssignedUsesArrayContains =
+                isAssigning &&
+                !!assignable?.includeAssignedInFilters?.includes(filter.field) &&
+                !!relationField &&
+                ["ManyToOne", "ManyToMany"].includes(relationField.type)
             return !!(
                 (!isPreloadCacheEnabled &&
                     arrayContainsFilterSet &&
                     arrayContainsFilterSet !== filter.field &&
-                    (filter.type === "relation" ||
+                    ((filter.type === "relation" && ["ManyToOne", "ManyToMany"].includes(fieldSchema.type)) ||
                         fieldSchema.type === "Array" ||
-                        (isAssigning && assignable?.includeAssignedInFilters?.includes(filter.field)))) ||
+                        includeAssignedUsesArrayContains)) ||
                 (isRelationField(fieldSchema) &&
                     connectionStatus === "offline" &&
                     !preloadCacheEnabled(schema.collections[fieldSchema.collection]))
             )
         },
-        [isPreloadCacheEnabled, arrayContainsFilterSet, isRouteLoading, location.pathname, fields],
+        [
+            isPreloadCacheEnabled,
+            arrayContainsFilterSet,
+            isRouteLoading,
+            location.pathname,
+            fields,
+            relationList,
+            isAssigning,
+            assignable,
+            connectionStatus,
+            schema,
+        ],
     )
 
     return (

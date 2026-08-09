@@ -152,11 +152,17 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                             if (includeValueInFilters) {
                                 filterValues.push(includeValueInFilters.includeValue as string | number)
                             }
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                            const relationField = getField(fields, relationList!.field)
+                            const assignedConstraint = ["OneToOne", "OneToMany"].includes(relationField.type)
+                                ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                  where(`${relationList!.field}_Single.id`, "==", relationParent!.id)
+                                : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                  where(`${relationList!.field}_Array`, "array-contains", relationParent!.id)
                             constraints.push(
                                 or(
                                     where(filter.field, "in", filterValues),
-                                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                                    where(`${relationList!.field}_Array`, "array-contains", relationParent!.id),
+                                    assignedConstraint,
                                 ) as unknown as QueryConstraint,
                             )
                         } else if (isAssigning && includeValueInFilters) {
@@ -169,7 +175,11 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                     }
                     if (filter.type === "relation") {
                         const field = getField(fields, filter.field)
-                        constraints.push(where(`${field.name}_Array`, "array-contains", filter.value))
+                        if (["OneToOne", "OneToMany"].includes(field.type)) {
+                            constraints.push(where(`${field.name}_Single.id`, "==", filter.value))
+                        } else {
+                            constraints.push(where(`${field.name}_Array`, "array-contains", filter.value))
+                        }
                     }
                 })
                 if (!isPreloadCacheEnabled) {
@@ -240,7 +250,11 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                     }
                     if (filter.type === "relation") {
                         const field = getField(fields, filter.field)
-                        constraints.push([`${field.name}_Array`, "array-contains", filter.value])
+                        if (["OneToOne", "OneToMany"].includes(field.type)) {
+                            constraints.push([`${field.name}_Single.id`, "==", filter.value])
+                        } else {
+                            constraints.push([`${field.name}_Array`, "array-contains", filter.value])
+                        }
                     }
                 })
                 if (!isPreloadCacheEnabled) {
