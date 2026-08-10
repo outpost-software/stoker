@@ -215,20 +215,30 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
             })
         }
 
-        return chartData?.filter((item) => {
-            const date = DateTime.fromISO(item.date).setZone(timezone).startOf(interval).toJSDate()
-            const startDate = DateTime.now()
-                .setZone(timezone)
-                .startOf(interval)
-                .plus({ [`${interval}s`]: offset })
-                .toJSDate()
-            const endDate = DateTime.now()
-                .setZone(timezone)
-                .endOf(interval)
-                .plus({ [`${interval}s`]: (numberOfIntervals || 0) + offset })
-                .toJSDate()
-            return date >= startDate && date < endDate
-        })
+        const startDate = DateTime.now()
+            .setZone(timezone)
+            .startOf(interval)
+            .plus({ [`${interval}s`]: offset })
+        const endDate = DateTime.now()
+            .setZone(timezone)
+            .endOf(interval)
+            .plus({ [`${interval}s`]: (numberOfIntervals || 0) + offset })
+
+        const byDate = new Map(chartData.map((item) => [item.date, item]))
+        const padMetric2 = !!(chart.metricField2 || chart.formula2)
+        const paddedChartData: ChartData = []
+        for (let cursor = startDate; cursor < endDate; cursor = cursor.plus({ [`${interval}s`]: 1 })) {
+            const key = cursor.toFormat("yyyy-MM-dd")
+            const existing = byDate.get(key)
+            if (existing) {
+                paddedChartData.push(existing)
+            } else if (padMetric2) {
+                paddedChartData.push({ date: key, metric1: 0, metric2: 0 })
+            } else {
+                paddedChartData.push({ date: key, metric1: 0 })
+            }
+        }
+        return paddedChartData
     }, [results])
 
     const metricField1 = chart.metricField1 ? getField(fields, chart.metricField1) : undefined

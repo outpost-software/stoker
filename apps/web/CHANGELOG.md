@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.231
+
+### Patch Changes
+
+- feat: pad empty months in Dashboard charts
+
 ## 0.5.230
 
 ### Patch Changes
