@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.230
+
+### Patch Changes
+
+- fix: refresh form state from server after successful save
+
 ## 0.5.229
 
 ### Patch Changes

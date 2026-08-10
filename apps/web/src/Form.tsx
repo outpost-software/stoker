@@ -2474,6 +2474,10 @@ function RecordForm({
 
     const formValues = form.watch()
     const [prevState, setPrevState] = useState<Partial<StokerRecord>>({} as Partial<StokerRecord>)
+    const prevStateRef = useRef<Partial<StokerRecord>>(prevState)
+    useEffect(() => {
+        prevStateRef.current = prevState
+    }, [prevState])
     const [originalRecord, setOriginalRecord] = useState<StokerRecord | undefined>(undefined)
     const [formResetKey, setFormResetKey] = useState(0)
     const [formSavedKey, setFormSavedKey] = useState(0)
@@ -3235,6 +3239,19 @@ function RecordForm({
                             key.startsWith("accessible-"),
                     ),
                 )
+                if (!initial) {
+                    const currentValues = form.getValues()
+                    for (const [key, value] of Object.entries(filteredRecord)) {
+                        if (
+                            // eslint-disable-next-line security/detect-object-injection
+                            isEqual(currentValues[key], prevStateRef.current?.[key]) &&
+                            // eslint-disable-next-line security/detect-object-injection
+                            !isEqual(currentValues[key], value)
+                        ) {
+                            form.setValue(key, value)
+                        }
+                    }
+                }
                 setPrevState({ ...prevState, ...permissionValues })
             }
         },
