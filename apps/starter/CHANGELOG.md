@@ -1,5 +1,14 @@
 # stoker
 
+## 0.4.282
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.95
+    - @stoker-platform/web-app@0.5.236
+    - @stoker-platform/cli@0.5.149
+
 ## 0.4.281
 
 ### Patch Changes

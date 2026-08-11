@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.95
+
+### Patch Changes
+
+- fix: populate required permissions fields when attaching a user
+
 ## 0.5.94
 
 ### Patch Changes

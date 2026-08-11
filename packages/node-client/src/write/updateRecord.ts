@@ -429,6 +429,10 @@ export const updateRecord = async (
             if (!record.Email) {
                 throw new Error("VALIDATION_ERROR: Email field is required")
             }
+            if (user?.permissions) {
+                user.permissions.Role ||= record.Role
+                user.permissions.Enabled ??= record.Enabled
+            }
         }
 
         if (!options?.providedTransaction) {
