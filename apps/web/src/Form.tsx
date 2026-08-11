@@ -185,9 +185,19 @@ interface FormLabelWithIconProps {
     icon?: FormFieldIcon
     className?: string
     form: UseFormReturn
+    prevState?: Partial<StokerRecord>
 }
 
-const FormLabelWithIcon = ({ collection, label, field, operation, icon, className, form }: FormLabelWithIconProps) => {
+const FormLabelWithIcon = ({
+    collection,
+    label,
+    field,
+    operation,
+    icon,
+    className,
+    form,
+    prevState,
+}: FormLabelWithIconProps) => {
     const customization = getCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
 
@@ -198,6 +208,7 @@ const FormLabelWithIcon = ({ collection, label, field, operation, icon, classNam
         isRequired = !!tryFunction(fieldCustomization.admin.overrideFormRequiredValidation, [
             operation,
             form.getValues(),
+            prevState,
         ])
     }
 
@@ -266,6 +277,7 @@ interface FieldProps {
     setIsUploading?: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
     enqueueImageForCreate?: (fieldName: string, file: File) => void
     uploadImageForUpdate?: (fieldName: string, file: File) => Promise<void>
+    prevState?: Partial<StokerRecord>
 }
 
 interface CustomFieldProps {
@@ -585,6 +597,7 @@ function StringField({
     isButtonGroup,
     isTime,
     icon,
+    prevState,
 }: FieldProps & { isTextarea?: boolean; isRadio?: boolean; isButtonGroup?: boolean; isTime?: boolean }) {
     const customization = getCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
@@ -612,6 +625,7 @@ function StringField({
                                 operation={operation}
                                 icon={icon}
                                 form={form}
+                                prevState={prevState}
                             />
                             <FormControl>
                                 <RadioGroup
@@ -673,6 +687,7 @@ function StringField({
                                 operation={operation}
                                 icon={icon}
                                 form={form}
+                                prevState={prevState}
                             />
                             <FormControl>
                                 <div className="mt-2 flex flex-row gap-2 max-w-[750px] flex-wrap">
@@ -731,6 +746,7 @@ function StringField({
                             operation={operation}
                             icon={icon}
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             <Select onValueChange={formField.onChange} value={formField.value} disabled={isDisabled}>
@@ -776,6 +792,7 @@ function StringField({
                         operation={operation}
                         icon={icon}
                         form={form}
+                        prevState={prevState}
                     />
                     <FormControl>
                         {isTextarea ? (
@@ -824,6 +841,7 @@ function ImageField({
     setIsUploading,
     enqueueImageForCreate,
     uploadImageForUpdate,
+    prevState,
 }: FieldProps) {
     const [showFileDialog, setShowFileDialog] = useState(false)
     const [fileItems, setFileItems] = useState<StorageItem[]>([])
@@ -921,6 +939,7 @@ function ImageField({
                         operation={operation}
                         icon={icon}
                         form={form}
+                        prevState={prevState}
                     />
                     <FormControl>
                         <div className="flex flex-col gap-2">
@@ -1056,6 +1075,7 @@ function NumberField({
     isDisabled,
     isSlider,
     icon,
+    prevState,
 }: FieldProps & { isSlider?: boolean }) {
     if ("autoIncrement" in field && field.autoIncrement) {
         return null
@@ -1085,6 +1105,7 @@ function NumberField({
                             operation={operation}
                             icon={icon}
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             <Select
@@ -1140,6 +1161,7 @@ function NumberField({
                             operation={operation}
                             icon={icon}
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             <div className="space-y-3">
@@ -1185,6 +1207,7 @@ function NumberField({
                         operation={operation}
                         icon={icon}
                         form={form}
+                        prevState={prevState}
                     />
                     <FormControl>
                         <Input
@@ -1218,6 +1241,7 @@ function BooleanField({
     isSwitch,
     isDisabled,
     icon,
+    prevState,
 }: FieldProps & { isSwitch?: boolean }) {
     return (
         <FormField
@@ -1235,6 +1259,7 @@ function BooleanField({
                             icon={icon}
                             className="text-sm font-normal relative bottom-1"
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             {isSwitch ? (
@@ -1277,6 +1302,7 @@ function TimestampField({
     isTime,
     isMonth,
     icon,
+    prevState,
 }: FieldProps & { isTime?: boolean; isMonth?: boolean }) {
     const [open, setOpen] = useState(false)
     const globalConfig = getGlobalConfigModule()
@@ -1310,6 +1336,7 @@ function TimestampField({
                                 operation={operation}
                                 icon={icon}
                                 form={form}
+                                prevState={prevState}
                             />
                             <FormControl>
                                 <div className="flex flex-col gap-2">
@@ -1358,6 +1385,7 @@ function TimestampField({
                                 operation={operation}
                                 icon={icon}
                                 form={form}
+                                prevState={prevState}
                             />
                             <FormControl>
                                 <div className="flex gap-4 flex-col sm:flex-row">
@@ -1481,6 +1509,7 @@ function TimestampField({
                                 operation={operation}
                                 icon={icon}
                                 form={form}
+                                prevState={prevState}
                             />
                             <FormControl>
                                 <div className="flex flex-col gap-2">
@@ -1537,6 +1566,7 @@ function ArrayField({
     isDisabled,
     isLocation,
     icon,
+    prevState,
 }: FieldProps & { isLocation?: LocationFieldAdmin }) {
     const [selectedValue, setSelectedValue] = useState<string | undefined>(undefined)
 
@@ -1554,6 +1584,7 @@ function ArrayField({
                             operation={operation}
                             icon={icon}
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             <LocationPicker
@@ -1585,6 +1616,7 @@ function ArrayField({
                         operation={operation}
                         icon={icon}
                         form={form}
+                        prevState={prevState}
                     />
                     <FormControl>
                         <div className="flex flex-col">
@@ -1795,6 +1827,7 @@ function MapField({
     isRichText,
     icon,
     isDisabled,
+    prevState,
 }: FieldProps & { isRichText?: boolean }) {
     const quillRef = useRef<Quill | null>(null)
     if (isRichText) {
@@ -1811,6 +1844,7 @@ function MapField({
                             operation={operation}
                             icon={icon}
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             <RichTextEditor
@@ -1843,6 +1877,7 @@ function RelationField({
     readOnly,
     operation,
     icon,
+    prevState,
 }: FieldProps) {
     const schema = getSchema(true)
     const relationCollection = schema.collections[(field as RelationFieldType).collection]
@@ -2268,6 +2303,7 @@ function RelationField({
                             operation={operation}
                             icon={icon}
                             form={form}
+                            prevState={prevState}
                         />
                         <FormControl>
                             {isMobile ? (
@@ -2372,7 +2408,7 @@ function RelationField({
     )
 }
 
-function ComputedField({ form, collection, label, description, field, record, icon }: FieldProps) {
+function ComputedField({ form, collection, label, description, field, record, icon, prevState }: FieldProps) {
     const customization = getCollectionConfigModule(collection.labels.collection)
     const [connectionStatus] = useConnection()
     const goToRecord = useGoToRecord()
@@ -2386,6 +2422,7 @@ function ComputedField({ form, collection, label, description, field, record, ic
                 operation="update"
                 icon={icon}
                 form={form}
+                prevState={prevState}
             />
             <FormControl>
                 <div>
@@ -3063,6 +3100,7 @@ function RecordForm({
                         setIsUploading={setIsUploading}
                         enqueueImageForCreate={enqueueImageForCreate}
                         uploadImageForUpdate={uploadImageForUpdate}
+                        prevState={prevState}
                     />
                 )
             })
@@ -3117,6 +3155,7 @@ function RecordForm({
                         setIsUploading={setIsUploading}
                         enqueueImageForCreate={enqueueImageForCreate}
                         uploadImageForUpdate={uploadImageForUpdate}
+                        prevState={prevState}
                     />
                 )
             } else {
@@ -3951,7 +3990,7 @@ function RecordForm({
                 const label = tryFunction(fieldCustomization.admin?.label) || field.name
                 const overrideFormRequiredValidation = tryFunction(
                     fieldCustomization.admin?.overrideFormRequiredValidation,
-                    [operation, values],
+                    [operation, values, prevState],
                 )
                 let hasValue = false
                 switch (field.type) {
@@ -3959,6 +3998,9 @@ function RecordForm({
                         hasValue =
                             values[field.name] &&
                             !(values[field.name].ops.length === 1 && values[field.name].ops[0].insert === "\n")
+                        break
+                    case "Boolean":
+                        hasValue = typeof values[field.name] === "boolean"
                         break
                     default:
                         hasValue = !!values[field.name]

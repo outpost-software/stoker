@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.67
+
+### Patch Changes
+
+- feat: add originalRecord argument to overrideFormRequiredValidation method
+
 ## 0.5.66
 
 ### Patch Changes

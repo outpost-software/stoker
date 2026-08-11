@@ -959,7 +959,11 @@ export interface FieldAdmin {
     noExport?: boolean | (() => boolean)
     exportSeparator?: string | (() => string)
     skipFormRequiredValidation?: boolean | (() => boolean)
-    overrideFormRequiredValidation?: (operation: "create" | "update", record?: StokerRecord) => boolean
+    overrideFormRequiredValidation?: (
+        operation: "create" | "update",
+        record?: StokerRecord,
+        originalRecord?: StokerRecord,
+    ) => boolean
     filterValues?: (value: string | number, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean
     filterResults?: (result: StokerRecord, parentCollection: CollectionSchema, parentRecord?: StokerRecord) => boolean
     modifyResultTitle?: (

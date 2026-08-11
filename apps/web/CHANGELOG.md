@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.233
+
+### Patch Changes
+
+- feat: add originalRecord argument to overrideFormRequiredValidation method
+    - @stoker-platform/node-client@0.5.92
+    - @stoker-platform/utils@0.5.81
+    - @stoker-platform/web-client@0.5.97
+
 ## 0.5.232
 
 ### Patch Changes
