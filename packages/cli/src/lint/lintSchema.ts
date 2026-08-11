@@ -1144,9 +1144,22 @@ export const lintSchema = async (noLog = false) => {
         }
 
         if (authAccess) {
-            for (const role of authAccess) {
+            for (const role of authAccess.roles) {
                 if (!roles.includes(role)) {
                     errors.push(`Collection ${collectionName} has an auth role ${role} that does not exist`)
+                }
+            }
+            if (authAccess.assignable) {
+                for (const role of authAccess.assignable) {
+                    if (!roles.includes(role)) {
+                        errors.push(
+                            `Collection ${collectionName} has an auth assignable role ${role} that does not exist`,
+                        )
+                    } else if (!authAccess.roles.includes(role)) {
+                        errors.push(
+                            `Collection ${collectionName} has an auth assignable role ${role} that is not included in auth roles`,
+                        )
+                    }
                 }
             }
         }

@@ -142,7 +142,11 @@ export const addRecordPrompt = async (
                     }
                 }
             }
-            if (collection.auth && collection.access.auth?.includes(record.Role)) {
+            if (
+                collection.auth &&
+                collection.access.auth?.roles?.includes(record.Role) &&
+                !collection.access.auth?.assignable?.includes(record.Role)
+            ) {
                 // eslint-disable-next-line security/detect-object-injection
                 user.permissions.collections[collectionName].auth = true
             }

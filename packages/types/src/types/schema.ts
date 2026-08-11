@@ -222,7 +222,7 @@ export interface CollectionAccess {
     entityRestrictions?: EntityRestrictions
     permissionWriteRestrictions?: PermissionWriteRestriction[]
     operations: AccessOperations
-    auth?: StokerRole[]
+    auth?: { roles: StokerRole[]; assignable?: StokerRole[] }
     files?: AccessFiles
 }
 

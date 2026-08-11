@@ -10,7 +10,7 @@ const Users: GenerateSchema = (): CollectionSchema => {
         },
         auth: true,
         access: {
-            auth: ["Admin"],
+            auth: { roles: ["Admin"] },
             operations: {
                 assignable: ["Admin"],
                 read: ["Admin"],

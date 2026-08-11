@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.232
+
+### Patch Changes
+
+- feat: add collection auth access assignable option
+- Updated dependencies
+    - @stoker-platform/utils@0.5.80
+    - @stoker-platform/node-client@0.5.91
+    - @stoker-platform/web-client@0.5.96
+
 ## 0.5.231
 
 ### Patch Changes

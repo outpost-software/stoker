@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.66
+
+### Patch Changes
+
+- feat: add collection auth access assignable option
+
 ## 0.5.65
 
 ### Patch Changes

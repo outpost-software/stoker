@@ -211,9 +211,20 @@ const enforceRoleRestrictions = (schema: CollectionsSchema, permissions: StokerP
         .filter((authCollection) => authCollection.auth)
         .forEach((authCollection) => {
             const collectionPermissions = permissions.collections?.[authCollection.labels.collection]
+            const authAccess = authCollection.access.auth
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (collectionPermissions?.auth && !authCollection.access.auth?.includes(permissions.Role!)) {
+            const permissionRole = permissions.Role!
+            if (collectionPermissions?.auth && !authAccess?.roles.includes(permissionRole)) {
                 errorDetails = "Record cannot have auth access to collection"
+                granted = false
+                return
+            }
+            if (
+                authAccess?.roles.includes(permissionRole) &&
+                !authAccess.assignable?.includes(permissionRole) &&
+                !collectionPermissions?.auth
+            ) {
+                errorDetails = "Record is missing required auth access to collection"
                 granted = false
                 return
             }

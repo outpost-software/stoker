@@ -11,7 +11,7 @@ const Contacts: GenerateSchema = (): CollectionSchema => {
         allowSchemalessFields: true,
         access: {
             serverWriteOnly: true,
-            auth: ["Office", "Area Manager", "Subcontractor"],
+            auth: { roles: ["Office", "Area Manager", "Subcontractor"], assignable: ["Area Manager", "Subcontractor"] },
             operations: {
                 assignable: true,
                 read: ["Office", "Area Manager"],

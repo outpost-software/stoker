@@ -309,8 +309,8 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "Company_Array",
-                    "arrayConfig": "CONTAINS"
+                    "fieldPath": "Company_Single.id",
+                    "order": "ASCENDING"
                 },
                 {
                     "fieldPath": "Last_Save_At",
@@ -395,8 +395,8 @@
             "queryScope": "COLLECTION",
             "fields": [
                 {
-                    "fieldPath": "Company_Array",
-                    "arrayConfig": "CONTAINS"
+                    "fieldPath": "Company_Single.id",
+                    "order": "ASCENDING"
                 },
                 {
                     "fieldPath": "Company_Single.Name_Lowercase",
@@ -413,8 +413,8 @@
             "queryScope": "COLLECTION",
             "fields": [
                 {
-                    "fieldPath": "Company_Array",
-                    "arrayConfig": "CONTAINS"
+                    "fieldPath": "Company_Single.id",
+                    "order": "ASCENDING"
                 },
                 {
                     "fieldPath": "Company_Single.Name_Lowercase",
@@ -431,8 +431,8 @@
             "queryScope": "COLLECTION",
             "fields": [
                 {
-                    "fieldPath": "Company_Array",
-                    "arrayConfig": "CONTAINS"
+                    "fieldPath": "Company_Single.id",
+                    "order": "ASCENDING"
                 },
                 {
                     "fieldPath": "Name_Lowercase",
@@ -449,8 +449,8 @@
             "queryScope": "COLLECTION",
             "fields": [
                 {
-                    "fieldPath": "Company_Array",
-                    "arrayConfig": "CONTAINS"
+                    "fieldPath": "Company_Single.id",
+                    "order": "ASCENDING"
                 },
                 {
                     "fieldPath": "Name_Lowercase",
@@ -1250,7 +1250,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1264,7 +1264,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1278,7 +1278,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1296,7 +1296,71 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Last_Save_At",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1594,7 +1658,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1608,7 +1672,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1626,7 +1690,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1644,7 +1708,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1662,7 +1726,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1680,7 +1744,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1698,7 +1762,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1716,7 +1780,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -1734,7 +1798,129 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2760,7 +2946,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2778,7 +2964,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2796,7 +2982,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2814,7 +3000,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2832,7 +3018,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2850,7 +3036,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2868,7 +3054,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2886,7 +3072,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2904,7 +3090,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2922,7 +3108,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2940,7 +3126,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2958,7 +3144,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2976,7 +3162,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -2994,7 +3180,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3012,7 +3198,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3030,7 +3216,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3048,7 +3234,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3066,7 +3252,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3084,7 +3270,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3102,7 +3288,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3120,7 +3306,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3138,7 +3324,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3156,7 +3342,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3174,7 +3360,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3192,7 +3378,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3210,7 +3396,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3228,7 +3414,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3246,7 +3432,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3264,7 +3450,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3282,7 +3468,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3300,7 +3486,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3318,7 +3504,439 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Work_Orders_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Enabled",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Role_Lowercase",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Email_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Number",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "id",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Name_Lowercase",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3622,7 +4240,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3644,7 +4262,29 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Users_Array",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3666,7 +4306,51 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Collection_Path_String",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "Created_By",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Created_At",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "End",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "Start",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3688,7 +4372,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3710,7 +4394,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -3732,34 +4416,12 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "queryScope": "COLLECTION",
             "fields": [
                 {
                     "fieldPath": "State",
                     "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "Created_At",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "End",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "Start",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "Work_Orders-No-Record-User",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "Users_Array",
-                    "arrayConfig": "CONTAINS"
                 },
                 {
                     "fieldPath": "Created_At",
@@ -4262,11 +4924,11 @@
         },
         {
             "collectionGroup": "Contacts-1",
-            "fieldPath": "Company_Array",
+            "fieldPath": "Company_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
@@ -4402,11 +5064,11 @@
         },
         {
             "collectionGroup": "Inbox-1",
-            "fieldPath": "Sender_Array",
+            "fieldPath": "Sender_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
@@ -4422,11 +5084,11 @@
         },
         {
             "collectionGroup": "Inbox-1",
-            "fieldPath": "Work_Order_Array",
+            "fieldPath": "Work_Order_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
@@ -5141,7 +5803,17 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
+            "fieldPath": "Collection_Path_String",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
             "fieldPath": "Collection_Path_String",
             "indexes": [
                 {
@@ -5211,7 +5883,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "fieldPath": "Role",
             "indexes": [
                 {
@@ -5221,7 +5893,7 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
             "fieldPath": "Work_Orders_Array",
             "indexes": [
                 {
@@ -5231,7 +5903,37 @@
             ]
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
+            "fieldPath": "Enabled",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "fieldPath": "Role",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
+            "fieldPath": "Work_Orders_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
             "fieldPath": "Enabled",
             "indexes": [
                 {
@@ -5321,7 +6023,12 @@
             "indexes": []
         },
         {
-            "collectionGroup": "Users-Auth",
+            "collectionGroup": "Users-Auth-1",
+            "fieldPath": "*",
+            "indexes": []
+        },
+        {
+            "collectionGroup": "Users-Auth-2",
             "fieldPath": "*",
             "indexes": []
         },
@@ -5443,31 +6150,31 @@
         },
         {
             "collectionGroup": "Work_Orders-1",
-            "fieldPath": "Establishment_Array",
+            "fieldPath": "Establishment_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
         {
             "collectionGroup": "Work_Orders-1",
-            "fieldPath": "User_Array",
+            "fieldPath": "User_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
         {
             "collectionGroup": "Work_Orders-1",
-            "fieldPath": "Site_Array",
+            "fieldPath": "Site_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
@@ -5553,6 +6260,16 @@
         },
         {
             "collectionGroup": "Work_Orders-2",
+            "fieldPath": "Establishment_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-2",
             "fieldPath": "Establishment_Array",
             "indexes": [
                 {
@@ -5563,11 +6280,21 @@
         },
         {
             "collectionGroup": "Work_Orders-2",
-            "fieldPath": "User_Array",
+            "fieldPath": "User_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-2",
+            "fieldPath": "Site_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
                 }
             ]
         },
@@ -5653,6 +6380,16 @@
         },
         {
             "collectionGroup": "Work_Orders-3",
+            "fieldPath": "Establishment_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-3",
             "fieldPath": "Establishment_Array",
             "indexes": [
                 {
@@ -5672,7 +6409,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
             "fieldPath": "Collection_Path_String",
             "indexes": [
                 {
@@ -5682,7 +6419,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
             "fieldPath": "Archived",
             "indexes": [
                 {
@@ -5692,7 +6429,107 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Month",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Establishment_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "User_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Site_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Start",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Status",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Users_Array",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Created_By",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "fieldPath": "Collection_Path_String",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "fieldPath": "Archived",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Area",
             "indexes": [
                 {
@@ -5702,7 +6539,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Month",
             "indexes": [
                 {
@@ -5712,7 +6549,17 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "fieldPath": "Establishment_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Establishment_Array",
             "indexes": [
                 {
@@ -5722,17 +6569,27 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
-            "fieldPath": "User_Array",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "fieldPath": "User_Single.id",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
+                    "order": "ASCENDING"
                 }
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
+            "fieldPath": "Site_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Site_Array",
             "indexes": [
                 {
@@ -5742,7 +6599,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Start",
             "indexes": [
                 {
@@ -5752,7 +6609,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Status",
             "indexes": [
                 {
@@ -5762,7 +6619,7 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Created_By",
             "indexes": [
                 {
@@ -5772,22 +6629,12 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "State",
             "indexes": [
                 {
                     "queryScope": "COLLECTION",
                     "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "Work_Orders-No-Record-User",
-            "fieldPath": "Users_Array",
-            "indexes": [
-                {
-                    "queryScope": "COLLECTION",
-                    "arrayConfig": "CONTAINS"
                 }
             ]
         },
@@ -5822,7 +6669,17 @@
             ]
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "Establishment_Single.id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "Establishment_Single.id",
             "indexes": [
                 {
@@ -5912,7 +6769,12 @@
             "indexes": []
         },
         {
-            "collectionGroup": "Work_Orders-No-Record-User",
+            "collectionGroup": "Work_Orders-No-Record-User-1",
+            "fieldPath": "*",
+            "indexes": []
+        },
+        {
+            "collectionGroup": "Work_Orders-No-Record-User-2",
             "fieldPath": "*",
             "indexes": []
         },

@@ -23,12 +23,19 @@ export const auditPermissions = async (options: any) => {
                 for (const collection of Object.values(schema.collections)) {
                     const { labels, access } = collection
                     if (access.auth) {
-                        if (!access.auth.includes(permission.Role) && permission.collections[labels.collection]?.auth) {
+                        if (
+                            !access.auth.roles.includes(permission.Role) &&
+                            permission.collections[labels.collection]?.auth
+                        ) {
                             mismatches.push(
                                 `*** User ${doc.id} has excess auth permission for ${labels.collection} collection ***`,
                             )
                         }
-                        if (access.auth.includes(permission.Role) && !permission.collections[labels.collection]?.auth) {
+                        if (
+                            access.auth.roles.includes(permission.Role) &&
+                            !access.auth.assignable?.includes(permission.Role) &&
+                            !permission.collections[labels.collection]?.auth
+                        ) {
                             mismatches.push(
                                 `User ${doc.id} is missing auth permission for ${labels.collection} collection`,
                             )

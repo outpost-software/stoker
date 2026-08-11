@@ -4045,7 +4045,11 @@ function RecordForm({
                     userData.permissions.collections[permissionsCollection.labels.collection] = {
                         operations: [],
                     }
-                    if (values[`auth-${permissionsCollection.labels.collection}`]) {
+                    if (
+                        values[`auth-${permissionsCollection.labels.collection}`] ||
+                        (permissionsCollection.access.auth?.roles?.includes(role) &&
+                            !permissionsCollection.access.auth?.assignable?.includes(role))
+                    ) {
                         userData.permissions.collections[permissionsCollection.labels.collection].auth = true
                     }
                     delete values[`auth-${permissionsCollection.labels.collection}`]
@@ -4840,7 +4844,10 @@ function RecordForm({
                                                             {permissionsTitles[permissionsCollection.labels.collection]}
                                                         </FormLabel>
                                                         <div className="flex flex-row gap-3 mt-2">
-                                                            {permissionsCollection.access.auth?.includes(role) &&
+                                                            {permissionsCollection.access.auth?.roles?.includes(role) &&
+                                                                permissionsCollection.access.auth?.assignable?.includes(
+                                                                    role,
+                                                                ) &&
                                                                 !(
                                                                     collectionPermissionWriteRestrictions &&
                                                                     !collectionPermissionWriteRestrictions.auth

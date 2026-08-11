@@ -337,11 +337,16 @@ Define which roles can perform which CRUD operations for the collection.
 
 ### auth
 
-`string[]`
-
-A list of roles that can assign access credentials for this collection.
+`{ roles: string[] assignable?: string[] }`
 
 Only relevant when `auth` is set to true in the root collection config (above).
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `roles` | `string[]` | Roles that can be granted the ability to assign access credentials for this collection. Roles listed here but not in `assignable` are granted auth access automatically. |
+| `assignable` | `string[]` | Optional subset of `roles` for which auth can be enabled or disabled per user. |
+
+If `assignable` is omitted, every role in `roles` is granted auth automatically.
 
 ### Access Control Policies
 

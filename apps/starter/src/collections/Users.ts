@@ -11,7 +11,7 @@ const Users: GenerateSchema = ({ sdk }): CollectionSchema => {
         enableWriteLog: true,
         fullTextSearch: ["Name", "Email"],
         access: {
-            auth: ["Office", "Area Manager"],
+            auth: { roles: ["Office", "Area Manager"], assignable: ["Area Manager"] },
             operations: {
                 read: ["Office", "Area Manager"],
                 create: ["Office", "Area Manager"],

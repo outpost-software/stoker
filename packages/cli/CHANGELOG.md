@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.145
+
+### Patch Changes
+
+- feat: add collection auth access assignable option
+- Updated dependencies
+    - @stoker-platform/types@0.5.66
+    - @stoker-platform/utils@0.5.80
+    - @stoker-platform/node-client@0.5.91
+
 ## 0.5.144
 
 ### Patch Changes
