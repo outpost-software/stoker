@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.235
+
+### Patch Changes
+
+- fix: fix non-auth-field updates in auth collections
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.94
+    - @stoker-platform/web-client@0.5.99
+
 ## 0.5.234
 
 ### Patch Changes

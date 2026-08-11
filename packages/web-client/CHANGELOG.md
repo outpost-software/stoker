@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.99
+
+### Patch Changes
+
+- fix: fix non-auth-field updates in auth collections
+
 ## 0.5.98
 
 ### Patch Changes

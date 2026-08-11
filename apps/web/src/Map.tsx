@@ -475,7 +475,7 @@ export function Map({
                 return
             }
 
-            const serverWrite = isServerUpdate(collection, record)
+            const serverWrite = isServerUpdate(collection, updatedFields, undefined, record)
 
             const optimisticUpdate = {
                 ...record,

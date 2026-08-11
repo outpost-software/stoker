@@ -6,7 +6,12 @@ export const isServerCreate = (collection: CollectionSchema, user?: UserData) =>
     return !!(serverWriteOnly || (auth && user?.operation === "create"))
 }
 
-export const isServerUpdate = (collection: CollectionSchema, record: Partial<StokerRecord>, user?: UserData) => {
+export const isServerUpdate = (
+    collection: CollectionSchema,
+    record: Partial<StokerRecord>,
+    user?: UserData,
+    originalRecord?: StokerRecord,
+) => {
     const { auth, access, fields } = collection
     const { serverWriteOnly } = access
     const tokenFields = fields.filter((field) => field.saveToAuthToken)
@@ -14,12 +19,13 @@ export const isServerUpdate = (collection: CollectionSchema, record: Partial<Sto
         serverWriteOnly ||
         (auth &&
             (user?.operation ||
-                record.Role ||
-                record.Enabled !== undefined ||
-                record.Name ||
-                record.Email ||
-                record.Photo_URL ||
-                tokenFields.some((field) => record[field.name] !== undefined)))
+                (originalRecord?.User_ID &&
+                    (record.Role ||
+                        record.Enabled !== undefined ||
+                        record.Name ||
+                        record.Email ||
+                        record.Photo_URL ||
+                        tokenFields.some((field) => record[field.name] !== undefined)))))
     )
 }
 

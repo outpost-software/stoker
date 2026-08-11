@@ -56,17 +56,20 @@ export const isOfflineDisabled = async (
     if (operation === "update") {
         const createUserRequest = auth && userData?.operation === "create"
         const deleteUserRequest = auth && userData?.operation === "delete"
+        const tokenFields = collection.fields.filter((field) => field.saveToAuthToken)
         const updateUserRequest =
             record &&
             collection.auth &&
             !createUserRequest &&
             !deleteUserRequest &&
             (userData?.operation === "update" ||
-                record.Role ||
-                record.Enabled !== undefined ||
-                record.Name ||
-                record.Email ||
-                record.Photo_URL)
+                (record.User_ID &&
+                    (record.Role ||
+                        record.Enabled !== undefined ||
+                        record.Name ||
+                        record.Email ||
+                        record.Photo_URL ||
+                        tokenFields.some((field) => record[field.name] !== undefined))))
         if (createUserRequest || updateUserRequest || deleteUserRequest) {
             return offline
         }

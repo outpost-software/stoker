@@ -1987,7 +1987,6 @@ function Collection({
         async (record: StokerRecord) => {
             if (!relationList || !relationParent) return
             const relationCollection = schema.collections[relationList.collection]
-            const isRelationServerWrite = isServerUpdate(relationCollection, record)
             const isRelationServerReadOnly = serverReadOnly(relationCollection)
             const relationField = getField(relationCollection.fields, relationList.field) as RelationField
 
@@ -2004,6 +2003,7 @@ function Collection({
                     updatedFields[relationList.field][relationParent.id][includeField] = relationParent[includeField]
                 }
             }
+            const isRelationServerWrite = isServerUpdate(relationCollection, updatedFields, undefined, record)
 
             const optimisticUpdate = {
                 ...record,

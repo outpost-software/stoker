@@ -4224,17 +4224,6 @@ function RecordForm({
             delete values.password
             delete values.passwordConfirm
 
-            const offlineDisabled = await isOfflineDisabledSync(
-                operation === "update-many" ? "update" : operation,
-                collection,
-                values,
-                userData,
-            )
-            if (offlineDisabled) {
-                alert(`You are offline and cannot ${operation} this record.`)
-                return
-            }
-
             const recordToSave = cloneDeep(values) as Partial<StokerRecord>
             const prevStateToSave = cloneDeep(prevState)
             for (const key in recordToSave) {
@@ -4246,6 +4235,19 @@ function RecordForm({
                     // eslint-disable-next-line security/detect-object-injection
                     delete recordToSave[key]
                 }
+            }
+
+            const offlineDisabled = await isOfflineDisabledSync(
+                operation === "update-many" ? "update" : operation,
+                collection,
+                operation === "update" || operation === "update-many"
+                    ? { ...recordToSave, User_ID: originalRecord?.User_ID ?? values.User_ID }
+                    : values,
+                userData,
+            )
+            if (offlineDisabled) {
+                alert(`You are offline and cannot ${operation} this record.`)
+                return
             }
 
             if (operation === "create") {
@@ -4352,7 +4354,7 @@ function RecordForm({
                     setError("No ID provided for update operation")
                     return
                 }
-                const serverWrite = isServerUpdate(collection, { ...recordToSave, id }, userData)
+                const serverWrite = isServerUpdate(collection, recordToSave, userData, originalRecord)
                 const optimisticUpdate = {
                     ...(originalRecord ?? record),
                     ...cloneDeep(recordToSave),
@@ -4434,10 +4436,7 @@ function RecordForm({
                     for (let i = 0; i < recordsToUpdate.length; i += BATCH_SIZE) {
                         const batch = recordsToUpdate.slice(i, i + BATCH_SIZE)
                         const batchPromises = batch.map((selectedRecord) => {
-                            const serverWrite = isServerUpdate(collection, {
-                                ...recordToSave,
-                                id: selectedRecord.id,
-                            })
+                            const serverWrite = isServerUpdate(collection, recordToSave, undefined, selectedRecord)
                             setGlobalLoading("+", selectedRecord.id, serverWrite, !(serverWrite || isServerReadOnly))
 
                             return updateRecord(path, selectedRecord.id, recordToSave, {
@@ -4475,7 +4474,7 @@ function RecordForm({
                 }
 
                 rowSelection.forEach((selectedRecord) => {
-                    const serverWrite = isServerUpdate(collection, { ...recordToSave, id: selectedRecord.id })
+                    const serverWrite = isServerUpdate(collection, recordToSave, undefined, selectedRecord)
                     if (!serverWrite && !isServerReadOnly) {
                         if (selectedRecord.id) {
                             removeCacheOptimistic(collection, {

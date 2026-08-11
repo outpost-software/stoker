@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-client",
-    "version": "0.5.98",
+    "version": "0.5.99",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [

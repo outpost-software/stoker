@@ -603,14 +603,18 @@ function DropZone({
                     return
                 }
 
-                const serverWrite = isServerUpdate(collection, record)
+                const updatedFields =
+                    "values" in statusField && statusField.values
+                        ? { [statusField.name]: statusValue }
+                        : { [statusField.name]: statusValue === statusValues[0] }
+
+                const serverWrite = isServerUpdate(collection, updatedFields, undefined, record)
 
                 setSettingOptimistic(true)
 
                 const optimisticUpdate = {
                     ...record,
-                    [statusField.name]:
-                        "values" in statusField && statusField.values ? statusValue : statusValue === statusValues[0],
+                    ...updatedFields,
                 }
                 setOptimisticUpdate(labels.collection, optimisticUpdate)
 
@@ -625,12 +629,7 @@ function DropZone({
                 }
 
                 if ("values" in statusField && statusField.values) {
-                    updateRecord(
-                        record.Collection_Path,
-                        record.id,
-                        { [statusField.name]: statusValue },
-                        { originalRecord },
-                    )
+                    updateRecord(record.Collection_Path, record.id, updatedFields, { originalRecord })
                         .then(() => {
                             if (serverWrite || isServerReadOnly) {
                                 toast({
@@ -658,14 +657,7 @@ function DropZone({
                             setGlobalLoading("-", record.id, undefined, !(serverWrite || isServerReadOnly))
                         })
                 } else if (statusField.type === "Boolean") {
-                    updateRecord(
-                        record.Collection_Path,
-                        record.id,
-                        {
-                            [statusField.name]: statusValue === statusValues[0],
-                        },
-                        { originalRecord },
-                    )
+                    updateRecord(record.Collection_Path, record.id, updatedFields, { originalRecord })
                         .then(() => {
                             if (serverWrite || isServerReadOnly) {
                                 toast({

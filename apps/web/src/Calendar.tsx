@@ -1106,7 +1106,7 @@ export function Calendar({
                 return
             }
 
-            const serverWrite = isServerUpdate(eventCollectionSchema, record)
+            const serverWrite = isServerUpdate(eventCollectionSchema, updatedFields, undefined, record)
             const isServerReadOnly = serverReadOnly(eventCollectionSchema)
 
             setGlobalLoading("+", record.id, serverWrite, !(serverWrite || isServerReadOnly))
