@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.82
+
+### Patch Changes
+
+- fix: fix field access groups write issue
+
 ## 0.5.81
 
 ### Patch Changes

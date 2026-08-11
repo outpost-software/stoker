@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.234
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/utils@0.5.82
+    - @stoker-platform/node-client@0.5.93
+    - @stoker-platform/web-client@0.5.98
+
 ## 0.5.233
 
 ### Patch Changes

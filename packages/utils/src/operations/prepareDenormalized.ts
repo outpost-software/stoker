@@ -15,7 +15,6 @@ import {
     getFieldAccessGroupKey,
     getRoleExcludedFields,
 } from "../schema/getIndexFields.js"
-import { getFieldAccessGroupFields } from "../access/fieldAccess.js"
 import { isDependencyField } from "../schema/isDependencyField.js"
 import { getFieldNames } from "../schema/getFieldNames.js"
 import { getField } from "../schema/getField.js"
@@ -118,9 +117,7 @@ export const prepareDenormalized = (
 
     const roleGroups = allRoleGroups[collectionSchema.labels.collection]
 
-    const fieldAccessGroups = getFieldAccessGroupFields(collectionSchema)
-    Object.entries(fieldAccessGroups).forEach(([groupKey, groupFields]) => {
-        if (groupFields.length === 0) return
+    Object.keys(collectionSchema.fieldAccessGroups || {}).forEach((groupKey) => {
         for (const roleGroup of roleGroups) {
             const overlayFieldsSchema = getFieldAccessGroupIndexFields(groupKey, collectionSchema, roleGroup)
             if (overlayFieldsSchema.length === 0) continue
@@ -203,9 +200,7 @@ export const prepareDenormalized = (
                 batchSize++
             }
         }
-        const fieldAccessGroups = getFieldAccessGroupFields(targetSchema)
-        for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
-            if (groupFields.length === 0) continue
+        for (const groupKey of Object.keys(targetSchema.fieldAccessGroups || {})) {
             for (const roleGroup of targetRoleGroups) {
                 const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, targetSchema, roleGroup)
                 if (
@@ -259,9 +254,7 @@ export const prepareDenormalized = (
                 batch.update(twoWayPrivateRef(field, group.key, id), fieldUpdate)
             }
         }
-        const fieldAccessGroups = getFieldAccessGroupFields(targetSchema)
-        for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
-            if (groupFields.length === 0) continue
+        for (const groupKey of Object.keys(targetSchema.fieldAccessGroups || {})) {
             for (const roleGroup of targetRoleGroups) {
                 const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, targetSchema, roleGroup)
                 const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key)
@@ -386,9 +379,7 @@ export const prepareDenormalized = (
                             }
                         }
                     }
-                    const fieldAccessGroups = getFieldAccessGroupFields(targetSchema)
-                    for (const [groupKey, groupFields] of Object.entries(fieldAccessGroups)) {
-                        if (groupFields.length === 0) continue
+                    for (const groupKey of Object.keys(targetSchema.fieldAccessGroups || {})) {
                         for (const roleGroup of targetRoleGroups) {
                             const overlayIndexFields = getFieldAccessGroupIndexFields(groupKey, targetSchema, roleGroup)
                             const overlayKey = getFieldAccessGroupKey(groupKey, roleGroup.key)
