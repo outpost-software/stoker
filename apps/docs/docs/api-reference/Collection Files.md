@@ -1456,7 +1456,7 @@ Set to `true` to skip required validation on the form page. This is useful if th
 
 #### overrideFormRequiredValidation
 
-`(operation: "create" | "update", record?: StokerRecord) => boolean`
+`(operation: "create" | "update", record?: StokerRecord, originalRecord?: StokerRecord) => boolean`
 
 Conditionally set a field to "required". This overrides `required` above, however `required` above will still be enforced on the server if present.
 
