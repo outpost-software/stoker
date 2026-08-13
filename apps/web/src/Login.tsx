@@ -267,7 +267,7 @@ export function Login() {
                             alt="Logo"
                             width="1920"
                             height="1080"
-                            className="h-full w-full object-contain dark:brightness-[0.2] dark:grayscale"
+                            className="h-full w-full p-6 object-contain dark:brightness-[0.2] dark:grayscale"
                         />
                     )}
                 </div>

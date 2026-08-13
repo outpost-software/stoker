@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.238
+
+### Patch Changes
+
+- fix: improve form dirty state check
+- fix: show errors on create form for server writes
+- Updated dependencies
+    - @stoker-platform/utils@0.5.84
+    - @stoker-platform/node-client@0.5.97
+    - @stoker-platform/web-client@0.5.101
+
 ## 0.5.237
 
 ### Patch Changes

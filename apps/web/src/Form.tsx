@@ -78,6 +78,7 @@ import { removeEmptyStrings } from "./utils/removeEmptyStrings"
 import { useGlobalLoading } from "./providers/LoadingProvider"
 import {
     deleteField,
+    FieldValue,
     doc,
     collection as dbCollection,
     Timestamp,
@@ -3246,10 +3247,19 @@ function RecordForm({
             if (id) {
                 if (!initial) {
                     const relationFields = getRelationFields(collection)
-                    record = await getOne(path, id, {
+                    const getOneOptions = {
                         noEmbeddingFields: true,
                         relations: { fields: relationFields, depth: 1 },
-                    })
+                    }
+                    if (serverWriteOnly) {
+                        try {
+                            record = await getOne(path, id, { ...getOneOptions, only: "server" })
+                        } catch {
+                            record = await getOne(path, id, getOneOptions)
+                        }
+                    } else {
+                        record = await getOne(path, id, getOneOptions)
+                    }
                 }
                 if (!record) return
                 const originalRecord = cloneDeep(record)
@@ -3953,10 +3963,10 @@ function RecordForm({
                 }
                 if (isRelationField(field)) {
                     if (valuesClone[field.name]) {
-                        valuesClone[field.name] = Object.keys(valuesClone[field.name])
+                        valuesClone[field.name] = Object.keys(valuesClone[field.name]).sort()
                     }
                     if (prevStateClone[field.name]) {
-                        prevStateClone[field.name] = Object.keys(prevStateClone[field.name])
+                        prevStateClone[field.name] = Object.keys(prevStateClone[field.name]).sort()
                     }
                 }
                 if (field.type === "Computed") {
@@ -4393,6 +4403,19 @@ function RecordForm({
                             })
                         }
                         await getOriginalRecord()
+                        setPrevState((prev) => {
+                            const newPrevState = { ...prev }
+                            for (const [key, value] of Object.entries(recordToSave)) {
+                                if (value instanceof FieldValue) {
+                                    // eslint-disable-next-line security/detect-object-injection
+                                    delete newPrevState[key]
+                                } else {
+                                    // eslint-disable-next-line security/detect-object-injection
+                                    newPrevState[key] = cloneDeep(value)
+                                }
+                            }
+                            return newPrevState
+                        })
                         setFormSavedKey((prev) => prev + 1)
                         setError(null)
                         if (userData) {

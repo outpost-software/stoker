@@ -1,5 +1,12 @@
 # @stoker-platform/web-client
 
+## 0.5.101
+
+### Patch Changes
+
+- Updated dependencies
+    - @stoker-platform/utils@0.5.84
+
 ## 0.5.100
 
 ### Patch Changes
