@@ -432,8 +432,8 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
                 restrictUpdate: ["Office"],
                 custom: {
                     serverAccess: {
-                        read(role, record) {
-                            if (role === "Client") {
+                        read(permissions, _user, record) {
+                            if (permissions.Role === "Client") {
                                 return record?.Status === "Completed"
                             }
                             return true
@@ -498,8 +498,8 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
                 restrictUpdate: ["Office"],
                 custom: {
                     serverAccess: {
-                        read(role, record) {
-                            if (role === "Client") {
+                        read(permissions, _user, record) {
+                            if (permissions.Role === "Client") {
                                 return record?.Status === "Completed"
                             }
                             return true

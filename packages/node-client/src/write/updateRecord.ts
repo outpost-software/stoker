@@ -447,9 +447,13 @@ export const updateRecord = async (
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const finalRecord = { ...originalRecord, ...partial }
                     const allowField =
-                        userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
+                        userId &&
+                        currentUserPermissions &&
+                        latestUser &&
+                        fieldCustomization?.custom?.serverAccess?.read !== undefined
                             ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
-                                  currentUserPermissions?.Role,
+                                  currentUserPermissions,
+                                  latestUser,
                                   finalRecord,
                               ])
                             : true
@@ -487,11 +491,16 @@ export const updateRecord = async (
         }
 
         if (userId && currentUserPermissions?.Role) {
-            const role = currentUserPermissions.Role
+            if (!latestUser) throw new Error("USER_ERROR")
             const finalRecord = { ...originalRecord, ...partial }
             const allowedCollection =
                 customization.custom?.serverAccess?.update !== undefined
-                    ? await tryPromise(customization.custom.serverAccess.update, [role, finalRecord, originalRecord])
+                    ? await tryPromise(customization.custom.serverAccess.update, [
+                          currentUserPermissions,
+                          latestUser,
+                          finalRecord,
+                          originalRecord,
+                      ])
                     : true
             if (!allowedCollection) throw new Error("PERMISSION_DENIED")
             for (const field of collectionSchema.fields) {
@@ -500,7 +509,8 @@ export const updateRecord = async (
                 if (!isFieldUpdated) continue
                 if (fieldCustomization?.custom?.serverAccess?.update !== undefined) {
                     const allowedField = await tryPromise(fieldCustomization.custom.serverAccess.update, [
-                        role,
+                        currentUserPermissions,
+                        latestUser,
                         finalRecord,
                         originalRecord,
                     ])

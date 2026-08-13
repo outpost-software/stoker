@@ -1,5 +1,14 @@
 # @stoker-platform/node-client
 
+## 0.5.96
+
+### Patch Changes
+
+- feat: provide additional arguments to serverAccess methods
+- Updated dependencies
+    - @stoker-platform/types@0.5.68
+    - @stoker-platform/utils@0.5.83
+
 ## 0.5.95
 
 ### Patch Changes

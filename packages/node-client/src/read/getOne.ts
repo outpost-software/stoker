@@ -339,10 +339,10 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
         }
 
         if (options?.userId && permissions?.Role) {
-            const role = permissions.Role
+            if (!latestUser) throw new Error("USER_ERROR")
             const allowedCollection =
                 customization.custom?.serverAccess?.read !== undefined
-                    ? await tryPromise(customization.custom?.serverAccess?.read, [role, docData])
+                    ? await tryPromise(customization.custom?.serverAccess?.read, [permissions, latestUser, docData])
                     : true
             if (!allowedCollection) throw new Error("PERMISSION_DENIED")
             for (const field of collectionSchema.fields) {
@@ -352,7 +352,11 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const allowField =
                     fieldCustomization?.custom?.serverAccess?.read !== undefined
-                        ? await tryPromise(fieldCustomization.custom.serverAccess.read, [role, docData])
+                        ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
+                              permissions,
+                              latestUser,
+                              docData,
+                          ])
                         : true
                 if (!accessible || !allowField) {
                     if (isRelationField(field)) {

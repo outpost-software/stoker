@@ -32,6 +32,7 @@ import { validateCollectionPath } from "../utils/validateCollectionPath.js"
 import { deleteUser } from "./deleteUser.js"
 import { updateRecord } from "./updateRecord.js"
 import { fetchCurrentSchema } from "../utils/fetchSchema.js"
+import { getUser } from "../utils/getUser.js"
 
 export const deleteRecord = async (
     path: string[],
@@ -109,16 +110,18 @@ export const deleteRecord = async (
     removeUndefined(record)
 
     const preWriteChecks = async (transaction: Transaction) => {
-        const [maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema] = await Promise.all([
-            transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
-            getOne(path, recordId, { userId, providedTransaction: transaction }),
-            userId
-                ? transaction.get(
-                      db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),
-                  )
-                : Promise.resolve({} as DocumentSnapshot),
-            fetchCurrentSchema(),
-        ])
+        const [maintenanceMode, latestOriginalRecord, permissionsSnapshot, latestSchema, latestUser] =
+            await Promise.all([
+                transaction.get(db.collection("system_deployment").doc("maintenance_mode")),
+                getOne(path, recordId, { userId, providedTransaction: transaction }),
+                userId
+                    ? transaction.get(
+                          db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(userId),
+                      )
+                    : Promise.resolve({} as DocumentSnapshot),
+                fetchCurrentSchema(),
+                userId ? getUser(userId) : Promise.resolve(undefined),
+            ])
 
         if (!maintenanceMode.exists) throw new Error("MAINTENANCE_MODE")
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -141,10 +144,14 @@ export const deleteRecord = async (
         }
 
         if (userId && currentUserPermissions?.Role) {
-            const role = currentUserPermissions.Role
+            if (!latestUser) throw new Error("USER_ERROR")
             const allowedCollection =
                 customization.custom?.serverAccess?.delete !== undefined
-                    ? await tryPromise(customization.custom.serverAccess.delete, [role, record])
+                    ? await tryPromise(customization.custom.serverAccess.delete, [
+                          currentUserPermissions,
+                          latestUser,
+                          record,
+                      ])
                     : true
             if (!allowedCollection) throw new Error("PERMISSION_DENIED")
         }

@@ -3,6 +3,7 @@ import { Timestamp, WhereFilterOp, WriteBatch } from "firebase/firestore"
 import { NodeUtilities, WebUtilities } from "./app"
 import { CalendarOptions } from "@fullcalendar/core"
 import { SearchOptions } from "minisearch"
+import { UserRecord } from "firebase-admin/auth"
 
 export type StokerRole = string
 export type StokerCollection = string
@@ -453,10 +454,15 @@ export interface PreloadCacheInitial {
 
 export interface CollectionCustom extends Hooks {
     serverAccess?: {
-        read?: (role: StokerRole, record?: StokerRecord) => boolean | Promise<boolean>
-        create?: (role: StokerRole, record: StokerRecord) => boolean | Promise<boolean>
-        update?: (role: StokerRole, record: StokerRecord, originalRecord?: StokerRecord) => boolean | Promise<boolean>
-        delete?: (role: StokerRole, record: StokerRecord) => boolean | Promise<boolean>
+        read?: (permissions: StokerPermissions, user: UserRecord, record?: StokerRecord) => boolean | Promise<boolean>
+        create?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord) => boolean | Promise<boolean>
+        update?: (
+            permissions: StokerPermissions,
+            user: UserRecord,
+            record: StokerRecord,
+            originalRecord?: StokerRecord,
+        ) => boolean | Promise<boolean>
+        delete?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord) => boolean | Promise<boolean>
     }
     preloadCacheConstraints?:
         | [string, WhereFilterOp, unknown][]
@@ -904,9 +910,14 @@ export interface CollectionAdminCache {
 export interface FieldCustom extends Hooks {
     initialValue?: unknown | ((record?: StokerRecord) => unknown | Promise<unknown>)
     serverAccess?: {
-        read?: (role: StokerRole, record?: StokerRecord) => boolean | Promise<boolean>
-        create?: (role: StokerRole, record: StokerRecord) => boolean | Promise<boolean>
-        update?: (role: StokerRole, record: StokerRecord, originalRecord?: StokerRecord) => boolean | Promise<boolean>
+        read?: (permissions: StokerPermissions, user: UserRecord, record?: StokerRecord) => boolean | Promise<boolean>
+        create?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord) => boolean | Promise<boolean>
+        update?: (
+            permissions: StokerPermissions,
+            user: UserRecord,
+            record: StokerRecord,
+            originalRecord?: StokerRecord,
+        ) => boolean | Promise<boolean>
     }
 }
 

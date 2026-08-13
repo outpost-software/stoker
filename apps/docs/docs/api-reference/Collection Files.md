@@ -672,10 +672,10 @@ For example:
 
 ```ts
 {
-    read?: (role: string, record?: StokerRecord) => boolean | Promise<boolean>
-    create?: (role: string, record: StokerRecord) => boolean | Promise<boolean>
-    update?: (role: string, record: StokerRecord, originalRecord?: StokerRecord) => boolean | Promise<boolean>
-    delete?: (role: string, record: StokerRecord) => boolean | Promise<boolean>
+    read?: (permissions: StokerPermissions, user: UserRecord, record?: StokerRecord) => boolean | Promise<boolean>
+    create?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord) => boolean | Promise<boolean>
+    update?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord, originalRecord?: StokerRecord) => boolean | Promise<boolean>
+    delete?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord) => boolean | Promise<boolean>
 }
 ```
 
@@ -879,9 +879,9 @@ Calculate an initial value for this field when creating the record.
 
 ```ts
 {
-    read?: (role: string, record?: StokerRecord) => boolean | Promise<boolean>
-    create?: (role: string, record: StokerRecord) => boolean | Promise<boolean>
-    update?: (role: string, record: StokerRecord, originalRecord?: StokerRecord) => boolean | Promise<boolean>
+    read?: (permissions: StokerPermissions, user: UserRecord, record?: StokerRecord) => boolean | Promise<boolean>
+    create?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord) => boolean | Promise<boolean>
+    update?: (permissions: StokerPermissions, user: UserRecord, record: StokerRecord, originalRecord?: StokerRecord) => boolean | Promise<boolean>
 }
 ```
 

@@ -94,7 +94,6 @@ export const addRecord = async (
     const db = getStokerFirestore()
     const auth = getAuth()
     const currentUser = userId ? await auth.getUser(userId) : undefined
-    const currentUserRole = currentUser?.customClaims?.role
 
     let currentUserPermissions: StokerPermissions | undefined
     let currentUserClaims: Record<string, unknown> | undefined
@@ -207,18 +206,23 @@ export const addRecord = async (
     }
 
     if (userId) {
-        const role = currentUserRole as string | undefined
-        if (!role) throw new Error("USER_ERROR")
+        if (!currentUser) throw new Error("USER_ERROR")
+        if (!initialPermissions?.Role) throw new Error("USER_ERROR")
+        const createPermissions = initialPermissions as StokerPermissions
         const allowedCollection =
             customization.custom?.serverAccess?.create !== undefined
-                ? await tryPromise(customization.custom.serverAccess.create, [role, record])
+                ? await tryPromise(customization.custom.serverAccess.create, [createPermissions, currentUser, record])
                 : true
         if (!allowedCollection) throw new Error("PERMISSION_DENIED")
         for (const field of collectionSchema.fields) {
             if (!(field.name in record)) continue
             const fieldCustomization = getFieldCustomization(field, customization)
             if (fieldCustomization?.custom?.serverAccess?.create !== undefined) {
-                const allowedField = await tryPromise(fieldCustomization.custom.serverAccess.create, [role, record])
+                const allowedField = await tryPromise(fieldCustomization.custom.serverAccess.create, [
+                    createPermissions,
+                    currentUser,
+                    record,
+                ])
                 if (!allowedField) throw new Error("PERMISSION_DENIED")
             }
         }
@@ -282,9 +286,13 @@ export const addRecord = async (
                     if (!record[field.name]) return
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const allowField =
-                        userId && fieldCustomization?.custom?.serverAccess?.read !== undefined
+                        userId &&
+                        currentUserPermissions &&
+                        latestUser &&
+                        fieldCustomization?.custom?.serverAccess?.read !== undefined
                             ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
-                                  currentUserPermissions?.Role,
+                                  currentUserPermissions,
+                                  latestUser,
                                   record,
                               ])
                             : true

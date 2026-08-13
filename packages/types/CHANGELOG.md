@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.68
+
+### Patch Changes
+
+- feat: provide additional arguments to serverAccess methods
+
 ## 0.5.67
 
 ### Patch Changes

@@ -489,10 +489,10 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
             await Promise.all(computedFieldPromises)
 
             if (options?.userId && permissions?.Role) {
-                const role = permissions.Role
+                if (!latestUser) throw new Error("USER_ERROR")
                 const allowedCollection =
                     customization.custom?.serverAccess?.read !== undefined
-                        ? await tryPromise(customization.custom.serverAccess.read, [role, doc])
+                        ? await tryPromise(customization.custom.serverAccess.read, [permissions, latestUser, doc])
                         : true
                 if (!allowedCollection) {
                     docs.delete(doc.id)
@@ -505,7 +505,11 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const allowField =
                         fieldCustomization?.custom?.serverAccess?.read !== undefined
-                            ? await tryPromise(fieldCustomization.custom.serverAccess.read, [role, doc])
+                            ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
+                                  permissions,
+                                  latestUser,
+                                  doc,
+                              ])
                             : true
                     if (!accessible || !allowField) {
                         if (isRelationField(field)) {
