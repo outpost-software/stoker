@@ -4320,18 +4320,22 @@ function RecordForm({
                     })
                     .catch((error) => {
                         console.error(error)
-                        if (error.message.includes("VALIDATION_ERROR")) {
-                            toast({
-                                description: error.message.replace("VALIDATION_ERROR: ", ""),
-                                variant: "destructive",
-                                duration: 10000000,
-                            })
+                        if (isServerReadOnly || serverWrite) {
+                            setError(error.message.replace("VALIDATION_ERROR: ", ""))
                         } else {
-                            toast({
-                                // eslint-disable-next-line security/detect-object-injection
-                                description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} failed to create.`,
-                                variant: "destructive",
-                            })
+                            if (error.message.includes("VALIDATION_ERROR")) {
+                                toast({
+                                    description: error.message.replace("VALIDATION_ERROR: ", ""),
+                                    variant: "destructive",
+                                    duration: 10000000,
+                                })
+                            } else {
+                                toast({
+                                    // eslint-disable-next-line security/detect-object-injection
+                                    description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} failed to create.`,
+                                    variant: "destructive",
+                                })
+                            }
                         }
                     })
                     .finally(() => {
