@@ -108,13 +108,19 @@ const getFieldSchema = (field: CollectionField, customization?: CollectionCustom
                 fieldSchema = z.union([fieldSchema.ip("Must be a valid IP address"), z.literal("")])
             } else if (field.pattern) {
                 if (!chat && image) {
-                    // eslint-disable-next-line security/detect-non-literal-regexp
-                    fieldSchema = z.union([fieldSchema.regex(new RegExp(field.pattern)), fieldSchema.regex(/^blob:/)], {
-                        message: "Must be a valid value",
-                    })
+                    fieldSchema = z.union(
+                        // eslint-disable-next-line security/detect-non-literal-regexp
+                        [fieldSchema.regex(new RegExp(field.pattern)), fieldSchema.regex(/^blob:/), z.literal("")],
+                        {
+                            message: "Must be a valid value",
+                        },
+                    )
                 } else {
-                    // eslint-disable-next-line security/detect-non-literal-regexp
-                    fieldSchema = fieldSchema.regex(new RegExp(field.pattern), "Must be a valid value")
+                    fieldSchema = z.union([
+                        // eslint-disable-next-line security/detect-non-literal-regexp
+                        fieldSchema.regex(new RegExp(field.pattern), "Must be a valid value"),
+                        z.literal(""),
+                    ])
                 }
             }
             if (field.values) {
