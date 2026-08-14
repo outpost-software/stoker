@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.85
+
+### Patch Changes
+
+- fix: allow empty values when using pattern validation
+
 ## 0.5.84
 
 ### Patch Changes

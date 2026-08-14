@@ -122,12 +122,12 @@ const getFieldSchema = (collection: CollectionSchema, field: CollectionField, lo
             if (field.ip) {
                 fieldSchema = fieldSchema.ip()
             }
-            if (field.pattern) {
-                // eslint-disable-next-line security/detect-non-literal-regexp
-                fieldSchema = fieldSchema.regex(new RegExp(field.pattern))
-            }
             if (lowercase) {
                 fieldSchema = fieldSchema.toLowerCase()
+            }
+            if (field.pattern) {
+                // eslint-disable-next-line security/detect-non-literal-regexp
+                fieldSchema = z.union([fieldSchema.regex(new RegExp(field.pattern)), z.literal("")])
             }
             if (field.values) {
                 if (lowercase) {
