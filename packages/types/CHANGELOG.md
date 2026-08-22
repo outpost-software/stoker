@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.70
+
+### Patch Changes
+
+- feat: add JSDoc tooltip comments to types files
+
 ## 0.5.69
 
 ### Patch Changes

@@ -274,7 +274,7 @@ export const searchResults = async (
 
     hasAttributeRestrictions
         .filter((restriction) => restriction.type === "Record_Owner")
-        .forEach(() => filters.push(`Created_By:${permissions.User_ID}`));
+        .forEach(() => filters.push(`Created_By:${user}`));
 
     hasAttributeRestrictions
         .filter((restriction) => restriction.type === "Record_User")

@@ -96,7 +96,7 @@ This strategy creates a security risk if your app is used on public computers, a
 
 `boolean`
 
-Set to `true` to sign out a user when they're permissions are changed. If falsy, the Admin UI will attempt to reload data affected by the permissions change.
+Set to `true` to sign out a user when their permissions are changed. If falsy, the Admin UI will attempt to reload data affected by the permissions change.
 
 ### clearPersistenceOnSignOut
 
