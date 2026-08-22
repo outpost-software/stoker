@@ -1,5 +1,21 @@
 # @stoker-platform/cli
 
+## 0.5.154
+
+### Patch Changes
+
+- fix: add skipLibCheck to init files functions tsconfig
+
+## 0.5.153
+
+### Patch Changes
+
+- chore: update dependencies
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.99
+    - @stoker-platform/types@0.5.69
+    - @stoker-platform/utils@0.5.86
+
 ## 0.5.152
 
 ### Patch Changes

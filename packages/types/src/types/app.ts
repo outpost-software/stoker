@@ -35,10 +35,7 @@ import { FirebaseError } from "firebase-admin"
 export interface AuthConfig {
     enableMultiFactorAuth: boolean | StokerRole[]
     authPersistenceType:
-        | "LOCAL"
-        | "SESSION"
-        | "NONE"
-        | (() => "LOCAL" | "SESSION" | "NONE" | Promise<"LOCAL" | "SESSION" | "NONE">)
+        "LOCAL" | "SESSION" | "NONE" | (() => "LOCAL" | "SESSION" | "NONE" | Promise<"LOCAL" | "SESSION" | "NONE">)
     signOutOnPermissionsChange?: boolean
     clearPersistenceOnSignOut?: boolean
     offlinePersistenceType:

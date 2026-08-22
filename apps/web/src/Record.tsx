@@ -122,12 +122,10 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
             const breadcrumbs = await getCachedConfigValue(customization, [...collectionAdminPath, "breadcrumbs"])
             setBreadcrumbs(breadcrumbs)
             const pages = (await getCachedConfigValue(customization, [...collectionAdminPath, "customRecordPages"])) as
-                | CustomRecordPage[]
-                | undefined
+                CustomRecordPage[] | undefined
             setCustomRecordPages(pages || [])
             const assignable = (await getCachedConfigValue(customization, [...collectionAdminPath, "assignable"])) as
-                | Assignable[]
-                | undefined
+                Assignable[] | undefined
             setAssignable(assignable)
 
             setIsRouteLoading("+", location.pathname)

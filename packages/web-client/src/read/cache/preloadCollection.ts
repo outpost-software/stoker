@@ -31,12 +31,10 @@ export const preloadCollection = async (
 
     if (!preloadCache?.roles.includes(permissions.Role)) return
     const collectionPermissions = permissions.collections?.[collection]
-    if (
-        !(
-            (collectionPermissions && collectionAccess("Read", collectionPermissions)) ||
-            hasDependencyAccess(collectionSchema, schema, permissions, claims).length > 0
-        )
-    ) {
+    if (!(
+        (collectionPermissions && collectionAccess("Read", collectionPermissions)) ||
+        hasDependencyAccess(collectionSchema, schema, permissions, claims).length > 0
+    )) {
         state[location] = "Error"
         return
     }

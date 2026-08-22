@@ -549,14 +549,12 @@ export function List({
                         const label = tryFunction(fieldCustomization.admin?.label)
                         const listLabel = tryFunction(fieldCustomization.admin?.listLabel)
                         let className = "whitespace-nowrap text-left"
-                        if (
-                            !(
-                                ((isPreloadCacheEnabled || isServerReadOnly) &&
-                                    !["ManyToOne", "ManyToMany"].includes(field.type)) ||
-                                (isSortingEnabled(field, permissions) && field.type !== "Computed") ||
-                                field.name === recordTitleField
-                            )
-                        ) {
+                        if (!(
+                            ((isPreloadCacheEnabled || isServerReadOnly) &&
+                                !["ManyToOne", "ManyToMany"].includes(field.type)) ||
+                            (isSortingEnabled(field, permissions) && field.type !== "Computed") ||
+                            field.name === recordTitleField
+                        )) {
                             className = cn(className, "cursor-default")
                         }
                         if (field.name === recordTitleField) className = cn(className, "text-primary")
@@ -665,11 +663,11 @@ export function List({
                 enableHiding: true,
             }
             const field = getField(fields.concat(systemFields), secondarySort.field)
-            if (field.type === "String") {
+            if (field?.type === "String") {
                 hiddenColumn.sortingFn = "stringSortingFn"
-            } else if (isRelationField(field)) {
+            } else if (field && isRelationField(field)) {
                 hiddenColumn.sortingFn = "relationSortingFn"
-            } else if (field.type === "Timestamp") {
+            } else if (field?.type === "Timestamp") {
                 hiddenColumn.sortingFn = "dateSortingFn"
             } else {
                 hiddenColumn.sortingFn = "rawSortingFn"
@@ -678,7 +676,14 @@ export function List({
         }
 
         return allColumns
-    }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus])
+    }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus, secondarySort])
+
+    const columnVisibility = useMemo(() => {
+        if (!secondarySort) return {}
+        const isListField = fields.some((field) => field.name === secondarySort.field)
+        if (isListField) return {}
+        return { [secondarySort.field]: false }
+    }, [secondarySort, fields])
 
     const isServerFullTextSearchActive = isServerFullTextSearch(
         search,
@@ -769,6 +774,7 @@ export function List({
             sorting: disableSortingForSearch ? [] : sorting,
             columnFilters,
             rowSelection,
+            columnVisibility,
             pagination: {
                 pageSize: tablePageSize,
                 pageIndex: isServerFullTextSearchActive ? 0 : pageIndex,

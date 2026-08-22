@@ -236,11 +236,9 @@ export const DashboardReminder = ({ reminder, title, collection }: DashboardRemi
                                                 let rawB: string
                                                 if (titleField) {
                                                     const recordA = Object.values(a[sortingField.name] ?? {})[0] as
-                                                        | StokerRecord
-                                                        | undefined
+                                                        StokerRecord | undefined
                                                     const recordB = Object.values(b[sortingField.name] ?? {})[0] as
-                                                        | StokerRecord
-                                                        | undefined
+                                                        StokerRecord | undefined
                                                     // eslint-disable-next-line security/detect-object-injection
                                                     rawA = recordA?.[titleField]?.toString().toLowerCase() ?? ""
                                                     // eslint-disable-next-line security/detect-object-injection

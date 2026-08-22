@@ -9,14 +9,14 @@ export default defineConfig({
     plugins: [
         eslint(),
         typescript({
-            declarationDir: resolve(__dirname, "dist/types"),
+            declarationDir: resolve(import.meta.dirname, "dist/types"),
             declaration: true,
         }),
     ],
     build: {
         target: "esnext",
         lib: {
-            entry: resolve(__dirname, "src/main.ts"),
+            entry: resolve(import.meta.dirname, "src/main.ts"),
             formats: ["es", "cjs"],
             fileName: "bundle",
         },

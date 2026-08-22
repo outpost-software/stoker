@@ -92,13 +92,10 @@ export const Dashboard = () => {
                                         // eslint-disable-next-line security/detect-object-injection
                                         const collectionSchema = schema.collections[dashboardItem.collection]
                                         const isPreloadCacheEnabled = preloadCacheEnabled(collectionSchema)
-                                        if (
-                                            !(
-                                                permissions?.Role &&
-                                                (!dashboardItem.roles ||
-                                                    dashboardItem.roles.includes(permissions?.Role))
-                                            )
-                                        )
+                                        if (!(
+                                            permissions?.Role &&
+                                            (!dashboardItem.roles || dashboardItem.roles.includes(permissions?.Role))
+                                        ))
                                             return null
                                         let cols = ""
                                         if (dashboardItem.kind === "metric") cols = "md:col-span-1"

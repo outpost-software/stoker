@@ -701,24 +701,22 @@ export const lintSchema = async (noLog = false) => {
             const statusFieldSchema = getField(fields, statusField.field)
             if (!statusFieldSchema) {
                 errors.push(`Collection ${collectionName} has a status field ${statusField.field} that does not exist`)
-            } else if (
-                !(
-                    (statusFieldSchema.type === "Boolean" &&
-                        statusField.active.length === 1 &&
-                        statusField.active[0] === true &&
-                        statusField.archived.length === 1 &&
-                        statusField.archived[0] === false) ||
-                    ((statusFieldSchema.type === "String" || statusFieldSchema.type === "Number") &&
-                        (!statusField.active ||
-                            statusField.active.every((value: string | number) =>
-                                (statusFieldSchema.values as (string | number)[])?.includes(value),
-                            )) &&
-                        (!statusField.archived ||
-                            statusField.archived.every((value: string | number) =>
-                                (statusFieldSchema.values as (string | number)[])?.includes(value),
-                            )))
-                )
-            ) {
+            } else if (!(
+                (statusFieldSchema.type === "Boolean" &&
+                    statusField.active.length === 1 &&
+                    statusField.active[0] === true &&
+                    statusField.archived.length === 1 &&
+                    statusField.archived[0] === false) ||
+                ((statusFieldSchema.type === "String" || statusFieldSchema.type === "Number") &&
+                    (!statusField.active ||
+                        statusField.active.every((value: string | number) =>
+                            (statusFieldSchema.values as (string | number)[])?.includes(value),
+                        )) &&
+                    (!statusField.archived ||
+                        statusField.archived.every((value: string | number) =>
+                            (statusFieldSchema.values as (string | number)[])?.includes(value),
+                        )))
+            )) {
                 errors.push(
                     `Collection ${collectionName} has a status field ${statusField.field} with values that do not match the matching field's values`,
                 )
@@ -739,8 +737,7 @@ export const lintSchema = async (noLog = false) => {
         }
 
         const defaultSort = (await tryPromise(customization?.admin?.defaultSort)) as
-            | { field: string; direction: "asc" | "desc" }
-            | undefined
+            { field: string; direction: "asc" | "desc" } | undefined
         if (defaultSort) {
             const fieldSchema = getField(fields, defaultSort.field)
             if (!fieldSchema) {
@@ -823,9 +820,7 @@ export const lintSchema = async (noLog = false) => {
                 }
             }
             const statusFieldSchema = getField(fields, statusField?.field || cards.statusField) as
-                | StringField
-                | NumberField
-                | undefined
+                StringField | NumberField | undefined
             if (cards.excludeValues) {
                 for (const value of cards.excludeValues) {
                     if (
@@ -992,8 +987,7 @@ export const lintSchema = async (noLog = false) => {
                         // eslint-disable-next-line security/detect-object-injection
                         const additionalCustomization = customizationModules[additionalCollection]
                         const additionalCalendar = (await tryPromise(additionalCustomization?.admin?.calendar)) as
-                            | CalendarConfig
-                            | undefined
+                            CalendarConfig | undefined
                         if (!additionalCalendar) {
                             errors.push(
                                 `Collection ${collectionName} has a calendar additional collection ${additionalCollection} that does not have a calendar configuration`,
@@ -1181,9 +1175,13 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        if (
-            !(operations.assignable || operations.read || operations.create || operations.update || operations.delete)
-        ) {
+        if (!(
+            operations.assignable ||
+            operations.read ||
+            operations.create ||
+            operations.update ||
+            operations.delete
+        )) {
             errors.push(`Collection ${collectionName} has no access operations defined`)
         }
         if (typeof operations.assignable === "object") {

@@ -141,17 +141,15 @@ export const auditRelations = async (options: any) => {
                                 }
                                 // eslint-disable-next-line security/detect-object-injection
                                 const sourceRelation = source?.[sourceField.name]?.[doc.id]
-                                if (
-                                    !(
-                                        (sourceRelation &&
-                                            (source?.[`${sourceField.name}_Array`] || []).includes(doc.id) &&
-                                            (record?.[`${field.name}_Array`] || []).includes(id)) ||
-                                        ("preserve" in sourceField &&
-                                            sourceField.preserve &&
-                                            sourceRelation?.deleted &&
-                                            (source?.[`${sourceField.name}_Array`] || []).includes(doc.id))
-                                    )
-                                ) {
+                                if (!(
+                                    (sourceRelation &&
+                                        (source?.[`${sourceField.name}_Array`] || []).includes(doc.id) &&
+                                        (record?.[`${field.name}_Array`] || []).includes(id)) ||
+                                    ("preserve" in sourceField &&
+                                        sourceField.preserve &&
+                                        sourceRelation?.deleted &&
+                                        (source?.[`${sourceField.name}_Array`] || []).includes(doc.id))
+                                )) {
                                     console.log(
                                         `${collectionName} ${doc.id} - Invalid two way relation ${field.name} ${id} found in record ${id} in source collection ${field.collection}`,
                                     )

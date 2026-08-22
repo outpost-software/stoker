@@ -1,7 +1,4 @@
 {
-    "overrides": {
-        "vite": "^7.3.5"
-    },
     "name": "stoker",
     "private": true,
     "version": "0.0.1",
@@ -29,7 +26,7 @@
         "@stoker-platform/utils": "latest",
         "@stoker-platform/web-app": "latest",
         "@stoker-platform/web-client": "latest",
-        "firebase-admin": "^13.10.0"
+        "firebase-admin": "latest"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "latest",
@@ -44,8 +41,8 @@
         "eslint-plugin-import": "latest",
         "eslint-plugin-security": "latest",
         "postcss": "latest",
-        "prettier": "3.8.3",
-        "tailwindcss": "^3.4.17",
+        "prettier": "3.9.6",
+        "tailwindcss": "^3.4.19",
         "typescript": "latest",
         "vite-plugin-pwa": "latest",
         "vitest": "latest"

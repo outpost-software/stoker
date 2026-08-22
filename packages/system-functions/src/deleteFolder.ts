@@ -1,5 +1,5 @@
 import {CallableRequest, HttpsError} from "firebase-functions/v2/https";
-import {getStorage} from "firebase-admin/storage";
+import {getStorage, type Storage} from "firebase-admin/storage";
 import {
     CollectionsSchema,
     StokerPermissions,
@@ -16,12 +16,13 @@ import {
 } from "@stoker-platform/node-client";
 import {error as errorLogger} from "firebase-functions/logger";
 import {getApp} from "firebase-admin/app";
-import {Bucket} from "@google-cloud/storage";
 import {
     validateStoragePath,
 } from "./validateStoragePath.js";
 
 /* eslint-disable max-len */
+
+type Bucket = ReturnType<Storage["bucket"]>;
 
 const getFilesForPath = async (
     path: string,

@@ -120,22 +120,17 @@ export const addRecordPrompt = async (
             const assignable = collection.access.operations.assignable
             for (const operationType of ["read", "create", "update", "delete"]) {
                 const operationTypeUpper = (operationType.charAt(0).toUpperCase() + operationType.slice(1)) as
-                    | "Read"
-                    | "Create"
-                    | "Update"
-                    | "Delete"
+                    "Read" | "Create" | "Update" | "Delete"
                 const operation = collection.access.operations[operationType as keyof AccessOperations]
                 if (typeof operation === "object" && operation.includes(record.Role)) {
                     if (fullAccess) {
                         // eslint-disable-next-line security/detect-object-injection
                         user.permissions.collections[collectionName].operations.push(operationTypeUpper)
                     } else {
-                        if (
-                            !(
-                                assignable === true ||
-                                (typeof assignable === "object" && assignable?.includes(record.Role))
-                            )
-                        ) {
+                        if (!(
+                            assignable === true ||
+                            (typeof assignable === "object" && assignable?.includes(record.Role))
+                        )) {
                             // eslint-disable-next-line security/detect-object-injection
                             user.permissions.collections[collectionName].operations.push(operationTypeUpper)
                         }

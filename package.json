@@ -1,8 +1,6 @@
 {
     "overrides": {
         "dotprompt": "1.1.1",
-        "vite": "^7.3.5",
-        "firebase-admin": "13.10.0",
         "@types/react": "18.3.13",
         "@types/react-dom": "18.3.1"
     },
@@ -32,19 +30,19 @@
         "publish-packages": "turbo run format && turbo run lint && turbo run build --filter=!./apps/starter && changeset version && changeset publish"
     },
     "dependencies": {
-        "@changesets/cli": "^2.31.0",
+        "@changesets/cli": "^3.0.1",
         "qrcode.react": "^4.2.0"
     },
     "devDependencies": {
-        "@vitest/browser": "^4.1.8",
+        "@vitest/browser": "^4.1.11",
         "@vitest/ui": "^4.0.8",
-        "concurrently": "10.0.3",
+        "concurrently": "^10.0.5",
         "dotenv": "^17.4.2",
         "eslint": "^8.57.1",
-        "prettier": "3.8.3",
-        "turbo": "^2.9.16",
+        "prettier": "3.9.6",
+        "turbo": "^2.10.11",
         "typescript": "^6.0.3",
-        "vite": "^7.3.5",
+        "vite": "^8.2.2",
         "vitest": "^4.0.8"
     },
     "engines": {

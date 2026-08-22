@@ -162,13 +162,11 @@ const validatePermissions = (schema: CollectionsSchema, permissions: StokerPermi
                     }
                     if (operation === "Parent") {
                         const restrictionKeys = Object.keys(values)
-                        if (
-                            !(
-                                restrictionKeys.length === 1 &&
-                                Object.keys(schema.collections).includes(restrictionKeys[0]) &&
-                                Array.isArray(values[restrictionKeys[0]])
-                            )
-                        ) {
+                        if (!(
+                            restrictionKeys.length === 1 &&
+                            Object.keys(schema.collections).includes(restrictionKeys[0]) &&
+                            Array.isArray(values[restrictionKeys[0]])
+                        )) {
                             errorDetails = `Collection ${key} has invalid parent entities value`
                             granted = false
                             return
@@ -176,14 +174,12 @@ const validatePermissions = (schema: CollectionsSchema, permissions: StokerPermi
                     }
                     if (operation === "Parent_Property") {
                         const restrictionKeys = Object.keys(values)
-                        if (
-                            !(
-                                restrictionKeys.length === 1 &&
-                                Object.keys(schema.collections).includes(restrictionKeys[0]) &&
-                                typeof values[restrictionKeys[0]] === "object" &&
-                                values[restrictionKeys[0]] !== null
-                            )
-                        ) {
+                        if (!(
+                            restrictionKeys.length === 1 &&
+                            Object.keys(schema.collections).includes(restrictionKeys[0]) &&
+                            typeof values[restrictionKeys[0]] === "object" &&
+                            values[restrictionKeys[0]] !== null
+                        )) {
                             errorDetails = `Collection ${key} has invalid parent property entities value`
                             granted = false
                             return
@@ -239,10 +235,7 @@ const enforceRoleRestrictions = (schema: CollectionsSchema, permissions: StokerP
         if (assignable !== true && !(typeof assignable === "object" && assignable.includes(role))) {
             operationTypes.forEach((operationType) => {
                 const operationTypeUpper = (operationType.charAt(0).toUpperCase() + operationType.slice(1)) as
-                    | "Read"
-                    | "Create"
-                    | "Update"
-                    | "Delete"
+                    "Read" | "Create" | "Update" | "Delete"
                 if (operationType !== "assignable") {
                     const hasAccessOperation = !!access.operations[operationType]?.includes(role)
                     const hasCollectionPermission = !!collectionPermissions?.operations.includes(operationTypeUpper)
@@ -261,10 +254,7 @@ const enforceRoleRestrictions = (schema: CollectionsSchema, permissions: StokerP
         } else {
             operationTypes.forEach((operationType) => {
                 const operationTypeUpper = (operationType.charAt(0).toUpperCase() + operationType.slice(1)) as
-                    | "Read"
-                    | "Create"
-                    | "Update"
-                    | "Delete"
+                    "Read" | "Create" | "Update" | "Delete"
                 if (operationType !== "assignable") {
                     const hasAccessOperation = !!access.operations[operationType]?.includes(role)
                     const hasCollectionPermission = !!collectionPermissions?.operations.includes(operationTypeUpper)
@@ -431,18 +421,16 @@ const restrictedPermissions = (
                                 (collection) => collection.collection === collectionName,
                             )!
 
-                            if (
-                                !(
-                                    collectionPermissions.operations.every((operation) =>
-                                        collectionRestrictions.operations.includes(operation),
-                                    ) ||
-                                    (operation === "update" &&
-                                        isEqual(
-                                            collectionPermissions.operations,
-                                            originalCollectionPermissions?.operations,
-                                        ))
-                                )
-                            ) {
+                            if (!(
+                                collectionPermissions.operations.every((operation) =>
+                                    collectionRestrictions.operations.includes(operation),
+                                ) ||
+                                (operation === "update" &&
+                                    isEqual(
+                                        collectionPermissions.operations,
+                                        originalCollectionPermissions?.operations,
+                                    ))
+                            )) {
                                 errorDetails = `User ${currentUserRole} does not have write access to all included operations for collection ${collectionName}`
                                 granted = false
                                 return
@@ -481,15 +469,11 @@ const restrictedPermissions = (
                                             isEqual(
                                                 collectionPermissions[
                                                     attributeRestrictionKey as
-                                                        | "recordOwner"
-                                                        | "recordUser"
-                                                        | "recordProperty"
+                                                        "recordOwner" | "recordUser" | "recordProperty"
                                                 ],
                                                 originalCollectionPermissions?.[
                                                     attributeRestrictionKey as
-                                                        | "recordOwner"
-                                                        | "recordUser"
-                                                        | "recordProperty"
+                                                        "recordOwner" | "recordUser" | "recordProperty"
                                                 ],
                                             ))
                                     )

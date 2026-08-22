@@ -962,24 +962,19 @@ function Collection({
             setIcon(icon)
 
             const listConfig = (await getCachedConfigValue(customization, [...collectionAdminPath, "list"])) as
-                | ListConfig
-                | undefined
+                ListConfig | undefined
             setListConfig(listConfig)
             const cardsConfig = (await getCachedConfigValue(customization, [...collectionAdminPath, "cards"])) as
-                | CardsConfig
-                | undefined
+                CardsConfig | undefined
             setCardsConfig(cardsConfig)
             const imagesConfig = (await getCachedConfigValue(customization, [...collectionAdminPath, "images"])) as
-                | ImagesConfig
-                | undefined
+                ImagesConfig | undefined
             setImagesConfig(imagesConfig)
             const mapConfig = (await getCachedConfigValue(customization, [...collectionAdminPath, "map"])) as
-                | MapConfig
-                | undefined
+                MapConfig | undefined
             setMapConfig(mapConfig)
             const calendarConfig = (await getCachedConfigValue(customization, [...collectionAdminPath, "calendar"])) as
-                | CalendarConfig
-                | undefined
+                CalendarConfig | undefined
             setCalendarConfig(calendarConfig)
 
             if (calendarConfig?.additionalCollections) {
@@ -1283,8 +1278,7 @@ function Collection({
             }
 
             const rangeFilter = filtersClone.find((filter: Filter) => filter.type === "range") as
-                | RangeFilter
-                | undefined
+                RangeFilter | undefined
             if (!rangeSelectorState) {
                 const customization = getCollectionConfigModule(labels.collection)
                 const preloadCacheRangeSelector =
@@ -1952,8 +1946,7 @@ function Collection({
                 // TODO: subcollection support
                 const data = await getSome([labels.collection], {
                     constraints: (isServerReadOnly ? serverConstraints : webConstraints) as
-                        | [string, WhereFilterOp, unknown][]
-                        | QueryConstraint[],
+                        [string, WhereFilterOp, unknown][] | QueryConstraint[],
                     only: isPreloadCacheEnabled ? "cache" : undefined,
                     pagination: isPreloadCacheEnabled || (isServerReadOnly && query) ? undefined : { number: 10 },
                     noEmbeddingFields: true,

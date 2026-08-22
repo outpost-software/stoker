@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.240
+
+### Patch Changes
+
+- chore: update dependencies
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.99
+    - @stoker-platform/utils@0.5.86
+    - @stoker-platform/web-client@0.5.103
+
 ## 0.5.239
 
 ### Patch Changes

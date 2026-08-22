@@ -2590,8 +2590,7 @@ function RecordForm({
         const role = permissions.Role
         return convert.filter((convertConfig) => {
             const targetPermissions = permissions.collections?.[convertConfig.collection] as
-                | CollectionPermissions
-                | undefined
+                CollectionPermissions | undefined
             if (!collectionAccess("Create", targetPermissions as CollectionPermissions)) return false
             if (convertConfig.roles && convertConfig.roles.length > 0) {
                 return convertConfig.roles.includes(role)
@@ -4519,7 +4518,19 @@ function RecordForm({
                 if (onSuccess) onSuccess()
             }
         },
-        [form, formValues, prevState, originalRecord, id, isServerReadOnly, rowSelection],
+        [
+            form,
+            formValues,
+            prevState,
+            originalRecord,
+            id,
+            isServerReadOnly,
+            rowSelection,
+            queuedUploads,
+            queuedImageUploads,
+            uploadFilesToRecord,
+            computeBasePath,
+        ],
     )
 
     const handleDelete = useCallback(async () => {
@@ -4687,8 +4698,7 @@ function RecordForm({
         async (targetCollection: CollectionSchema) => {
             if (!formValues || !originalRecord) return
             const targetPermissions = permissions?.collections?.[targetCollection.labels.collection] as
-                | CollectionPermissions
-                | undefined
+                CollectionPermissions | undefined
             if (!collectionAccess("Create", targetPermissions as CollectionPermissions)) return
             const record = cloneDeep(originalRecord) as Partial<StokerRecord>
 
@@ -4972,10 +4982,7 @@ function RecordForm({
                                                                 if (
                                                                     !permissionsCollection.access.operations[
                                                                         operation.toLowerCase() as
-                                                                            | "read"
-                                                                            | "create"
-                                                                            | "update"
-                                                                            | "delete"
+                                                                            "read" | "create" | "update" | "delete"
                                                                     ]?.includes(role)
                                                                 ) {
                                                                     return null
@@ -4984,10 +4991,7 @@ function RecordForm({
                                                                     collectionPermissionWriteRestrictions &&
                                                                     !collectionPermissionWriteRestrictions.operations.includes(
                                                                         operation as
-                                                                            | "Read"
-                                                                            | "Create"
-                                                                            | "Update"
-                                                                            | "Delete",
+                                                                            "Read" | "Create" | "Update" | "Delete",
                                                                     )
                                                                 ) {
                                                                     return null
@@ -5232,8 +5236,7 @@ function RecordForm({
                                                                                 )
                                                                                     return null
                                                                                 let parentCollection:
-                                                                                    | CollectionSchema
-                                                                                    | undefined
+                                                                                    CollectionSchema | undefined
                                                                                 if (
                                                                                     restriction.type === "Parent" ||
                                                                                     restriction.type ===

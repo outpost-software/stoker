@@ -176,9 +176,7 @@ export interface ParentPropertyEntityParentFilter {
     roles: EntityRestrictionRole[]
 }
 export type EntityParentFilter =
-    | IndividualEntityParentFilter
-    | ParentEntityParentFilter
-    | ParentPropertyEntityParentFilter
+    IndividualEntityParentFilter | ParentEntityParentFilter | ParentPropertyEntityParentFilter
 
 export interface AccessOperations {
     assignable?: boolean | StokerRole[]

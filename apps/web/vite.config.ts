@@ -8,7 +8,7 @@ import { tryPromise } from "@stoker-platform/node-client"
 import { watch } from "fs"
 
 export default defineConfig(async ({ mode }) => {
-    const env = loadEnv(mode, __dirname, "")
+    const env = loadEnv(mode, import.meta.dirname, "")
     const skipEslintDisable = (env.SKIP_ESLINT_DISABLE || process.env.SKIP_ESLINT_DISABLE) === "true"
     const path = join(process.cwd(), "src", "assets", "system-custom", "main.js")
     const url = pathToFileURL(path).href
@@ -63,7 +63,7 @@ export default defineConfig(async ({ mode }) => {
             {
                 name: "watch-config",
                 configureServer(server) {
-                    const targetPath = join(__dirname, "src", "assets", "system-custom")
+                    const targetPath = join(import.meta.dirname, "src", "assets", "system-custom")
                     watch(targetPath, { recursive: true }, (eventType, filename) => {
                         if (filename && (filename.endsWith(".ts") || filename.endsWith(".js"))) {
                             server.moduleGraph.invalidateAll()
@@ -78,9 +78,9 @@ export default defineConfig(async ({ mode }) => {
         envPrefix: "STOKER_",
         resolve: {
             alias: {
-                "@": resolve(__dirname, "./src"),
-                react: skipEslintDisable ? resolve(__dirname, "./node_modules/react") : "react",
-                "react-dom": skipEslintDisable ? resolve(__dirname, "./node_modules/react-dom") : "react-dom",
+                "@": resolve(import.meta.dirname, "./src"),
+                react: skipEslintDisable ? resolve(import.meta.dirname, "./node_modules/react") : "react",
+                "react-dom": skipEslintDisable ? resolve(import.meta.dirname, "./node_modules/react-dom") : "react-dom",
             },
         },
         optimizeDeps: {

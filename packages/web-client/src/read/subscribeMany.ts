@@ -176,14 +176,12 @@ export const subscribeMany = async (
         if (hasPagination && paginationEnabled !== true) {
             throw new Error("INPUT_ERROR: Pagination is not allowed when using " + paginationEnabled)
         }
-        if (
-            !(
-                options.pagination.startAfter ||
-                options.pagination.endBefore ||
-                options.pagination.startAt ||
-                options.pagination.endAt
-            )
-        ) {
+        if (!(
+            options.pagination.startAfter ||
+            options.pagination.endBefore ||
+            options.pagination.startAt ||
+            options.pagination.endAt
+        )) {
             constraintRefs = constraintRefs.map((ref) => {
                 let queryScope = query(ref)
                 if (options.pagination?.orderByField && options.pagination.orderByDirection) {

@@ -92,7 +92,7 @@ export const Billing = ({
     const { Checkbox } = components["./components/ui/checkbox.tsx"]
     const { useToast } = hooks["./hooks/use-toast.ts"]
 
-    const { path: pathString, id } = useParams()
+    const { path: pathString, id } = useParams<{ path: string; id: string }>()
     const { toast } = useToast()
 
     const [company, setCompany] = useState<StokerRecord | undefined>(undefined)

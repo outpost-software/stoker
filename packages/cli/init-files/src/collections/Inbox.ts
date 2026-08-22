@@ -171,9 +171,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                         const user = getCurrentUser()
                         const { claims } = user.token
                         const originalMessage = originalRecord.Message as unknown as
-                            | { ops?: Array<Record<string, unknown>> }
-                            | string
-                            | undefined
+                            { ops?: Array<Record<string, unknown>> } | string | undefined
                         const originalOps =
                             typeof originalMessage === "object" && originalMessage && Array.isArray(originalMessage.ops)
                                 ? originalMessage.ops
@@ -219,9 +217,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                         const user = getCurrentUser()
                         const { claims } = user.token
                         const originalMessage = originalRecord.Message as unknown as
-                            | { ops?: Array<Record<string, unknown>> }
-                            | string
-                            | undefined
+                            { ops?: Array<Record<string, unknown>> } | string | undefined
                         const originalOps =
                             typeof originalMessage === "object" && originalMessage && Array.isArray(originalMessage.ops)
                                 ? originalMessage.ops
