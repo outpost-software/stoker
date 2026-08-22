@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.242
+
+### Patch Changes
+
+- feat: install Vite DevTools
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.101
+    - @stoker-platform/web-client@0.5.105
+    - @stoker-platform/utils@0.5.88
+
 ## 0.5.241
 
 ### Patch Changes

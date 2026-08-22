@@ -313,6 +313,7 @@ export interface AdminConfig {
      * If the user role has access to the Dashboard, that will take precedence
      */
     homePage?: Record<StokerRole, StokerCollection> | (() => Record<StokerRole, StokerCollection>)
+    searchAll?: boolean | (() => boolean)
 }
 
 export interface GenerateGlobalConfigParams {

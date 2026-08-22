@@ -74,6 +74,9 @@ export default defineConfig(async ({ mode }) => {
         ],
         build: {
             target: "esnext",
+            rolldownOptions: {
+                devtools: {},
+            },
         },
         envPrefix: "STOKER_",
         resolve: {
@@ -85,6 +88,9 @@ export default defineConfig(async ({ mode }) => {
         },
         optimizeDeps: {
             include: ["style-to-js", "debug", "extend", "classnames"],
+        },
+        devtools: {
+            enabled: false,
         },
     }
 })

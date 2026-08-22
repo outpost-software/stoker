@@ -20,8 +20,12 @@ export default defineConfig({
             formats: ["es", "cjs"],
             fileName: "bundle",
         },
-        rollupOptions: {
+        rolldownOptions: {
             external: [/^node:.*/, /lodash\/.*/, /firebase-admin\/.*/, "@google-cloud/storage", "cross-spawn"],
+            devtools: {},
         },
+    },
+    devtools: {
+        enabled: false,
     },
 })

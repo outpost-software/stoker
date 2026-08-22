@@ -18,8 +18,12 @@ export default defineConfig({
             formats: ["es"],
             fileName: "bundle",
         },
-        rollupOptions: {
+        rolldownOptions: {
             external: [/firebase\/.*/],
+            devtools: {},
         },
+    },
+    devtools: {
+        enabled: false,
     },
 })

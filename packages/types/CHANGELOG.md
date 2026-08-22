@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.71
+
+### Patch Changes
+
+- feat: install Vite DevTools
+
 ## 0.5.70
 
 ### Patch Changes
