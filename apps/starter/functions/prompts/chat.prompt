@@ -1,5 +1,5 @@
 ---
-model: vertexai/gemini-2.5-pro
+model: vertexai/gemini-flash-latest
 config:
   temperature: 0.9
 input:

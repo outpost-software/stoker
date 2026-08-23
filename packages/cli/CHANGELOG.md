@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.157
+
+### Patch Changes
+
+- feat: update Gemini model
+
 ## 0.5.156
 
 ### Patch Changes
