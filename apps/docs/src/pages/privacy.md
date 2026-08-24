@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2025-12-09
+Last updated: 2026-08-24
 
 This Privacy Policy explains how Shopfront International Pty Ltd (“we”, “our”, “us”) collects, uses, and protects information when you use the Stoker framework, CLI tools, website, and related services (collectively, the “Services”).
 
@@ -20,7 +20,7 @@ Contact: info@getoutpost.com
 
 For personal data related to your account and billing, we act as the Data Controller.
 
-For schema data transmitted during deployments, we act as a Data Processor, processing it solely on your instruction.
+For schema data and Google Cloud project IDs transmitted during deployments, we act as a Data Processor, processing them solely on your instruction.
 
 ## 3. What Data We Collect
 
@@ -32,20 +32,20 @@ All app data is stored in your own Google Cloud projects, using your own Google 
 
 We do NOT have access to your Google Cloud projects or your app data.
 
-### 3.2. Schema Data You Send During Deployments
+### 3.2. Schema Data and Project IDs You Send During Deployments
 
 When you use commands such as:
 
 - stoker deploy
 - stoker add-tenant
 
-your Stoker schema (JSON) is transmitted to our server only for the purpose of generating:
+your Stoker schema (JSON) is transmitted to our server along with your project's Google Cloud project ID only for the purpose of generating:
 
 - Firestore index definitions
 - Firestore Security Rules
 - Firebase Storage Security Rules
 
-We do not store, log, cache or retain your schema, generated rules, or index definitions after the request is completed. They are processed in-memory solely for the purpose of generating the required Firebase configuration files.
+We do not store, log, cache or retain your schema, project ID, generated rules, or index definitions after the request is completed. They are processed in-memory solely for the purpose of generating the required Firebase configuration files.
 
 No AI is used for rule or index generation.
 
@@ -94,7 +94,7 @@ If you are in the EEA, UK, or similar regions, we process your data under the fo
 
 ## 6. Data Retention
 
-- We do not store your Stoker schema or generated rules/index definitions.
+- We do not store your Stoker schema, project ID, or generated rules/index definitions.
 - Temporary technical logs may be retained for up to 30 days for operational and security purposes (see section 3.3 for the types of logs retained).
 - Account and billing information is retained as legally required.
 
