@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.102
+
+### Patch Changes
+
+- feat: log user creation failure reason
+
 ## 0.5.101
 
 ### Patch Changes

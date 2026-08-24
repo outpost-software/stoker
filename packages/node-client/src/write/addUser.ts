@@ -5,6 +5,9 @@ import { deleteUser } from "./deleteUser"
 import { getAuth } from "firebase-admin/auth"
 import { sendMail } from "../utils/sendMail"
 import { isReservedClaimKey } from "../utils/reservedAuthClaims.js"
+import { FirebaseError } from "firebase-admin"
+
+const logErrors = true
 
 export const addUser = async (
     tenantId: string,
@@ -51,7 +54,10 @@ export const addUser = async (
             photoURL: record.Photo_URL,
             disabled: !record.Enabled,
         })
-    } catch {
+    } catch (error) {
+        if (logErrors) {
+            console.error((error as FirebaseError).message)
+        }
         throw new Error(message)
     }
 
@@ -81,7 +87,10 @@ export const addUser = async (
             collection: labels.collection,
             doc: docId,
         })
-    } catch {
+    } catch (error) {
+        if (logErrors) {
+            console.error((error as FirebaseError).message)
+        }
         await rollback(record, message)
         throw new Error(message)
     }
@@ -99,7 +108,10 @@ export const addUser = async (
                 Collection: labels.collection,
                 Doc_ID: docId,
             })
-    } catch {
+    } catch (error) {
+        if (logErrors) {
+            console.error((error as FirebaseError).message)
+        }
         await rollback(record, message)
         throw new Error(message)
     }
@@ -109,7 +121,10 @@ export const addUser = async (
         let verificationParams: string | undefined
         try {
             verificationParams = await auth.generateEmailVerificationLink(record.Email)
-        } catch {
+        } catch (error) {
+            if (logErrors) {
+                console.error((error as FirebaseError).message)
+            }
             await rollback(record, message)
             throw new Error(message)
         }
@@ -135,7 +150,10 @@ export const addUser = async (
                         </br>
                         <a href="${verificationLink}">${verificationLink}</a>`,
                 )
-            } catch {
+            } catch (error) {
+                if (logErrors) {
+                    console.error((error as Error).message)
+                }
                 await rollback(record, message)
                 throw new Error(message)
             }
