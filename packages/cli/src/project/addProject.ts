@@ -508,18 +508,23 @@ export const addProject = async (options: any) => {
         const firebaseJsonPath = join(process.cwd(), "firebase.json")
         const firebaseJson = JSON.parse(await readFile(firebaseJsonPath, "utf8"))
         if ((process.env.FB_FIRESTORE_EDITION || "enterprise") === "enterprise") {
-            firebaseJson.firestore = [
-                {
-                    database: projectId,
-                    rules: "firebase-rules/firestore.rules",
-                    indexes: "firebase-rules/firestore.indexes.json",
-                },
-            ]
+            firebaseJson.firestore = {
+                database: projectId,
+                rules: "firebase-rules/firestore.rules",
+                indexes: "firebase-rules/firestore.indexes.json",
+                edition: "enterprise",
+            }
+            firebaseJson.emulators ||= {}
+            firebaseJson.emulators.firestore ||= {}
+            firebaseJson.emulators.firestore.edition = "enterprise"
             await writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 4), "utf8")
         } else {
             firebaseJson.firestore = {
                 rules: "firebase-rules/firestore.rules",
                 indexes: "firebase-rules/firestore.indexes.json",
+            }
+            if (firebaseJson.emulators?.firestore?.edition) {
+                delete firebaseJson.emulators.firestore.edition
             }
             await writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 4), "utf8")
         }
