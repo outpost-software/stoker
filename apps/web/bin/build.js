@@ -393,7 +393,12 @@ try {
             writeFileSync(file, transformed)
         }
     }
-    cpSync(join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`), join(__dirname, "..", ".env"))
+    const projectEnvLines = readFileSync(join(process.cwd(), ".env", `.env.${process.env.GCP_PROJECT}`), "utf8").split(
+        "\n",
+    )
+    const isDebugTokenLine = (line) => line.startsWith("STOKER_FB_APP_CHECK_DEBUG_TOKEN=")
+    writeFileSync(join(__dirname, "..", ".env"), projectEnvLines.filter((line) => !isDebugTokenLine(line)).join("\n"))
+    writeFileSync(join(__dirname, "..", ".env.development"), projectEnvLines.filter(isDebugTokenLine).join("\n"))
     if (process.env.SKIP_ESLINT_DISABLE) {
         await appendFile(join(__dirname, "..", ".env"), "\nSKIP_ESLINT_DISABLE=true")
     }

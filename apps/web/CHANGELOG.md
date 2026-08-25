@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.245
+
+### Patch Changes
+
+- fix: add development env file to web app
+
 ## 0.5.244
 
 ### Patch Changes

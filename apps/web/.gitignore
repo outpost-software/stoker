@@ -4,6 +4,7 @@ firebase.json
 remoteconfig.template.json
 src/assets/system-custom
 .env
+.env.development
 dist
 !lib
 .turbo

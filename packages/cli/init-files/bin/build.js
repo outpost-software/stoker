@@ -125,7 +125,7 @@ try {
     const projectSpecificEnvFile = join(envDir, `.env.${process.env.GCP_PROJECT}`)
 
     let envContent = ""
-    const envPattern = /^(FB_FIRESTORE_EDITION|FB_FUNCTIONS_|FB_AI_REGION|STOKER_|ADMIN_)/
+    const envPattern = /^(FB_FIRESTORE_EDITION|FB_FUNCTIONS_|FB_AI_REGION|STOKER_(?!FB_APP_CHECK_DEBUG_TOKEN)|ADMIN_)/
 
     if (existsSync(projectEnvFile)) {
         const projectEnvContent = await readFile(projectEnvFile, "utf8")
