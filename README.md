@@ -158,7 +158,6 @@ For more information, see [Collection Files](https://stoker-website.web.app/docs
 4. `npm run start`
 5. Navigate to `localhost:4001` and add the password for your test user in the Authentication section (each time you run `npm run start`).
 6. Navigate to `localhost:5173` to see your app. All data will be reset each time you run `npm run start`.
-7. If you are using App Check, set up your App Check debug token (steps 2 & 3 [here](https://firebase.google.com/docs/app-check/web/debug-provider#localhost))
 
 When you make changes to your app schema, you may need to close your terminal session and re-run `npm run start`.
 

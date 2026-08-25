@@ -305,7 +305,7 @@ export const initializeStoker = async (
     if (env.STOKER_FB_ENABLE_APP_CHECK === "true") {
         if (env.STOKER_FB_APP_CHECK_KEY) {
             if (mode === "development" || window.location.hostname === "localhost") {
-                globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+                globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = env.STOKER_FB_APP_CHECK_DEBUG_TOKEN || true
             }
             const appCheckSettings: AppCheckOptions = {
                 provider: new ReCaptchaEnterpriseProvider(env.STOKER_FB_APP_CHECK_KEY),

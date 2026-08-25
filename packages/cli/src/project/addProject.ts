@@ -6,6 +6,7 @@ import { retryOperation, getFirestoreDatabaseId } from "@stoker-platform/utils"
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager"
 import { addTenant } from "./addTenant.js"
 import { existsSync } from "fs"
+import { randomUUID } from "node:crypto"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addProject = async (options: any) => {
@@ -1111,6 +1112,32 @@ export const addProject = async (options: any) => {
     const envDir = join(process.cwd(), ".env")
     const envFile = join(envDir, `.env.${projectId}`)
 
+    let appCheckDebugToken: string | undefined
+    if (process.env.FB_ENABLE_APP_CHECK === "true") {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        if (existsSync(envFile)) {
+            // eslint-disable-next-line security/detect-non-literal-fs-filename
+            appCheckDebugToken = dotenv.parse(await readFile(envFile)).STOKER_FB_APP_CHECK_DEBUG_TOKEN
+        }
+        if (!appCheckDebugToken) {
+            appCheckDebugToken = randomUUID()
+            await runChildProcess("firebase", [
+                "appcheck:debugtokens:create",
+                appCheckDebugToken,
+                "--app",
+                appId,
+                "--display-name",
+                "Stoker Development",
+                "--project",
+                projectId,
+                "--non-interactive",
+                "--force",
+            ]).catch(() => {
+                throw new Error("Error creating App Check debug token.")
+            })
+        }
+    }
+
     let envContent = `STOKER_FB_WEB_APP_CONFIG='${JSON.stringify(webAppConfig)}'
 STOKER_FB_ENABLE_APP_CHECK=${process.env.FB_ENABLE_APP_CHECK}
 STOKER_FB_APP_CHECK_KEY="${recaptchaKeyId}"
@@ -1119,6 +1146,10 @@ STOKER_FB_FUNCTIONS_REGION="${process.env.FB_FUNCTIONS_REGION}"
 STOKER_FB_FIRESTORE_EDITION="${process.env.FB_FIRESTORE_EDITION || "enterprise"}"
 FB_DATABASE="${projectId}-default-rtdb"
 FB_FIRESTORE_EXPORT_BUCKET="${projectId}-export"`
+
+    if (appCheckDebugToken) {
+        envContent += `\nSTOKER_FB_APP_CHECK_DEBUG_TOKEN="${appCheckDebugToken}"`
+    }
 
     if (process.env.SENTRY_DSN && !options.development) {
         envContent += `\nSTOKER_SENTRY_DSN="${process.env.SENTRY_DSN}"`
