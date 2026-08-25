@@ -1,5 +1,15 @@
 # @stoker-platform/system-functions
 
+## 0.5.124
+
+### Patch Changes
+
+- feat: support NPM 12
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.103
+    - @stoker-platform/types@0.5.72
+    - @stoker-platform/utils@0.5.89
+
 ## 0.5.123
 
 ### Patch Changes

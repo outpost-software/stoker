@@ -1,5 +1,17 @@
 # @stoker-platform/cli
 
+## 0.5.159
+
+### Patch Changes
+
+- feat: support NPM 12
+- feat: support Firestore Enterprise emulator
+- feat: automate App Check debug token process
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.103
+    - @stoker-platform/types@0.5.72
+    - @stoker-platform/utils@0.5.89
+
 ## 0.5.158
 
 ### Patch Changes

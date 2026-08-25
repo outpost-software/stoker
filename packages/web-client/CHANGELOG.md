@@ -1,5 +1,15 @@
 # @stoker-platform/web-client
 
+## 0.5.106
+
+### Patch Changes
+
+- feat: support NPM 12
+- feat: automate App Check debug token process
+- Updated dependencies
+    - @stoker-platform/types@0.5.72
+    - @stoker-platform/utils@0.5.89
+
 ## 0.5.105
 
 ### Patch Changes

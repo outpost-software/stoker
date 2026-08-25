@@ -1,5 +1,14 @@
 # @stoker-platform/node-client
 
+## 0.5.103
+
+### Patch Changes
+
+- feat: support NPM 12
+- Updated dependencies
+    - @stoker-platform/types@0.5.72
+    - @stoker-platform/utils@0.5.89
+
 ## 0.5.102
 
 ### Patch Changes

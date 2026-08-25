@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.72
+
+### Patch Changes
+
+- feat: support NPM 12
+
 ## 0.5.71
 
 ### Patch Changes

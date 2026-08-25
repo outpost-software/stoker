@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.244
+
+### Patch Changes
+
+- feat: support NPM 12
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.103
+    - @stoker-platform/utils@0.5.89
+    - @stoker-platform/web-client@0.5.106
+
 ## 0.5.243
 
 ### Patch Changes
