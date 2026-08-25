@@ -18,6 +18,7 @@
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
     },
     "dependencies": {
+        "@genkit-ai/firebase": "^1.41.0",
         "@stoker-platform/cli": "0.5.158",
         "@stoker-platform/node-client": "0.5.102",
         "@stoker-platform/types": "0.5.71",
@@ -31,7 +32,7 @@
     },
     "engines": {
         "node": ">=22",
-        "npm": "11"
+        "npm": ">=12"
     },
     "stokerExternalPackages": {
         "xero-node": "latest",

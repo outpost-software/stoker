@@ -19,7 +19,7 @@
     },
     "engines": {
         "node": ">=22",
-        "npm": "11"
+        "npm": ">=12"
     },
     "dependencies": {
         "@fullcalendar/core": "^6.1.21",

@@ -3,8 +3,10 @@
         "rules": "firebase-rules/database.rules.json"
     },
     "firestore": {
+        "database": "test-project-1787642382177",
         "rules": "firebase-rules/firestore.rules",
-        "indexes": "firebase-rules/firestore.indexes.json"
+        "indexes": "firebase-rules/firestore.indexes.json",
+        "edition": "enterprise"
     },
     "storage": [
         {
@@ -30,7 +32,8 @@
             "port": 5001
         },
         "firestore": {
-            "port": 8080
+            "port": 8080,
+            "edition": "enterprise"
         },
         "database": {
             "port": 9000
