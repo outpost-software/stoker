@@ -165,6 +165,7 @@ export const addProject = async (options: any) => {
             "services",
             "enable",
             "aiplatform.googleapis.com",
+            "firebasevertexai.googleapis.com",
             "monitoring.googleapis.com",
             "logging.googleapis.com",
             "cloudtrace.googleapis.com",
@@ -1081,6 +1082,13 @@ export const addProject = async (options: any) => {
                             {
                                 service: {
                                     name: `projects/${projectId}/services/maps-backend.googleapis.com`,
+                                    enforcementMode: "ENFORCED",
+                                },
+                                updateMask: "enforcementMode",
+                            },
+                            {
+                                service: {
+                                    name: `projects/${projectId}/services/firebaseml.googleapis.com`,
                                     enforcementMode: "ENFORCED",
                                 },
                                 updateMask: "enforcementMode",

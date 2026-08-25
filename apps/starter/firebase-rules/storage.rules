@@ -13,7 +13,7 @@ service firebase.storage {
             }
 
             function getUserPermissions() {
-                return firestore.get(/databases/test-project-1787642382177/documents/tenants/$(tenantId)/system_user_permissions/$(request.auth.uid)).data
+                return firestore.get(/databases/(default)/documents/tenants/$(tenantId)/system_user_permissions/$(request.auth.uid)).data
             }
             function restrictionInactive(permissions, restriction) {
                 let p = permissions;
@@ -25,10 +25,10 @@ service firebase.storage {
             }
 
             function existsDocument(path) {
-                return firestore.exists(/databases/test-project-1787642382177/documents/tenants/$(tenantId)/$(path))
+                return firestore.exists(/databases/(default)/documents/tenants/$(tenantId)/$(path))
             }
             function getDocument(path) {
-                return firestore.get(/databases/test-project-1787642382177/documents/tenants/$(tenantId)/$(path)).data
+                return firestore.get(/databases/(default)/documents/tenants/$(tenantId)/$(path)).data
             }
 
             function readAllowed(collectionPermissions) {
