@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.161
+
+### Patch Changes
+
+- feat: add Firebase AI Logic support
+
 ## 0.5.160
 
 ### Patch Changes
