@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.246
+
+### Patch Changes
+
+- fix: use record clone when updating multiple records
+
 ## 0.5.245
 
 ### Patch Changes

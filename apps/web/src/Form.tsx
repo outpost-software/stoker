@@ -4465,7 +4465,7 @@ function RecordForm({
                             const serverWrite = isServerUpdate(collection, recordToSave, undefined, selectedRecord)
                             setGlobalLoading("+", selectedRecord.id, serverWrite, !(serverWrite || isServerReadOnly))
 
-                            return updateRecord(path, selectedRecord.id, recordToSave, {
+                            return updateRecord(path, selectedRecord.id, cloneDeep(recordToSave), {
                                 originalRecord: selectedRecord,
                             })
                                 .catch((error) => {
