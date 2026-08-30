@@ -3825,6 +3825,7 @@ function RecordForm({
     }, [])
 
     const suppressDraftSaveRef = useRef(false)
+    const onValidFiredRef = useRef(false)
 
     const previous = useRef<StokerRecord | undefined>(undefined)
 
@@ -4262,6 +4263,7 @@ function RecordForm({
             if (operation === "create") {
                 const serverWrite = isServerCreate(collection, userData)
                 const docId = doc(dbCollection(db, "tenants", tenantId, labels.collection)).id
+                onValidFiredRef.current = false
 
                 setGlobalLoading("+", docId, serverWrite, !(serverWrite || isServerReadOnly))
                 if (serverWrite || isServerReadOnly) {
@@ -4270,6 +4272,14 @@ function RecordForm({
 
                 const onValid = () => {
                     if (!(serverWrite || isServerReadOnly)) {
+                        onValidFiredRef.current = true
+                        toast({
+                            // eslint-disable-next-line security/detect-object-injection
+                            description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} created.`,
+                        })
+                        suppressDraftSaveRef.current = true
+                        localStorage.removeItem(`stoker-draft-${labels.collection}`)
+                        localStorage.removeItem(`stoker-draft-owner-${labels.collection}`)
                         if (onSuccess) onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                     }
                 }
@@ -4329,22 +4339,15 @@ function RecordForm({
                     })
                     .catch((error) => {
                         console.error(error)
-                        if (isServerReadOnly || serverWrite) {
-                            setError(error.message.replace("VALIDATION_ERROR: ", ""))
+                        const message = error.message.replace("VALIDATION_ERROR: ", "")
+                        if (!onValidFiredRef.current) {
+                            setError(message)
                         } else {
-                            if (error.message.includes("VALIDATION_ERROR")) {
-                                toast({
-                                    description: error.message.replace("VALIDATION_ERROR: ", ""),
-                                    variant: "destructive",
-                                    duration: 10000000,
-                                })
-                            } else {
-                                toast({
-                                    // eslint-disable-next-line security/detect-object-injection
-                                    description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} failed to create.`,
-                                    variant: "destructive",
-                                })
-                            }
+                            toast({
+                                description: message,
+                                variant: "destructive",
+                                ...(error.message.includes("VALIDATION_ERROR") ? { duration: 10000000 } : {}),
+                            })
                         }
                     })
                     .finally(() => {
@@ -4353,15 +4356,6 @@ function RecordForm({
                         }
                         setGlobalLoading("-", docId, undefined, !(serverWrite || isServerReadOnly))
                     })
-                if (!(serverWrite || isServerReadOnly)) {
-                    toast({
-                        // eslint-disable-next-line security/detect-object-injection
-                        description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} created.`,
-                    })
-                    suppressDraftSaveRef.current = true
-                    localStorage.removeItem(`stoker-draft-${labels.collection}`)
-                    localStorage.removeItem(`stoker-draft-owner-${labels.collection}`)
-                }
             } else if (operation === "update") {
                 if (!id) {
                     setError("No ID provided for update operation")
