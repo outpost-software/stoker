@@ -152,8 +152,8 @@ For more information, see [Collection Files](https://stoker-website.web.app/docs
 > [!IMPORTANT]
 > If you have not already used Firebase in your Google Cloud account, you'll have to [manually create a Firebase project](https://console.firebase.google.com) in your account before continuing. This is currently the only way you can accept the Firebase terms and conditions, which is required to continue. You can delete your manually created project when you are done- it won't be required for Stoker.
 
-1. Add a development project using:<br></br>
-`stoker add-project -n <PROJECT_NAME> --development --set-emulator-data`<br></br>
+1. Add a development project using:  
+`stoker add-project -n <PROJECT_NAME> --development --set-emulator-data`  
 You'll be prompted to add the first tenant to your project (requires an organization name and a user). If your deployment is stopped for any reason, you can re-run the `add-project` command to resume. It's normal to see some error messages in the terminal output during deployment.
 2. Navigate to the project by running `export GCP_PROJECT=<PROJECT_NAME> && stoker set-project`
 3. `npm run start`
