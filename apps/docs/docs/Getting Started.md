@@ -158,8 +158,6 @@ You'll be prompted to add the first tenant to your project (requires an organiza
 4. Navigate to `localhost:4001` and add the password for your test user in the Authentication section (each time you run `npm run start`).
 5. Navigate to `localhost:5173` to see your app. All data will be reset each time you run `npm run start`.
 
-When you make changes to your app schema, you may need to close your terminal session and re-run `npm run start`.
-
 You may need to clear the required ports on your system before re-running `npm run start`.
 
 ## Production Environment
