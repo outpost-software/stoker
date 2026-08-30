@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.247
+
+### Patch Changes
+
+- fix: show validation errors on create record form
+
 ## 0.5.246
 
 ### Patch Changes

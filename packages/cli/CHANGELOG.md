@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.162
+
+### Patch Changes
+
+- feat: add --set-emulator-data option to add-project command
+
 ## 0.5.161
 
 ### Patch Changes
