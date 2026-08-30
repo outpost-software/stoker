@@ -150,12 +150,11 @@ It's normal to see some error messages in the terminal output during deployment.
 If you have not already used Firebase in your Google Cloud account, you'll have to [manually create a Firebase project](https://console.firebase.google.com) in your account before continuing. This is currently the only way you can accept the Firebase terms and conditions, which is required to continue. You can delete your manually created project when you are done- it won't be required for Stoker.
 :::
 
-1. Add a development project using `stoker add-project -n <PROJECT_NAME> --development`. You'll be prompted to add the first tenant to your project (requires an organization name and a user). If your deployment is stopped for any reason, you can re-run the `add-project` command to resume.
+1. Add a development project using `stoker add-project -n <PROJECT_NAME> --development --set-emulator-data`. You'll be prompted to add the first tenant to your project (requires an organization name and a user). If your deployment is stopped for any reason, you can re-run the `add-project` command to resume.
 2. Navigate to the project by running `export GCP_PROJECT=<PROJECT_NAME> && stoker set-project`
-3. Run `stoker emulator-data`
-4. `npm run start`
-5. Navigate to `localhost:4001` and add the password for your test user in the Authentication section (each time you run `npm run start`).
-6. Navigate to `localhost:5173` to see your app. All data will be reset each time you run `npm run start`.
+3. `npm run start`
+4. Navigate to `localhost:4001` and add the password for your test user in the Authentication section (each time you run `npm run start`).
+5. Navigate to `localhost:5173` to see your app. All data will be reset each time you run `npm run start`.
 
 When you make changes to your app schema, you may need to close your terminal session and re-run `npm run start`.
 

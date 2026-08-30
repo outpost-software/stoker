@@ -7,6 +7,7 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager"
 import { addTenant } from "./addTenant.js"
 import { existsSync } from "fs"
 import { randomUUID } from "node:crypto"
+import { prepareEmulatorData } from "./prepareEmulatorData.js"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addProject = async (options: any) => {
@@ -1195,6 +1196,10 @@ STOKER_FB_EMULATOR_FUNCTIONS_PORT=${functionsPort}`
     await addTenant()
 
     await updateProjectData(1000)
+
+    if (options.development && options.setEmulatorData) {
+        await prepareEmulatorData()
+    }
 
     process.exit()
 }

@@ -317,6 +317,7 @@ program
     .option("-r, --backup-retention <duration>", "set Firestore backup duration (default 7 days)")
     .option("-c, --custom-cors <path>", "file path for custom Cloud Storage CORS policy")
     .option("-d, --development", "specifies that this will be a development project")
+    .option("-e, --set-emulator-data", "set emulator data for the project")
     .option("-t, --test-mode", "add the project in test mode")
     .action((options) => {
         addProject(options)
