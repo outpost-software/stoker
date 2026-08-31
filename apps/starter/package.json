@@ -19,7 +19,7 @@
     },
     "dependencies": {
         "@genkit-ai/firebase": "^1.41.0",
-        "@stoker-platform/cli": "0.5.162",
+        "@stoker-platform/cli": "0.5.163",
         "@stoker-platform/node-client": "0.5.103",
         "@stoker-platform/types": "0.5.72",
         "@stoker-platform/utils": "0.5.89",

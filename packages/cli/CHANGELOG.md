@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.163
+
+### Patch Changes
+
+- fix: set GENKIT_ENV to prod
+
 ## 0.5.162
 
 ### Patch Changes

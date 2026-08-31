@@ -125,7 +125,8 @@ try {
     const projectSpecificEnvFile = join(envDir, `.env.${process.env.GCP_PROJECT}`)
 
     let envContent = ""
-    const envPattern = /^(FB_FIRESTORE_EDITION|FB_FUNCTIONS_|FB_AI_REGION|STOKER_(?!FB_APP_CHECK_DEBUG_TOKEN)|ADMIN_)/
+    const envPattern =
+        /^(FB_FIRESTORE_EDITION|FB_FUNCTIONS_|FB_AI_REGION|GENKIT_ENV|STOKER_(?!FB_APP_CHECK_DEBUG_TOKEN)|ADMIN_)/
 
     if (existsSync(projectEnvFile)) {
         const projectEnvContent = await readFile(projectEnvFile, "utf8")
@@ -145,6 +146,9 @@ try {
         const allLines = [...defaultContent.split("\n"), ...projectSpecificContent.split("\n")]
         const filteredLines = allLines.filter((line) => envPattern.test(line.trim()))
         envContent = filteredLines.join("\n")
+    }
+    if (!/^\s*GENKIT_ENV\s*=/m.test(envContent)) {
+        envContent = envContent ? `${envContent}\nGENKIT_ENV="prod"` : `GENKIT_ENV="prod"`
     }
 
     await writeFile(functionsEnvPath, envContent, "utf8")
