@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.73
+
+### Patch Changes
+
+- feat: add additional Metric text sizes
+
 ## 0.5.72
 
 ### Patch Changes

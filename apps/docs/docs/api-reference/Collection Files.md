@@ -2258,7 +2258,7 @@ type Metric = {
     decimal?: number
     prefix?: string
     suffix?: string
-    textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    textSize?: "text-xs" | "text-sm" | "text-base" | "text-lg" | "text-xl" | "text-2xl" | "text-3xl"
     compact?: boolean
     formula?: (records: StokerRecord[]) => number | string
 }
@@ -2294,7 +2294,7 @@ For "custom" metrics, use the formula method to calculate the value to display.
 | `decimal` | `number` | Maximum decimal places to display. |
 | `prefix` | `string` | Prefix text, for example a currency symbol. |
 | `suffix` | `string` | Suffix text, for example units. |
-| `textSize` | `"text-xl" \| "text-2xl" \| "text-3xl"` | Tailwind text size for the metric value. |
+| `textSize` | `"text-xs" \| "text-sm" \| "text-base" \| "text-lg" \| "text-xl" \| "text-2xl" \| "text-3xl"` | Tailwind text size for the metric value. |
 | `compact` | `boolean` | Compact the metric vertically. The metric will be displayed as a single-line card showing the title and value together. |
 | `formula` | `(records: StokerRecord[]) => number \| string` | Custom metric calculation. |
 

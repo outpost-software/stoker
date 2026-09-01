@@ -1,5 +1,13 @@
 # @stoker-platform/web-app
 
+## 0.5.248
+
+### Patch Changes
+
+- @stoker-platform/node-client@0.5.104
+    - @stoker-platform/utils@0.5.90
+    - @stoker-platform/web-client@0.5.107
+
 ## 0.5.247
 
 ### Patch Changes

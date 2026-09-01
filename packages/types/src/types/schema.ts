@@ -951,7 +951,7 @@ export interface Metric {
     /** Suffix text, for example units */
     suffix?: string
     /** Tailwind text size for the metric value */
-    textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    textSize?: "text-xs" | "text-sm" | "text-base" | "text-lg" | "text-xl" | "text-2xl" | "text-3xl"
     /** Compact the metric vertically */
     compact?: boolean
     /** Custom metric calculation */

@@ -271,7 +271,7 @@ type DashboardMetric = {
     decimal?: number
     prefix?: string
     suffix?: string
-    textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    textSize?: "text-xs" | "text-sm" | "text-base" | "text-lg" | "text-xl" | "text-2xl" | "text-3xl"
     constraints?: [string, WhereFilterOp, unknown][]
 }
 ```

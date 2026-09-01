@@ -195,7 +195,7 @@ export interface DashboardMetric {
     /** Suffix text, for example units */
     suffix?: string
     /** Tailwind text size for the metric value */
-    textSize?: "text-xl" | "text-2xl" | "text-3xl"
+    textSize?: "text-xs" | "text-sm" | "text-base" | "text-lg" | "text-xl" | "text-2xl" | "text-3xl"
     /** Firestore constraints to apply to the metric query */
     constraints?: [string, WhereFilterOp, unknown][]
     /** Force metric data to be loaded from the server */
