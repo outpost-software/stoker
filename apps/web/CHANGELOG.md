@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.250
+
+### Patch Changes
+
+- fix: remove image fields from duplicated record
+
 ## 0.5.249
 
 ### Patch Changes

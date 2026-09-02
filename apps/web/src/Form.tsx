@@ -4677,6 +4677,7 @@ function RecordForm({
                 field.type !== "Computed" &&
                 !(field.type === "Number" && field.autoIncrement) &&
                 !(collection.auth && field.name === "User_ID") &&
+                !tryFunction(fieldCustomization.admin?.image) &&
                 restrictCreateAccess(field, permissions, collection.labels.collection, userClaims) &&
                 fieldCustomization.custom?.initialValue === undefined
             ) {
