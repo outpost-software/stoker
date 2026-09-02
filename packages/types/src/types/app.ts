@@ -249,6 +249,8 @@ export interface DashboardReminder {
     collection: StokerCollection
     /** Which columns to show in the list */
     columns: string[]
+    /** How many dashboard columns the reminder should occupy */
+    length?: 1 | 2 | 3
     /** The title shown above the reminder */
     title?: string
     /** Limit which user roles can view the reminder */

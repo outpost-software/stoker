@@ -100,7 +100,19 @@ export const Dashboard = () => {
                                         let cols = ""
                                         if (dashboardItem.kind === "metric") cols = "md:col-span-1"
                                         if (dashboardItem.kind === "chart") cols = "md:col-span-4"
-                                        if (dashboardItem.kind === "reminder") cols = "lg:col-span-2"
+                                        if (dashboardItem.kind === "reminder") {
+                                            const reminderCols = {
+                                                1: "lg:col-span-2",
+                                                2: "lg:col-span-4",
+                                                3: "lg:col-span-6",
+                                            } as const
+                                            const length =
+                                                dashboardItem.length === 2 || dashboardItem.length === 3
+                                                    ? dashboardItem.length
+                                                    : 1
+                                            // eslint-disable-next-line security/detect-object-injection
+                                            cols = reminderCols[length]
+                                        }
                                         return (
                                             <div key={`dashboard-${index}`} className={cn("col-span-3", cols)}>
                                                 {dashboardItem.kind === "metric" && isPreloadCacheEnabled && (

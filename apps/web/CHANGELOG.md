@@ -1,5 +1,14 @@
 # @stoker-platform/web-app
 
+## 0.5.249
+
+### Patch Changes
+
+- feat: add Dashboard Reminder length option
+- @stoker-platform/node-client@0.5.105
+    - @stoker-platform/utils@0.5.91
+    - @stoker-platform/web-client@0.5.108
+
 ## 0.5.248
 
 ### Patch Changes

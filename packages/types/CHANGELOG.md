@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.74
+
+### Patch Changes
+
+- feat: add Dashboard Reminder length option
+
 ## 0.5.73
 
 ### Patch Changes

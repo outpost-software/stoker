@@ -254,7 +254,7 @@ For example:
 
 Return an array of Dashboard Items. These will be laid out in a grid.
 
-We recommend that each row contains any of: 
+We recommend that each row contains any of:
 - 1-2 metrics and a chart
 - 1 reminder and a chart
 - 3 reminders
@@ -308,6 +308,7 @@ type DashboardReminder = {
     kind: "reminder"
     collection: string
     columns: string[]
+    length?: 1 | 2 | 3
     title?: string
     roles?: string[]
     constraints?: [string, WhereFilterOp, unknown][]
