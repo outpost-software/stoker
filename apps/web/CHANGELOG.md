@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.251
+
+### Patch Changes
+
+- feat: provide record ID to form condition method
+
 ## 0.5.250
 
 ### Patch Changes

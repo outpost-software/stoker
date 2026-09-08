@@ -393,7 +393,7 @@ const RecordFormField = (props: FieldProps) => {
     }, [])
 
     useEffect(() => {
-        const condition = tryFunction(admin?.condition?.form, [operation, form.getValues()])
+        const condition = tryFunction(admin?.condition?.form, [operation, { ...form.getValues(), id: record?.id }])
         if (condition === false) {
             setCondition(false)
             return
