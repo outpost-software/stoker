@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.167
+
+### Patch Changes
+
+- fix: improve line ending handling
+
 ## 0.5.166
 
 ### Patch Changes

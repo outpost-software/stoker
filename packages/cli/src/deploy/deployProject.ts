@@ -105,7 +105,7 @@ export const deployProject = async (options: any) => {
 
         const extensionEnvPath = join(process.cwd(), "extensions", "firestore-send-email.env")
         const extensionEnvFile = await readFile(extensionEnvPath, "utf8")
-        const extensionEnvFileLines = extensionEnvFile.split("\n")
+        const extensionEnvFileLines = extensionEnvFile.split(/\r?\n/)
         const linesToRemove = ["DATABASE="]
         const filteredLines = extensionEnvFileLines.filter(
             (line) => !linesToRemove.some((removeStr) => line.startsWith(removeStr)),

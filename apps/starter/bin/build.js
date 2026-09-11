@@ -86,7 +86,12 @@ try {
     } else {
         envFile = await readFile(join(__dirname, "..", ".env", ".env"), "utf8")
     }
-    const envFileLines = envFile.split("\n")
+    const envFileLines = envFile.split(/\r?\n/)
+    const envValue = (line) =>
+        line
+            .slice(line.indexOf("=") + 1)
+            .trim()
+            .replace(/^"|"$/g, "")
     const databaseRegion = envFileLines.find((line) => line.startsWith("FB_FIRESTORE_REGION="))
 
     const mailRegion = envFileLines.find((line) => line.startsWith("MAIL_REGION="))
@@ -94,7 +99,7 @@ try {
     const mailSmtpConnectionUri = envFileLines.find((line) => line.startsWith("MAIL_SMTP_CONNECTION_URI="))
 
     const extensionEnvFile = await readFile(join(__dirname, "..", "extensions", "firestore-send-email.env"), "utf8")
-    const extensionEnvFileLines = extensionEnvFile.split("\n")
+    const extensionEnvFileLines = extensionEnvFile.split(/\r?\n/)
     const linesToRemove = [
         "EVENTARC_CHANNEL=",
         "DEFAULT_FROM=",
@@ -108,13 +113,13 @@ try {
         (line) => !linesToRemove.some((removeStr) => line.startsWith(removeStr)),
     )
     filteredLines.push(
-        `EVENTARC_CHANNEL=projects/\${param:PROJECT_ID}/locations/${mailRegion.split("=")[1].replace(/^"|"$/g, "")}/channels/firebase`,
+        `EVENTARC_CHANNEL=projects/\${param:PROJECT_ID}/locations/${envValue(mailRegion)}/channels/firebase`,
     )
     filteredLines.push(`firebaseextensions.v1beta.function/location=${process.env.FB_FUNCTIONS_REGION}`)
-    filteredLines.push(`DEFAULT_FROM=${mailSender.split("=")[1].replace(/^"|"$/g, "")}`)
-    filteredLines.push(`DEFAULT_REPLY_TO=${mailSender.split("=")[1].replace(/^"|"$/g, "")}`)
-    filteredLines.push(`SMTP_CONNECTION_URI=${mailSmtpConnectionUri.split("=")[1].replace(/^"|"$/g, "")}`)
-    filteredLines.push(`DATABASE_REGION=${databaseRegion.split("=")[1].replace(/^"|"$/g, "")}`)
+    filteredLines.push(`DEFAULT_FROM=${envValue(mailSender)}`)
+    filteredLines.push(`DEFAULT_REPLY_TO=${envValue(mailSender)}`)
+    filteredLines.push(`SMTP_CONNECTION_URI=${envValue(mailSmtpConnectionUri)}`)
+    filteredLines.push(`DATABASE_REGION=${envValue(databaseRegion)}`)
     filteredLines.push(`DATABASE=${getFirestoreDatabaseId(process.env.FB_FIRESTORE_EDITION, process.env.GCP_PROJECT)}`)
     await writeFile(join(__dirname, "..", "extensions", "firestore-send-email.env"), filteredLines.join("\n"))
 
@@ -134,8 +139,8 @@ try {
             ? await readFile(projectSpecificEnvFile, "utf8")
             : ""
 
-        const allLines = [...projectEnvContent.split("\n"), ...projectSpecificContent.split("\n")]
-        const filteredLines = allLines.filter((line) => envPattern.test(line.trim()))
+        const allLines = [...projectEnvContent.split(/\r?\n/), ...projectSpecificContent.split(/\r?\n/)]
+        const filteredLines = allLines.map((line) => line.trim()).filter((line) => envPattern.test(line))
         envContent = filteredLines.join("\n")
     } else {
         const defaultContent = existsSync(defaultEnvFile) ? await readFile(defaultEnvFile, "utf8") : ""
@@ -143,8 +148,8 @@ try {
             ? await readFile(projectSpecificEnvFile, "utf8")
             : ""
 
-        const allLines = [...defaultContent.split("\n"), ...projectSpecificContent.split("\n")]
-        const filteredLines = allLines.filter((line) => envPattern.test(line.trim()))
+        const allLines = [...defaultContent.split(/\r?\n/), ...projectSpecificContent.split(/\r?\n/)]
+        const filteredLines = allLines.map((line) => line.trim()).filter((line) => envPattern.test(line))
         envContent = filteredLines.join("\n")
     }
     if (!/^\s*GENKIT_ENV\s*=/m.test(envContent)) {
