@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.168
+
+### Patch Changes
+
+- fix: pin sharp version
+
 ## 0.5.167
 
 ### Patch Changes

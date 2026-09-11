@@ -1,4 +1,7 @@
 {
+    "overrides": {
+        "sharp": "^0.35.0"
+    },
     "name": "stoker",
     "private": true,
     "version": "0.0.1",

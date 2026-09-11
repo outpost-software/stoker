@@ -2,7 +2,8 @@
     "overrides": {
         "dotprompt": "1.1.1",
         "@types/react": "18.3.13",
-        "@types/react-dom": "18.3.1"
+        "@types/react-dom": "18.3.1",
+        "sharp": "^0.35.0"
     },
     "name": "stoker",
     "private": true,

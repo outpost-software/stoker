@@ -1,4 +1,7 @@
 {
+    "overrides": {
+        "sharp": "^0.35.0"
+    },
     "name": "stoker",
     "private": true,
     "version": "0.4.285",
@@ -19,7 +22,7 @@
     },
     "dependencies": {
         "@genkit-ai/firebase": "^1.41.0",
-        "@stoker-platform/cli": "0.5.167",
+        "@stoker-platform/cli": "0.5.168",
         "@stoker-platform/node-client": "0.5.105",
         "@stoker-platform/types": "0.5.74",
         "@stoker-platform/utils": "0.5.91",
