@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.166
+
+### Patch Changes
+
+- fix: use cross-spawn for schema generation tsc call
+
 ## 0.5.165
 
 ### Patch Changes

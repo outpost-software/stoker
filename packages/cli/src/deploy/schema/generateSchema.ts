@@ -11,7 +11,7 @@ import {
 } from "@stoker-platform/types"
 import { getRelationLists, roleHasOperationAccess } from "@stoker-platform/utils"
 import { ServerValue } from "firebase-admin/database"
-import { spawnSync } from "child_process"
+import spawn from "cross-spawn"
 import { existsSync } from "fs"
 import { readdir, readFile, rm } from "fs/promises"
 import { join } from "path"
@@ -23,7 +23,7 @@ const ensureSchemaBuildOutput = (isTypeGen: boolean) => {
     const collectionsPath = join(process.cwd(), "lib", "collections")
     if (existsSync(mainPath) && existsSync(collectionsPath)) return
 
-    const buildResult = spawnSync("npx", ["tsc", "--pretty", "false", "--noEmitOnError", "false"], {
+    const buildResult = spawn.sync("npx", ["tsc", "--pretty", "false", "--noEmitOnError", "false"], {
         cwd: process.cwd(),
         stdio: "ignore",
     })
