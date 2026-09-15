@@ -595,7 +595,11 @@ export const lintSchema = async (noLog = false) => {
                         `Collection ${collectionName} has a preload cache with a range field ${field} that does not exist`,
                     )
                 } else {
-                    if (index > 0 && !rangeField.nullable) {
+                    if (
+                        index > 0 &&
+                        !rangeField.nullable &&
+                        !systemFieldSchema.some((systemField) => systemField.name === field)
+                    ) {
                         errors.push(
                             `Collection ${collectionName} has a preload cache range field ${field} that must be nullable`,
                         )

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.169
+
+### Patch Changes
+
+- feat: allow non-nullable system fields as preload cache range fields
+
 ## 0.5.168
 
 ### Patch Changes
