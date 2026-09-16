@@ -15,6 +15,7 @@ import {
     getLowercaseFields,
     getRecordSystemFields,
     getSingleFieldRelations,
+    isDeleteSentinel,
     isRelationField,
     validateRecord,
 } from "@stoker-platform/utils"
@@ -92,18 +93,27 @@ export const validateRelationHierarchy = async (
 
 const deleteRelation = async (field: CollectionField, partial: Partial<StokerRecord>, id: string) => {
     // eslint-disable-next-line security/detect-object-injection
-    delete partial[field.name][id]
+    if (partial[field.name]) {
+        // eslint-disable-next-line security/detect-object-injection
+        delete partial[field.name][id]
+    }
     partial[`${field.name}_Array`] = partial[`${field.name}_Array`]?.filter((relationId: string) => relationId !== id)
     delete partial[`${field.name}_Single`]
 }
 
 const restoreRelation = async (
-    field: CollectionField,
+    field: RelationField,
     partial: Partial<StokerRecord>,
     relation: StokerRelation,
     id: string,
     singleFieldRelation: boolean,
 ) => {
+    if (isDeleteSentinel(partial[field.name])) {
+        partial[field.name] = {}
+    }
+    if (isDeleteSentinel(partial[`${field.name}_Array`])) {
+        partial[`${field.name}_Array`] = []
+    }
     partial[field.name] ||= {}
     // eslint-disable-next-line security/detect-object-injection
     partial[field.name][id] = relation

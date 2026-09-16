@@ -1,5 +1,11 @@
 # @stoker-platform/node-client
 
+## 0.5.106
+
+### Patch Changes
+
+- fix: improve invalid relation handling
+
 ## 0.5.105
 
 ### Patch Changes

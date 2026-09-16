@@ -579,9 +579,9 @@ export const updateRecord = async (
         if (!originalRecord) throw new Error("NOT_FOUND")
         try {
             const batchSize = { size: 1 }
-            const record = { ...originalRecord, ...partial }
 
             await preWriteChecks(transaction, false, batchSize)
+            const record = { ...originalRecord, ...partial }
 
             let noDelete: Map<string, string[]> | undefined
             if (!options?.noTwoWay && !options?.providedTransaction) {
