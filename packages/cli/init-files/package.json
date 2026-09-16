@@ -51,7 +51,7 @@
         "vitest": "latest"
     },
     "engines": {
-        "node": ">=22",
+        "node": ">=24",
         "npm": ">=12"
     }
 }

@@ -35,7 +35,7 @@ These steps are detailed below.
 Prerequisites:
 
 - Google Account (must have a [Google Cloud billing account](https://docs.cloud.google.com/billing/docs/how-to/create-billing-account))
-- Node JS 22+
+- Node.js 24+
 - Firebase CLI:
     - `npm i -g firebase-tools`
     - `firebase login`

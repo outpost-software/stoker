@@ -30,7 +30,7 @@ The cost of running your development environment on Google Cloud Platform will b
 | Requirement | Details |
 | --- | --- |
 | Google Account | Your Google account must have a [Google Cloud billing account](https://docs.cloud.google.com/billing/docs/how-to/create-billing-account). |
-| Node.js | `22+` |
+| Node.js | `24+` |
 | Firebase CLI | `npm i -g firebase-tools` and `firebase login` |
 | Google Cloud CLI | Prerequisites: Python 3.13 and [Java](https://www.oracle.com/au/java/technologies/downloads/).<br></br>Installation: Install the [Google Cloud CLI](https://docs.cloud.google.com/sdk/docs/install), then run `gcloud init` and <br></br>`gcloud auth application-default login`. |
 | Genkit CLI | `npm i -g genkit-cli` |

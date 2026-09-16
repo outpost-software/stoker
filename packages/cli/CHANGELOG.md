@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.171
+
+### Patch Changes
+
+- chore: update minimum Node.js version to 24
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.107
+    - @stoker-platform/types@0.5.75
+    - @stoker-platform/utils@0.5.92
+
 ## 0.5.170
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-client",
-    "version": "0.5.108",
+    "version": "0.5.109",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -24,8 +24,8 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
-        "@stoker-platform/types": "0.5.74",
-        "@stoker-platform/utils": "0.5.91",
+        "@stoker-platform/types": "0.5.75",
+        "@stoker-platform/utils": "0.5.92",
         "@types/lodash": "^4.17.25",
         "@types/luxon": "^3.7.4",
         "firebase": "^12.18.0",
@@ -39,7 +39,7 @@
         "vite-plugin-eslint": "^1.8.1"
     },
     "engines": {
-        "node": ">=22",
+        "node": ">=24",
         "npm": ">=12"
     }
 }

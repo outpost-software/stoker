@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/types",
-    "version": "0.5.74",
+    "version": "0.5.75",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "src/main.ts",
@@ -18,7 +18,7 @@
         "tsconfig": "*"
     },
     "engines": {
-        "node": ">=22",
+        "node": ">=24",
         "npm": ">=12"
     },
     "dependencies": {
