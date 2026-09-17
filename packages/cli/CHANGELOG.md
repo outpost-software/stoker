@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.172
+
+### Patch Changes
+
+- feat: iterate projection replays by tenant
+
 ## 0.5.171
 
 ### Patch Changes
