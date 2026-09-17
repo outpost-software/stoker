@@ -1,5 +1,11 @@
 # @stoker-platform/web-client
 
+## 0.5.110
+
+### Patch Changes
+
+- fix: improve handing of user fields
+
 ## 0.5.109
 
 ### Patch Changes

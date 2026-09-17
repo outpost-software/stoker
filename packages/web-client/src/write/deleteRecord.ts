@@ -104,7 +104,7 @@ export const deleteRecord = async (
         throw error
     }
 
-    if (serverWriteOnly || (collectionSchema.auth && data.User_ID)) {
+    if (serverWriteOnly || collectionSchema.auth) {
         const result = await deleteRecordServer(path, recordId)
         return result
     }

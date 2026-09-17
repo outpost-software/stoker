@@ -119,13 +119,12 @@ export const updateRecord = async (
         !createUserRequest &&
         !deleteUserRequest &&
         (user?.operation === "update" ||
-            (originalRecord.User_ID &&
-                (data.Role ||
-                    data.Enabled !== undefined ||
-                    data.Name ||
-                    data.Email ||
-                    data.Photo_URL ||
-                    tokenFields.some((field) => data[field.name] !== undefined))))
+            data.Role ||
+            data.Enabled !== undefined ||
+            data.Name ||
+            data.Email ||
+            data.Photo_URL ||
+            tokenFields.some((field) => data[field.name] !== undefined))
 
     const offlineDisabled = await getCachedConfigValue(customization, [
         "collections",
