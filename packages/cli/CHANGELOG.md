@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.173
+
+### Patch Changes
+
+- feat: add Cloud Functions declarative security support
+
 ## 0.5.172
 
 ### Patch Changes

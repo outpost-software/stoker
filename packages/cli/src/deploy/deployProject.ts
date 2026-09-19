@@ -134,6 +134,42 @@ export const deployProject = async (options: any) => {
                 undefined,
                 10000,
             )
+            // Workaround for declarative security / Genkit issue
+            const functionsEnvPath = join(process.cwd(), "functions", ".env")
+            const functionsEnvLines = (await readFile(functionsEnvPath, "utf8"))
+                .split(/\r?\n/)
+                .filter((line) => !line.startsWith("STOKER_SKIP_GENKIT_FUNCTIONS"))
+            try {
+                await writeFile(
+                    functionsEnvPath,
+                    [...functionsEnvLines, "STOKER_SKIP_GENKIT_FUNCTIONS=true"].join("\n"),
+                )
+                await retryOperation(
+                    async () => {
+                        const output = await runChildProcess(
+                            "npx",
+                            [
+                                "firebase",
+                                "deploy",
+                                "--only",
+                                "functions",
+                                "--project",
+                                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                process.env.GCP_PROJECT!,
+                                "--force",
+                            ],
+                            undefined,
+                            { ...process.env, FUNCTIONS_DISCOVERY_TIMEOUT: "30" },
+                        )
+                        if (output.includes("HTTP Error: 400")) throw new Error("PERMISSION_DENIED")
+                    },
+                    [],
+                    undefined,
+                    10000,
+                )
+            } finally {
+                await writeFile(functionsEnvPath, functionsEnvLines.join("\n"))
+            }
             await retryOperation(
                 async () => {
                     const output = await runChildProcess(

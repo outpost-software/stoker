@@ -6,6 +6,7 @@ import {
     onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import {onCall, onCallGenkit, HttpsError} from "firebase-functions/v2/https";
+import {requiresRole} from "firebase-functions";
 import {
     setGlobalVariables,
     verifyWriteLog,
@@ -77,6 +78,27 @@ const projectId = webAppConfig.projectId;
 const firestoreDatabase =
     getFirestoreTriggerDatabase(process.env.FB_FIRESTORE_EDITION, projectId);
 
+// Auth
+requiresRole("roles/firebaseauth.admin");
+requiresRole("roles/iam.serviceAccountTokenCreator");
+// Firestore
+requiresRole("roles/datastore.user");
+// Realtime Database
+requiresRole("roles/firebasedatabase.viewer");
+// Storage
+requiresRole("roles/storage.objectAdmin");
+// Eventarc
+requiresRole("roles/eventarc.eventReceiver");
+requiresRole("roles/run.invoker");
+// Genkit
+requiresRole("roles/monitoring.metricWriter");
+requiresRole("roles/cloudtrace.agent");
+requiresRole("roles/logging.logWriter");
+const usesVertexAI = Object.values(schema.collections)
+    .some(({ai: aiConfig}) => aiConfig?.chat || aiConfig?.embedding);
+if (usesVertexAI) {
+    requiresRole("roles/aiplatform.user");
+}
 
 const ai = genkit({
     plugins: [vertexAI({
@@ -378,16 +400,12 @@ Object.values(schema.collections).forEach((collectionSchema) => {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const webAppConfig = JSON.parse(process.env.STOKER_FB_WEB_APP_CONFIG!);
-    const projectNumber = webAppConfig.messagingSenderId;
-    if (aiConfig?.chat) {
+    if (aiConfig?.chat &&
+        process.env.STOKER_SKIP_GENKIT_FUNCTIONS !== "true") {
         stoker[`chat${collectionNameLower}`] =
         onCallGenkit({
             cors: true,
             consumeAppCheckToken: false,
-            // eslint-disable-next-line max-len
-            serviceAccount: `${projectNumber}-compute@developer.gserviceaccount.com`,
             authPolicy: (auth) => chatAuthPolicy(auth, collectionSchema),
         }, chatFlow(collectionSchema, schema, ai));
     }

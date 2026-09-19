@@ -74,7 +74,7 @@ dist
 dist-ssr
 *.local
 
-# Firebase GenKit directory
+# Firebase Genkit directory
 .genkit
 
 # Firebase directories

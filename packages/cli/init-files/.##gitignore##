@@ -92,7 +92,7 @@ dist-ssr
 .env
 .env.*
 
-# Firebase GenKit directory
+# Firebase Genkit directory
 .genkit
 
 # Firebase emulator data
