@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.76
+
+### Patch Changes
+
+- feat: improve package version management
+
 ## 0.5.75
 
 ### Patch Changes

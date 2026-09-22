@@ -30,7 +30,7 @@ import type { AnalyticsSettings, ConsentSettings } from "firebase/analytics"
 import type { AppCheck } from "firebase/app-check"
 
 import type { FieldValue, Firestore as AdminFirestore } from "firebase-admin/firestore"
-import { FirebaseError } from "firebase-admin"
+import type { FirebaseError } from "firebase-admin"
 
 /** Auth config for the app */
 export interface AuthConfig {

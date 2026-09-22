@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-client",
-    "version": "0.5.110",
+    "version": "0.5.111",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -24,19 +24,24 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
-        "@stoker-platform/types": "0.5.75",
-        "@stoker-platform/utils": "0.5.92",
+        "@stoker-platform/types": "0.5.76",
+        "@stoker-platform/utils": "0.5.93",
         "@types/lodash": "^4.17.25",
         "@types/luxon": "^3.7.4",
-        "firebase": "^12.18.0",
         "lodash": "^4.18.1",
         "luxon": "^3.7.2"
+    },
+    "peerDependencies": {
+        "firebase": "^12.18.0",
+        "zod": "^3.25.76"
     },
     "devDependencies": {
         "@rollup/plugin-typescript": "^12.3.0",
         "eslint-config-custom": "*",
+        "firebase": "^12.18.0",
         "tsconfig": "*",
-        "vite-plugin-eslint": "^1.8.1"
+        "vite-plugin-eslint": "^1.8.1",
+        "zod": "^3.25.76"
     },
     "engines": {
         "node": ">=24",

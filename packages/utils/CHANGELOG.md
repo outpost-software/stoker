@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.93
+
+### Patch Changes
+
+- feat: improve package version management
+- Updated dependencies
+    - @stoker-platform/types@0.5.76
+
 ## 0.5.92
 
 ### Patch Changes

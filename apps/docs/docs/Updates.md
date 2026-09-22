@@ -5,12 +5,7 @@ sidebar_position: 2
 This section covers keeping your Stoker project up to date.
 
 ## Stoker Project
-
-The current recommended way to update to the latest version of the Stoker platform:
-
-1. Delete the `node_modules` directory from both your root directory and your functions directory
-2. Delete `package-lock.json` from both your root directory and your functions directory
-3. Run `npm update --save && npm --prefix functions update --save`
+Run `npm update && npm --prefix functions update` in your project directory to update your project's dependencies (including the Stoker Platform).
 
 ## Tooling
 

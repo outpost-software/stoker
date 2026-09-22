@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/types",
-    "version": "0.5.75",
+    "version": "0.5.76",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "src/main.ts",
@@ -14,6 +14,8 @@
         "test": "echo \"Error: no test specified\""
     },
     "devDependencies": {
+        "firebase": "^12.18.0",
+        "firebase-admin": "^14.3.0",
         "eslint-config-custom": "*",
         "tsconfig": "*"
     },
@@ -23,7 +25,9 @@
     },
     "dependencies": {
         "@fullcalendar/core": "^6.1.21",
-        "@google-cloud/storage": "^8.0.1",
+        "@google-cloud/storage": "^8.0.1"
+    },
+    "peerDependencies": {
         "firebase": "^12.18.0",
         "firebase-admin": "^14.3.0"
     }

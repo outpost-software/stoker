@@ -43,7 +43,7 @@ export const uniqueDelete = (
                                 const query = db.collection("tenants").doc(tenantId).collection("system_unique").doc(labels.collection).collection(`Unique-${labels.collection}-${field.name}`).where("id", "==", snapshot.before.id);
                                 const result = await query.get();
                                 result.forEach((doc) => {
-                                    if (!after || !record || (doc.exists && doc.id !== record[field.name].toString().toLowerCase().replace(/\s/g, "---").replaceAll("/", "|||"))) {
+                                    if (!after || !record || (doc.exists && doc.id !== record[field.name]?.toString().toLowerCase().replace(/\s/g, "---").replaceAll("/", "|||"))) {
                                         transaction.delete(doc.ref);
                                     }
                                 });

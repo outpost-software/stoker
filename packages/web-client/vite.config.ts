@@ -19,7 +19,13 @@ export default defineConfig({
             fileName: "bundle",
         },
         rolldownOptions: {
-            external: [/firebase\/.*/],
+            external: [
+                /^@stoker-platform\/.*/,
+                /^lodash(\/.*)?$/,
+                /^luxon(\/.*)?$/,
+                /^firebase(\/.*)?$/,
+                /^zod(\/.*)?$/,
+            ],
             devtools: {},
         },
     },

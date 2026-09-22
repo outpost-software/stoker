@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.111
+
+### Patch Changes
+
+- feat: improve package version management
+- Updated dependencies
+    - @stoker-platform/types@0.5.76
+    - @stoker-platform/utils@0.5.93
+
 ## 0.5.110
 
 ### Patch Changes

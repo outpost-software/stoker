@@ -17,7 +17,7 @@
     "main": "lib/index.js",
     "dependencies": {
         "@genkit-ai/firebase": "^1.41.0",
-        "@genkit-ai/vertexai": "^1.41.0",
+        "@genkit-ai/google-genai": "^1.41.0",
         "@google-cloud/storage": "^8.0.1",
         "@stoker-platform/types": "file:./local-packages/stoker-platform-types-0.5.75.tgz",
         "@stoker-platform/node-client": "file:./local-packages/stoker-platform-node-client-0.5.107.tgz",

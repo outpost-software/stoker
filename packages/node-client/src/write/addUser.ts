@@ -5,7 +5,7 @@ import { deleteUser } from "./deleteUser"
 import { getAuth } from "firebase-admin/auth"
 import { sendMail } from "../utils/sendMail"
 import { isReservedClaimKey } from "../utils/reservedAuthClaims.js"
-import { FirebaseError } from "firebase-admin"
+import type { FirebaseError } from "firebase-admin"
 
 const logErrors = true
 
