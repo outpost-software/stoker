@@ -6,6 +6,7 @@ import {
     onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import {onCall, onCallGenkit, HttpsError} from "firebase-functions/v2/https";
+import {onUserCreated} from "firebase-functions/v2/identity";
 import {requiresRole} from "firebase-functions";
 import {
     setGlobalVariables,
@@ -48,7 +49,6 @@ import {
     CollectionsSchema,
 } from "@stoker-platform/types";
 import globalConfig from "./system-custom/main.js";
-import * as functions from "firebase-functions/v1";
 import {genkit} from "genkit";
 import {vertexAI} from "@genkit-ai/google-genai";
 import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
@@ -70,8 +70,6 @@ const timeZone: string = projectData.timezone;
 const schema: CollectionsSchema = projectData.schema;
 const consumeAppCheckToken =
     process.env.FB_FUNCTIONS_CONSUME_APP_CHECK_TOKEN === "true";
-const v1Region = process.env.FB_FUNCTIONS_V1_REGION ||
-    process.env.FB_FUNCTIONS_REGION;
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const webAppConfig = JSON.parse(process.env.STOKER_FB_WEB_APP_CONFIG!);
 const projectId = webAppConfig.projectId;
@@ -424,25 +422,11 @@ Object.values(schema.collections).forEach((collectionSchema) => {
     }
 });
 
-const enforceAppCheck = process.env.STOKER_FB_ENABLE_APP_CHECK === "true";
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const timeoutSeconds = parseInt(process.env.FB_FUNCTIONS_TIMEOUT!);
-
-stoker["validateuser"] =
-    functions.runWith({
-        timeoutSeconds,
-        enforceAppCheck,
-        failurePolicy: true,
-        memory: "1GB",
-        minInstances: parseInt(
-            process.env.FB_FUNCTIONS_MIN_INSTANCES || "0",
-        ),
-        maxInstances: parseInt(
-            process.env.FB_FUNCTIONS_MAX_INSTANCES || "5",
-        ),
-    }).region(v1Region || "us-west1").auth.user().onCreate((user) => {
-        return validateUser(user);
-    });
+stoker["validateuser"] = onUserCreated({
+    retry: true,
+}, (event) => {
+    return validateUser(event.data);
+});
 
 if (process.env.STOKER_SMS_ENABLED === "true") {
     const twilioAccountSid = defineSecret("TWILIO_ACCOUNT_SID");

@@ -146,14 +146,6 @@ Server operations for your app are run using Cloud Run Functions.
 
 The region for your Cloud Functions. Must be a valid [Cloud Functions 2nd Gen region](https://firebase.google.com/docs/functions/locations).
 
-#### `FB_FUNCTIONS_V1_REGION`
-
-One back-end function is still run on Cloud Functions v1 infrastructure.
-
-Must be a Must be a valid [Cloud Functions 1st Gen region](https://firebase.google.com/docs/functions/locations).
-
-Not required if `FB_FUNCTIONS_REGION` is a v1-supported region.
-
 #### `FB_FUNCTIONS_MEMORY`,
 #### `FB_FUNCTIONS_TIMEOUT`,
 #### `FB_FUNCTIONS_MAX_INSTANCES`,

@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.175
+
+### Patch Changes
+
+- feat: update user validation Cloud Function to V2
+
 ## 0.5.174
 
 ### Patch Changes
