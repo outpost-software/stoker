@@ -156,6 +156,7 @@ describe("CLI", async () => {
         expect(files).toContain("remoteconfig.template.json")
         expect(files).toContain("tsconfig.json")
         expect(files).toContain("vitest.config.ts")
+        expect(files).toContain("playwright.config.ts")
         expect(files).toContain("ops.js")
 
         await rm("test-init", { recursive: true, force: true })

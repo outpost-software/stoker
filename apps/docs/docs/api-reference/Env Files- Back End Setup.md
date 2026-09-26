@@ -213,9 +213,9 @@ This feature is powered by Firebase Genkit.
 
 #### `FB_AI_REGION`
 
-The region for the AI service. We recommend using `"us-central1"` or `"us-west1"` at this stage.
+The region for the AI service. We recommend using `"global"` at this stage.
 
-Defaults to `"us-central1"`.
+Defaults to `"global"`.
 
 ### Mail Config (Required)
 

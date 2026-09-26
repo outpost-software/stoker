@@ -97,7 +97,7 @@ if (usesVertexAI) {
 
 const ai = genkit({
     plugins: [vertexAI({
-        location: process.env.FB_AI_REGION || "us-central1",
+        location: process.env.FB_AI_REGION || "global",
     })],
 });
 

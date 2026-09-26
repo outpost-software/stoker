@@ -19,7 +19,11 @@
         "lint": "tsc --noEmit && eslint . && npm --prefix functions run lint",
         "prebuild": "npm run clean:lib && npm run clean:functions",
         "build": "node bin/install.js && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build",
+        "postinstall": "playwright install chromium",
         "test": "vitest --run",
+        "test:web": "playwright test",
+        "test:web:ui": "playwright test --ui",
+        "exit-emulators": "stoker-exit-emulators",
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"
     },
     "dependencies": {
@@ -34,9 +38,12 @@
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^8.67.0",
         "@typescript-eslint/parser": "^8.67.0",
+        "@playwright/test": "^1.63.0",
+        "@stoker-platform/web-test": "latest",
         "@vite-pwa/assets-generator": "^1.0.2",
-        "@vitest/browser": "^4.1.11",
-        "@vitest/ui": "^4.1.11",
+        "@vitest/browser": "^5.0.2",
+        "@vitest/browser-playwright": "^5.0.2",
+        "@vitest/ui": "^5.0.2",
         "autoprefixer": "^10.5.4",
         "concurrently": "^10.0.5",
         "eslint": "^8.57.1",
@@ -48,7 +55,7 @@
         "tailwindcss": "^3.4.19",
         "typescript": "^6.0.3",
         "vite-plugin-pwa": "^1.3.0",
-        "vitest": "^4.1.11"
+        "vitest": "^5.0.2"
     },
     "engines": {
         "node": ">=24",

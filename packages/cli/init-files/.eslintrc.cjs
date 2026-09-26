@@ -23,6 +23,7 @@ module.exports = {
         "bin/**/*",
         "test/**/*",
         "vitest.config.ts",
+        "playwright.config.ts",
         "/functions",
         "/web-app",
         "ops.js",

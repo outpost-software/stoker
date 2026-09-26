@@ -22,7 +22,7 @@ const embedder = vertexAI.embedder("text-embedding-005");
 
 const ai = genkit({
     plugins: [vertexAI({
-        location: process.env.FB_AI_REGION || "us-central1",
+        location: process.env.FB_AI_REGION || "global",
     })],
 });
 

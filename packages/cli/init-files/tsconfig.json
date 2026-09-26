@@ -20,5 +20,5 @@
     },
     "include": ["src"],
     "files": ["src/vite-env.d.ts"],
-    "exclude": ["test", "vitest.config.ts"]
+    "exclude": ["test", "vitest.config.ts", "playwright.config.ts"]
 }

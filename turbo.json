@@ -1,6 +1,6 @@
 {
     "$schema": "https://turbo.build/schema.json",
-    "globalEnv": ["NODE_ENV", "MODE", "DEV", "PROD", "BASE_URL", "SSR", "STOKER_*", "GCP_*", "FB_*"],
+    "globalEnv": ["CI", "NODE_ENV", "MODE", "DEV", "PROD", "BASE_URL", "SSR", "STOKER_*", "GCP_*", "FB_*"],
     "globalPassThroughEnv": [
         "ADMIN_*",
         "MAIL_*",
@@ -33,6 +33,10 @@
         "build": {
             "dependsOn": ["^build"],
             "outputs": ["dist/**", "lib/**", "build/**"]
+        },
+        "test": {
+            "dependsOn": ["^build"],
+            "cache": false
         }
     }
 }

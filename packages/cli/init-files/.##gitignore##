@@ -100,3 +100,9 @@ firebase-emulator-data/*
 
 # Web app directory
 web-app
+
+# Web test credentials and artifacts
+stoker-test.json
+playwright/.auth
+playwright-report
+test-results
