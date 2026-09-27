@@ -16,6 +16,7 @@ import { fetchCurrentSchema } from "./main"
 import { pathToFileURL } from "node:url"
 import { AsyncLocalStorage, AsyncResource } from "node:async_hooks"
 
+// Do not initialise an object here and then mutate it. Every request will hold the object and will read the mutated value.
 const requestScope = new AsyncLocalStorage<string>()
 
 let alsIsolates: boolean | undefined

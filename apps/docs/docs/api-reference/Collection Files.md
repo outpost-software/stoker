@@ -13,7 +13,7 @@ The following are the options for each collection file.
 You can use [application state](/docs/api-reference/Application%20State) and the [Web](/docs/api-reference/Web%20SDK) and [Node](/docs/api-reference/Node%20SDK) SDKs in your config files.
 
 :::warning
-The config each collection file returns is shared by every tenant. Always read tenant-scoped values inside a method or a [hook](#collection-hooks).
+The config each collection file returns is shared between tenants. Always read tenant-scoped values inside a method or a [hook](#collection-hooks).
 :::
 
 ## General Collection Config
