@@ -1,5 +1,6 @@
 import {
     initializeStoker,
+    runWithTenant,
     getOne,
     getSome,
     GetOneOptions,
@@ -152,95 +153,97 @@ export const readApi = async (
 
     options.userId = user;
 
-    await initializeStoker(
-        "production",
-        tenantId,
-        join(process.cwd(), "lib", "system-custom", "main.js"),
-        join(process.cwd(), "lib", "system-custom", "collections"),
-        true,
-    );
+    return runWithTenant(tenantId, async () => {
+        await initializeStoker(
+            "production",
+            tenantId,
+            join(process.cwd(), "lib", "system-custom", "main.js"),
+            join(process.cwd(), "lib", "system-custom", "collections"),
+            true,
+        );
 
-    try {
-        if (id) {
-            const doc = await getOne(
-                path,
-                id,
-                options,
-            ).catch((error) => {
-                errorLogger(error);
-                throw new HttpsError("internal", "Error reading data");
-            });
-
-            serializeTimestamps(doc);
-            return {result: doc};
-        } else {
-            const deserializedConstraints = constraints?.map(([field, operator, value]: [string, string, unknown]) => {
-                if (value && typeof value === "string") {
-                    const millis = Date.parse(value);
-                    if (!isNaN(millis)) {
-                        return [field, operator, Timestamp.fromMillis(millis)];
-                    } else {
-                        return [field, operator, value];
-                    }
-                } else {
-                    return [field, operator, value];
-                }
-            });
-
-            const getSomeOptions = options as GetSomeOptions;
-
-            const getDocs = async (options: GetSomeOptions) => {
-                const result = await getSome(
+        try {
+            if (id) {
+                const doc = await getOne(
                     path,
-                    {
-                        ...options,
-                        constraints: deserializedConstraints,
-                    },
+                    id,
+                    options,
                 ).catch((error) => {
                     errorLogger(error);
                     throw new HttpsError("internal", "Error reading data");
                 });
-                result.records.forEach((doc) => {
-                    serializeTimestamps(doc);
+
+                serializeTimestamps(doc);
+                return {result: doc};
+            } else {
+                const deserializedConstraints = constraints?.map(([field, operator, value]: [string, string, unknown]) => {
+                    if (value && typeof value === "string") {
+                        const millis = Date.parse(value);
+                        if (!isNaN(millis)) {
+                            return [field, operator, Timestamp.fromMillis(millis)];
+                        } else {
+                            return [field, operator, value];
+                        }
+                    } else {
+                        return [field, operator, value];
+                    }
                 });
-                return result;
-            };
 
-            const docs: StokerRecord[] = [];
+                const getSomeOptions = options as GetSomeOptions;
 
-            const getChunk = async (startAfter?: Cursor) => {
-                getSomeOptions.pagination = {
-                    number: 500,
-                    startAfter,
+                const getDocs = async (options: GetSomeOptions) => {
+                    const result = await getSome(
+                        path,
+                        {
+                            ...options,
+                            constraints: deserializedConstraints,
+                        },
+                    ).catch((error) => {
+                        errorLogger(error);
+                        throw new HttpsError("internal", "Error reading data");
+                    });
+                    result.records.forEach((doc) => {
+                        serializeTimestamps(doc);
+                    });
+                    return result;
                 };
 
-                const chunk = await getDocs(getSomeOptions);
+                const docs: StokerRecord[] = [];
 
-                docs.push(...chunk.records);
-                if (response) {
-                    response.sendChunk({result: {records: chunk.records}});
-                }
+                const getChunk = async (startAfter?: Cursor) => {
+                    getSomeOptions.pagination = {
+                        number: 500,
+                        startAfter,
+                    };
 
-                if (chunk.records.length === 500) {
-                    await getChunk(chunk.cursor);
-                    return;
+                    const chunk = await getDocs(getSomeOptions);
+
+                    docs.push(...chunk.records);
+                    if (response) {
+                        response.sendChunk({result: {records: chunk.records}});
+                    }
+
+                    if (chunk.records.length === 500) {
+                        await getChunk(chunk.cursor);
+                        return;
+                    } else {
+                        return;
+                    }
+                };
+
+                let result: {records: StokerRecord[], pages: number};
+                if (!getSomeOptions.pagination && request.data.stream) {
+                    await getChunk();
+                    return {result: {records: docs}};
                 } else {
-                    return;
+                    result = await getDocs(getSomeOptions);
+                    return {result: {records: result.records}};
                 }
-            };
-
-            let result: {records: StokerRecord[], pages: number};
-            if (!getSomeOptions.pagination && request.data.stream) {
-                await getChunk();
-                return {result: {records: docs}};
-            } else {
-                result = await getDocs(getSomeOptions);
-                return {result: {records: result.records}};
             }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            errorLogger(error);
+            throw new HttpsError("internal", "Error reading data");
         }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        errorLogger(error);
-        throw new HttpsError("internal", "Error reading data");
-    }
+    });
 };

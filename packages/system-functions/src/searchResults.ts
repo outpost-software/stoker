@@ -3,6 +3,7 @@ import {
     getStokerFirestore,
     initializeStoker,
     tryPromise,
+    runWithTenant,
 } from "@stoker-platform/node-client";
 import {
     CallableRequest,
@@ -143,36 +144,38 @@ export const searchResults = async (
             throw new HttpsError("invalid-argument", "Assigning collection not found");
         }
 
-        const {getCustomizationFile} = await initializeStoker(
-            "production",
-            tenantId,
-            join(process.cwd(), "lib", "system-custom", "main.js"),
-            join(process.cwd(), "lib", "system-custom", "collections"),
-            true,
-        );
+        await runWithTenant(tenantId, async () => {
+            const {getCustomizationFile} = await initializeStoker(
+                "production",
+                tenantId,
+                join(process.cwd(), "lib", "system-custom", "main.js"),
+                join(process.cwd(), "lib", "system-custom", "collections"),
+                true,
+            );
 
-        try {
-            await getOne([assigning.collection], assigning.id, {userId: user});
-        } catch {
-            throw new HttpsError("permission-denied", "User does not have permission to access assigning parent");
-        }
+            try {
+                await getOne([assigning.collection], assigning.id, {userId: user});
+            } catch {
+                throw new HttpsError("permission-denied", "User does not have permission to access assigning parent");
+            }
 
-        const relationList = parentCollectionSchema.relationLists?.find((list) => list.collection === collection);
-        if (relationList) {
-            const customization = getCustomizationFile(assigning.collection, schema);
-            const assignables = (await tryPromise(customization?.admin?.assignable)) as Assignable[] | undefined;
-            assignable = assignables?.find((item) => item.collection === collection);
-            if (assignable) {
-                const relationField = getField(fields, relationList.field);
-                const sanitizedFieldName = sanitizeAlgoliaFieldName(relationList.field);
-                const sanitizedAssigningId = sanitizeAlgoliaFilterValue(assigning.id);
-                if (relationField && ["OneToOne", "OneToMany"].includes(relationField.type)) {
-                    assignedArrayFilter = `${sanitizedFieldName}_Single.id:"${sanitizedAssigningId}"`;
-                } else {
-                    assignedArrayFilter = `${sanitizedFieldName}_Array:"${sanitizedAssigningId}"`;
+            const relationList = parentCollectionSchema.relationLists?.find((list) => list.collection === collection);
+            if (relationList) {
+                const customization = getCustomizationFile(assigning.collection, schema);
+                const assignables = (await tryPromise(customization?.admin?.assignable)) as Assignable[] | undefined;
+                assignable = assignables?.find((item) => item.collection === collection);
+                if (assignable) {
+                    const relationField = getField(fields, relationList.field);
+                    const sanitizedFieldName = sanitizeAlgoliaFieldName(relationList.field);
+                    const sanitizedAssigningId = sanitizeAlgoliaFilterValue(assigning.id);
+                    if (relationField && ["OneToOne", "OneToMany"].includes(relationField.type)) {
+                        assignedArrayFilter = `${sanitizedFieldName}_Single.id:"${sanitizedAssigningId}"`;
+                    } else {
+                        assignedArrayFilter = `${sanitizedFieldName}_Array:"${sanitizedAssigningId}"`;
+                    }
                 }
             }
-        }
+        });
     }
 
     const filters: string[] = [`tenant_id:${tenantId}`];

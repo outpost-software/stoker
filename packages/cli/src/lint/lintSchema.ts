@@ -32,6 +32,7 @@ import {
     IndividualEntityRestriction,
     MapConfig,
     Metric,
+    NodeUtilities,
     NumberField,
     ParentEntityRestriction,
     ParentPropertyEntityRestriction,
@@ -138,17 +139,50 @@ const lintFieldAccessCondition = (
     }
 }
 
+const unavailable = (name: keyof NodeUtilities) => () => {
+    throw new Error(
+        `utils.${name}() is not available while the config is being generated. Move the call inside a method or a hook.`,
+    )
+}
+const lintUtils = {
+    getTenant: unavailable("getTenant"),
+    getMode: unavailable("getMode"),
+    getTimezone: unavailable("getTimezone"),
+    getGlobalConfigModule: unavailable("getGlobalConfigModule"),
+    getCustomizationFile: unavailable("getCustomizationFile"),
+    getVersionInfo: unavailable("getVersionInfo"),
+    getMaintenanceInfo: unavailable("getMaintenanceInfo"),
+    getStokerFirestore: unavailable("getStokerFirestore"),
+} as unknown as NodeUtilities
+
+const generateConfig = <T>(file: string, generate: () => T): T => {
+    try {
+        return generate()
+    } catch (error) {
+        throw new Error(`${file}: ${(error as Error).message}`, { cause: error })
+    }
+}
+
 export const lintSchema = async (noLog = false) => {
     const path = join(process.cwd(), "lib", "main.js")
     const url = pathToFileURL(path).href
     const globalConfigFile = await import(url)
-    const globalConfig: GlobalConfig = globalConfigFile.default({ sdk: "node" })
+    const globalConfig: GlobalConfig = generateConfig("src/main.ts", () =>
+        globalConfigFile.default({ sdk: "node", utils: lintUtils }),
+    )
     const schema = await generateSchema(true)
     const customizationFiles = await getCustomizationFiles(
         join(process.cwd(), "lib", "collections"),
         Object.keys(schema.collections),
     )
-    const customizationModules = getCustomization(Object.keys(schema.collections), customizationFiles, "node")
+    const customizationModules = Object.assign(
+        {},
+        ...Object.keys(schema.collections).map((collection) =>
+            generateConfig(`src/collections/${collection}.ts`, () =>
+                getCustomization([collection], customizationFiles, "node", lintUtils),
+            ),
+        ),
+    )
 
     const warnings: string[] = []
     const errors: string[] = []

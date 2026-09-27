@@ -13,6 +13,7 @@ import {tryPromise} from "@stoker-platform/utils";
 import {
     initializeStoker,
     getStokerFirestore,
+    runWithTenant,
 } from "@stoker-platform/node-client";
 import {join} from "path";
 
@@ -32,7 +33,7 @@ export const writeEmbedding = (
     collectionSchema: CollectionSchema,
     schema: CollectionsSchema,
 ) => {
-    return (async () => {
+    return runWithTenant(event.params.tenantId as string, async () => {
         const tenantId = event.params.tenantId as string;
         const {labels, ai: aiConfig, softDelete} = collectionSchema;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -83,5 +84,5 @@ export const writeEmbedding = (
                 });
         }
         return;
-    })();
+    });
 };

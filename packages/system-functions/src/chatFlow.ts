@@ -14,6 +14,7 @@ import {
     initializeStoker,
     deserializeTimestampsWithoutUnderscores,
     tryPromise,
+    runWithTenant,
 } from "@stoker-platform/node-client";
 import {HttpsError} from "firebase-functions/https";
 import {Genkit} from "genkit";
@@ -81,20 +82,22 @@ export const chatFlow = (
             if (!tenantId) {
                 throw new HttpsError("unauthenticated", "Tenant ID not found in authentication token");
             }
-            await initializeStoker(
-                "production",
-                tenantId,
-                join(process.cwd(), "lib", "system-custom", "main.js"),
-                join(process.cwd(), "lib", "system-custom", "collections"),
-                true,
-            );
-            try {
-                deserializeTimestampsWithoutUnderscores(input.record);
-                const record = await addRecord([labels.collection], input.record, {userId: context.auth?.uid});
-                return `Record ${record.id} was successfully added to the ${labels.collection} collection.`;
-            } catch {
-                return "Error adding record";
-            }
+            return runWithTenant(tenantId, async () => {
+                await initializeStoker(
+                    "production",
+                    tenantId,
+                    join(process.cwd(), "lib", "system-custom", "main.js"),
+                    join(process.cwd(), "lib", "system-custom", "collections"),
+                    true,
+                );
+                try {
+                    deserializeTimestampsWithoutUnderscores(input.record);
+                    const record = await addRecord([labels.collection], input.record, {userId: context.auth?.uid});
+                    return `Record ${record.id} was successfully added to the ${labels.collection} collection.`;
+                } catch {
+                    return "Error adding record";
+                }
+            });
         },
     );
 
@@ -114,20 +117,22 @@ export const chatFlow = (
             if (!tenantId) {
                 throw new HttpsError("unauthenticated", "Tenant ID not found in authentication token");
             }
-            await initializeStoker(
-                "production",
-                tenantId,
-                join(process.cwd(), "lib", "system-custom", "main.js"),
-                join(process.cwd(), "lib", "system-custom", "collections"),
-                true,
-            );
-            try {
-                deserializeTimestampsWithoutUnderscores(input.update);
-                const record = await updateRecord([labels.collection], input.recordId, input.update, {userId: context.auth?.uid});
-                return `Record ${record.id} was successfully updated in the ${labels.collection} collection.`;
-            } catch {
-                return "Error updating record";
-            }
+            return runWithTenant(tenantId, async () => {
+                await initializeStoker(
+                    "production",
+                    tenantId,
+                    join(process.cwd(), "lib", "system-custom", "main.js"),
+                    join(process.cwd(), "lib", "system-custom", "collections"),
+                    true,
+                );
+                try {
+                    deserializeTimestampsWithoutUnderscores(input.update);
+                    const record = await updateRecord([labels.collection], input.recordId, input.update, {userId: context.auth?.uid});
+                    return `Record ${record.id} was successfully updated in the ${labels.collection} collection.`;
+                } catch {
+                    return "Error updating record";
+                }
+            });
         },
     );
 
@@ -146,19 +151,21 @@ export const chatFlow = (
             if (!tenantId) {
                 throw new HttpsError("unauthenticated", "Tenant ID not found in authentication token");
             }
-            await initializeStoker(
-                "production",
-                tenantId,
-                join(process.cwd(), "lib", "system-custom", "main.js"),
-                join(process.cwd(), "lib", "system-custom", "collections"),
-                true,
-            );
-            try {
-                const record = await getOne([labels.collection], input.recordId, {userId: context.auth?.uid});
-                return JSON.stringify(record);
-            } catch {
-                return "Error getting record";
-            }
+            return runWithTenant(tenantId, async () => {
+                await initializeStoker(
+                    "production",
+                    tenantId,
+                    join(process.cwd(), "lib", "system-custom", "main.js"),
+                    join(process.cwd(), "lib", "system-custom", "collections"),
+                    true,
+                );
+                try {
+                    const record = await getOne([labels.collection], input.recordId, {userId: context.auth?.uid});
+                    return JSON.stringify(record);
+                } catch {
+                    return "Error getting record";
+                }
+            });
         },
     );
 
@@ -192,29 +199,31 @@ export const chatFlow = (
                 },
             });
 
-            const {getCustomizationFile} = await initializeStoker(
-                "production",
-                tenantId,
-                join(process.cwd(), "lib", "system-custom", "main.js"),
-                join(process.cwd(), "lib", "system-custom", "collections"),
-                true,
-            );
+            return runWithTenant(tenantId, async () => {
+                const {getCustomizationFile} = await initializeStoker(
+                    "production",
+                    tenantId,
+                    join(process.cwd(), "lib", "system-custom", "main.js"),
+                    join(process.cwd(), "lib", "system-custom", "collections"),
+                    true,
+                );
 
-            const customization = await getCustomizationFile(labels.collection, schema);
-            const titles = await tryPromise(customization.admin?.titles);
+                const customization = await getCustomizationFile(labels.collection, schema);
+                const titles = await tryPromise(customization.admin?.titles);
 
-            const {stream, response} = prompt.stream({
-                collection: titles?.collection || labels.collection,
-                query: input.messages.map((message) => message.content.map((part) => part.text).join("")).join("\n\n"),
-            }, {
-                docs,
-                tools: [addRecordTool, updateRecordTool, getOneTool],
+                const {stream, response} = prompt.stream({
+                    collection: titles?.collection || labels.collection,
+                    query: input.messages.map((message) => message.content.map((part) => part.text).join("")).join("\n\n"),
+                }, {
+                    docs,
+                    tools: [addRecordTool, updateRecordTool, getOneTool],
+                });
+                for await (const chunk of stream) {
+                    sendChunk(chunk.text);
+                }
+                const finalResponse = await response;
+                return finalResponse.text;
             });
-            for await (const chunk of stream) {
-                sendChunk(chunk.text);
-            }
-            const finalResponse = await response;
-            return finalResponse.text;
         },
     );
 };

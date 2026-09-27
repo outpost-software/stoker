@@ -1,5 +1,6 @@
 import {
     initializeStoker,
+    runWithTenant,
     addRecord,
     updateRecord,
     deleteRecord,
@@ -109,77 +110,79 @@ export const writeApi = async (
         );
     }
 
-    await initializeStoker(
-        "production",
-        tenantId,
-        join(process.cwd(), "lib", "system-custom", "main.js"),
-        join(process.cwd(), "lib", "system-custom", "collections"),
-        true,
-    );
+    return runWithTenant(tenantId, async () => {
+        await initializeStoker(
+            "production",
+            tenantId,
+            join(process.cwd(), "lib", "system-custom", "main.js"),
+            join(process.cwd(), "lib", "system-custom", "collections"),
+            true,
+        );
 
-    try {
-        if (operation === "create") {
-            const result = await addRecord(
-                path,
-                record,
-                {
-                    userId: user,
-                    user: userData,
-                    id,
-                    context: {secrets: secretValues, user},
-                },
-            );
-            return {result};
-        }
-        if (operation === "update") {
-            const result = await updateRecord(
-                path,
-                id,
-                record,
-                {
-                    userId: user,
-                    user: userData,
-                    context: {secrets: secretValues, user},
-                },
-            );
-            return {result};
-        }
-        if (operation === "delete") {
-            const result = await deleteRecord(
-                path,
-                id,
-                {
-                    userId: user,
-                    context: {secrets: secretValues, user},
-                }
-            );
-            return {result};
-        }
-        return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        if (error.message?.includes("VALIDATION_ERROR")) {
-            throw new HttpsError(
-                "failed-precondition",
-                error.message
-            );
-        } else if (error.message?.includes("PERMISSION_DENIED")) {
-            errorLogger(error);
-            throw new HttpsError(
-                "permission-denied",
-                "Error writing data"
-            );
-        } else {
-            errorLogger(error);
-            info(operation);
-            info(path);
-            if (id) {
-                info(id);
+        try {
+            if (operation === "create") {
+                const result = await addRecord(
+                    path,
+                    record,
+                    {
+                        userId: user,
+                        user: userData,
+                        id,
+                        context: {secrets: secretValues, user},
+                    },
+                );
+                return {result};
             }
-            throw new HttpsError(
-                "internal",
-                "Error writing data"
-            );
+            if (operation === "update") {
+                const result = await updateRecord(
+                    path,
+                    id,
+                    record,
+                    {
+                        userId: user,
+                        user: userData,
+                        context: {secrets: secretValues, user},
+                    },
+                );
+                return {result};
+            }
+            if (operation === "delete") {
+                const result = await deleteRecord(
+                    path,
+                    id,
+                    {
+                        userId: user,
+                        context: {secrets: secretValues, user},
+                    }
+                );
+                return {result};
+            }
+            return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            if (error.message?.includes("VALIDATION_ERROR")) {
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message
+                );
+            } else if (error.message?.includes("PERMISSION_DENIED")) {
+                errorLogger(error);
+                throw new HttpsError(
+                    "permission-denied",
+                    "Error writing data"
+                );
+            } else {
+                errorLogger(error);
+                info(operation);
+                info(path);
+                if (id) {
+                    info(id);
+                }
+                throw new HttpsError(
+                    "internal",
+                    "Error writing data"
+                );
+            }
         }
-    }
+    });
 };

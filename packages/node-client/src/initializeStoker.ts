@@ -14,10 +14,27 @@ import cloneDeep from "lodash/cloneDeep.js"
 import { getCustomizationFiles } from "./utils/getCustomizationFiles"
 import { fetchCurrentSchema } from "./main"
 import { pathToFileURL } from "node:url"
+import { AsyncLocalStorage, AsyncResource } from "node:async_hooks"
+
+const requestScope = new AsyncLocalStorage<string>()
+
+let alsIsolates: boolean | undefined
+const alsIsolatesCallbacks = () => {
+    if (alsIsolates === undefined) {
+        const probe = new AsyncLocalStorage<string>()
+        const shared = new AsyncResource("stoker-als-probe")
+        shared.runInAsyncScope(() => probe.enterWith("leak"))
+        alsIsolates = shared.runInAsyncScope(() => probe.getStore()) === undefined
+        probe.disable()
+    }
+    return alsIsolates
+}
+
+const generatorScope = new AsyncLocalStorage<true>()
+const runGenerator = <T>(generate: () => T) => generatorScope.run(true, generate)
 
 let app: App,
     mode: "development" | "production",
-    tenant: string,
     timezone: string,
     globalConfig: GlobalConfig,
     customizationFiles: { [key: string]: CollectionCustomization },
@@ -28,11 +45,12 @@ let app: App,
 
 const utilities: NodeUtilities = {
     getTenant() {
+        if (generatorScope.getStore()) {
+            throw new Error("getTenant() must be called from a method or a hook")
+        }
+        const tenant = requestScope.getStore()
         if (!tenant) throw new Error("Tenant not provided")
         return tenant
-    },
-    setTenant(tenantId: string) {
-        tenant = tenantId
     },
     getMode() {
         return mode
@@ -45,7 +63,9 @@ const utilities: NodeUtilities = {
     },
     getCustomizationFile(collection: string, schema: CollectionsSchema) {
         if (!Object.keys(schema.collections).includes(collection)) throw new Error("PERMISSION_DENIED")
-        const customizationFile = getCustomization([collection], customizationFiles, "node", utilities)
+        const customizationFile = runGenerator(() =>
+            getCustomization([collection], customizationFiles, "node", utilities),
+        )
         // eslint-disable-next-line security/detect-object-injection
         return cloneDeep(customizationFile?.[collection])
     },
@@ -68,7 +88,12 @@ export const initializeStoker = async (
     const alreadyInitialized = !!initialized
     initialized = true
     if (tenantId) {
-        tenant = tenantId
+        if (!requestScope.getStore() && !alsIsolatesCallbacks()) {
+            throw new Error(
+                "This Node runtime does not isolate async contexts between requests (Node 24+ required).\nWrap the call in runWithTenant()",
+            )
+        }
+        requestScope.enterWith(tenantId)
     }
     mode = modeEnv
 
@@ -85,7 +110,7 @@ export const initializeStoker = async (
     const url = pathToFileURL(configFilePath).href
     const globalConfigFile = await import(/* @vite-ignore */ url)
     const config: GenerateGlobalConfig = globalConfigFile.default
-    globalConfig = config({ sdk: "node", utils: utilities })
+    globalConfig = runGenerator(() => config({ sdk: "node", utils: utilities }))
 
     if (!gcp && modeEnv === "development") {
         process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099"
@@ -163,9 +188,10 @@ export const initializeStoker = async (
     return utilities
 }
 
+export const runWithTenant = <T>(tenantId: string, callback: () => Promise<T>) => requestScope.run(tenantId, callback)
+
 export const {
     getTenant,
-    setTenant,
     getMode,
     getTimezone,
     getGlobalConfigModule,

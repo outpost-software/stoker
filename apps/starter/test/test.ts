@@ -8,6 +8,7 @@ import {
     getStokerFirestore,
     initializeFirebase,
     initializeStoker,
+    runWithTenant,
     updateRecord,
 } from "@stoker-platform/node-client"
 import { join } from "node:path"
@@ -1019,32 +1020,39 @@ describe("Cloud Functions", async () => {
         const contactId = await getContactId()
         functionsContactId = contactId
         const adminId = await getAdminId()
-        await startStoker()
-        const db = getStokerFirestore()
-        const record = await addRecord(
-            ["Users"],
-            {
-                Name: "Test User",
-                Email: "another@getoutpost.com",
-                Role: "Cleaner",
-                Enabled: true,
-                Contact: {
-                    [contactId]: {
-                        Collection_Path: ["Contacts"],
-                        Name: "Test Contact 1000",
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            const record = await addRecord(
+                ["Users"],
+                {
+                    Name: "Test User",
+                    Email: "another@getoutpost.com",
+                    Role: "Cleaner",
+                    Enabled: true,
+                    Contact: {
+                        [contactId]: {
+                            Collection_Path: ["Contacts"],
+                            Name: "Test Contact 1000",
+                        },
                     },
+                    Start: Timestamp.now(),
                 },
-                Start: Timestamp.now(),
-            },
-            { userId: adminId },
-        )
-        functionsUserId = record.id
+                { userId: adminId },
+            )
+            functionsUserId = record.id
 
-        await wait(20000)
+            await wait(20000)
 
-        const persistedSnapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(record.id).get()
-        const persistedRecord = persistedSnapshot.data()
-        expect(persistedRecord?.Contact[contactId].Name).toBe("Test Client")
+            const persistedSnapshot = await db
+                .collection("tenants")
+                .doc(tenantId)
+                .collection("Users")
+                .doc(record.id)
+                .get()
+            const persistedRecord = persistedSnapshot.data()
+            expect(persistedRecord?.Contact[contactId].Name).toBe("Test Client")
+        })
     }, 30000)
 
     test("validateRelations function validates relations in subcollection", async () => {
@@ -1053,35 +1061,37 @@ describe("Cloud Functions", async () => {
         const companyId = await getCompanyId()
         const companyName = await getCompanyName()
         const adminId = await getAdminId()
-        await startStoker()
-        const db = getStokerFirestore()
-        const record = await addRecord(
-            ["Contacts", contactId, "Vehicles"],
-            {
-                Name: "Test Vehicle",
-                Company: {
-                    [companyId]: {
-                        Collection_Path: ["Companies"],
-                        Name: "Test Company 1000",
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            const record = await addRecord(
+                ["Contacts", contactId, "Vehicles"],
+                {
+                    Name: "Test Vehicle",
+                    Company: {
+                        [companyId]: {
+                            Collection_Path: ["Companies"],
+                            Name: "Test Company 1000",
+                        },
                     },
                 },
-            },
-            { userId: adminId },
-        )
+                { userId: adminId },
+            )
 
-        await wait(20000)
+            await wait(20000)
 
-        const persistedSnapshot = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("Contacts")
-            .doc(contactId)
-            .collection("Vehicles")
-            .doc(record.id)
-            .get()
-        const persistedRecord = persistedSnapshot.data()
-        expect(persistedRecord?.Company[companyId].Name).toBe(companyName)
-        functionsVehicleId = record.id
+            const persistedSnapshot = await db
+                .collection("tenants")
+                .doc(tenantId)
+                .collection("Contacts")
+                .doc(contactId)
+                .collection("Vehicles")
+                .doc(record.id)
+                .get()
+            const persistedRecord = persistedSnapshot.data()
+            expect(persistedRecord?.Company[companyId].Name).toBe(companyName)
+            functionsVehicleId = record.id
+        })
     }, 30000)
 
     test("autoIncrement function increments record number", async () => {
@@ -1153,133 +1163,145 @@ describe("Cloud Functions", async () => {
     test("updateIncludeFields function updates include fields", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
-        await startStoker()
-        const db = getStokerFirestore()
-        await updateRecord(["Contacts"], contactId, {
-            Name: "Test Contact 2",
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            await updateRecord(["Contacts"], contactId, {
+                Name: "Test Contact 2",
+            })
+
+            await wait(20000)
+
+            const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(functionsUserId).get()
+            const record = snapshot.data()
+            expect(record?.Contact[contactId].Name).toBe("Test Contact 2")
         })
-
-        await wait(20000)
-
-        const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(functionsUserId).get()
-        const record = snapshot.data()
-        expect(record?.Contact[contactId].Name).toBe("Test Contact 2")
     }, 30000)
 
     test("updateIncludeFields function updates include fields in subcollection", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
-        await startStoker()
-        const db = getStokerFirestore()
-        const service = await addRecord(["Contacts", contactId, "Vehicles", functionsVehicleId, "Services"], {
-            Name: "Test Service",
-            Vehicle: {
-                [functionsVehicleId]: {
-                    Collection_Path: ["Contacts", contactId, "Vehicles"],
-                    Name: "Test Vehicle",
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            const service = await addRecord(["Contacts", contactId, "Vehicles", functionsVehicleId, "Services"], {
+                Name: "Test Service",
+                Vehicle: {
+                    [functionsVehicleId]: {
+                        Collection_Path: ["Contacts", contactId, "Vehicles"],
+                        Name: "Test Vehicle",
+                    },
                 },
-            },
+            })
+            functionsServiceId = service.id
+
+            await updateRecord(["Contacts", contactId, "Vehicles"], functionsVehicleId, {
+                Name: "Test Vehicle 2",
+            })
+
+            await wait(20000)
+
+            const snapshot = await db
+                .collection("tenants")
+                .doc(tenantId)
+                .collection("Contacts")
+                .doc(contactId)
+                .collection("Vehicles")
+                .doc(functionsVehicleId)
+                .collection("Services")
+                .doc(service.id)
+                .get()
+            const persistedRecord = snapshot.data()
+            expect(persistedRecord?.Vehicle[functionsVehicleId].Name).toBe("Test Vehicle 2")
         })
-        functionsServiceId = service.id
-
-        await updateRecord(["Contacts", contactId, "Vehicles"], functionsVehicleId, {
-            Name: "Test Vehicle 2",
-        })
-
-        await wait(20000)
-
-        const snapshot = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("Contacts")
-            .doc(contactId)
-            .collection("Vehicles")
-            .doc(functionsVehicleId)
-            .collection("Services")
-            .doc(service.id)
-            .get()
-        const persistedRecord = snapshot.data()
-        expect(persistedRecord?.Vehicle[functionsVehicleId].Name).toBe("Test Vehicle 2")
     }, 30000)
 
     test("validateDenormalized function validates denormalized data", async () => {
         const tenantId = await getTenantId()
         const workOrderId = await getWorkOrderId()
-        await startStoker()
-        const db = getStokerFirestore()
-        await updateRecord(["Work_Orders"], workOrderId, {
-            Name: "Test Work Order 2",
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            await updateRecord(["Work_Orders"], workOrderId, {
+                Name: "Test Work Order 2",
+            })
+
+            await wait(20000)
+
+            const snapshot = await db
+                .collection("tenants")
+                .doc(tenantId)
+                .collection("system_fields")
+                .doc("Work_Orders")
+                .collection("Work_Orders-1")
+                .doc(workOrderId)
+                .get()
+            const record = snapshot.data()
+            expect(record?.Name).toBe("Test Work Order 2")
         })
-
-        await wait(20000)
-
-        const snapshot = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("system_fields")
-            .doc("Work_Orders")
-            .collection("Work_Orders-1")
-            .doc(workOrderId)
-            .get()
-        const record = snapshot.data()
-        expect(record?.Name).toBe("Test Work Order 2")
     }, 30000)
 
     test("removeRelations function removes relations", async () => {
         const tenantId = await getTenantId()
         const contactId = await getContactId()
-        await startStoker()
-        const db = getStokerFirestore()
-        await deleteRecord(["Contacts"], contactId)
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            await deleteRecord(["Contacts"], contactId)
 
-        await wait(20000)
+            await wait(20000)
 
-        const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(functionsUserId).get()
-        const record = snapshot.data()
-        expect(record?.Contact[contactId]).toBeUndefined()
+            const snapshot = await db.collection("tenants").doc(tenantId).collection("Users").doc(functionsUserId).get()
+            const record = snapshot.data()
+            expect(record?.Contact[contactId]).toBeUndefined()
+        })
     }, 30000)
 
     test("removeRelations function removes relations in subcollection", async () => {
         const tenantId = await getTenantId()
         const companyId = await getCompanyId()
-        await startStoker()
-        const db = getStokerFirestore()
-        await deleteRecord(["Companies"], companyId, { force: true })
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            await deleteRecord(["Companies"], companyId, { force: true })
 
-        await wait(20000)
+            await wait(20000)
 
-        const snapshot = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("Contacts")
-            .doc(functionsContactId)
-            .collection("Vehicles")
-            .doc(functionsVehicleId)
-            .get()
-        const record = snapshot.data()
-        expect(record?.Company[companyId]).toBeUndefined()
+            const snapshot = await db
+                .collection("tenants")
+                .doc(tenantId)
+                .collection("Contacts")
+                .doc(functionsContactId)
+                .collection("Vehicles")
+                .doc(functionsVehicleId)
+                .get()
+            const record = snapshot.data()
+            expect(record?.Company[companyId]).toBeUndefined()
+        })
     }, 30000)
 
     test("validateRelations function removes relations in subcollection", async () => {
         const tenantId = await getTenantId()
-        await startStoker()
-        const db = getStokerFirestore()
-        await deleteRecord(["Contacts", functionsContactId, "Vehicles"], functionsVehicleId)
+        await runWithTenant(tenantId, async () => {
+            await startStoker()
+            const db = getStokerFirestore()
+            await deleteRecord(["Contacts", functionsContactId, "Vehicles"], functionsVehicleId)
 
-        await wait(20000)
+            await wait(20000)
 
-        const snapshot = await db
-            .collection("tenants")
-            .doc(tenantId)
-            .collection("Contacts")
-            .doc(functionsContactId)
-            .collection("Vehicles")
-            .doc(functionsVehicleId)
-            .collection("Services")
-            .doc(functionsServiceId)
-            .get()
-        const record = snapshot.data()
-        expect(record?.Vehicle[functionsVehicleId]).toBeUndefined()
+            const snapshot = await db
+                .collection("tenants")
+                .doc(tenantId)
+                .collection("Contacts")
+                .doc(functionsContactId)
+                .collection("Vehicles")
+                .doc(functionsVehicleId)
+                .collection("Services")
+                .doc(functionsServiceId)
+                .get()
+            const record = snapshot.data()
+            expect(record?.Vehicle[functionsVehicleId]).toBeUndefined()
+        })
     }, 30000)
 
     test("verifyWriteLog function verifies write log", async () => {

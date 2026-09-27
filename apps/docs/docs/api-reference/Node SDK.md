@@ -17,6 +17,7 @@ Initialize a Stoker app.
 ```ts
 (
     modeEnv: "development" | "production",
+    tenantId: string | undefined,
     configFilePath: string,
     customizationFilesPath: string,
     gcp?: boolean
@@ -27,6 +28,8 @@ Initialize a Stoker app.
 
 `modeEnv`: The environment to start the app in.
 
+`tenantId`: The tenant to work with. Pass `undefined` to initialize without a tenant.
+
 `configFilePath`: The path to you global config file. For example: `join(process.cwd(), "config", "main.js")`
 
 `collectionFiles`: The path to your collection config files. For example: `join(process.cwd(), "config", "collections")`
@@ -36,6 +39,10 @@ Initialize a Stoker app.
 #### Returns
 
 All [Node helper functions](/docs/api-reference/Application%20State#utils-node).
+
+:::warning
+Never call `initializeStoker` with a tenant at module scope in a Cloud Function. The tenant would become the default for every request handled by that instance. Always call it inside the request handler.
+:::
 
 ## fetchCurrentSchema
 
@@ -412,11 +419,7 @@ Display a [Firebase Timestamp](https://firebase.google.com/docs/reference/node/f
 
 A utility to get a Stoker config value. Provide the raw config value to `configProperty`. If the value is a function or a promise, add arguments to `args`. Returns a promise with the config value.
 
-## getCachedConfigValue
 
-`(config: GlobalConfig | CollectionCustomization, pathArray: ConfigPath, args?: unknown[], overwrite?: boolean) => Promise<any>`
-
-A utility to get a cached Stoker config value. Provide the config module to `config`. Provide a path to the config value, for example `["global", "auth", "enableMultiFactorAuth"]` or `["collections", COLLECTION_NAME, "admin", "itemsPerPage"]`. If the value is a function or a promise, provide an array of arguments to `args`. Set `overwrite` to `true` to ignore the currently cached value and re-generate the cached value.
 
 ## getSchema
 

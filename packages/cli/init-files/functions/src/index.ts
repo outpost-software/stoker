@@ -48,7 +48,6 @@ import {
     CollectionSchema,
     CollectionsSchema,
 } from "@stoker-platform/types";
-import globalConfig from "./system-custom/main.js";
 import {genkit} from "genkit";
 import {vertexAI} from "@genkit-ai/google-genai";
 import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
@@ -114,7 +113,6 @@ stoker["notifications"] = onDocumentCreated({
 }, (event) => {
     return messageNotifications(
         event,
-        globalConfig,
     );
 });
 
@@ -216,7 +214,6 @@ Object.values(schema.collections).forEach((collectionSchema) => {
             return validateFields(
                 event,
                 collectionSchema,
-                globalConfig,
                 schema
             );
         });

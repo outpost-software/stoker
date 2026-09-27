@@ -8,6 +8,10 @@ This file defines project-wide config for your app.
 
 You can use [application state](/docs/api-reference/Application%20State) and the [Web](/docs/api-reference/Web%20SDK) and [Node](/docs/api-reference/Node%20SDK) SDKs in this file.
 
+:::warning
+The config this file returns is shared by every tenant. Always read tenant-scoped values inside a method or a [hook](#global-hooks).
+:::
+
 ## General
 
 ### roles 

@@ -3,13 +3,14 @@ import {
     initializeStoker,
     sendMail,
     updateRecord,
+    runWithTenant,
 } from "@stoker-platform/node-client";
 import {
-    GenerateGlobalConfig,
     StokerCollection,
     StokerRecord,
     StokerRelationObject,
 } from "@stoker-platform/types";
+import {tryPromise} from "@stoker-platform/utils";
 import {
     FirestoreEvent,
     QueryDocumentSnapshot,
@@ -26,23 +27,23 @@ export const messageNotifications = (
         tenantId: string;
         messageId: string;
     }>,
-    globalConfig: GenerateGlobalConfig,
     collection: StokerCollection = "Users",
 ) => {
-    return (async () => {
+    return runWithTenant(event.params.tenantId as string, async () => {
         const tenantId = event.params.tenantId as string;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
         const doc = snapshot.data();
-        const appName = globalConfig({sdk: "node"}).appName;
 
-        await initializeStoker(
+        const {getGlobalConfigModule} = await initializeStoker(
             "production",
             tenantId,
             join(process.cwd(), "lib", "system-custom", "main.js"),
             join(process.cwd(), "lib", "system-custom", "collections"),
             true,
         );
+
+        const appName = await tryPromise(getGlobalConfigModule().appName);
 
         const toId = Object.keys(doc.Recipient)[0];
         const to = await getOne([collection], toId) as StokerRecord;
@@ -60,5 +61,5 @@ export const messageNotifications = (
             errorLogger(error);
         }
         return;
-    })();
+    });
 };

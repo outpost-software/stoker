@@ -4,7 +4,6 @@ import {error as errorLogger} from "firebase-functions/logger";
 import {
     CollectionSchema,
     CollectionsSchema,
-    GenerateGlobalConfig,
     StokerRecord,
 } from "@stoker-platform/types";
 import {tryPromise,
@@ -17,6 +16,7 @@ import {
     getStokerFirestore,
     validateRelations,
     validateSoftDelete,
+    runWithTenant,
 } from "@stoker-platform/node-client";
 import cloneDeep from "lodash/cloneDeep.js";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
@@ -27,10 +27,9 @@ export const validateFields = (
     event: FirestoreEvent<Change<DocumentSnapshot> | undefined,
     Record<string, unknown>>,
     collection: CollectionSchema,
-    globalConfig: GenerateGlobalConfig,
     schema: CollectionsSchema,
 ) => {
-    return (async () => {
+    return runWithTenant(event.params.tenantId as string, async () => {
         const tenantId = event.params.tenantId as string;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
@@ -46,6 +45,7 @@ export const validateFields = (
         if (after) {
             const {
                 getCustomizationFile,
+                getGlobalConfigModule,
             } = await initializeStoker(
                 "production",
                 tenantId,
@@ -97,7 +97,7 @@ export const validateFields = (
                 });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
-                const appName = await tryPromise(globalConfig({sdk: "node"}).appName);
+                const appName = await tryPromise(getGlobalConfigModule().appName);
                 const adminEmail = process.env.ADMIN_EMAIL;
                 if (adminEmail) {
                     await sendMail(adminEmail, `Invalid Stoker Write - ${appName} - ${tenantId} - ${labels.collection} - ${snapshot.after.id}`, error.message).catch((error) => {
@@ -107,5 +107,5 @@ export const validateFields = (
             }
         }
         return;
-    })();
+    });
 };

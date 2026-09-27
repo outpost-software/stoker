@@ -32,13 +32,7 @@ export {
     displayDate,
 } from "./utils/convertToTimezone.js"
 
-export {
-    tryPromise,
-    getCachedConfigValue,
-    getSchema as getZodSchema,
-    getInputSchema,
-    isDeleteSentinel,
-} from "@stoker-platform/utils"
+export { tryPromise, getSchema as getZodSchema, getInputSchema, isDeleteSentinel } from "@stoker-platform/utils"
 
 export type { GetOneOptions } from "./read/getOne.js"
 export type { Cursor, GetSomeOptions } from "./read/getSome.js"

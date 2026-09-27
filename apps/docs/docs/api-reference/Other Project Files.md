@@ -5,7 +5,7 @@ sidebar_position: 5
 | File or Area | Purpose |
 | --- | --- |
 | `external.package.json` | Add npm packages to your app. Client-side packages should go in the `web` object, and server-side packages should go in the `node` object. Use the same syntax as package.json `dependencies`. |
-| `functions/src/index.ts` | Add custom [Cloud Functions](https://firebase.google.com/docs/functions). Use this to add custom server operations to your app. |
+| `functions/src/index.ts` | Add custom [Cloud Functions](https://firebase.google.com/docs/functions). Use this to add custom server operations to your app. See [Custom Cloud Functions](#custom-cloud-functions) below. |
 | Firebase Extensions | In addition to Cloud Functions above, you can add [Firebase Extensions](https://firebase.google.com/products/extensions) to extend your app's server functionality. |
 | `tests` | Write tests for your app. Tests are powered by [Vitest](https://vitest.dev/). |
 | `functions/prompts/chat.prompt` | Customize the system prompt used for your app's AI chat. |
@@ -16,3 +16,12 @@ sidebar_position: 5
 | `firebase.hosting.json` | Edit the headers, including CSP, for the Admin UI app. |
 | `.migration` | Review the record of migration operations for schema updates. |
 | `.devcontainer` | Configure [GitHub Codespaces](https://github.com/features/codespaces) for cloud development. |
+
+
+:::warning
+## Custom Cloud Functions
+
+Anything at **module scope** in a function file is shared between tenants. Keep per-tenant state inside the function handler. Call [`initializeStoker`](/docs/api-reference/Node%20SDK#initializestoker) inside the handler too, never at module scope.
+
+Module scope is still the right place for tenant-agnostic setup such as `defineSecret` or a shared third-party SDK client.
+:::

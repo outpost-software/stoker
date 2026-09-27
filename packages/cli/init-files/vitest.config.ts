@@ -11,7 +11,6 @@ export default defineConfig({
                     name: "unit",
                     globals: true,
                     environment: "node",
-                    // test/e2e is owned by Playwright, not Vitest
                     include: ["test/**/*"],
                     exclude: ["test/e2e/**", "test/component/**"],
                 },

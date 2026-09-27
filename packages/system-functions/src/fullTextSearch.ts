@@ -11,6 +11,7 @@ import {
     getOne,
     getStokerFirestore,
     initializeStoker,
+    runWithTenant,
 } from "@stoker-platform/node-client";
 import {join} from "path";
 
@@ -23,7 +24,7 @@ export const fullTextSearch = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     algoliaAdminKey: any,
 ) => {
-    return (async () => {
+    return runWithTenant(event.params.tenantId as string, async () => {
         const tenantId = event.params.tenantId as string;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const snapshot = event.data!;
@@ -73,5 +74,5 @@ export const fullTextSearch = (
             });
         }
         return;
-    })();
+    });
 };
