@@ -3878,6 +3878,7 @@ function RecordForm({
     }, [form.watch()])
 
     const recordLoaded = useRef(false)
+    const lastAppliedRecord = useRef<StokerRecord | undefined>(undefined)
 
     useEffect(() => {
         ;(async () => {
@@ -3897,9 +3898,10 @@ function RecordForm({
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const admin = fieldCustomization.admin
                 const fieldLiveUpdate = await tryPromise(admin?.live)
+                const changedOnServer =
+                    !recordLoaded.current || !isEqual(lastAppliedRecord.current?.[field.name], record[field.name])
                 if (
-                    liveUpdate ||
-                    fieldLiveUpdate ||
+                    ((liveUpdate || fieldLiveUpdate) && changedOnServer) ||
                     (!recordLoaded.current && !(auth && field.name === "User_ID")) ||
                     (softDelete && field.name === softDelete?.archivedField) ||
                     (field.type === "Number" && field.autoIncrement)
@@ -3921,6 +3923,7 @@ function RecordForm({
                     }
                 }
             }
+            lastAppliedRecord.current = record
             recordLoaded.current = true
         })()
     }, [record])
