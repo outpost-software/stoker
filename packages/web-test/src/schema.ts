@@ -25,6 +25,14 @@ export const readableCollections = (schema: CollectionsSchema, role: StokerRole)
 export const listableCollections = (schema: CollectionsSchema, role: StokerRole): CollectionSchema[] =>
     readableCollections(schema, role).filter((collection) => !collection.singleton)
 
+export const assignsFilePermissions = (collection: CollectionSchema, role: StokerRole): boolean => {
+    // eslint-disable-next-line security/detect-object-injection
+    const assignment = collection.access?.files?.assignment?.[role]
+    if (!assignment) return true
+    const optional = assignment.optional ?? {}
+    return [optional.read, optional.update, optional.delete].some((roles) => roles && roles.length > 0)
+}
+
 export const collectionPath = (collection: CollectionSchema): string => `/${collection.labels.collection.toLowerCase()}`
 
 export const recordPath = (collection: CollectionSchema, id: string): string =>

@@ -10,6 +10,7 @@ export interface ConformanceOptions {
         access?: boolean
         collections?: boolean
         records?: boolean
+        editing?: boolean
     }
 }
 

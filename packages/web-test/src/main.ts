@@ -11,6 +11,8 @@ export {
     type StokerProject,
     type StokerProjectOptions,
     type StokerTestUser,
+    type StokerTestField,
+    type StokerTestRecords,
     type StokerEmulatorPorts,
 } from "./project.js"
 export {

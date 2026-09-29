@@ -100,6 +100,7 @@ export default function MonthPicker({ currentMonth, onMonthChange, disabled, tod
                                     )}
                                     disabled={disabled}
                                     role="gridcell"
+                                    aria-selected={isEqual(month, currentMonth)}
                                     tabIndex={-1}
                                     type="button"
                                     onClick={() => onMonthChange(month)}

@@ -10,16 +10,27 @@ export const locators = (page: Page) => ({
     },
     collection: {
         heading: page.getByRole("heading", { level: 1 }),
-        table: page.locator("table.list-table"),
-        rows: page.locator("table.list-table tbody tr"),
-        empty: page.locator("table.list-table tbody td[colspan]"),
+        table: page.getByTestId("list-table"),
+        rows: page.getByTestId("list-row"),
+        empty: page.getByTestId("list-empty"),
         listTab: page.getByRole("tab", { name: "List", exact: true }),
-        addButton: (recordLabel: string) => page.getByRole("button", { name: `Add ${recordLabel}` }),
+        showAll: page.getByRole("radio", { name: "Toggle all" }),
+        addButton: page.getByTestId("add-record"),
+        range: {
+            label: page.getByTestId("range-label").filter({ visible: true }),
+            previous: page.getByTestId("range-previous").filter({ visible: true }),
+            next: page.getByTestId("range-next").filter({ visible: true }),
+        },
     },
     record: {
         heading: page.getByRole("heading", { level: 1 }),
+        form: page.getByTestId("record-form"),
+        field: (name: string) => page.getByTestId(`field-${name}`),
+        save: page.getByRole("button", { name: "Save", exact: true }),
+        updated: page.getByText(/ updated( successfully)?\.$/),
     },
     app: {
+        root: page.getByTestId("app"),
         errorPage: page.getByText(/something went wrong|page not found/i),
     },
 })

@@ -2608,6 +2608,7 @@ function Collection({
                                                                                 size="sm"
                                                                                 className="h-7 gap-1"
                                                                                 disabled={isCreateDisabled}
+                                                                                data-testid="add-record"
                                                                             >
                                                                                 <PlusCircle className="h-3.5 w-3.5" />
                                                                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -2664,6 +2665,7 @@ function Collection({
                                                                     size="sm"
                                                                     className="h-7 gap-1"
                                                                     disabled={isCreateDisabled}
+                                                                    data-testid="add-record"
                                                                     onClick={() => {
                                                                         ;(async () => {
                                                                             const customization =

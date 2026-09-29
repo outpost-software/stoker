@@ -1838,7 +1838,7 @@ export function List({
                             </div>
                         )}
                         {!searchClearing && pagesLoaded && list && (
-                            <Table className="list-table">
+                            <Table className="list-table" data-testid="list-table">
                                 <TableHeader>
                                     {table.getHeaderGroups().map((headerGroup) => (
                                         <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -1900,6 +1900,13 @@ export function List({
                                 <TableBody>
                                     {table.getRowModel().rows?.length ? (
                                         table.getRowModel().rows.map((row: Row<unknown>) => {
+                                            const record = row.original as StokerRecord
+                                            const pendingFields = fields.filter(
+                                                (field) =>
+                                                    field.type === "Number" &&
+                                                    field.autoIncrement &&
+                                                    record[field.name] === "Pending",
+                                            ).length
                                             let className = "odd:bg-muted dark:odd:bg-primary-foreground"
                                             const highlights: RowHighlight[] = []
                                             rowHighlight?.forEach((rowHighlight) => {
@@ -1919,6 +1926,8 @@ export function List({
                                             return (
                                                 <TableRow
                                                     key={row.id}
+                                                    data-testid="list-row"
+                                                    data-pending-fields={pendingFields}
                                                     data-state={row.getIsSelected() && "selected"}
                                                     className={cn("dark:hover:bg-muted", className)}
                                                 >
@@ -1986,9 +1995,13 @@ export function List({
                                                                 className = cn(className, "cursor-pointer")
                                                             }
                                                         }
+                                                        const opensRecord =
+                                                            id !== "select" &&
+                                                            !["OneToOne", "OneToMany"].includes(field.type)
                                                         return (
                                                             <TableCell
                                                                 key={cell.id}
+                                                                data-testid={opensRecord ? "list-cell" : undefined}
                                                                 className={cn(
                                                                     className,
                                                                     "max-w-[150px] md:max-w-[300px] overflow-hidden break-words",
@@ -2031,7 +2044,11 @@ export function List({
                                         })
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={columns.length} className="h-24 text-center">
+                                            <TableCell
+                                                colSpan={columns.length}
+                                                className="h-24 text-center"
+                                                data-testid="list-empty"
+                                            >
                                                 No results.
                                             </TableCell>
                                         </TableRow>

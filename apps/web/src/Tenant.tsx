@@ -497,7 +497,11 @@ function Tenant() {
     return (
         appName &&
         collectionTitles && (
-            <div className="relative isolate min-h-dvh">
+            <div
+                className="relative isolate min-h-dvh"
+                data-testid="app"
+                data-pending-writes={isGlobalLoading.size + isGlobalCachePending.size}
+            >
                 <div
                     aria-hidden="true"
                     className="absolute inset-0 z-0 pointer-events-none print:hidden"

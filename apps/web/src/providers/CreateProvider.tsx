@@ -126,6 +126,7 @@ export const CreateProvider: React.FC<CreateProviderProps> = ({ children }) => {
                                         type="button"
                                         variant="ghost"
                                         size="sm"
+                                        aria-label="Close"
                                         onClick={() => {
                                             setOpen(false)
                                         }}

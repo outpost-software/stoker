@@ -26,6 +26,14 @@ function CalendarCaptionLabel({ displayMonth, id, onYearClick }: CaptionLabelPro
     )
 }
 
+function CalendarIconLeft() {
+    return <ChevronLeftIcon className="h-4 w-4" />
+}
+
+function CalendarIconRight() {
+    return <ChevronRightIcon className="h-4 w-4" />
+}
+
 function Calendar({
     className,
     classNames,
@@ -43,6 +51,18 @@ function Calendar({
 
     const month = monthProp ?? internalMonth
     const onMonthChange = onMonthChangeProp ?? setInternalMonth
+
+    const calendarComponents = React.useMemo(
+        () => ({
+            IconLeft: CalendarIconLeft,
+            IconRight: CalendarIconRight,
+            ...components,
+            CaptionLabel: (captionProps: CaptionLabelProps) => (
+                <CalendarCaptionLabel {...captionProps} onYearClick={() => setShowYearPicker(true)} />
+            ),
+        }),
+        [components],
+    )
 
     if (showYearPicker) {
         return (
@@ -99,14 +119,7 @@ function Calendar({
                 day_hidden: "invisible",
                 ...classNames,
             }}
-            components={{
-                IconLeft: () => <ChevronLeftIcon className="h-4 w-4" />,
-                IconRight: () => <ChevronRightIcon className="h-4 w-4" />,
-                ...components,
-                CaptionLabel: (captionProps) => (
-                    <CalendarCaptionLabel {...captionProps} onYearClick={() => setShowYearPicker(true)} />
-                ),
-            }}
+            components={calendarComponents}
             fromYear={fromYear}
             toYear={toYear}
             {...props}

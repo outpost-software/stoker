@@ -17,7 +17,7 @@ export const recordConformance = (options: ConformanceOptions) => {
                     if (await ui.collection.empty.isVisible()) return
 
                     const recordSegment = `/${collection.labels.record.toLowerCase()}/`
-                    await ui.collection.rows.first().click()
+                    await ui.collection.rows.first().getByTestId("list-cell").first().click()
                     await page.waitForURL((url) => url.pathname.toLowerCase().includes(recordSegment))
                     await expect(ui.record.heading).toBeVisible()
                     await expect(ui.app.errorPage).toBeHidden()

@@ -246,6 +246,7 @@ export function DateRangeSelector({
                         }}
                         disabled={disabled}
                         className="date-range-arrow hidden sm:block lg:hidden xl:block"
+                        data-testid="range-previous"
                     >
                         <ChevronLeft className="w-4 h-4" />
                     </Button>
@@ -254,6 +255,7 @@ export function DateRangeSelector({
                     <PopoverTrigger asChild disabled={disabled}>
                         <Button
                             id="date"
+                            data-testid="range-label"
                             variant="outline"
                             className={cn(
                                 relationList ? "w-[220px]" : "w-[300px]",
@@ -407,6 +409,7 @@ export function DateRangeSelector({
                         }}
                         disabled={disabled}
                         className="date-range-arrow hidden sm:block lg:hidden xl:block"
+                        data-testid="range-next"
                     >
                         <ChevronRight className="w-4 h-4" />
                     </Button>

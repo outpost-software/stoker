@@ -18,6 +18,15 @@ export interface StokerTestUser {
     password: string
 }
 
+/** Values typed into one field of a test record */
+export interface StokerTestField {
+    create?: string
+    update?: string
+}
+
+/** Test records keyed by collection label, then field name */
+export type StokerTestRecords = Record<string, Record<string, StokerTestField>>
+
 /** Ports for the Firebase emulators the web app connects to */
 export type StokerEmulatorPorts = Record<(typeof EMULATORS)[number], number>
 
@@ -28,6 +37,8 @@ export interface StokerProjectOptions {
     baseURL?: string
     /** Test users keyed by role */
     users?: Record<string, StokerTestUser>
+    /** Test records keyed by collection label */
+    records?: StokerTestRecords
     /** Emulator ports */
     ports?: Partial<StokerEmulatorPorts>
 }
@@ -41,6 +52,7 @@ export interface StokerProject {
     functionsRegion: string
     ports: StokerEmulatorPorts
     users: Record<string, StokerTestUser>
+    records: StokerTestRecords
 }
 
 // eslint-disable-next-line security/detect-non-literal-fs-filename
@@ -81,12 +93,25 @@ const resolvePorts = (rootDir: string, provided: Partial<StokerEmulatorPorts> = 
     return Object.fromEntries(entries) as StokerEmulatorPorts
 }
 
+interface StokerTestFile {
+    users?: Record<string, StokerTestUser>
+    records?: StokerTestRecords
+}
+
+const testFile = (rootDir: string): StokerTestFile =>
+    (readJSON(join(rootDir, "stoker-test.json")) as StokerTestFile | undefined) ?? {}
+
 const resolveUsers = (rootDir: string, provided?: Record<string, StokerTestUser>): Record<string, StokerTestUser> => {
     if (provided) return provided
     if (process.env.STOKER_TEST_USERS)
         return JSON.parse(process.env.STOKER_TEST_USERS) as Record<string, StokerTestUser>
-    const file = readJSON(join(rootDir, "stoker-test.json")) as { users?: Record<string, StokerTestUser> } | undefined
-    return file?.users ?? {}
+    return testFile(rootDir).users ?? {}
+}
+
+const resolveRecords = (rootDir: string, provided?: StokerTestRecords): StokerTestRecords => {
+    if (provided) return provided
+    if (process.env.STOKER_TEST_RECORDS) return JSON.parse(process.env.STOKER_TEST_RECORDS) as StokerTestRecords
+    return testFile(rootDir).records ?? {}
 }
 
 const resolveFirebaseProjectId = (): string => {
@@ -101,6 +126,7 @@ export const publishProject = (project: StokerProject): void => {
     process.env.STOKER_TEST_ROOT_DIR = project.rootDir
     process.env.STOKER_TEST_BASE_URL = project.baseURL
     process.env.STOKER_TEST_USERS = JSON.stringify(project.users)
+    process.env.STOKER_TEST_RECORDS = JSON.stringify(project.records)
     process.env.STOKER_TEST_PORTS = JSON.stringify(project.ports)
 }
 
@@ -128,5 +154,6 @@ export const resolveProject = (options: StokerProjectOptions = {}): StokerProjec
         functionsRegion: process.env.STOKER_FB_FUNCTIONS_REGION ?? "us-central1",
         ports: resolvePorts(rootDir, options.ports),
         users: resolveUsers(rootDir, options.users),
+        records: resolveRecords(rootDir, options.records),
     }
 }

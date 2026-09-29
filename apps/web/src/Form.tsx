@@ -708,6 +708,7 @@ function StringField({
                                                     key={option}
                                                     type="button"
                                                     onClick={() => formField.onChange(option)}
+                                                    aria-pressed={formField.value === option}
                                                     // eslint-disable-next-line security/detect-object-injection
                                                     variant={formField.value === option ? "default" : "outline"}
                                                     className="disabled:opacity-100"
@@ -2415,7 +2416,7 @@ function ComputedField({ form, collection, label, description, field, record, ic
     const goToRecord = useGoToRecord()
     const values = { ...record, ...form.getValues() } as StokerRecord
     return (
-        <FormItem>
+        <FormItem data-testid={`field-${field.name}`}>
             <FormLabelWithIcon
                 collection={collection}
                 label={label}
@@ -2511,6 +2512,9 @@ function RecordForm({
     })
 
     const formValues = form.watch()
+    const pendingFields = fields.filter(
+        (field) => field.type === "Number" && field.autoIncrement && formValues[field.name] === "Pending",
+    ).length
     const [prevState, setPrevState] = useState<Partial<StokerRecord>>({} as Partial<StokerRecord>)
     const prevStateRef = useRef<Partial<StokerRecord>>(prevState)
     useEffect(() => {
@@ -4736,7 +4740,13 @@ function RecordForm({
                 </>
             )}
             <Form {...form}>
-                <form className="space-y-8 max-w-[750px]" onSubmit={(e) => e.preventDefault()}>
+                <form
+                    className="space-y-8 max-w-[750px]"
+                    data-testid="record-form"
+                    data-collection={collection.labels.collection}
+                    data-pending-fields={pendingFields}
+                    onSubmit={(e) => e.preventDefault()}
+                >
                     {formImagesEnabled && operation === "update" && !isOffline && (
                         <div className="flex flex-col gap-3 mt-2">
                             <Label>Images</Label>
@@ -5846,14 +5856,21 @@ function RecordForm({
                                 {operation === "update" && hasCreateAccess && !disableCreate && (
                                     <>
                                         {enableDuplicate && (
-                                            <Button type="button" onClick={duplicateRecord} disabled={isCreateDisabled}>
+                                            <Button
+                                                type="button"
+                                                onClick={duplicateRecord}
+                                                disabled={isCreateDisabled || pendingFields > 0}
+                                            >
                                                 Duplicate
                                             </Button>
                                         )}
                                         {convertMenuItems.length > 0 && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="outline" disabled={isCreateDisabled}>
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={isCreateDisabled || pendingFields > 0}
+                                                    >
                                                         Convert
                                                         <ChevronDown className="ml-2 h-4 w-4" />
                                                     </Button>
