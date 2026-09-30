@@ -1,4 +1,7 @@
+import { getApps, initializeApp } from "firebase-admin"
 import type { StokerProject } from "./project.js"
+import { getFirestoreDatabaseId } from "@stoker-platform/utils"
+import { getFirestore } from "firebase-admin/firestore"
 
 const HOST = "127.0.0.1"
 const OWNER = "Bearer owner"
@@ -53,4 +56,18 @@ export const waitForCallable = async (project: StokerProject, name: string, time
     }
 
     throw new Error(`The Functions emulator did not register "${name}" within ${timeoutMs}ms.`)
+}
+
+export const emulatorFirestore = async (project: StokerProject) => {
+    process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${project.ports.firestore}`
+    const app =
+        getApps().find((item) => item.name === "web-test") ??
+        initializeApp({ projectId: project.firebaseProjectId }, "web-test")
+    const databaseId = getFirestoreDatabaseId(
+        process.env.STOKER_FB_FIRESTORE_EDITION ?? process.env.FB_FIRESTORE_EDITION,
+        project.firebaseProjectId,
+    )
+    const firestore = databaseId === "(default)" ? getFirestore(app) : getFirestore(app, databaseId)
+    const tenants = await firestore.collection("tenants").get()
+    return firestore.collection("tenants").doc(tenants.docs[0].id)
 }

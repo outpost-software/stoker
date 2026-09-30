@@ -31,7 +31,8 @@
     "dependencies": {
         "@stoker-platform/types": "0.5.76",
         "@stoker-platform/utils": "0.5.93",
-        "dotenv": "^17.4.2"
+        "dotenv": "^17.4.2",
+        "firebase-admin": "^14.3.0"
     },
     "peerDependencies": {
         "@playwright/test": "^1.63.0"

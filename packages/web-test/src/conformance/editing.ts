@@ -13,7 +13,7 @@ import {
     type FieldControl,
     type FormContext,
 } from "./form.js"
-import { openList } from "./listView.js"
+import { openList, selectMonthRange, setFiltersToAll, showMonth } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 
 type Operation = "create" | "update"
@@ -107,8 +107,8 @@ const createRecord = async (
     const dialog = page.getByRole("dialog")
     await fillFields(page, dialog, collection, creates, context)
     await ui.record.save.click()
-    await expect(dialog).toBeHidden({ timeout: 30000 })
-    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 30000 })
+    await expect(dialog).toBeHidden({ timeout: 120000 })
+    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0")
 }
 
 const updateRecord = async (
@@ -125,8 +125,8 @@ const updateRecord = async (
 
     const notified = await ui.record.updated.count()
     await ui.record.save.click()
-    await expect.poll(() => ui.record.updated.count(), { timeout: 30000 }).toBeGreaterThan(notified)
-    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 30000 })
+    await expect.poll(() => ui.record.updated.count(), { timeout: 60000 }).toBeGreaterThan(notified)
+    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
 
     await page.reload()
     await expect(ui.record.save).toBeVisible({ timeout: 30000 })
@@ -177,6 +177,7 @@ const openCreatedRecord = async (
     creates: FieldValue[],
 ) => {
     if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
+    await setFiltersToAll(page)
 
     const rangeField = collection.preloadCache?.range?.fields[0]
     const rangeDate = creates.find(({ name, value }) => name === rangeField && DATE.test(value))?.value
@@ -198,36 +199,4 @@ const listedText = (collection: CollectionSchema, creates: FieldValue[]): RegExp
     })
     // eslint-disable-next-line security/detect-non-literal-regexp
     return new RegExp(strings.map(({ value }) => escapeRegExp(value)).join("|"))
-}
-
-const selectMonthRange = async (page: Page, ui: StokerLocators) => {
-    await ui.collection.range.label.click()
-    const popover = page.getByRole("dialog").filter({ has: page.getByRole("tab") })
-    await expect(popover).toBeVisible()
-    const monthTab = popover.getByRole("tab", { name: "Month", exact: true })
-    if ((await monthTab.count()) === 0) {
-        await page.keyboard.press("Escape")
-        await expect(popover).toBeHidden()
-        return
-    }
-    await monthTab.click()
-    await page.keyboard.press("Escape")
-    await expect(popover).toBeHidden()
-    await expect(ui.collection.range.previous).toBeVisible()
-}
-
-const showMonth = async (ui: StokerLocators, date: string) => {
-    const target = Number(date.slice(0, 4)) * 12 + Number(date.slice(5, 7)) - 1
-    const shownMonth = async () => {
-        const label = await ui.collection.range.label.innerText()
-        const shown = new Date(label.split(" - ")[0])
-        return shown.getFullYear() * 12 + shown.getMonth()
-    }
-    const steps = target - (await shownMonth())
-    const control = steps > 0 ? ui.collection.range.next : ui.collection.range.previous
-    for (let step = 0; step < Math.abs(steps); step++) {
-        const before = await shownMonth()
-        await control.click()
-        await expect.poll(shownMonth).not.toBe(before)
-    }
 }

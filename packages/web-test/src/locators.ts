@@ -16,6 +16,7 @@ export const locators = (page: Page) => ({
         listTab: page.getByRole("tab", { name: "List", exact: true }),
         showAll: page.getByRole("radio", { name: "Toggle all" }),
         addButton: page.getByTestId("add-record"),
+        search: page.getByPlaceholder("Search...", { exact: true }).filter({ visible: true }),
         range: {
             label: page.getByTestId("range-label").filter({ visible: true }),
             previous: page.getByTestId("range-previous").filter({ visible: true }),
@@ -31,6 +32,7 @@ export const locators = (page: Page) => ({
     },
     app: {
         root: page.getByTestId("app"),
+        search: page.getByRole("searchbox", { name: "Search all..." }),
         errorPage: page.getByText(/something went wrong|page not found/i),
     },
 })
