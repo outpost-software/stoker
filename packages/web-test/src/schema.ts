@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs"
-import type { CollectionSchema, CollectionsSchema, StokerRole } from "@stoker-platform/types"
+import type { CollectionSchema, CollectionsSchema, NodeUtilities, StokerRole } from "@stoker-platform/types"
 import { roleHasOperationAccess } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
+import { initializeStoker } from "@stoker-platform/node-client"
+import { join } from "node:path"
 
 export type StokerOperation = "read" | "create" | "update" | "delete"
 
@@ -37,3 +39,16 @@ export const collectionPath = (collection: CollectionSchema): string => `/${coll
 
 export const recordPath = (collection: CollectionSchema, id: string): string =>
     `/${collection.labels.record.toLowerCase()}/${collection.labels.collection}/${id}`
+
+let stoker: Promise<NodeUtilities> | undefined
+
+export const customizationFile = async (project: StokerProject, schema: CollectionsSchema, collection: string) => {
+    stoker ??= initializeStoker(
+        "development",
+        undefined,
+        join(project.rootDir, "lib", "main.js"),
+        join(project.rootDir, "lib", "collections"),
+    )
+    const { getCustomizationFile } = await stoker
+    return getCustomizationFile(collection, schema)
+}

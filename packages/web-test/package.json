@@ -29,6 +29,7 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
+        "@stoker-platform/node-client": "0.5.108",
         "@stoker-platform/types": "0.5.76",
         "@stoker-platform/utils": "0.5.93",
         "dotenv": "^17.4.2",
