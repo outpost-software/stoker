@@ -85,6 +85,18 @@ export const collectionConformance = (options: ConformanceOptions) => {
                 })
             }
         })
+
+        test("export button works or is disabled", async ({ page, schema, role, ui, project }) => {
+            const collections = included(listableCollections(schema, role), options)
+            test.skip(collections.length === 0, `${role} cannot read any collection`)
+            test.setTimeout(Math.max(120000, collections.length * 30000))
+
+            for (const collection of collections) {
+                await test.step(collection.labels.collection, async () => {
+                    await expectExport(page, ui, project, schema, collection, role)
+                })
+            }
+        })
     })
 }
 
@@ -361,6 +373,58 @@ const expectFilters = async (
     }
     await sheet.getByRole("button", { name: "Close", exact: true }).click()
     await expect(sheet).toBeHidden()
+}
+
+const expectExport = async (
+    page: Page,
+    ui: StokerLocators,
+    project: StokerProject,
+    schema: CollectionsSchema,
+    collection: CollectionSchema,
+    role: string,
+) => {
+    const customization = await customizationFile(project, schema, collection.labels.collection)
+    const restrictExport = (await tryPromise(customization.admin?.restrictExport)) as string[] | undefined
+    const titles = (await tryPromise(customization.admin?.titles)) as { collection?: string } | undefined
+    const allowed = !restrictExport || restrictExport.includes(role)
+    const filename = `${titles?.collection || collection.labels.collection}.csv`
+
+    await page.goto(collectionPath(collection))
+    await expect(ui.collection.heading).toBeVisible()
+    await openList(ui)
+
+    const actions = page.getByRole("button", { name: "Actions", exact: true })
+    const inMenu = await actions.isVisible()
+    if (inMenu) {
+        await actions.click()
+        await expect(page.getByRole("menu")).toBeVisible()
+    }
+    const control = inMenu
+        ? page.getByRole("menuitem", { name: "Export", exact: true })
+        : page.getByRole("button", { name: "Export", exact: true })
+
+    if (!allowed) {
+        await expect(control, `${collection.labels.collection} should hide Export from ${role}`).toHaveCount(0)
+        return
+    }
+
+    await expect(control, `${collection.labels.collection} should show Export`).toBeVisible()
+    if (await control.isDisabled()) {
+        await expect(
+            control,
+            `${collection.labels.collection} export should be disabled when there is nothing to export`,
+        ).toBeDisabled()
+        return
+    }
+
+    const download = page.waitForEvent("download", { timeout: 30000 })
+    await control.click()
+    const file = await download
+    expect(file.suggestedFilename(), `${collection.labels.collection} should download a CSV`).toBe(filename)
+    const stream = await file.createReadStream()
+    const chunks: Uint8Array[] = []
+    for await (const chunk of stream) chunks.push(chunk)
+    expect(Buffer.concat(chunks).toString("utf8").trim().length).toBeGreaterThan(0)
 }
 
 const expectChatReply = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
