@@ -71,6 +71,9 @@ const loadEnvFiles = (rootDir: string) => {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     if (gcpProject && existsSync(projectEnvFile)) dotenv.config({ path: projectEnvFile, quiet: true })
     else dotenv.config({ path: join(envDir, ".env"), quiet: true })
+    const devEnvFile = join(envDir, ".env.dev")
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (existsSync(devEnvFile)) dotenv.config({ path: devEnvFile, override: true, quiet: true })
 }
 
 const resolvePorts = (rootDir: string, provided: Partial<StokerEmulatorPorts> = {}): StokerEmulatorPorts => {

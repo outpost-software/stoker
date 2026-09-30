@@ -4,6 +4,7 @@ import { roleHasOperationAccess } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
 import { initializeStoker } from "@stoker-platform/node-client"
 import { join } from "node:path"
+import { emulatorFirestore } from "./emulator.js"
 
 export type StokerOperation = "read" | "create" | "update" | "delete"
 
@@ -43,9 +44,10 @@ export const recordPath = (collection: CollectionSchema, id: string): string =>
 let stoker: Promise<NodeUtilities> | undefined
 
 export const customizationFile = async (project: StokerProject, schema: CollectionsSchema, collection: string) => {
+    const tenant = await emulatorFirestore(project)
     stoker ??= initializeStoker(
         "development",
-        undefined,
+        tenant.id,
         join(project.rootDir, "lib", "main.js"),
         join(project.rootDir, "lib", "collections"),
     )

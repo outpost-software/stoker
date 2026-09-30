@@ -28,7 +28,10 @@ export const locators = (page: Page) => ({
         form: page.getByTestId("record-form"),
         field: (name: string) => page.getByTestId(`field-${name}`),
         save: page.getByRole("button", { name: "Save", exact: true }),
-        updated: page.getByText(/ updated( successfully)?\.$/),
+        updated: page
+            .getByRole("region", { name: /^Notifications/ })
+            .getByRole("listitem")
+            .filter({ hasText: / updated( successfully)?\.$/ }),
     },
     app: {
         root: page.getByTestId("app"),

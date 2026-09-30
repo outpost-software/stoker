@@ -8,9 +8,9 @@ export interface ConformanceOptions {
     /** Skip individual suites */
     skip?: {
         access?: boolean
+        editing?: boolean
         collections?: boolean
         records?: boolean
-        editing?: boolean
     }
 }
 

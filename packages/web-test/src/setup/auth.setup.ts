@@ -1,4 +1,5 @@
 import { test as setup } from "@playwright/test"
+import { clearTenantAlgolia } from "../algolia.js"
 import { ensureTestUser, getUserRole, waitForCallable } from "../emulator.js"
 import { authStatePath, getUser, resolveProject } from "../project.js"
 import { getRoles, loadSchema } from "../schema.js"
@@ -8,6 +9,11 @@ const project = resolveProject()
 const schema = loadSchema(project)
 // eslint-disable-next-line security/detect-object-injection
 const roles = getRoles(schema).filter((role) => project.users[role])
+
+setup("clear Algolia records for the test tenant", async () => {
+    await waitForCallable(project, "stoker-customtoken")
+    await clearTenantAlgolia(project)
+})
 
 for (const role of roles) {
     setup(`authenticate as ${role}`, async ({ page }) => {
