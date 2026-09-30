@@ -230,6 +230,24 @@ export const addProject = async (options: any) => {
     }
 
     if (getProgress() < 7) {
+        const createSiteResponse = await fetch(
+            `https://firebasehosting.googleapis.com/v1beta1/projects/${projectId}/sites?siteId=${projectId}`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "X-Goog-User-Project": projectId,
+                },
+                body: JSON.stringify({}),
+            },
+        )
+        const createSiteResponseJson = await createSiteResponse.json()
+        console.log(createSiteResponseJson)
+        if (!createSiteResponse.ok && createSiteResponse.status !== 409) {
+            throw new Error("Error creating Firebase Hosting site.")
+        }
+
         const hostingResponse = await fetch(
             `https://firebasehosting.googleapis.com/v1beta1/projects/${projectId}/sites/${projectId}?updateMask=appId`,
             {
