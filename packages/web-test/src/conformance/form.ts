@@ -88,6 +88,23 @@ export const setField = async (
     }
 }
 
+export const isBlank = async (field: Locator, control: FieldControl) => {
+    if (control === "text") {
+        const input = field.getByRole("textbox").or(field.getByRole("spinbutton")).first()
+        return (await input.inputValue()) === ""
+    }
+    if (control === "calendar") return (await field.locator("[aria-selected='true']").count()) === 0
+    if (control === "combobox") {
+        const text = (await field.getByRole("combobox").first().innerText()).trim()
+        return text === "" || text === "----"
+    }
+    if (control === "buttonGroup") return (await field.locator("button[aria-pressed='true']").count()) === 0
+    if (control === "radio") return (await field.getByRole("radio", { checked: true }).count()) === 0
+    if (control === "richText") return (await field.locator(".ql-editor").innerText()).trim() === ""
+    if (control === "image") return (await field.locator("img").count()) === 0
+    return false
+}
+
 export const expectField = async (field: Locator, control: FieldControl, value: string): Promise<void> => {
     switch (control) {
         case "text":
