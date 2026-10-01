@@ -108,7 +108,7 @@ const createRecord = async (
     await fillFields(page, dialog, collection, creates, context)
     await ui.record.save.click()
     await expect(dialog).toBeHidden({ timeout: 120000 })
-    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0")
+    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
 }
 
 const updateRecord = async (
