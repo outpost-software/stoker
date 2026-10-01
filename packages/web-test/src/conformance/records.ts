@@ -1,6 +1,12 @@
-import type { CollectionCustomization, CollectionSchema, CollectionsSchema, Convert } from "@stoker-platform/types"
+import type {
+    CollectionCustomization,
+    CollectionSchema,
+    CollectionsSchema,
+    Convert,
+    StokerRecord,
+} from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
-import { tryPromise } from "@stoker-platform/utils"
+import { isRelationField, tryPromise } from "@stoker-platform/utils"
 import { expect, test } from "../fixtures.js"
 import { emulatorFirestore } from "../emulator.js"
 import type { StokerLocators } from "../locators.js"
@@ -34,6 +40,41 @@ export const recordConformance = (options: ConformanceOptions) => {
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
                     await duplicateRecord(page, ui, project, schema, collection, role)
+                })
+            }
+        })
+
+        test("relation lists appear on the record page", async ({ page, schema, role, ui, project }) => {
+            const collections = included(listableCollections(schema, role), options).sort(
+                (a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY),
+            )
+            const visible = collections.filter(
+                (collection) => relevantRelationLists(schema, role, collection).length > 0,
+            )
+            test.skip(visible.length === 0, `${role} has no relation lists on a record page`)
+            test.setTimeout(Math.max(120000, visible.length * 60000))
+
+            for (const collection of visible) {
+                await test.step(collection.labels.collection, async () => {
+                    // eslint-disable-next-line security/detect-object-injection
+                    if (project.records[collection.labels.collection]) {
+                        await openFixtureRecord(page, ui, collection, project)
+                    } else if (!(await openFirstRecord(page, ui, collection))) {
+                        test.info().annotations.push({
+                            type: "skipped",
+                            description: `${collection.labels.collection}: no record to open`,
+                        })
+                        return
+                    }
+                    const record = await openedRecord(page, project, collection)
+                    const titles = await relationListTitles(schema, role, project, collection, record)
+                    const sidebar = page.getByRole("list").filter({
+                        has: page.getByRole("button", { name: "Details", exact: true }),
+                    })
+                    await expect(sidebar).toBeVisible()
+                    for (const title of titles) {
+                        await expect(sidebar.getByRole("button", { name: title, exact: true })).toBeVisible()
+                    }
                 })
             }
         })
@@ -156,6 +197,58 @@ const convertRecord = async (
     await saveCopy(ui, dialog)
     await expect.poll(() => recordCount(project, target.labels.collection), { timeout: 60000 }).toBe(before + 1)
     await expect.poll(() => recordCount(project, source.labels.collection)).toBe(sourceCount)
+}
+
+const relevantRelationLists = (schema: CollectionsSchema, role: string, collection: CollectionSchema) =>
+    (collection.relationLists ?? []).filter((relationList) => {
+        // eslint-disable-next-line security/detect-object-injection
+        const related = schema.collections[relationList.collection]
+        if (!related || !roleCanAccess(related, role, "read")) return false
+        const field = related.fields.find((item) => item.name === relationList.field)
+        if (!field || !isRelationField(field)) return false
+        if (relationList.roles && !relationList.roles.includes(role)) return false
+        return true
+    })
+
+const relationListTitles = async (
+    schema: CollectionsSchema,
+    role: string,
+    project: StokerProject,
+    collection: CollectionSchema,
+    record: StokerRecord,
+) => {
+    const titles: string[] = []
+    for (const relationList of relevantRelationLists(schema, role, collection)) {
+        // eslint-disable-next-line security/detect-object-injection
+        const related = schema.collections[relationList.collection]
+        if (!related) continue
+        const customization = await customizationFile(project, schema, related.labels.collection)
+        const configured = await tryPromise(customization.admin?.titles, ["relation-list", collection, record])
+        titles.push(configured?.collection || relationList.collection)
+    }
+    return titles
+}
+
+const openedRecord = async (page: Page, project: StokerProject, collection: CollectionSchema) => {
+    const parts = new URL(page.url()).pathname.split("/").filter(Boolean)
+    const index = parts.findIndex((part) => part.toLowerCase() === collection.labels.collection.toLowerCase())
+    const id = parts[index + 1]
+    const firestore = await emulatorFirestore(project)
+    const snapshot = await firestore.collection(collection.labels.collection).doc(id).get()
+    return { id: snapshot.id, ...snapshot.data() } as unknown as StokerRecord
+}
+
+const openFirstRecord = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
+    await page.goto(collectionPath(collection))
+    await expect(ui.collection.heading).toBeVisible()
+    await openList(ui)
+    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
+    await setFiltersToAll(page)
+    if (await ui.collection.empty.isVisible()) return false
+    await ui.collection.rows.first().getByTestId("list-cell").first().click()
+    await page.waitForURL((url) => url.pathname.toLowerCase().includes(`/${collection.labels.record.toLowerCase()}/`))
+    await expect(ui.record.heading).toBeVisible()
+    return true
 }
 
 const recordTitle = async (project: StokerProject, schema: CollectionsSchema, collection: CollectionSchema) => {
