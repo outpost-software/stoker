@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import type { CollectionSchema, CollectionsSchema, NodeUtilities, StokerRole } from "@stoker-platform/types"
 import { roleHasOperationAccess } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
-import { initializeStoker } from "@stoker-platform/node-client"
+import { fetchCurrentSchema, initializeStoker } from "@stoker-platform/node-client"
 import { join } from "node:path"
 import { emulatorFirestore } from "./emulator.js"
 
@@ -43,14 +43,25 @@ export const recordPath = (collection: CollectionSchema, id: string): string =>
 
 let stoker: Promise<NodeUtilities> | undefined
 
+const ensureStoker = (project: StokerProject) => {
+    stoker ??= (async () => {
+        const tenant = await emulatorFirestore(project)
+        return initializeStoker(
+            "development",
+            tenant.id,
+            join(project.rootDir, "lib", "main.js"),
+            join(project.rootDir, "lib", "collections"),
+        )
+    })()
+    return stoker
+}
+
+export const liveSchema = async (project: StokerProject): Promise<CollectionsSchema> => {
+    await ensureStoker(project)
+    return fetchCurrentSchema(true)
+}
+
 export const customizationFile = async (project: StokerProject, schema: CollectionsSchema, collection: string) => {
-    const tenant = await emulatorFirestore(project)
-    stoker ??= initializeStoker(
-        "development",
-        tenant.id,
-        join(project.rootDir, "lib", "main.js"),
-        join(project.rootDir, "lib", "collections"),
-    )
-    const { getCustomizationFile } = await stoker
+    const { getCustomizationFile } = await ensureStoker(project)
     return getCustomizationFile(collection, schema)
 }

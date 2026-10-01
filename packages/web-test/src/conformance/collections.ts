@@ -5,14 +5,16 @@ import type {
     CollectionSchema,
     CollectionsSchema,
     Filter,
+    ImagesConfig,
+    StokerPermissions,
 } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
-import { updateRecord } from "@stoker-platform/node-client"
-import { isRelationField, tryFunction, tryPromise } from "@stoker-platform/utils"
+import { isRelationField, isSortingEnabled, tryFunction, tryPromise } from "@stoker-platform/utils"
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerProject } from "../project.js"
 import { collectionPath, customizationFile, listableCollections, roleCanAccess } from "../schema.js"
+import { detectControl, setField } from "./form.js"
 import { openList, selectMonthRange, setFiltersToAll, showMonth } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 import { emulatorFirestore } from "../emulator.js"
@@ -96,6 +98,18 @@ export const collectionConformance = (options: ConformanceOptions) => {
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
                     await expectExport(page, ui, project, schema, collection, role)
+                })
+            }
+        })
+
+        test("sort fields match on board and images", async ({ page, schema, role, ui, project }) => {
+            const collections = await sortViews(schema, role, project, options)
+            test.skip(collections.length === 0, `${role} has no board or images view`)
+            test.setTimeout(Math.max(120000, collections.length * 30000))
+
+            for (const { collection, views, labels } of collections) {
+                await test.step(collection.labels.collection, async () => {
+                    await expectSortFields(page, ui, collection, views, labels)
                 })
             }
         })
@@ -500,13 +514,13 @@ const boardCollections = async (
     return boards
 }
 
-const firstColumnValue = (field: CollectionField, cards: CardsConfig): string | number | boolean | undefined => {
+const columnValues = (field: CollectionField, cards: CardsConfig): string[] => {
     if ("values" in field && field.values) {
         const hidden = new Set((cards.excludeValues ?? []).map((value) => String(value)))
-        return field.values.find((value) => !hidden.has(String(value)))
+        return field.values.filter((value) => !hidden.has(String(value))).map((value) => String(value))
     }
-    if (field.type === "Boolean") return true
-    return
+    if (field.type === "Boolean") return ["true", "false"]
+    return []
 }
 
 const dragCard = async (page: Page, sourceId: string, targetId: string) => {
@@ -530,6 +544,41 @@ const dragCard = async (page: Page, sourceId: string, targetId: string) => {
     )
 }
 
+const updateMany = async (page: Page, ui: StokerLocators, fieldName: string, values: string[]): Promise<number> => {
+    const row = ui.collection.rows.first()
+    await row.getByRole("checkbox", { name: "Select row" }).check()
+    await page.getByRole("button", { name: "Update Selected", exact: true }).click()
+    const dialog = page.getByRole("dialog")
+    await expect(dialog).toBeVisible()
+    const field = dialog.getByTestId(`field-${fieldName}`)
+    const control = await detectControl(field)
+    const error = dialog.locator(".bg-destructive")
+
+    for (const [index, value] of values.entries()) {
+        await setField(page, field, control, value, { rootDir: "", assignsFilePermissions: false })
+        await dialog.getByRole("button", { name: "Save", exact: true }).click()
+        let outcome = "pending"
+        await expect
+            .poll(
+                async () => {
+                    if (!(await dialog.isVisible())) outcome = "saved"
+                    else if (index < values.length - 1 && (await error.isVisible())) outcome = "invalid"
+                    return outcome
+                },
+                { timeout: 120000 },
+            )
+            .not.toBe("pending")
+        if (outcome === "saved") {
+            await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
+            return index
+        }
+    }
+
+    await expect(dialog).toBeHidden({ timeout: 120000 })
+    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
+    return values.length - 1
+}
+
 const expectBoardMove = async (
     page: Page,
     ui: StokerLocators,
@@ -545,19 +594,15 @@ const expectBoardMove = async (
     const field = collection.fields.find((item) => item.name === boardFieldName(cards, statusField, preloaded))
     if (!field) return
     const columns = boardColumns(field, cards, customization)
-    const current = columns[0]
-    const target = columns[1]
-    const value = firstColumnValue(field, cards)
+    const values = columnValues(field, cards)
     const record = await createdRecord(project, collection)
     const title = record?.get(collection.recordTitleField) as string | undefined
-    if (!record || !title || !current || !target || value === undefined) {
+    if (!record || !title || values.length === 0 || columns.length < 2) {
         throw new Error(`${collection.labels.collection} has no created record on the board.`)
     }
-    await updateRecord([collection.labels.collection], record.id, { [field.name]: value })
     await page.goto(collectionPath(collection))
     await expect(ui.collection.heading).toBeVisible()
-    await page.getByRole("tab", { name: cards.title || "Board", exact: true }).click()
-    await expect(elementId(page, columns[0])).toBeVisible()
+    await openList(ui)
     if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
     await setFiltersToAll(page)
     const month = await createdRecordMonth(project, collection)
@@ -565,6 +610,13 @@ const expectBoardMove = async (
         if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
         if (await ui.collection.range.previous.isVisible()) await showMonth(ui, month)
     }
+    const saved = await updateMany(page, ui, field.name, values)
+    // eslint-disable-next-line security/detect-object-injection
+    const current = columns[saved]
+    // eslint-disable-next-line security/detect-object-injection
+    const target = columns[saved + 1] ?? columns[saved - 1]
+    await page.getByRole("tab", { name: cards.title || "Board", exact: true }).click()
+    await expect(elementId(page, current)).toBeVisible()
 
     const card = elementId(page, `${current}-${record.id}`)
     await expect(card, `${collection.labels.record} "${title}" should be in ${current}`).toBeVisible({
@@ -577,6 +629,87 @@ const expectBoardMove = async (
         elementId(page, `${target}-${record.id}`),
         `${collection.labels.record} "${title}" should move to ${target}`,
     ).toBeVisible()
+}
+
+const sortLabels = (collection: CollectionSchema, customization: CollectionCustomization, role: string): string[] => {
+    const preloaded = !!collection.preloadCache?.roles?.includes(role)
+    const readOnly = !!collection.access.serverReadOnly?.includes(role)
+    const labels: string[] = []
+    for (const field of collection.fields) {
+        if (field.type === "ManyToOne" || field.type === "ManyToMany") continue
+        const sorting = isSortingEnabled(field, { Role: role } as StokerPermissions)
+        if (!(
+            preloaded ||
+            readOnly ||
+            (sorting && field.type !== "Computed") ||
+            field.name === collection.recordTitleField
+        )) {
+            continue
+        }
+        const custom = customization.fields.find((item) => item.name === field.name)
+        const list = custom?.admin?.condition?.list
+        if (list !== undefined && !tryFunction(list)) continue
+        labels.push(String(tryFunction(custom?.admin?.label) || field.name))
+    }
+    return labels
+}
+
+const sortViews = async (
+    schema: CollectionsSchema,
+    role: string,
+    project: StokerProject,
+    options: ConformanceOptions,
+): Promise<{ collection: CollectionSchema; views: string[]; labels: string[] }[]> => {
+    const collections = included(listableCollections(schema, role), options).sort(
+        (a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY),
+    )
+    const visible: { collection: CollectionSchema; views: string[]; labels: string[] }[] = []
+    for (const collection of collections) {
+        const customization = await customizationFile(project, schema, collection.labels.collection)
+        const cards = (await tryPromise(customization.admin?.cards)) as CardsConfig | undefined
+        const images = (await tryPromise(customization.admin?.images)) as ImagesConfig | undefined
+        const status = (await tryPromise(customization.admin?.statusField)) as { field?: string } | undefined
+        const preloaded = !!collection.preloadCache?.roles?.includes(role)
+        const views: string[] = []
+        if (cards && (!cards.roles || cards.roles.includes(role))) {
+            const useCardsField = (!preloaded && !status && cards.statusField) || (preloaded && cards.statusField)
+            const statusName = useCardsField ? cards.statusField : status?.field
+            if (statusName && collection.fields.some((field) => field.name === statusName)) {
+                views.push(cards.title || "Board")
+            }
+        }
+        if (
+            images &&
+            (!images.roles || images.roles.includes(role)) &&
+            images.imageField &&
+            collection.fields.some((field) => field.name === images.imageField)
+        ) {
+            views.push(images.title || "Pics")
+        }
+        if (views.length === 0) continue
+        visible.push({ collection, views, labels: sortLabels(collection, customization, role) })
+    }
+    return visible
+}
+
+const expectSortFields = async (
+    page: Page,
+    ui: StokerLocators,
+    collection: CollectionSchema,
+    views: string[],
+    labels: string[],
+) => {
+    await page.goto(collectionPath(collection))
+    await expect(ui.collection.heading).toBeVisible()
+    const expected = [...labels].sort()
+    for (const view of views) {
+        await page.getByRole("tab", { name: view, exact: true }).click()
+        await page.getByRole("button", { name: "Sort", exact: true }).click()
+        const items = page.getByRole("menuitem")
+        const actual = (await items.allTextContents()).map((text) => text.replace(/\s+/g, " ").trim()).sort()
+        expect(actual, `${collection.labels.collection} ${view} sort menu`).toEqual(expected)
+        await page.keyboard.press("Escape")
+    }
 }
 
 const expectChatReply = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
