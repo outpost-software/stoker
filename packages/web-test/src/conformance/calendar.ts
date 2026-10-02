@@ -4,10 +4,10 @@ import { tryPromise } from "@stoker-platform/utils"
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerProject } from "../project.js"
-import { assignsFilePermissions, customizationFile, listableCollections, roleCanAccess } from "../schema.js"
-import { DATE, detectControl, expectField, setField, type FormContext } from "./form.js"
-import { openCollection } from "./listView.js"
-import { included, type ConformanceOptions } from "./options.js"
+import { assignsFilePermissions, customizationFile, roleCanAccess } from "../schema.js"
+import { DATE, detectControl, expectField, setField, type FormContext } from "../utils/form.js"
+import { openCollection } from "../utils/list.js"
+import { includedCollections, type ConformanceOptions } from "../utils/options.js"
 import { emulatorFirestore } from "../emulator.js"
 
 const MONTHS = [
@@ -92,9 +92,7 @@ const calendars = async (
     project: StokerProject,
     options: ConformanceOptions,
 ): Promise<CalendarCollection[]> => {
-    const collections = included(listableCollections(schema, role), options).sort(
-        (a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY),
-    )
+    const collections = includedCollections(schema, role, options)
     const visible: CalendarCollection[] = []
     for (const collection of collections) {
         const customization = await customizationFile(project, schema, collection.labels.collection)

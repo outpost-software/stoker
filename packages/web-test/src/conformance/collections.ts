@@ -13,10 +13,10 @@ import { isRelationField, isSortingEnabled, tryFunction, tryPromise } from "@sto
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerProject } from "../project.js"
-import { customizationFile, listableCollections, roleCanAccess } from "../schema.js"
-import { detectControl, setField } from "./form.js"
-import { openCollection, openCollectionList, showAllRecords, showListMonth, waitForRecord } from "./listView.js"
-import { included, type ConformanceOptions } from "./options.js"
+import { customizationFile, roleCanAccess } from "../schema.js"
+import { detectControl, setField } from "../utils/form.js"
+import { openCollection, openCollectionList, showAllRecords, showListMonth, waitForRecord } from "../utils/list.js"
+import { fixtureCollections, includedCollections, type ConformanceOptions } from "../utils/options.js"
 import { emulatorFirestore } from "../emulator.js"
 
 export const collectionConformance = (options: ConformanceOptions) => {
@@ -49,7 +49,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
         })
 
         test("every readable collection renders its list", async ({ page, schema, role, ui }) => {
-            const collections = included(listableCollections(schema, role), options)
+            const collections = includedCollections(schema, role, options)
             test.skip(collections.length === 0, `${role} cannot read any collection`)
 
             const errors: string[] = []
@@ -89,7 +89,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
         })
 
         test("export button works or is disabled", async ({ page, schema, role, ui, project }) => {
-            const collections = included(listableCollections(schema, role), options)
+            const collections = includedCollections(schema, role, options)
             test.skip(collections.length === 0, `${role} cannot read any collection`)
             test.setTimeout(Math.max(120000, collections.length * 30000))
 
@@ -133,16 +133,9 @@ const createdCollections = (
     project: StokerProject,
     options: ConformanceOptions,
 ): CollectionSchema[] =>
-    included(listableCollections(schema, role), options)
-        .filter((collection) => {
-            // eslint-disable-next-line security/detect-object-injection
-            return (
-                !!collection.fullTextSearch?.length &&
-                roleCanAccess(collection, role, "create") &&
-                project.records[collection.labels.collection]
-            )
-        })
-        .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
+    fixtureCollections(schema, role, project, options).filter(
+        (collection) => !!collection.fullTextSearch?.length && roleCanAccess(collection, role, "create"),
+    )
 
 const createdRecord = async (project: StokerProject, collection: CollectionSchema) => {
     const firestore = await emulatorFirestore(project)
@@ -201,9 +194,9 @@ const openFromSearch = async (page: Page, ui: StokerLocators, collection: Collec
 }
 
 const chatCollections = (schema: CollectionsSchema, role: string, options: ConformanceOptions): CollectionSchema[] =>
-    included(listableCollections(schema, role), options)
-        .filter((collection) => !!collection.ai?.chat && collection.ai.chat.roles.includes(role))
-        .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
+    includedCollections(schema, role, options).filter(
+        (collection) => !!collection.ai?.chat && collection.ai.chat.roles.includes(role),
+    )
 
 interface VisibleFilter {
     label: string
@@ -300,9 +293,7 @@ const collectionsWithFilters = async (
     project: StokerProject,
     options: ConformanceOptions,
 ): Promise<{ collection: CollectionSchema; filters: VisibleFilter[]; status: string[] }[]> => {
-    const collections = included(listableCollections(schema, role), options).sort(
-        (a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY),
-    )
+    const collections = includedCollections(schema, role, options)
     const visible: { collection: CollectionSchema; filters: VisibleFilter[]; status: string[] }[] = []
     for (const collection of collections) {
         const customization = await customizationFile(project, schema, collection.labels.collection)
@@ -475,16 +466,9 @@ const boardCollections = async (
     project: StokerProject,
     options: ConformanceOptions,
 ): Promise<CollectionSchema[]> => {
-    const collections = included(listableCollections(schema, role), options)
-        .filter((collection) => {
-            return (
-                roleCanAccess(collection, role, "create") &&
-                roleCanAccess(collection, role, "update") &&
-                // eslint-disable-next-line security/detect-object-injection
-                project.records[collection.labels.collection]
-            )
-        })
-        .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
+    const collections = fixtureCollections(schema, role, project, options).filter(
+        (collection) => roleCanAccess(collection, role, "create") && roleCanAccess(collection, role, "update"),
+    )
     const boards: CollectionSchema[] = []
     for (const collection of collections) {
         const customization = await customizationFile(project, schema, collection.labels.collection)
@@ -639,9 +623,7 @@ const sortViews = async (
     project: StokerProject,
     options: ConformanceOptions,
 ): Promise<{ collection: CollectionSchema; views: string[]; labels: string[] }[]> => {
-    const collections = included(listableCollections(schema, role), options).sort(
-        (a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY),
-    )
+    const collections = includedCollections(schema, role, options)
     const visible: { collection: CollectionSchema; views: string[]; labels: string[] }[] = []
     for (const collection of collections) {
         const customization = await customizationFile(project, schema, collection.labels.collection)

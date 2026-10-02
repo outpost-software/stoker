@@ -10,16 +10,19 @@ import { isRelationField, tryPromise } from "@stoker-platform/utils"
 import { expect, test } from "../fixtures.js"
 import { emulatorFirestore } from "../emulator.js"
 import type { StokerLocators } from "../locators.js"
-import type { StokerProject, StokerTestField, StokerTestRecords } from "../project.js"
-import { assignsFilePermissions, customizationFile, listableCollections, roleCanAccess } from "../schema.js"
-import { detectControl, expectField, isBlank, setField, type FieldControl, type FormContext } from "./form.js"
-import { openCollectionList, openListedRecord, openRecordRow, showAllRecords } from "./listView.js"
-import { included, type ConformanceOptions } from "./options.js"
-
-interface FieldValue {
-    name: string
-    value: string
-}
+import { fixtureEntries, type StokerProject, type StokerTestRecords } from "../project.js"
+import { assignsFilePermissions, customizationFile, relationListTitle, roleCanAccess } from "../schema.js"
+import {
+    detectControl,
+    expectField,
+    isBlank,
+    openedRecord,
+    setField,
+    type FieldControl,
+    type FormContext,
+} from "../utils/form.js"
+import { openCollectionList, openFixtureRecord, openRecordRow, showAllRecords } from "../utils/list.js"
+import { fixtureCollections, includedCollections, type ConformanceOptions } from "../utils/options.js"
 
 export const recordConformance = (options: ConformanceOptions) => {
     test.describe("record pages", () => {
@@ -39,9 +42,7 @@ export const recordConformance = (options: ConformanceOptions) => {
         })
 
         test("relation lists appear on the record page", async ({ page, schema, role, ui, project }) => {
-            const collections = included(listableCollections(schema, role), options).sort(
-                (a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY),
-            )
+            const collections = includedCollections(schema, role, options)
             const visible = collections.filter(
                 (collection) => relevantRelationLists(schema, role, collection).length > 0,
             )
@@ -75,12 +76,9 @@ export const recordConformance = (options: ConformanceOptions) => {
 
         test("a record can be reverted", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = included(listableCollections(schema, role), options)
-                .filter((collection) => {
-                    // eslint-disable-next-line security/detect-object-injection
-                    return roleCanAccess(collection, role, "update") && project.records[collection.labels.collection]
-                })
-                .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
+            const collections = fixtureCollections(schema, role, project, options).filter((collection) =>
+                roleCanAccess(collection, role, "update"),
+            )
             test.skip(collections.length === 0, `${role} has no record that can be reverted`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
 
@@ -113,12 +111,9 @@ const withAdmin = async (
     options: ConformanceOptions,
     include: (customization: Awaited<CollectionCustomization>) => Promise<boolean>,
 ) => {
-    const collections = included(listableCollections(schema, role), options)
-        .filter((collection) => {
-            // eslint-disable-next-line security/detect-object-injection
-            return roleCanAccess(collection, role, "create") && project.records[collection.labels.collection]
-        })
-        .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
+    const collections = fixtureCollections(schema, role, project, options).filter((collection) =>
+        roleCanAccess(collection, role, "create"),
+    )
     const matched: CollectionSchema[] = []
     for (const collection of collections) {
         const customization = await customizationFile(project, schema, collection.labels.collection)
@@ -234,20 +229,9 @@ const relationListTitles = async (
         // eslint-disable-next-line security/detect-object-injection
         const related = schema.collections[relationList.collection]
         if (!related) continue
-        const customization = await customizationFile(project, schema, related.labels.collection)
-        const configured = await tryPromise(customization.admin?.titles, ["relation-list", collection, record])
-        titles.push(configured?.collection || relationList.collection)
+        titles.push(await relationListTitle(project, schema, related, collection, record, relationList.collection))
     }
     return titles
-}
-
-const openedRecord = async (page: Page, project: StokerProject, collection: CollectionSchema) => {
-    const parts = new URL(page.url()).pathname.split("/").filter(Boolean)
-    const index = parts.findIndex((part) => part.toLowerCase() === collection.labels.collection.toLowerCase())
-    const id = parts[index + 1]
-    const firestore = await emulatorFirestore(project)
-    const snapshot = await firestore.collection(collection.labels.collection).doc(id).get()
-    return { id: snapshot.id, ...snapshot.data() } as unknown as StokerRecord
 }
 
 const openFirstRecord = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
@@ -344,25 +328,6 @@ const recordTitle = async (project: StokerProject, schema: CollectionsSchema, co
     return titles?.record || collection.labels.record
 }
 
-const openFixtureRecord = async (
-    page: Page,
-    ui: StokerLocators,
-    collection: CollectionSchema,
-    project: StokerProject,
-) => {
-    await openCollectionList(page, ui, collection)
-    // eslint-disable-next-line security/detect-object-injection
-    const entries = fixtureEntries(project.records[collection.labels.collection])
-    await openListedRecord(
-        page,
-        ui,
-        collection,
-        entries,
-        `${collection.labels.record} from the fixture should be listed`,
-        "Calendar",
-    )
-}
-
 const prepareCopy = async (
     page: Page,
     dialog: Locator,
@@ -403,14 +368,6 @@ const saveCopy = async (ui: StokerLocators, dialog: Locator) => {
     await expect(ui.record.heading).toBeVisible()
     await expect(ui.app.errorPage).toBeHidden()
 }
-
-const fixtureEntries = (fixture: StokerTestRecords[string] | undefined): FieldValue[] =>
-    Object.entries(fixture ?? {}).flatMap(([name, field]) => {
-        const value = fixtureValue(field)
-        return value ? [{ name, value }] : []
-    })
-
-const fixtureValue = (field: StokerTestField) => field.update || field.create
 
 const recordCount = async (project: StokerProject, collection: string) => {
     const firestore = await emulatorFirestore(project)

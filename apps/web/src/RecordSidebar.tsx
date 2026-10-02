@@ -177,6 +177,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && isActive && !isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
+                                                                data-testid="start-assigning"
                                                                 onClick={() => setAssigning(item.page, true)}
                                                                 type="button"
                                                             >
@@ -186,6 +187,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && isActive && isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
+                                                                data-testid="stop-assigning"
                                                                 onClick={() => setAssigning(item.page, false)}
                                                                 type="button"
                                                             >
@@ -238,6 +240,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && !isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
+                                                                data-testid="start-assigning"
                                                                 onClick={() => setAssigning(item.page, true)}
                                                                 type="button"
                                                             >
@@ -247,6 +250,7 @@ export const RecordSidebar = ({
                                                         {item.assignable && isAssigning?.[item.page] && (
                                                             <button
                                                                 className="ml-auto"
+                                                                data-testid="stop-assigning"
                                                                 onClick={() => setAssigning(item.page, false)}
                                                                 type="button"
                                                             >

@@ -2,6 +2,7 @@ import type { CollectionSchema } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
 import { expect } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
+import { fixtureEntries, type StokerProject } from "../project.js"
 import { collectionPath } from "../schema.js"
 import { DATE, escapeRegExp } from "./form.js"
 
@@ -125,4 +126,24 @@ export const openListedRecord = async (
     await expect(row, message).toBeVisible()
     await expect(row).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
     await openRecordRow(page, ui, collection, row)
+}
+
+export const openFixtureRecord = async (
+    page: Page,
+    ui: StokerLocators,
+    collection: CollectionSchema,
+    project: StokerProject,
+) => {
+    await openCollectionList(page, ui, collection)
+    // eslint-disable-next-line security/detect-object-injection
+    const entries = fixtureEntries(project.records[collection.labels.collection])
+    await openListedRecord(
+        page,
+        ui,
+        collection,
+        entries,
+        `${collection.labels.record} from the fixture should be listed`,
+        "Calendar",
+    )
+    await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
 }

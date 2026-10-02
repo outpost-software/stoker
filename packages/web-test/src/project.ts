@@ -160,3 +160,9 @@ export const resolveProject = (options: StokerProjectOptions = {}): StokerProjec
         records: resolveRecords(rootDir, options.records),
     }
 }
+
+export const fixtureEntries = (fixture: StokerTestRecords[string] | undefined): { name: string; value: string }[] =>
+    Object.entries(fixture ?? {}).flatMap(([name, field]) => {
+        const value = field.update || field.create
+        return value ? [{ name, value }] : []
+    })

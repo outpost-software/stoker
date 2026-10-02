@@ -1,6 +1,12 @@
 import { readFileSync } from "node:fs"
-import type { CollectionSchema, CollectionsSchema, NodeUtilities, StokerRole } from "@stoker-platform/types"
-import { roleHasOperationAccess } from "@stoker-platform/utils"
+import type {
+    CollectionSchema,
+    CollectionsSchema,
+    NodeUtilities,
+    StokerRecord,
+    StokerRole,
+} from "@stoker-platform/types"
+import { roleHasOperationAccess, tryPromise } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
 import { fetchCurrentSchema, initializeStoker } from "@stoker-platform/node-client"
 import { join } from "node:path"
@@ -64,4 +70,17 @@ export const liveSchema = async (project: StokerProject): Promise<CollectionsSch
 export const customizationFile = async (project: StokerProject, schema: CollectionsSchema, collection: string) => {
     const { getCustomizationFile } = await ensureStoker(project)
     return getCustomizationFile(collection, schema)
+}
+
+export const relationListTitle = async (
+    project: StokerProject,
+    schema: CollectionsSchema,
+    related: CollectionSchema,
+    parent: CollectionSchema,
+    record: StokerRecord,
+    fallback: string,
+) => {
+    const customization = await customizationFile(project, schema, related.labels.collection)
+    const configured = await tryPromise(customization.admin?.titles, ["relation-list", parent, record])
+    return configured?.collection || fallback
 }

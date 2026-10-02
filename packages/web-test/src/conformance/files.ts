@@ -1,16 +1,10 @@
-import type { CollectionSchema, CollectionsSchema } from "@stoker-platform/types"
+import type { CollectionSchema } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
-import type { StokerProject, StokerTestField, StokerTestRecords } from "../project.js"
-import { listableCollections } from "../schema.js"
-import { openCollectionList, openListedRecord } from "./listView.js"
-import { included, type ConformanceOptions } from "./options.js"
-
-interface FieldValue {
-    name: string
-    value: string
-}
+import type { StokerProject } from "../project.js"
+import { openFixtureRecord } from "../utils/list.js"
+import { fixtureCollections, type ConformanceOptions } from "../utils/options.js"
 
 interface PermissionChange {
     id: string
@@ -23,7 +17,7 @@ export const fileConformance = (options: ConformanceOptions) => {
     test.describe("files", () => {
         test("upload a file and assign permissions", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -37,7 +31,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("rename a file", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -55,7 +49,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("rename a file with Rename Files", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -72,7 +66,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("download a file", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -88,7 +82,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("update file permissions", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -102,7 +96,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("delete a file", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -116,7 +110,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("create a folder", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -130,7 +124,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("add a file to a folder", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 180000))
             for (const collection of collections) {
@@ -146,7 +140,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("update folder permissions", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
@@ -160,7 +154,7 @@ export const fileConformance = (options: ConformanceOptions) => {
 
         test("delete a folder", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fileCollections(schema, role, project, options)
+            const collections = fixtureCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 180000))
             for (const collection of collections) {
@@ -179,41 +173,10 @@ export const fileConformance = (options: ConformanceOptions) => {
     })
 }
 
-const fileCollections = (
-    schema: CollectionsSchema,
-    role: string,
-    project: StokerProject,
-    options: ConformanceOptions,
-) =>
-    included(listableCollections(schema, role), options)
-        .filter((collection) => {
-            // eslint-disable-next-line security/detect-object-injection
-            return !!project.records[collection.labels.collection]
-        })
-        .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
-
-const fixtureEntries = (fixture: StokerTestRecords[string] | undefined): FieldValue[] =>
-    Object.entries(fixture ?? {}).flatMap(([name, field]) => {
-        const value = fixtureValue(field)
-        return value ? [{ name, value }] : []
-    })
-
-const fixtureValue = (field: StokerTestField) => field.update || field.create
-
 const fileRow = (page: Page, name: string) => page.locator(`[data-testid="file-row"][data-file-name="${name}"]`)
 
 const openFiles = async (page: Page, ui: StokerLocators, collection: CollectionSchema, project: StokerProject) => {
-    await openCollectionList(page, ui, collection)
-    // eslint-disable-next-line security/detect-object-injection
-    const entries = fixtureEntries(project.records[collection.labels.collection])
-    await openListedRecord(
-        page,
-        ui,
-        collection,
-        entries,
-        `${collection.labels.record} from the fixture should be listed`,
-        "Calendar",
-    )
+    await openFixtureRecord(page, ui, collection, project)
     await page.getByRole("button", { name: "Files", exact: true }).click()
     await expect(page.getByRole("button", { name: "New Folder", exact: true })).toBeVisible()
     await expect(page.getByTestId("file-upload")).toBeAttached()

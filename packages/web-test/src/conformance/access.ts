@@ -1,6 +1,6 @@
 import { expect, test } from "../fixtures.js"
 import { collectionPath, getRootCollections, roleCanAccess } from "../schema.js"
-import { included, type ConformanceOptions } from "./options.js"
+import { included, type ConformanceOptions } from "../utils/options.js"
 
 export const accessConformance = (options: ConformanceOptions) => {
     test.describe("access matrix", () => {
