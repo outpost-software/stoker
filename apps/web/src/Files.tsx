@@ -1158,6 +1158,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                         hover:file:bg-primary/20
                         cursor-pointer"
                     onChange={handleFileUpload}
+                    data-testid="file-upload"
                 />
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-0 sm:space-x-2 shrink-0">
                     <Button
@@ -1246,7 +1247,10 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
 
             <div className="border rounded-lg mt-6">
                 {loading ? (
-                    <div className="p-4 text-center text-muted-foreground flex justify-center">
+                    <div
+                        className="p-4 text-center text-muted-foreground flex justify-center"
+                        data-testid="files-loading"
+                    >
                         <LoadingSpinner size={7} />
                     </div>
                 ) : (
@@ -1299,6 +1303,8 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                     return (
                                         <div
                                             key={index}
+                                            data-testid="file-row"
+                                            data-file-name={item.name}
                                             className={cn(
                                                 "flex flex-col space-y-3 md:space-y-0 md:flex-row items-center justify-between p-4",
                                                 isDisabled ? "opacity-50 pointer-events-none" : "hover:bg-muted/50",
@@ -1404,6 +1410,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
+                                                                data-testid="file-download"
                                                                 onClick={() => handleDownload(item)}
                                                             >
                                                                 <Download className="h-4 w-4" />
@@ -1416,6 +1423,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                                     <Button
                                                                         size="sm"
                                                                         variant="outline"
+                                                                        data-testid="file-rename"
                                                                         onClick={() => {
                                                                             cancelBulkRename()
                                                                             setEditingFile(item.name)
@@ -1428,6 +1436,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                                     <Button
                                                                         size="sm"
                                                                         variant="outline"
+                                                                        data-testid="file-permissions"
                                                                         onClick={() => handleFilePermissionsClick(item)}
                                                                         disabled={isDisabled}
                                                                     >
@@ -1445,6 +1454,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
+                                                                data-testid="file-permissions"
                                                                 onClick={() => handleFilePermissionsClick(item)}
                                                                 disabled={isDisabled}
                                                             >
@@ -1458,6 +1468,7 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
+                                                            data-testid="file-delete"
                                                             onClick={() => handleDeleteClick(item)}
                                                             disabled={isDisabled}
                                                             className="text-destructive hover:text-destructive"
