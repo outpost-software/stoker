@@ -18,7 +18,16 @@ import {
     listableCollections,
     roleCanAccess,
 } from "../schema.js"
-import { DATE, detectControl, escapeRegExp, isBlank, setField, type FormContext } from "./form.js"
+import {
+    DATE,
+    detectControl,
+    escapeRegExp,
+    expectField,
+    isBlank,
+    setField,
+    type FieldControl,
+    type FormContext,
+} from "./form.js"
 import { openList, selectMonthRange, setFiltersToAll, showMonth } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 
@@ -75,6 +84,24 @@ export const recordConformance = (options: ConformanceOptions) => {
                     for (const title of titles) {
                         await expect(sidebar.getByRole("button", { name: title, exact: true })).toBeVisible()
                     }
+                })
+            }
+        })
+
+        test("a record can be reverted", async ({ page, schema, role, ui, project }) => {
+            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            const collections = included(listableCollections(schema, role), options)
+                .filter((collection) => {
+                    // eslint-disable-next-line security/detect-object-injection
+                    return roleCanAccess(collection, role, "update") && project.records[collection.labels.collection]
+                })
+                .sort((a, b) => (a.seedOrder ?? Number.POSITIVE_INFINITY) - (b.seedOrder ?? Number.POSITIVE_INFINITY))
+            test.skip(collections.length === 0, `${role} has no record that can be reverted`)
+            test.setTimeout(Math.max(180000, collections.length * 120000))
+
+            for (const collection of collections) {
+                await test.step(collection.labels.collection, async () => {
+                    await revertRecord(page, ui, project, collection, role)
                 })
             }
         })
@@ -249,6 +276,86 @@ const openFirstRecord = async (page: Page, ui: StokerLocators, collection: Colle
     await page.waitForURL((url) => url.pathname.toLowerCase().includes(`/${collection.labels.record.toLowerCase()}/`))
     await expect(ui.record.heading).toBeVisible()
     return true
+}
+
+interface RevertChange {
+    name: string
+    field: Locator
+    control: FieldControl
+    create: string
+    update: string
+}
+
+const revertRecord = async (
+    page: Page,
+    ui: StokerLocators,
+    project: StokerProject,
+    collection: CollectionSchema,
+    role: string,
+) => {
+    await openFixtureRecord(page, ui, collection, project)
+    await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
+    const revert = page.getByRole("button", { name: "Revert", exact: true })
+    await expect(revert).toBeDisabled()
+    // eslint-disable-next-line security/detect-object-injection
+    const changes = await revertChanges(ui, collection, project.records[collection.labels.collection])
+    if (changes.length === 0) {
+        test.info().annotations.push({
+            type: "skipped",
+            description: `${collection.labels.collection}: no editable fields to revert`,
+        })
+        return
+    }
+    const before = await openedRecord(page, project, collection)
+    const context: FormContext = {
+        rootDir: project.rootDir,
+        assignsFilePermissions: assignsFilePermissions(collection, role),
+    }
+    const applied: RevertChange[] = []
+    for (const change of changes) {
+        const skipped = await setField(page, change.field, change.control, change.create, context)
+        if (!skipped) applied.push(change)
+    }
+    if (applied.length === 0) {
+        test.info().annotations.push({
+            type: "skipped",
+            description: `${collection.labels.collection}: no editable fields to revert`,
+        })
+        return
+    }
+    await expect(revert).toBeEnabled()
+    await revert.click()
+    for (const change of applied) await expectField(change.field, change.control, change.update)
+    await expect(revert).toBeDisabled()
+    await expect
+        .poll(async () => {
+            const record = await openedRecord(page, project, collection)
+            return applied.every((change) => stableValue(record[change.name]) === stableValue(before[change.name]))
+        })
+        .toBe(true)
+}
+
+const revertChanges = async (ui: StokerLocators, collection: CollectionSchema, fixture: StokerTestRecords[string]) => {
+    const changes: RevertChange[] = []
+    for (const [name, values] of Object.entries(fixture)) {
+        if (!values.create || !values.update) continue
+        const schemaField = collection.fields.find((item) => item.name === name)
+        if (!schemaField) continue
+        const field = ui.record.field(name)
+        if ((await field.count()) === 0) continue
+        const control = await detectControl(field)
+        if (control === "readOnly" || control === "image") continue
+        if (values.create === values.update) continue
+        changes.push({ name, field, control, create: values.create, update: values.update })
+    }
+    return changes
+}
+
+const stableValue = (value: unknown) => {
+    if (value && typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
+        return value.toDate().toISOString()
+    }
+    return JSON.stringify(value)
 }
 
 const recordTitle = async (project: StokerProject, schema: CollectionsSchema, collection: CollectionSchema) => {
