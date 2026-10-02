@@ -1,6 +1,9 @@
-import type { Page } from "@playwright/test"
+import type { CollectionSchema } from "@stoker-platform/types"
+import type { Locator, Page } from "@playwright/test"
 import { expect } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
+import { collectionPath } from "../schema.js"
+import { DATE, escapeRegExp } from "./form.js"
 
 export const openList = async (ui: StokerLocators): Promise<void> => {
     if (await ui.collection.listTab.isVisible()) {
@@ -59,4 +62,67 @@ export const showMonth = async (ui: StokerLocators, date: string) => {
         await control.click()
         await expect.poll(shownMonth).not.toBe(before)
     }
+}
+
+export const openCollection = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
+    await page.goto(collectionPath(collection))
+    await expect(ui.collection.heading).toBeVisible()
+}
+
+export const openCollectionList = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
+    await openCollection(page, ui, collection)
+    await openList(ui)
+}
+
+export const showAllRecords = async (page: Page, ui: StokerLocators) => {
+    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
+    await setFiltersToAll(page)
+}
+
+export const showListMonth = async (page: Page, ui: StokerLocators, date?: string) => {
+    if (!date || !(await ui.collection.range.label.isVisible())) return
+    if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
+    if (await ui.collection.range.previous.isVisible()) await showMonth(ui, date)
+}
+
+export const waitForRecord = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
+    const segment = `/${collection.labels.record.toLowerCase()}/`
+    await page.waitForURL((url) => url.pathname.toLowerCase().includes(segment))
+    await expect(ui.record.heading).toBeVisible()
+}
+
+export const openRecordRow = async (page: Page, ui: StokerLocators, collection: CollectionSchema, row: Locator) => {
+    await row.getByTestId("list-cell").first().click()
+    await waitForRecord(page, ui, collection)
+}
+
+const listedText = (collection: CollectionSchema, entries: { name: string; value: string }[]): RegExp => {
+    const strings = entries.filter(({ name }) => {
+        return collection.fields.some((field) => field.name === name && field.type === "String" && !("values" in field))
+    })
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    return new RegExp(strings.map(({ value }) => escapeRegExp(value)).join("|"))
+}
+
+const rangeDate = (collection: CollectionSchema, entries: { name: string; value: string }[]) => {
+    const rangeField = collection.preloadCache?.range?.fields[0]
+    return entries.find(({ name, value }) => name === rangeField && DATE.test(value))?.value
+}
+
+export const openListedRecord = async (
+    page: Page,
+    ui: StokerLocators,
+    collection: CollectionSchema,
+    entries: { name: string; value: string }[],
+    message: string,
+    excludeText?: string,
+) => {
+    await showAllRecords(page, ui)
+    await showListMonth(page, ui, rangeDate(collection, entries))
+    let rows = ui.collection.rows.filter({ hasText: listedText(collection, entries) })
+    if (excludeText) rows = rows.filter({ hasNotText: excludeText })
+    const row = rows.first()
+    await expect(row, message).toBeVisible()
+    await expect(row).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
+    await openRecordRow(page, ui, collection, row)
 }

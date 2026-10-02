@@ -3,17 +3,9 @@ import type { CollectionSchema } from "@stoker-platform/types"
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerTestRecords } from "../project.js"
-import { assignsFilePermissions, collectionPath, listableCollections, roleCanAccess } from "../schema.js"
-import {
-    DATE,
-    detectControl,
-    escapeRegExp,
-    expectField,
-    setField,
-    type FieldControl,
-    type FormContext,
-} from "./form.js"
-import { openList, selectMonthRange, setFiltersToAll, showMonth } from "./listView.js"
+import { assignsFilePermissions, listableCollections, roleCanAccess } from "../schema.js"
+import { detectControl, expectField, setField, type FieldControl, type FormContext } from "./form.js"
+import { openCollectionList, openListedRecord } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 
 type Operation = "create" | "update"
@@ -65,7 +57,13 @@ export const editingConformance = (options: ConformanceOptions) => {
 
                     const updates = fieldValues(fixture, "update")
                     if (updates.length === 0 || !roleCanAccess(collection, role, "update")) return
-                    await openCreatedRecord(page, ui, collection, creates)
+                    await openListedRecord(
+                        page,
+                        ui,
+                        collection,
+                        creates,
+                        `${collection.labels.record} should be listed after it is created`,
+                    )
                     await updateRecord(page, ui, collection, updates, context)
                 })
             }
@@ -89,9 +87,7 @@ const fieldValues = (fixture: StokerTestRecords[string], operation: Operation): 
     })
 
 const openCreateForm = async (page: Page, ui: StokerLocators, collection: CollectionSchema): Promise<string> => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
+    await openCollectionList(page, ui, collection)
     await ui.collection.addButton.click()
     await expect(ui.record.save).toBeVisible()
     return (await ui.record.form.getAttribute("data-collection")) ?? ""
@@ -169,34 +165,3 @@ const annotate = (collection: CollectionSchema, name: string, reason: string) =>
         type: "field skipped",
         description: `${collection.labels.collection}.${name}: ${reason}`,
     })
-
-const openCreatedRecord = async (
-    page: Page,
-    ui: StokerLocators,
-    collection: CollectionSchema,
-    creates: FieldValue[],
-) => {
-    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
-    await setFiltersToAll(page)
-
-    const rangeField = collection.preloadCache?.range?.fields[0]
-    const rangeDate = creates.find(({ name, value }) => name === rangeField && DATE.test(value))?.value
-    if (rangeDate && (await ui.collection.range.label.isVisible())) {
-        if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
-        if (await ui.collection.range.previous.isVisible()) await showMonth(ui, rangeDate)
-    }
-
-    const row = ui.collection.rows.filter({ hasText: listedText(collection, creates) }).first()
-    await expect(row, `${collection.labels.record} should be listed after it is created`).toBeVisible()
-    await expect(row).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
-    await row.getByTestId("list-cell").first().click()
-    await page.waitForURL((url) => url.pathname.toLowerCase().includes(`/${collection.labels.record.toLowerCase()}/`))
-}
-
-const listedText = (collection: CollectionSchema, creates: FieldValue[]): RegExp => {
-    const strings = creates.filter(({ name }) => {
-        return collection.fields.some((field) => field.name === name && field.type === "String" && !("values" in field))
-    })
-    // eslint-disable-next-line security/detect-non-literal-regexp
-    return new RegExp(strings.map(({ value }) => escapeRegExp(value)).join("|"))
-}

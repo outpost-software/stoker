@@ -11,24 +11,9 @@ import { expect, test } from "../fixtures.js"
 import { emulatorFirestore } from "../emulator.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerProject, StokerTestField, StokerTestRecords } from "../project.js"
-import {
-    assignsFilePermissions,
-    collectionPath,
-    customizationFile,
-    listableCollections,
-    roleCanAccess,
-} from "../schema.js"
-import {
-    DATE,
-    detectControl,
-    escapeRegExp,
-    expectField,
-    isBlank,
-    setField,
-    type FieldControl,
-    type FormContext,
-} from "./form.js"
-import { openList, selectMonthRange, setFiltersToAll, showMonth } from "./listView.js"
+import { assignsFilePermissions, customizationFile, listableCollections, roleCanAccess } from "../schema.js"
+import { detectControl, expectField, isBlank, setField, type FieldControl, type FormContext } from "./form.js"
+import { openCollectionList, openListedRecord, openRecordRow, showAllRecords } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 
 interface FieldValue {
@@ -266,15 +251,10 @@ const openedRecord = async (page: Page, project: StokerProject, collection: Coll
 }
 
 const openFirstRecord = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
-    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
-    await setFiltersToAll(page)
+    await openCollectionList(page, ui, collection)
+    await showAllRecords(page, ui)
     if (await ui.collection.empty.isVisible()) return false
-    await ui.collection.rows.first().getByTestId("list-cell").first().click()
-    await page.waitForURL((url) => url.pathname.toLowerCase().includes(`/${collection.labels.record.toLowerCase()}/`))
-    await expect(ui.record.heading).toBeVisible()
+    await openRecordRow(page, ui, collection, ui.collection.rows.first())
     return true
 }
 
@@ -370,28 +350,17 @@ const openFixtureRecord = async (
     collection: CollectionSchema,
     project: StokerProject,
 ) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
-    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
-    await setFiltersToAll(page)
+    await openCollectionList(page, ui, collection)
     // eslint-disable-next-line security/detect-object-injection
     const entries = fixtureEntries(project.records[collection.labels.collection])
-    const rangeField = collection.preloadCache?.range?.fields[0]
-    const rangeDate = entries.find(({ name, value }) => name === rangeField && DATE.test(value))?.value
-    if (rangeDate && (await ui.collection.range.label.isVisible())) {
-        if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
-        if (await ui.collection.range.previous.isVisible()) await showMonth(ui, rangeDate)
-    }
-    const row = ui.collection.rows
-        .filter({ hasText: listedText(collection, entries) })
-        .filter({ hasNotText: "Calendar" })
-        .first()
-    await expect(row, `${collection.labels.record} from the fixture should be listed`).toBeVisible()
-    await expect(row).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
-    await row.getByTestId("list-cell").first().click()
-    await page.waitForURL((url) => url.pathname.toLowerCase().includes(`/${collection.labels.record.toLowerCase()}/`))
-    await expect(ui.record.heading).toBeVisible()
+    await openListedRecord(
+        page,
+        ui,
+        collection,
+        entries,
+        `${collection.labels.record} from the fixture should be listed`,
+        "Calendar",
+    )
 }
 
 const prepareCopy = async (
@@ -442,14 +411,6 @@ const fixtureEntries = (fixture: StokerTestRecords[string] | undefined): FieldVa
     })
 
 const fixtureValue = (field: StokerTestField) => field.update || field.create
-
-const listedText = (collection: CollectionSchema, entries: FieldValue[]): RegExp => {
-    const strings = entries.filter(({ name }) => {
-        return collection.fields.some((field) => field.name === name && field.type === "String" && !("values" in field))
-    })
-    // eslint-disable-next-line security/detect-non-literal-regexp
-    return new RegExp(strings.map(({ value }) => escapeRegExp(value)).join("|"))
-}
 
 const recordCount = async (project: StokerProject, collection: string) => {
     const firestore = await emulatorFirestore(project)

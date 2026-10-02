@@ -4,14 +4,9 @@ import { tryPromise } from "@stoker-platform/utils"
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerProject } from "../project.js"
-import {
-    assignsFilePermissions,
-    collectionPath,
-    customizationFile,
-    listableCollections,
-    roleCanAccess,
-} from "../schema.js"
+import { assignsFilePermissions, customizationFile, listableCollections, roleCanAccess } from "../schema.js"
 import { DATE, detectControl, expectField, setField, type FormContext } from "./form.js"
+import { openCollection } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 import { emulatorFirestore } from "../emulator.js"
 
@@ -141,8 +136,7 @@ const eventCovers = async (page: Page, title: string, date: string) => {
 }
 
 const showCalendar = async (page: Page, ui: StokerLocators, collection: CollectionSchema, calendar: CalendarConfig) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
+    await openCollection(page, ui, collection)
     await page.getByRole("tab", { name: calendar.title || "Calendar", exact: true }).click()
     await expect(calendarRoot(page)).toBeVisible()
     const all = page.getByRole("radio", { name: "Toggle all" })

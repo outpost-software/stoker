@@ -13,9 +13,9 @@ import { isRelationField, isSortingEnabled, tryFunction, tryPromise } from "@sto
 import { expect, test } from "../fixtures.js"
 import type { StokerLocators } from "../locators.js"
 import type { StokerProject } from "../project.js"
-import { collectionPath, customizationFile, listableCollections, roleCanAccess } from "../schema.js"
+import { customizationFile, listableCollections, roleCanAccess } from "../schema.js"
 import { detectControl, setField } from "./form.js"
-import { openList, selectMonthRange, setFiltersToAll, showMonth } from "./listView.js"
+import { openCollection, openCollectionList, showAllRecords, showListMonth, waitForRecord } from "./listView.js"
 import { included, type ConformanceOptions } from "./options.js"
 import { emulatorFirestore } from "../emulator.js"
 
@@ -57,9 +57,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await page.goto(collectionPath(collection))
-                    await expect(ui.collection.heading).toBeVisible()
-                    await openList(ui)
+                    await openCollectionList(page, ui, collection)
                     await expect(ui.app.errorPage).toBeHidden()
                 })
             }
@@ -179,15 +177,9 @@ const expectInListSearch = async (
     title: string,
     month?: string,
 ) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
-    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
-    await setFiltersToAll(page)
-    if (month && (await ui.collection.range.label.isVisible())) {
-        if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
-        if (await ui.collection.range.previous.isVisible()) await showMonth(ui, month)
-    }
+    await openCollectionList(page, ui, collection)
+    await showAllRecords(page, ui)
+    await showListMonth(page, ui, month)
     await ui.collection.search.fill(title)
     const row = ui.collection.rows.first()
     await expect(row, `${collection.labels.record} "${title}" should appear in the list`).toBeVisible({
@@ -204,9 +196,7 @@ const openFromSearch = async (page: Page, ui: StokerLocators, collection: Collec
         timeout: 30000,
     })
     await result.click()
-    const recordSegment = `/${collection.labels.record.toLowerCase()}/`
-    await page.waitForURL((url) => url.pathname.toLowerCase().includes(recordSegment))
-    await expect(ui.record.heading).toBeVisible()
+    await waitForRecord(page, ui, collection)
     await expect(ui.app.errorPage).toBeHidden()
 }
 
@@ -384,9 +374,7 @@ const expectFilters = async (
     filters: VisibleFilter[],
     status: string[],
 ) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
+    await openCollectionList(page, ui, collection)
     if (status.length > 0) await expectStatus(page, collection, status)
     if (filters.length === 0) return
     await page.getByRole("button", { name: "Filter", exact: true }).click()
@@ -418,9 +406,7 @@ const expectExport = async (
     const allowed = !restrictExport || restrictExport.includes(role)
     const filename = `${titles?.collection || collection.labels.collection}.csv`
 
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
+    await openCollectionList(page, ui, collection)
 
     const actions = page.getByRole("button", { name: "Actions", exact: true })
     const inMenu = await actions.isVisible()
@@ -600,16 +586,9 @@ const expectBoardMove = async (
     if (!record || !title || values.length === 0 || columns.length < 2) {
         throw new Error(`${collection.labels.collection} has no created record on the board.`)
     }
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
-    await openList(ui)
-    if (await ui.collection.showAll.isVisible()) await ui.collection.showAll.check()
-    await setFiltersToAll(page)
-    const month = await createdRecordMonth(project, collection)
-    if (month && (await ui.collection.range.label.isVisible())) {
-        if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
-        if (await ui.collection.range.previous.isVisible()) await showMonth(ui, month)
-    }
+    await openCollectionList(page, ui, collection)
+    await showAllRecords(page, ui)
+    await showListMonth(page, ui, await createdRecordMonth(project, collection))
     const saved = await updateMany(page, ui, field.name, values)
     // eslint-disable-next-line security/detect-object-injection
     const current = columns[saved]
@@ -699,8 +678,7 @@ const expectSortFields = async (
     views: string[],
     labels: string[],
 ) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
+    await openCollection(page, ui, collection)
     const expected = [...labels].sort()
     for (const view of views) {
         await page.getByRole("tab", { name: view, exact: true }).click()
@@ -713,8 +691,7 @@ const expectSortFields = async (
 }
 
 const expectChatReply = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
-    await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
+    await openCollection(page, ui, collection)
     const chat = page.getByRole("button").filter({ has: page.locator(".lucide-bot") })
     await expect(chat, `${collection.labels.collection} should show AI chat`).toBeVisible()
     await chat.click()
