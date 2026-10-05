@@ -19,6 +19,7 @@ import {
     getAllRoleGroups,
     getFieldCustomization,
     privateFieldAccess,
+    validateDocumentSize,
 } from "@stoker-platform/utils"
 import {
     CollectionField,
@@ -309,6 +310,10 @@ export const updateRecord = async (
     } catch (error: any) {
         throw new Error(`VALIDATION_ERROR: ${error.message}`)
     }
+
+    const mergedRecord = { ...fullOriginalRecord, ...partial }
+    removeDeleteSentinels(mergedRecord)
+    validateDocumentSize(mergedRecord, ["tenants", tenantId, ...path, recordId])
 
     let originalPermissions: StokerPermissions | undefined
     if (user) {

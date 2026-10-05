@@ -16,6 +16,7 @@ import {
     getAllRoleGroups,
     getFieldCustomization,
     privateFieldAccess,
+    validateDocumentSize,
 } from "@stoker-platform/utils"
 import {
     CollectionField,
@@ -204,6 +205,8 @@ export const addRecord = async (
     } catch (error: any) {
         throw new Error(`VALIDATION_ERROR: ${error.message}`)
     }
+
+    validateDocumentSize(record, ["tenants", tenantId, ...path, docId])
 
     if (userId) {
         if (!currentUser) throw new Error("USER_ERROR")

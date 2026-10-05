@@ -24,10 +24,44 @@ import {
     getRoleGroups,
     getSingleFieldRelations,
     isDependencyField,
+    isDeleteSentinel,
+    validateDocumentSize,
 } from "@stoker-platform/utils";
 import isEqual from "lodash/isEqual.js";
+import cloneDeep from "lodash/cloneDeep.js";
 
 /* eslint-disable max-len */
+
+const applyUpdateData = (
+    data: DocumentData,
+    updateData: Record<string, unknown>
+) => {
+    const updated = cloneDeep(data);
+    Object.entries(updateData).forEach(([fieldPath, value]) => {
+        const segments = fieldPath.split(".");
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const lastSegment = segments.pop()!;
+        let target = updated;
+        segments.forEach((segment) => {
+            // eslint-disable-next-line security/detect-object-injection
+            const next = target[segment];
+            if (typeof next !== "object" || next === null || Array.isArray(next)) {
+                // eslint-disable-next-line security/detect-object-injection
+                target[segment] = {};
+            }
+            // eslint-disable-next-line security/detect-object-injection
+            target = target[segment];
+        });
+        if (isDeleteSentinel(value)) {
+            // eslint-disable-next-line security/detect-object-injection
+            delete target[lastSegment];
+        } else {
+            // eslint-disable-next-line security/detect-object-injection
+            target[lastSegment] = value;
+        }
+    });
+    return updated;
+};
 
 const includeFieldsChanged = (
     dependentFields: string[],
@@ -196,6 +230,16 @@ export const updateIncludeFields = (
                                             }
                                         });
                                         if (Object.keys(updateData).length) {
+                                            try {
+                                                const updatedRecord = applyUpdateData(data ?? {}, updateDataWithSingle) as StokerRecord;
+                                                validateDocumentSize(updatedRecord, record.ref.path.split("/"));
+                                            } catch (error) {
+                                                errorLogger(
+                                                    `Skipping include field update for field ${field.name} on record ${record.ref.path} because the updated document would exceed the size limit of 1MB`,
+                                                    error
+                                                );
+                                                return;
+                                            }
                                             transaction.update(record.ref, updateDataWithSingle);
 
                                             if (isDependencyField(field, collection, schema)) {

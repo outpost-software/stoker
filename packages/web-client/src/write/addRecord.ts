@@ -32,6 +32,7 @@ import {
     getCachedConfigValue,
     addRecordAccessControl,
     addLowercaseFields,
+    validateDocumentSize,
 } from "@stoker-platform/utils"
 import {
     CollectionSchema,
@@ -295,6 +296,8 @@ export const addRecord = async (
                 id,
             ),
     )
+
+    validateDocumentSize(record, ["tenants", tenantId, ...path, docId])
 
     batch.set(doc(db, "tenants", tenantId, path.join("/"), docId), record)
 

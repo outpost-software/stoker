@@ -24,6 +24,7 @@ import {
     isRelationField,
     removeDeleteSentinels,
     addLowercaseFields,
+    validateDocumentSize,
 } from "@stoker-platform/utils"
 import {
     CollectionSchema,
@@ -356,6 +357,10 @@ export const updateRecord = async (
             ),
         originalRecord,
     )
+
+    const mergedRecord = { ...originalRecord, ...partial }
+    removeDeleteSentinels(mergedRecord)
+    validateDocumentSize(mergedRecord, ["tenants", tenantId, ...path, recordId])
 
     batch.update(doc(db, "tenants", tenantId, path.join("/"), recordId), partial)
 
