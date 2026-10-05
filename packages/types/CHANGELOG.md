@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.77
+
+### Patch Changes
+
+- feat: improve multi-tenancy
+
 ## 0.5.76
 
 ### Patch Changes

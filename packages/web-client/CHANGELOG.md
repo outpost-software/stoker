@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.112
+
+### Patch Changes
+
+- feat: display an error when record size would exceed 1MB
+- Updated dependencies
+    - @stoker-platform/types@0.5.77
+    - @stoker-platform/utils@0.5.94
+
 ## 0.5.111
 
 ### Patch Changes

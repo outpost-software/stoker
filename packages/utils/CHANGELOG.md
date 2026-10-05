@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.94
+
+### Patch Changes
+
+- feat: display an error when record size would exceed 1MB
+- Updated dependencies
+    - @stoker-platform/types@0.5.77
+
 ## 0.5.93
 
 ### Patch Changes

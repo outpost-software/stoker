@@ -1,7 +1,7 @@
 {
     "name": "@stoker-platform/system-functions",
     "type": "module",
-    "version": "0.5.129",
+    "version": "0.5.130",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "lib/main.js",
     "types": "lib/main.d.ts",
@@ -18,9 +18,9 @@
     "dependencies": {
         "@genkit-ai/firebase": "^1.41.0",
         "@genkit-ai/google-genai": "^1.41.0",
-        "@stoker-platform/node-client": "0.5.108",
-        "@stoker-platform/types": "0.5.76",
-        "@stoker-platform/utils": "0.5.93",
+        "@stoker-platform/node-client": "0.5.109",
+        "@stoker-platform/types": "0.5.77",
+        "@stoker-platform/utils": "0.5.94",
         "dotenv": "^17.4.2",
         "lodash": "^4.18.1",
         "twilio": "^6.1.0"

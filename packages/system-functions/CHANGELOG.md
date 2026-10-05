@@ -1,5 +1,16 @@
 # @stoker-platform/system-functions
 
+## 0.5.130
+
+### Patch Changes
+
+- feat: display an error when record size would exceed 1MB
+- feat: improve multi-tenancy
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.109
+    - @stoker-platform/types@0.5.77
+    - @stoker-platform/utils@0.5.94
+
 ## 0.5.129
 
 ### Patch Changes

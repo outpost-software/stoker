@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.256
+
+### Patch Changes
+
+- fix: improve live form handling
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.109
+    - @stoker-platform/utils@0.5.94
+    - @stoker-platform/web-client@0.5.112
+
 ## 0.5.255
 
 ### Patch Changes
