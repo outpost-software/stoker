@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.177
+
+### Patch Changes
+
+- fix: prepare web assets before running tests
+
 ## 0.5.176
 
 ### Patch Changes
