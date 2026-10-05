@@ -124,8 +124,9 @@ program
     .command("start")
     .description("start the Firebase Emulator Suite")
     .option("-t, --test-mode", "start the Firebase Emulator Suite in test mode")
-    .action(() => {
-        startEmulators()
+    .option("-i, --inspect-functions", "run Cloud Functions in debug mode")
+    .action((options) => {
+        startEmulators(options)
     })
 
 program

@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-import teardown from "./teardown.js"
+import teardown from "./config/teardown.js"
 await teardown()

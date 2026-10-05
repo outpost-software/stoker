@@ -104,5 +104,6 @@ web-app
 # Web test credentials and artifacts
 stoker-test.json
 playwright/.auth
+playwright/.records.json
 playwright-report
 test-results

@@ -486,6 +486,6 @@ stoker["adminsms"] = onCall({
     if (!user) {
         throw new HttpsError("unauthenticated", "User is not authenticated");
     }
-    if (!process.env.ADMIN_PHONE) return;
-    return sendMessage(process.env.ADMIN_PHONE, request.data.body);
+    if (!process.env.ADMIN_SMS) return;
+    return sendMessage(process.env.ADMIN_SMS, request.data.body);
 });

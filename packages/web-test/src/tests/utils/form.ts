@@ -2,11 +2,12 @@ import { existsSync, readFileSync } from "node:fs"
 import { basename, extname, resolve } from "node:path"
 import type { CollectionSchema, StokerRecord } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
-import { expect, test } from "../fixtures.js"
-import type { StokerLocators } from "../locators.js"
-import { emulatorFirestore } from "../emulator.js"
-import type { StokerProject, StokerTestRecords } from "../project.js"
+import { expect, test } from "../../config/fixtures.js"
+import type { StokerLocators } from "../../config/locators.js"
+import type { StokerTestRecords } from "../../config/project.js"
 import { openCollectionList } from "./list.js"
+import { getStokerFirestore } from "@stoker-platform/node-client"
+import { getTenant } from "../../initializeStoker.js"
 
 export const DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -41,7 +42,9 @@ export const detectControl = async (field: Locator): Promise<FieldControl> => {
     if (await text(field).count()) return "text"
     if (await toggle(field).count()) return "toggle"
     if (await field.getByRole("radio").count()) return "radio"
-    if (await editor(field).count()) return "richText"
+    if (await editor(field).count()) {
+        return (await editor(field).and(field.locator("[contenteditable='true']")).count()) ? "richText" : "readOnly"
+    }
     if (await field.getByRole("grid").count()) return "calendar"
     if (await field.getByRole("combobox").count()) return "combobox"
     if (await fileInput(field).count()) return "image"
@@ -155,21 +158,30 @@ export interface FieldValue {
     value: string
 }
 
-export const fieldValues = (fixture: StokerTestRecords[string], operation: "create" | "update"): FieldValue[] =>
-    Object.entries(fixture).flatMap(([name, values]) => {
-        const value = operation === "create" ? values.create : values.update
-        return value === undefined ? [] : [{ name, value }]
+export const fieldValues = (
+    fixture: StokerTestRecords[string] | undefined,
+    operation?: "create" | "update",
+): FieldValue[] =>
+    Object.entries(fixture ?? {}).flatMap(([name, values]) => {
+        const value =
+            operation === "create"
+                ? values.create
+                : operation === "update"
+                  ? values.update
+                  : values.update || values.create
+        if (value === undefined || (operation === undefined && value === "")) return []
+        return [{ name, value }]
     })
-
-export interface AppliedField extends FieldValue {
-    control: FieldControl
-}
 
 export const openCreateForm = async (page: Page, ui: StokerLocators, collection: CollectionSchema): Promise<string> => {
     await openCollectionList(page, ui, collection)
     await ui.collection.addButton.click()
     await expect(ui.record.save).toBeVisible()
     return (await ui.record.form.getAttribute("data-collection")) ?? ""
+}
+
+export interface AppliedField extends FieldValue {
+    control: FieldControl
 }
 
 export const fillFields = async (
@@ -215,12 +227,13 @@ export const createRecord = async (
     await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 120000 })
 }
 
-export const openedRecord = async (page: Page, project: StokerProject, collection: CollectionSchema) => {
+export const openedRecord = async (page: Page, collection: CollectionSchema) => {
     const parts = new URL(page.url()).pathname.split("/").filter(Boolean)
     const index = parts.findIndex((part) => part.toLowerCase() === collection.labels.collection.toLowerCase())
     const id = parts[index + 1]
-    const firestore = await emulatorFirestore(project)
-    const snapshot = await firestore.collection(collection.labels.collection).doc(id).get()
+    const db = getStokerFirestore()
+    const tenantId = getTenant()
+    const snapshot = await db.collection("tenants").doc(tenantId).collection(collection.labels.collection).doc(id).get()
     const data = snapshot.data()
     if (!data) throw new Error(`${collection.labels.collection} record ${id} was not found`)
     return { ...data, id: snapshot.id } as unknown as StokerRecord

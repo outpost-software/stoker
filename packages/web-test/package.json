@@ -11,8 +11,8 @@
             "import": "./lib/src/main.js"
         },
         "./config": {
-            "types": "./lib/src/config.d.ts",
-            "import": "./lib/src/config.js"
+            "types": "./lib/src/config/config.d.ts",
+            "import": "./lib/src/config/config.js"
         }
     },
     "bin": {

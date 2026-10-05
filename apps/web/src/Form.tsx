@@ -2506,8 +2506,20 @@ function RecordForm({
     }, [fields, record])
 
     const formSchema = getInputSchema(collection, schema, customization, undefined, operation === "update-many")
+    const autoIncrementFieldNames = useMemo(
+        () => fields.filter((field) => field.type === "Number" && field.autoIncrement).map((field) => field.name),
+        [fields],
+    )
+    const schemaResolver = zodResolver(formSchema)
     const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+        resolver: (values, context, options) => {
+            const submitted = { ...values }
+            for (const name of autoIncrementFieldNames) {
+                // eslint-disable-next-line security/detect-object-injection
+                delete submitted[name]
+            }
+            return schemaResolver(submitted, context, options)
+        },
         defaultValues,
     })
 
@@ -4240,6 +4252,11 @@ function RecordForm({
             delete values.operation
             delete values.password
             delete values.passwordConfirm
+            for (const field of fields) {
+                if (field.type === "Number" && field.autoIncrement) {
+                    delete values[field.name]
+                }
+            }
 
             const recordToSave = cloneDeep(values) as Partial<StokerRecord>
             const prevStateToSave = cloneDeep(prevState)

@@ -6,23 +6,25 @@ import type {
     StokerRecord,
 } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
-import { isRelationField, tryPromise } from "@stoker-platform/utils"
-import { expect, test } from "../fixtures.js"
-import { emulatorFirestore } from "../emulator.js"
-import type { StokerLocators } from "../locators.js"
-import { fixtureEntries, type StokerProject, type StokerTestRecords } from "../project.js"
-import { assignsFilePermissions, customizationFile, relationListTitle, roleCanAccess } from "../schema.js"
+import { isRelationField, roleHasOperationAccess, tryPromise } from "@stoker-platform/utils"
+import { expect, test } from "../config/fixtures.js"
+import type { StokerLocators } from "../config/locators.js"
+import type { StokerProject, StokerTestRecords } from "../config/project.js"
+import { assignsFilePermissions, distinctValue, relationListTitle } from "../config/schema.js"
 import {
     detectControl,
     expectField,
+    fieldValues,
     isBlank,
     openedRecord,
     setField,
     type FieldControl,
     type FormContext,
-} from "../utils/form.js"
-import { openCollectionList, openFixtureRecord, openRecordRow, showAllRecords } from "../utils/list.js"
-import { fixtureCollections, includedCollections, type ConformanceOptions } from "../utils/options.js"
+} from "./utils/form.js"
+import { openCollectionList, openFixtureRecord, openRecordRow, showAllRecords } from "./utils/list.js"
+import { fixtureCollections, includedCollections, type ConformanceOptions } from "../config/options.js"
+import { getCustomizationFile, getStokerFirestore } from "@stoker-platform/node-client"
+import { getTenant } from "../initializeStoker.js"
 
 export const recordConformance = (options: ConformanceOptions) => {
     test.describe("record pages", () => {
@@ -53,7 +55,7 @@ export const recordConformance = (options: ConformanceOptions) => {
                 await test.step(collection.labels.collection, async () => {
                     // eslint-disable-next-line security/detect-object-injection
                     if (project.records[collection.labels.collection]) {
-                        await openFixtureRecord(page, ui, collection, project)
+                        await openFixtureRecord(page, ui, collection, project, role)
                     } else if (!(await openFirstRecord(page, ui, collection))) {
                         test.info().annotations.push({
                             type: "skipped",
@@ -61,8 +63,8 @@ export const recordConformance = (options: ConformanceOptions) => {
                         })
                         return
                     }
-                    const record = await openedRecord(page, project, collection)
-                    const titles = await relationListTitles(schema, role, project, collection, record)
+                    const record = await openedRecord(page, collection)
+                    const titles = await relationListTitles(schema, role, collection, record)
                     const sidebar = page.getByRole("list").filter({
                         has: page.getByRole("button", { name: "Details", exact: true }),
                     })
@@ -77,7 +79,7 @@ export const recordConformance = (options: ConformanceOptions) => {
         test("a record can be reverted", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
             const collections = fixtureCollections(schema, role, project, options).filter((collection) =>
-                roleCanAccess(collection, role, "update"),
+                roleHasOperationAccess(collection, role, "update"),
             )
             test.skip(collections.length === 0, `${role} has no record that can be reverted`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -112,39 +114,62 @@ const withAdmin = async (
     include: (customization: Awaited<CollectionCustomization>) => Promise<boolean>,
 ) => {
     const collections = fixtureCollections(schema, role, project, options).filter((collection) =>
-        roleCanAccess(collection, role, "create"),
+        roleHasOperationAccess(collection, role, "create"),
     )
     const matched: CollectionSchema[] = []
     for (const collection of collections) {
-        const customization = await customizationFile(project, schema, collection.labels.collection)
+        const customization = await getCustomizationFile(collection.labels.collection, schema)
         if (await include(customization)) matched.push(collection)
     }
     return matched
 }
 
-const conversionsFor = async (
-    schema: CollectionsSchema,
-    role: string,
-    project: StokerProject,
-    options: ConformanceOptions,
+const recordCount = async (collection: string) => {
+    const db = getStokerFirestore()
+    const tenantId = getTenant()
+    const snapshot = await db.collection("tenants").doc(tenantId).collection(collection).get()
+    return snapshot.size
+}
+
+const recordTitle = async (schema: CollectionsSchema, collection: CollectionSchema) => {
+    const customization = await getCustomizationFile(collection.labels.collection, schema)
+    const titles = await tryPromise(customization.admin?.titles)
+    return titles?.record || collection.labels.record
+}
+
+const prepareCopy = async (
+    page: Page,
+    dialog: Locator,
+    collection: CollectionSchema,
+    fixture: StokerTestRecords[string],
+    context: FormContext,
 ) => {
-    const sources = await withAdmin(schema, role, project, options, async (customization) => {
-        const convert = (await tryPromise(customization.admin?.convert)) as Convert[] | undefined
-        return !!convert?.some((item) => !item.roles || item.roles.includes(role))
-    })
-    const conversions: { source: CollectionSchema; target: CollectionSchema }[] = []
-    for (const source of sources) {
-        const customization = await customizationFile(project, schema, source.labels.collection)
-        const convert = (await tryPromise(customization.admin?.convert)) as Convert[] | undefined
-        for (const item of convert ?? []) {
-            if (item.roles && !item.roles.includes(role)) continue
-            // eslint-disable-next-line security/detect-object-injection
-            const target = schema.collections[item.collection]
-            if (!target || !roleCanAccess(target, role, "create")) continue
-            conversions.push({ source, target })
+    for (const { name, value } of fieldValues(fixture)) {
+        const field = dialog.getByTestId(`field-${name}`)
+        if ((await field.count()) === 0) continue
+        const control = await detectControl(field)
+        if (control === "readOnly") continue
+        const schemaField = collection.fields.find((item) => item.name === name)
+        const unique = !!schemaField && "unique" in schemaField && schemaField.unique === true
+        const required = !!schemaField && "required" in schemaField && schemaField.required === true
+        if (control === "text" && unique) {
+            const input = field.getByRole("textbox").or(field.getByRole("spinbutton")).first()
+            const current = await input.inputValue()
+            if (current === "" || current === value) {
+                await setField(page, field, control, distinctValue(schemaField, value, "Copy", 1), context)
+            }
+            continue
         }
+        if (required && (await isBlank(field, control))) await setField(page, field, control, value, context)
     }
-    return conversions
+}
+
+const saveCopy = async (ui: StokerLocators, dialog: Locator) => {
+    await dialog.getByRole("button", { name: "Save", exact: true }).click()
+    await expect(dialog).toBeHidden({ timeout: 120000 })
+    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
+    await expect(ui.record.heading).toBeVisible()
+    await expect(ui.app.errorPage).toBeHidden()
 }
 
 const duplicateRecord = async (
@@ -155,11 +180,11 @@ const duplicateRecord = async (
     collection: CollectionSchema,
     role: string,
 ) => {
-    const before = await recordCount(project, collection.labels.collection)
-    await openFixtureRecord(page, ui, collection, project)
+    const before = await recordCount(collection.labels.collection)
+    await openFixtureRecord(page, ui, collection, project, role)
     await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
     await page.getByRole("button", { name: "Duplicate", exact: true }).click()
-    const title = await recordTitle(project, schema, collection)
+    const title = await recordTitle(schema, collection)
     const dialog = page.getByRole("dialog").filter({
         has: page.getByRole("heading", { name: `Create ${title}`, exact: true }),
     })
@@ -170,69 +195,19 @@ const duplicateRecord = async (
         assignsFilePermissions: assignsFilePermissions(collection, role),
     })
     await saveCopy(ui, dialog)
-    await expect.poll(() => recordCount(project, collection.labels.collection), { timeout: 60000 }).toBe(before + 1)
-}
-
-const convertRecord = async (
-    page: Page,
-    ui: StokerLocators,
-    project: StokerProject,
-    schema: CollectionsSchema,
-    source: CollectionSchema,
-    target: CollectionSchema,
-    role: string,
-) => {
-    const before = await recordCount(project, target.labels.collection)
-    const sourceCount = await recordCount(project, source.labels.collection)
-    await openFixtureRecord(page, ui, source, project)
-    await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
-    await page.getByRole("button", { name: "Convert", exact: true }).click()
-    const title = await recordTitle(project, schema, target)
-    await page.getByRole("menuitem", { name: title, exact: true }).click()
-    const dialog = page.getByRole("dialog").filter({
-        has: page.getByRole("heading", { name: `Convert to ${title}`, exact: true }),
-    })
-    await expect(dialog).toBeVisible()
-    // eslint-disable-next-line security/detect-object-injection
-    const fixture = project.records[target.labels.collection]
-    if (fixture) {
-        await prepareCopy(page, dialog, target, fixture, {
-            rootDir: project.rootDir,
-            assignsFilePermissions: assignsFilePermissions(target, role),
-        })
-    }
-    await saveCopy(ui, dialog)
-    await expect.poll(() => recordCount(project, target.labels.collection), { timeout: 60000 }).toBe(before + 1)
-    await expect.poll(() => recordCount(project, source.labels.collection)).toBe(sourceCount)
+    await expect.poll(() => recordCount(collection.labels.collection), { timeout: 60000 }).toBe(before + 1)
 }
 
 const relevantRelationLists = (schema: CollectionsSchema, role: string, collection: CollectionSchema) =>
     (collection.relationLists ?? []).filter((relationList) => {
         // eslint-disable-next-line security/detect-object-injection
         const related = schema.collections[relationList.collection]
-        if (!related || !roleCanAccess(related, role, "read")) return false
+        if (!related || !roleHasOperationAccess(related, role, "read")) return false
         const field = related.fields.find((item) => item.name === relationList.field)
         if (!field || !isRelationField(field)) return false
         if (relationList.roles && !relationList.roles.includes(role)) return false
         return true
     })
-
-const relationListTitles = async (
-    schema: CollectionsSchema,
-    role: string,
-    project: StokerProject,
-    collection: CollectionSchema,
-    record: StokerRecord,
-) => {
-    const titles: string[] = []
-    for (const relationList of relevantRelationLists(schema, role, collection)) {
-        // eslint-disable-next-line security/detect-object-injection
-        const related = schema.collections[relationList.collection]
-        if (!related) continue
-        titles.push(await relationListTitle(project, schema, related, collection, record, relationList.collection))
-    }
-    return titles
-}
 
 const openFirstRecord = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
     await openCollectionList(page, ui, collection)
@@ -242,61 +217,28 @@ const openFirstRecord = async (page: Page, ui: StokerLocators, collection: Colle
     return true
 }
 
+const relationListTitles = async (
+    schema: CollectionsSchema,
+    role: string,
+    collection: CollectionSchema,
+    record: StokerRecord,
+) => {
+    const titles: string[] = []
+    for (const relationList of relevantRelationLists(schema, role, collection)) {
+        // eslint-disable-next-line security/detect-object-injection
+        const related = schema.collections[relationList.collection]
+        if (!related) continue
+        titles.push(await relationListTitle(schema, related, collection, record, relationList.collection))
+    }
+    return titles
+}
+
 interface RevertChange {
     name: string
     field: Locator
     control: FieldControl
     create: string
     update: string
-}
-
-const revertRecord = async (
-    page: Page,
-    ui: StokerLocators,
-    project: StokerProject,
-    collection: CollectionSchema,
-    role: string,
-) => {
-    await openFixtureRecord(page, ui, collection, project)
-    await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
-    const revert = page.getByRole("button", { name: "Revert", exact: true })
-    await expect(revert).toBeDisabled()
-    // eslint-disable-next-line security/detect-object-injection
-    const changes = await revertChanges(ui, collection, project.records[collection.labels.collection])
-    if (changes.length === 0) {
-        test.info().annotations.push({
-            type: "skipped",
-            description: `${collection.labels.collection}: no editable fields to revert`,
-        })
-        return
-    }
-    const before = await openedRecord(page, project, collection)
-    const context: FormContext = {
-        rootDir: project.rootDir,
-        assignsFilePermissions: assignsFilePermissions(collection, role),
-    }
-    const applied: RevertChange[] = []
-    for (const change of changes) {
-        const skipped = await setField(page, change.field, change.control, change.create, context)
-        if (!skipped) applied.push(change)
-    }
-    if (applied.length === 0) {
-        test.info().annotations.push({
-            type: "skipped",
-            description: `${collection.labels.collection}: no editable fields to revert`,
-        })
-        return
-    }
-    await expect(revert).toBeEnabled()
-    await revert.click()
-    for (const change of applied) await expectField(change.field, change.control, change.update)
-    await expect(revert).toBeDisabled()
-    await expect
-        .poll(async () => {
-            const record = await openedRecord(page, project, collection)
-            return applied.every((change) => stableValue(record[change.name]) === stableValue(before[change.name]))
-        })
-        .toBe(true)
 }
 
 const revertChanges = async (ui: StokerLocators, collection: CollectionSchema, fixture: StokerTestRecords[string]) => {
@@ -322,55 +264,108 @@ const stableValue = (value: unknown) => {
     return JSON.stringify(value)
 }
 
-const recordTitle = async (project: StokerProject, schema: CollectionsSchema, collection: CollectionSchema) => {
-    const customization = await customizationFile(project, schema, collection.labels.collection)
-    const titles = await tryPromise(customization.admin?.titles)
-    return titles?.record || collection.labels.record
-}
-
-const prepareCopy = async (
+const revertRecord = async (
     page: Page,
-    dialog: Locator,
+    ui: StokerLocators,
+    project: StokerProject,
     collection: CollectionSchema,
-    fixture: StokerTestRecords[string],
-    context: FormContext,
+    role: string,
 ) => {
-    for (const { name, value } of fixtureEntries(fixture)) {
-        const field = dialog.getByTestId(`field-${name}`)
-        if ((await field.count()) === 0) continue
-        const control = await detectControl(field)
-        if (control === "readOnly") continue
-        const schemaField = collection.fields.find((item) => item.name === name)
-        const unique = !!schemaField && "unique" in schemaField && schemaField.unique === true
-        const required = !!schemaField && "required" in schemaField && schemaField.required === true
-        if (control === "text" && unique) {
-            const input = field.getByRole("textbox").or(field.getByRole("spinbutton")).first()
-            const current = await input.inputValue()
-            if (current === "" || current === value) {
-                if (schemaField?.type === "String" && schemaField.email) {
-                    await setField(page, field, control, `copy-${value}`, context)
-                } else if (schemaField?.type === "Number") {
-                    await setField(page, field, control, `${Number(value) + 1}`, context)
-                } else {
-                    await setField(page, field, control, `${value} Copy`, context)
-                }
-            }
-            continue
-        }
-        if (required && (await isBlank(field, control))) await setField(page, field, control, value, context)
+    await openFixtureRecord(page, ui, collection, project, role)
+    const revert = page.getByRole("button", { name: "Revert", exact: true })
+    await expect(revert).toBeDisabled()
+    // eslint-disable-next-line security/detect-object-injection
+    const changes = await revertChanges(ui, collection, project.records[collection.labels.collection])
+    if (changes.length === 0) {
+        test.info().annotations.push({
+            type: "skipped",
+            description: `${collection.labels.collection}: no editable fields to revert`,
+        })
+        return
     }
+    const before = await openedRecord(page, collection)
+    const context: FormContext = {
+        rootDir: project.rootDir,
+        assignsFilePermissions: assignsFilePermissions(collection, role),
+    }
+    const applied: RevertChange[] = []
+    for (const change of changes) {
+        const skipped = await setField(page, change.field, change.control, change.create, context)
+        if (!skipped) applied.push(change)
+    }
+    if (applied.length === 0) {
+        test.info().annotations.push({
+            type: "skipped",
+            description: `${collection.labels.collection}: no editable fields to revert`,
+        })
+        return
+    }
+    await expect(revert).toBeEnabled()
+    await revert.click()
+    for (const change of applied) await expectField(change.field, change.control, change.update)
+    await expect(revert).toBeDisabled()
+    await expect
+        .poll(async () => {
+            const record = await openedRecord(page, collection)
+            return applied.every((change) => stableValue(record[change.name]) === stableValue(before[change.name]))
+        })
+        .toBe(true)
 }
 
-const saveCopy = async (ui: StokerLocators, dialog: Locator) => {
-    await dialog.getByRole("button", { name: "Save", exact: true }).click()
-    await expect(dialog).toBeHidden({ timeout: 120000 })
-    await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
-    await expect(ui.record.heading).toBeVisible()
-    await expect(ui.app.errorPage).toBeHidden()
+const conversionsFor = async (
+    schema: CollectionsSchema,
+    role: string,
+    project: StokerProject,
+    options: ConformanceOptions,
+) => {
+    const sources = await withAdmin(schema, role, project, options, async (customization) => {
+        const convert = (await tryPromise(customization.admin?.convert)) as Convert[] | undefined
+        return !!convert?.some((item) => !item.roles || item.roles.includes(role))
+    })
+    const conversions: { source: CollectionSchema; target: CollectionSchema }[] = []
+    for (const source of sources) {
+        const customization = await getCustomizationFile(source.labels.collection, schema)
+        const convert = (await tryPromise(customization.admin?.convert)) as Convert[] | undefined
+        for (const item of convert ?? []) {
+            if (item.roles && !item.roles.includes(role)) continue
+            // eslint-disable-next-line security/detect-object-injection
+            const target = schema.collections[item.collection]
+            if (!target || !roleHasOperationAccess(target, role, "create")) continue
+            conversions.push({ source, target })
+        }
+    }
+    return conversions
 }
 
-const recordCount = async (project: StokerProject, collection: string) => {
-    const firestore = await emulatorFirestore(project)
-    const snapshot = await firestore.collection(collection).get()
-    return snapshot.size
+const convertRecord = async (
+    page: Page,
+    ui: StokerLocators,
+    project: StokerProject,
+    schema: CollectionsSchema,
+    source: CollectionSchema,
+    target: CollectionSchema,
+    role: string,
+) => {
+    const before = await recordCount(target.labels.collection)
+    const sourceCount = await recordCount(source.labels.collection)
+    await openFixtureRecord(page, ui, source, project, role)
+    await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
+    await page.getByRole("button", { name: "Convert", exact: true }).click()
+    const title = await recordTitle(schema, target)
+    await page.getByRole("menuitem", { name: title, exact: true }).click()
+    const dialog = page.getByRole("dialog").filter({
+        has: page.getByRole("heading", { name: `Convert to ${title}`, exact: true }),
+    })
+    await expect(dialog).toBeVisible()
+    // eslint-disable-next-line security/detect-object-injection
+    const fixture = project.records[target.labels.collection]
+    if (fixture) {
+        await prepareCopy(page, dialog, target, fixture, {
+            rootDir: project.rootDir,
+            assignsFilePermissions: assignsFilePermissions(target, role),
+        })
+    }
+    await saveCopy(ui, dialog)
+    await expect.poll(() => recordCount(target.labels.collection), { timeout: 60000 }).toBe(before + 1)
+    await expect.poll(() => recordCount(source.labels.collection)).toBe(sourceCount)
 }

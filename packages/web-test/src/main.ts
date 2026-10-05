@@ -1,11 +1,20 @@
-export { test, expect, type StokerFixtures } from "./fixtures.js"
-export { runWebConformance, type ConformanceOptions } from "./conformance/index.js"
-export { locators, type StokerLocators } from "./locators.js"
-export { saveAuthState, signIn } from "./setup/session.js"
-export { ensureTestUser, getUserRole, waitForCallable } from "./emulator.js"
+export { test, expect, scopeRecords, type StokerFixtures } from "./config/fixtures.js"
+export { runWebConformance, type ConformanceOptions } from "./tests/index.js"
+export { locators, type StokerLocators } from "./config/locators.js"
+export { saveAuthState, signIn } from "./config/session.js"
+export { fieldValues } from "./tests/utils/form.js"
+export {
+    start,
+    waitForSchemaIndex,
+    setUserPassword,
+    clearTenantAlgolia,
+    getTenant,
+    getCurrentUser,
+    getCurrentUserPermissions,
+} from "./initializeStoker.js"
+export { clearRecords, documentIds, rememberRecord, fixtureRecordId, fixtureRecord } from "./config/records.js"
 export {
     authStatePath,
-    getUser,
     resolveProject,
     publishProject,
     type StokerProject,
@@ -14,15 +23,17 @@ export {
     type StokerTestField,
     type StokerTestRecords,
     type StokerEmulatorPorts,
-} from "./project.js"
+} from "./config/project.js"
 export {
     loadSchema,
-    getRoles,
     getRootCollections,
     listableCollections,
     readableCollections,
-    roleCanAccess,
+    isUnique,
+    distinctValue,
+    relationListTitle,
+    assignsFilePermissions,
     collectionPath,
     recordPath,
     type StokerOperation,
-} from "./schema.js"
+} from "./config/schema.js"

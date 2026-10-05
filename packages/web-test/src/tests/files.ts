@@ -1,10 +1,11 @@
 import type { CollectionSchema } from "@stoker-platform/types"
+import { basename, extname } from "node:path"
 import type { Locator, Page } from "@playwright/test"
-import { expect, test } from "../fixtures.js"
-import type { StokerLocators } from "../locators.js"
-import type { StokerProject } from "../project.js"
-import { openFixtureRecord } from "../utils/list.js"
-import { fixtureCollections, type ConformanceOptions } from "../utils/options.js"
+import { expect, test } from "../config/fixtures.js"
+import type { StokerLocators } from "../config/locators.js"
+import type { StokerProject } from "../config/project.js"
+import { openFixtureRecord } from "./utils/list.js"
+import { fixtureCollections, type ConformanceOptions } from "../config/options.js"
 
 interface PermissionChange {
     id: string
@@ -12,6 +13,11 @@ interface PermissionChange {
 }
 
 const FILE = { name: "upload.txt", mimeType: "text/plain", buffer: Buffer.from("file test") }
+
+const named = (name: string, role: string) => {
+    const extension = extname(name)
+    return extension ? `${basename(name, extension)}-${role.toLowerCase()}${extension}` : `${name} ${role}`
+}
 
 export const fileConformance = (options: ConformanceOptions) => {
     test.describe("files", () => {
@@ -22,9 +28,10 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    const change = await uploadFile(page, "upload.txt")
-                    if (change) await expectPermission(page, "upload.txt", change)
+                    await openFiles(page, ui, collection, project, role)
+                    const name = named("upload.txt", role)
+                    const change = await uploadFile(page, name)
+                    if (change) await expectPermission(page, name, change)
                 })
             }
         })
@@ -36,13 +43,15 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await uploadFile(page, "rename-source.txt")
-                    const row = fileRow(page, "rename-source.txt")
+                    await openFiles(page, ui, collection, project, role)
+                    const source = named("rename-source.txt", role)
+                    const target = named("rename-target.txt", role)
+                    await uploadFile(page, source)
+                    const row = fileRow(page, source)
                     await row.getByTestId("file-rename").click()
-                    await row.getByRole("textbox").fill("rename-target.txt")
+                    await row.getByRole("textbox").fill(target)
                     await row.getByRole("button", { name: "Save", exact: true }).click()
-                    await expect(fileRow(page, "rename-target.txt")).toBeVisible({ timeout: 30000 })
+                    await expect(fileRow(page, target)).toBeVisible({ timeout: 30000 })
                 })
             }
         })
@@ -54,12 +63,14 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await uploadFile(page, "bulk-source.txt")
+                    await openFiles(page, ui, collection, project, role)
+                    const source = named("bulk-source.txt", role)
+                    const target = named("bulk-target.txt", role)
+                    await uploadFile(page, source)
                     await page.getByRole("button", { name: "Rename Files", exact: true }).click()
-                    await fileRow(page, "bulk-source.txt").getByRole("textbox").fill("bulk-target.txt")
+                    await fileRow(page, source).getByRole("textbox").fill(target)
                     await page.getByRole("button", { name: "Rename All", exact: true }).click()
-                    await expect(fileRow(page, "bulk-target.txt")).toBeVisible({ timeout: 30000 })
+                    await expect(fileRow(page, target)).toBeVisible({ timeout: 30000 })
                 })
             }
         })
@@ -71,11 +82,12 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await uploadFile(page, "download.txt")
+                    await openFiles(page, ui, collection, project, role)
+                    const name = named("download.txt", role)
+                    await uploadFile(page, name)
                     const download = page.waitForEvent("download")
-                    await fileRow(page, "download.txt").getByTestId("file-download").click()
-                    expect((await download).suggestedFilename()).toBe("download.txt")
+                    await fileRow(page, name).getByTestId("file-download").click()
+                    expect((await download).suggestedFilename()).toBe(name)
                 })
             }
         })
@@ -87,9 +99,10 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await uploadFile(page, "permissions.txt")
-                    await updatePermissions(page, "permissions.txt")
+                    await openFiles(page, ui, collection, project, role)
+                    const name = named("permissions.txt", role)
+                    await uploadFile(page, name)
+                    await updatePermissions(page, name)
                 })
             }
         })
@@ -101,9 +114,10 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await uploadFile(page, "delete-me.txt")
-                    await deleteItem(page, "delete-me.txt", "File")
+                    await openFiles(page, ui, collection, project, role)
+                    const name = named("delete-me.txt", role)
+                    await uploadFile(page, name)
+                    await deleteItem(page, name, "File")
                 })
             }
         })
@@ -115,9 +129,10 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    const change = await createFolder(page, "Created Folder")
-                    if (change) await expectPermission(page, "Created Folder", change)
+                    await openFiles(page, ui, collection, project, role)
+                    const name = named("Created Folder", role)
+                    const change = await createFolder(page, name)
+                    if (change) await expectPermission(page, name, change)
                 })
             }
         })
@@ -129,11 +144,12 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 180000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await createFolder(page, "Nested Folder")
-                    await openFolder(page, "Nested Folder")
-                    await uploadFile(page, "nested.txt")
-                    await expect(page.getByText("Nested Folder", { exact: true })).toBeVisible()
+                    await openFiles(page, ui, collection, project, role)
+                    const folder = named("Nested Folder", role)
+                    await createFolder(page, folder)
+                    await openFolder(page, folder)
+                    await uploadFile(page, named("nested.txt", role))
+                    await expect(page.getByText(folder, { exact: true })).toBeVisible()
                 })
             }
         })
@@ -145,9 +161,10 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 120000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await createFolder(page, "Permissions Folder")
-                    await updatePermissions(page, "Permissions Folder")
+                    await openFiles(page, ui, collection, project, role)
+                    const name = named("Permissions Folder", role)
+                    await createFolder(page, name)
+                    await updatePermissions(page, name)
                 })
             }
         })
@@ -159,14 +176,15 @@ export const fileConformance = (options: ConformanceOptions) => {
             test.setTimeout(Math.max(180000, collections.length * 180000))
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await openFiles(page, ui, collection, project)
-                    await createFolder(page, "Removed Folder")
-                    await openFolder(page, "Removed Folder")
-                    await uploadFile(page, "removed.txt")
+                    await openFiles(page, ui, collection, project, role)
+                    const folder = named("Removed Folder", role)
+                    await createFolder(page, folder)
+                    await openFolder(page, folder)
+                    await uploadFile(page, named("removed.txt", role))
                     await page.getByRole("button", { name: "Back", exact: true }).click()
                     await expect(page.getByRole("button", { name: "Back", exact: true })).toBeHidden()
                     await waitForFileList(page)
-                    await deleteItem(page, "Removed Folder", "Folder")
+                    await deleteItem(page, folder, "Folder")
                 })
             }
         })
@@ -174,14 +192,6 @@ export const fileConformance = (options: ConformanceOptions) => {
 }
 
 const fileRow = (page: Page, name: string) => page.locator(`[data-testid="file-row"][data-file-name="${name}"]`)
-
-const openFiles = async (page: Page, ui: StokerLocators, collection: CollectionSchema, project: StokerProject) => {
-    await openFixtureRecord(page, ui, collection, project)
-    await page.getByRole("button", { name: "Files", exact: true }).click()
-    await expect(page.getByRole("button", { name: "New Folder", exact: true })).toBeVisible()
-    await expect(page.getByTestId("file-upload")).toBeAttached()
-    await waitForFileList(page)
-}
 
 const waitForFileList = async (page: Page) => {
     await expect
@@ -197,27 +207,18 @@ const waitForFileList = async (page: Page) => {
         .toBe("ready")
 }
 
-const uploadFile = async (page: Page, name: string) => {
-    await page.getByTestId("file-upload").setInputFiles(FILE)
-    const filenameDialog = page.getByRole("dialog", { name: "Edit Filename", exact: true })
-    await expect(filenameDialog).toBeVisible()
-    await filenameDialog.getByRole("textbox").fill(name)
-    await filenameDialog.getByRole("button", { name: "Upload", exact: true }).click()
-    await expect(filenameDialog).toBeHidden()
-    const row = fileRow(page, name)
-    const change = await applyPermissionsIfShown(page, row)
-    await expect(row).toBeVisible({ timeout: 30000 })
-    return change
-}
-
-const applyPermissionsIfShown = async (page: Page, ready: Locator) => {
-    const dialog = page.getByRole("dialog", { name: /^Assign Permissions/ })
-    await expect(dialog.or(ready)).toBeVisible({ timeout: 30000 })
-    if (!(await dialog.isVisible())) return
-    const change = await togglePermission(dialog)
-    await dialog.getByRole("button", { name: "Apply Permissions", exact: true }).click()
-    await expect(dialog).toBeHidden()
-    return change
+const openFiles = async (
+    page: Page,
+    ui: StokerLocators,
+    collection: CollectionSchema,
+    project: StokerProject,
+    role: string,
+) => {
+    await openFixtureRecord(page, ui, collection, project, role)
+    await page.getByRole("button", { name: "Files", exact: true }).click()
+    await expect(page.getByRole("button", { name: "New Folder", exact: true })).toBeVisible()
+    await expect(page.getByTestId("file-upload")).toBeAttached()
+    await waitForFileList(page)
 }
 
 const togglePermission = async (dialog: Locator): Promise<PermissionChange | undefined> => {
@@ -233,6 +234,29 @@ const togglePermission = async (dialog: Locator): Promise<PermissionChange | und
         return { id, checked }
     }
     return undefined
+}
+
+const applyPermissionsIfShown = async (page: Page, ready: Locator) => {
+    const dialog = page.getByRole("dialog", { name: /^Assign Permissions/ })
+    await expect(dialog.or(ready)).toBeVisible({ timeout: 30000 })
+    if (!(await dialog.isVisible())) return
+    const change = await togglePermission(dialog)
+    await dialog.getByRole("button", { name: "Apply Permissions", exact: true }).click()
+    await expect(dialog).toBeHidden()
+    return change
+}
+
+const uploadFile = async (page: Page, name: string) => {
+    await page.getByTestId("file-upload").setInputFiles(FILE)
+    const filenameDialog = page.getByRole("dialog", { name: "Edit Filename", exact: true })
+    await expect(filenameDialog).toBeVisible()
+    await filenameDialog.getByRole("textbox").fill(name)
+    await filenameDialog.getByRole("button", { name: "Upload", exact: true }).click()
+    await expect(filenameDialog).toBeHidden()
+    const row = fileRow(page, name)
+    const change = await applyPermissionsIfShown(page, row)
+    await expect(row).toBeVisible({ timeout: 30000 })
+    return change
 }
 
 const expectPermission = async (page: Page, name: string, change: PermissionChange | undefined) => {

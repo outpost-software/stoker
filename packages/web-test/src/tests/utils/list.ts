@@ -1,10 +1,10 @@
 import type { CollectionSchema } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
-import { expect } from "../fixtures.js"
-import type { StokerLocators } from "../locators.js"
-import { fixtureEntries, type StokerProject } from "../project.js"
-import { collectionPath } from "../schema.js"
-import { DATE, escapeRegExp } from "./form.js"
+import { expect } from "../../config/fixtures.js"
+import type { StokerLocators } from "../../config/locators.js"
+import { fixtureRecordId } from "../../config/records.js"
+import type { StokerProject } from "../../config/project.js"
+import { collectionPath, recordPath } from "../../config/schema.js"
 
 export const openList = async (ui: StokerLocators): Promise<void> => {
     if (await ui.collection.listTab.isVisible()) {
@@ -97,53 +97,13 @@ export const openRecordRow = async (page: Page, ui: StokerLocators, collection: 
     await waitForRecord(page, ui, collection)
 }
 
-const listedText = (collection: CollectionSchema, entries: { name: string; value: string }[]): RegExp => {
-    const strings = entries.filter(({ name }) => {
-        return collection.fields.some((field) => field.name === name && field.type === "String" && !("values" in field))
-    })
-    // eslint-disable-next-line security/detect-non-literal-regexp
-    return new RegExp(strings.map(({ value }) => escapeRegExp(value)).join("|"))
-}
-
-const rangeDate = (collection: CollectionSchema, entries: { name: string; value: string }[]) => {
-    const rangeField = collection.preloadCache?.range?.fields[0]
-    return entries.find(({ name, value }) => name === rangeField && DATE.test(value))?.value
-}
-
-export const openListedRecord = async (
-    page: Page,
-    ui: StokerLocators,
-    collection: CollectionSchema,
-    entries: { name: string; value: string }[],
-    message: string,
-    excludeText?: string,
-) => {
-    await showAllRecords(page, ui)
-    await showListMonth(page, ui, rangeDate(collection, entries))
-    let rows = ui.collection.rows.filter({ hasText: listedText(collection, entries) })
-    if (excludeText) rows = rows.filter({ hasNotText: excludeText })
-    const row = rows.first()
-    await expect(row, message).toBeVisible()
-    await expect(row).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
-    await openRecordRow(page, ui, collection, row)
-}
-
 export const openFixtureRecord = async (
     page: Page,
     ui: StokerLocators,
     collection: CollectionSchema,
     project: StokerProject,
+    role: string,
 ) => {
-    await openCollectionList(page, ui, collection)
-    // eslint-disable-next-line security/detect-object-injection
-    const entries = fixtureEntries(project.records[collection.labels.collection])
-    await openListedRecord(
-        page,
-        ui,
-        collection,
-        entries,
-        `${collection.labels.record} from the fixture should be listed`,
-        "Calendar",
-    )
-    await expect(ui.record.form).toHaveAttribute("data-pending-fields", "0", { timeout: 120000 })
+    await page.goto(recordPath(collection, fixtureRecordId(project, collection, role)))
+    await waitForRecord(page, ui, collection)
 }

@@ -136,15 +136,6 @@ export const publishProject = (project: StokerProject): void => {
 export const authStatePath = (project: StokerProject, role: string): string =>
     join(project.rootDir, "playwright", ".auth", `${role.toLowerCase()}.json`)
 
-export const getUser = (project: StokerProject, role: string): StokerTestUser => {
-    // eslint-disable-next-line security/detect-object-injection
-    const user = project.users[role]
-    if (!user) {
-        throw new Error(`No test user configured for role "${role}". Add it to stoker-test.json.`)
-    }
-    return user
-}
-
 export const resolveProject = (options: StokerProjectOptions = {}): StokerProject => {
     const rootDir = resolve(options.rootDir ?? process.env.STOKER_TEST_ROOT_DIR ?? process.cwd())
     loadEnvFiles(rootDir)
@@ -160,9 +151,3 @@ export const resolveProject = (options: StokerProjectOptions = {}): StokerProjec
         records: resolveRecords(rootDir, options.records),
     }
 }
-
-export const fixtureEntries = (fixture: StokerTestRecords[string] | undefined): { name: string; value: string }[] =>
-    Object.entries(fixture ?? {}).flatMap(([name, field]) => {
-        const value = field.update || field.create
-        return value ? [{ name, value }] : []
-    })

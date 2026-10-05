@@ -1,6 +1,6 @@
 import type { CollectionSchema, CollectionsSchema } from "@stoker-platform/types"
-import type { StokerProject } from "../project.js"
-import { listableCollections } from "../schema.js"
+import type { StokerProject } from "./project.js"
+import { listableCollections } from "./schema.js"
 
 export interface ConformanceOptions {
     /**

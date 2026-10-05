@@ -1,14 +1,15 @@
 import type { CalendarConfig, CollectionSchema, CollectionsSchema, StokerRecord } from "@stoker-platform/types"
 import type { Locator, Page } from "@playwright/test"
-import { tryPromise } from "@stoker-platform/utils"
-import { expect, test } from "../fixtures.js"
-import type { StokerLocators } from "../locators.js"
-import type { StokerProject } from "../project.js"
-import { assignsFilePermissions, customizationFile, roleCanAccess } from "../schema.js"
-import { DATE, detectControl, expectField, setField, type FormContext } from "../utils/form.js"
-import { openCollection } from "../utils/list.js"
-import { includedCollections, type ConformanceOptions } from "../utils/options.js"
-import { emulatorFirestore } from "../emulator.js"
+import { canUpdateField, roleHasOperationAccess, tryPromise } from "@stoker-platform/utils"
+import { expect, test } from "../config/fixtures.js"
+import type { StokerLocators } from "../config/locators.js"
+import type { StokerProject } from "../config/project.js"
+import { assignsFilePermissions, distinctValue, isUnique } from "../config/schema.js"
+import { DATE, detectControl, expectField, setField, type FormContext } from "./utils/form.js"
+import { openCollection, showAllRecords } from "./utils/list.js"
+import { includedCollections, type ConformanceOptions } from "../config/options.js"
+import { getCurrentUser, getCurrentUserPermissions, getTenant } from "../initializeStoker.js"
+import { getCustomizationFile, getStokerFirestore } from "@stoker-platform/node-client"
 
 const MONTHS = [
     "January",
@@ -34,7 +35,7 @@ export const calendarConformance = (options: ConformanceOptions) => {
     test.describe("calendar", () => {
         test("drag grid to add a record", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so related records were not created")
-            const collections = (await calendars(schema, role, project, options)).filter(({ collection }) =>
+            const collections = (await calendars(schema, role, options)).filter(({ collection }) =>
                 canCreate(collection, role, project),
             )
             test.skip(collections.length === 0, `${role} has no calendar that can add a record`)
@@ -49,53 +50,41 @@ export const calendarConformance = (options: ConformanceOptions) => {
 
         test("drag event to update record dates", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = (await calendars(schema, role, project, options)).filter(
-                ({ collection }) =>
-                    roleCanAccess(collection, role, "update") && project.records[collection.labels.collection],
-            )
+            const collections = await updatableCalendars(schema, role, project, options, "startField")
             test.skip(collections.length === 0, `${role} has no calendar event to drag`)
             test.setTimeout(Math.max(120000, collections.length * 120000))
 
             for (const { collection, calendar } of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await dragEvent(page, ui, project, collection, calendar)
+                    await dragEvent(page, ui, project, collection, calendar, role)
                 })
             }
         })
 
         test("resize event to update record end date", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = (await calendars(schema, role, project, options)).filter(
-                ({ collection, calendar }) =>
-                    !!calendar.endField &&
-                    roleCanAccess(collection, role, "update") &&
-                    project.records[collection.labels.collection],
-            )
+            const collections = await updatableCalendars(schema, role, project, options, "endField")
             test.skip(collections.length === 0, `${role} has no calendar event to resize`)
             test.setTimeout(Math.max(120000, collections.length * 120000))
 
             for (const { collection, calendar } of collections) {
                 await test.step(collection.labels.collection, async () => {
-                    await resizeEvent(page, ui, project, collection, calendar)
+                    await resizeEvent(page, ui, project, collection, calendar, role)
                 })
             }
         })
     })
 }
 
-const canCreate = (collection: CollectionSchema, role: string, project: StokerProject) =>
-    roleCanAccess(collection, role, "create") && !!project.records[collection.labels.collection]
-
 const calendars = async (
     schema: CollectionsSchema,
     role: string,
-    project: StokerProject,
     options: ConformanceOptions,
 ): Promise<CalendarCollection[]> => {
     const collections = includedCollections(schema, role, options)
     const visible: CalendarCollection[] = []
     for (const collection of collections) {
-        const customization = await customizationFile(project, schema, collection.labels.collection)
+        const customization = await getCustomizationFile(collection.labels.collection, schema)
         const calendar = (await tryPromise(customization.admin?.calendar)) as CalendarConfig | undefined
         if (!calendar?.startField || (calendar.roles && !calendar.roles.includes(role))) continue
         visible.push({ collection, calendar })
@@ -103,49 +92,40 @@ const calendars = async (
     return visible
 }
 
-const calendarRoot = (page: Page) => page.locator(".fc").filter({ visible: true }).first()
+const canCreate = (collection: CollectionSchema, role: string, project: StokerProject) =>
+    roleHasOperationAccess(collection, role, "create") && !!project.records[collection.labels.collection]
 
-const dayCell = (page: Page, date: string) => calendarRoot(page).locator(`.fc-daygrid-day[data-date="${date}"]`)
+const canUpdate = async (collection: CollectionSchema, role: string, project: StokerProject, fieldName: string) => {
+    const field = collection.fields.find((item) => item.name === fieldName)
+    const user = await getCurrentUser(role)
+    const permissions = await getCurrentUserPermissions(role)
+    if (!field || !(await canUpdateField(collection, field, permissions, user.customClaims ?? {}))) return false
+    return roleHasOperationAccess(collection, role, "update") && !!project.records[collection.labels.collection]
+}
 
-const eventWithTitle = (page: Page, title: string) =>
-    calendarRoot(page)
-        .locator(".fc-event")
-        .filter({ has: page.getByText(title, { exact: true }) })
-
-const overlapsDay = (
-    eventBox: { x: number; y: number; width: number; height: number },
-    dayBox: { x: number; y: number; width: number; height: number },
+const updatableCalendars = async (
+    schema: CollectionsSchema,
+    role: string,
+    project: StokerProject,
+    options: ConformanceOptions,
+    field: "startField" | "endField",
 ) => {
-    const x = dayBox.x + dayBox.width / 2
-    const vertical = eventBox.y < dayBox.y + dayBox.height && eventBox.y + eventBox.height > dayBox.y
-    return vertical && x >= eventBox.x - 1 && x <= eventBox.x + eventBox.width + 1
+    const visible = await calendars(schema, role, options)
+    const updatable: CalendarCollection[] = []
+    for (const entry of visible) {
+        const fieldName = field === "startField" ? entry.calendar.startField : entry.calendar.endField
+        if (fieldName && (await canUpdate(entry.collection, role, project, fieldName))) updatable.push(entry)
+    }
+    return updatable
 }
 
-const eventCovers = async (page: Page, title: string, date: string) => {
-    const dayBox = await dayCell(page, date).boundingBox()
-    if (!dayBox) return false
-    const events = eventWithTitle(page, title)
-    const count = await events.count()
-    for (let index = 0; index < count; index++) {
-        const eventBox = await events.nth(index).boundingBox()
-        if (eventBox && overlapsDay(eventBox, dayBox)) return true
-    }
-    return false
-}
+const calendarRoot = (page: Page) => page.locator(".fc").filter({ visible: true }).first()
 
 const showCalendar = async (page: Page, ui: StokerLocators, collection: CollectionSchema, calendar: CalendarConfig) => {
     await openCollection(page, ui, collection)
     await page.getByRole("tab", { name: calendar.title || "Calendar", exact: true }).click()
     await expect(calendarRoot(page)).toBeVisible()
-    const all = page.getByRole("radio", { name: "Toggle all" })
-    if (
-        (await all.count()) > 0 &&
-        (await all.first().isVisible()) &&
-        (await all.first().getAttribute("data-state")) !== "on"
-    ) {
-        await all.first().click()
-        await expect(all.first()).toHaveAttribute("data-state", "on")
-    }
+    await showAllRecords(page, ui)
     const month = calendarRoot(page).getByRole("button", { name: "Month", exact: true })
     if (await month.isVisible()) await month.click()
 }
@@ -170,42 +150,48 @@ const showCalendarMonth = async (page: Page, date: string) => {
     }
 }
 
-const drag = async (page: Page, from: Locator, to: Locator, origin: "center" | "start" | "end" = "center") => {
+const dayCell = (page: Page, date: string) => calendarRoot(page).locator(`.fc-daygrid-day[data-date="${date}"]`)
+
+type DragOrigin = "center" | "start" | "end" | "corner"
+
+const CORNER = { x: 8, y: 8 }
+
+const drag = async (page: Page, from: Locator, to: Locator, origin: DragOrigin = "center") => {
     await from.scrollIntoViewIfNeeded()
     await to.scrollIntoViewIfNeeded()
     const source = await from.boundingBox()
     const target = await to.boundingBox()
     if (!source || !target) throw new Error("Calendar drag target is not visible")
     const startX =
-        origin === "start"
-            ? source.x + 12
+        origin === "start" || origin === "corner"
+            ? source.x + (origin === "corner" ? CORNER.x : 12)
             : origin === "end"
               ? source.x + source.width - 4
               : source.x + source.width / 2
-    await page.mouse.move(startX, source.y + source.height / 2)
+    const startY = origin === "corner" ? source.y + CORNER.y : source.y + source.height / 2
+    await page.mouse.move(startX, startY)
     await page.mouse.down()
     await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 20 })
     await page.mouse.up()
 }
 
-const createdTitle = (project: StokerProject, collection: CollectionSchema) => {
+const fixtureTitle = (project: StokerProject, collection: CollectionSchema) => {
     // eslint-disable-next-line security/detect-object-injection
     const field = project.records[collection.labels.collection]?.[collection.recordTitleField]
     return field?.update || field?.create
 }
 
-const findTitleByDate = async (project: StokerProject, collection: CollectionSchema, field: string, date: string) => {
-    const firestore = await emulatorFirestore(project)
-    const snapshot = await firestore.collection(collection.labels.collection).get()
-    const doc = snapshot.docs.find((doc) => dateStamp(doc.get(field)) === date)
-    const value = doc?.get(collection.recordTitleField)
-    return typeof value === "string" ? value : undefined
+const calendarTitle = (project: StokerProject, collection: CollectionSchema, role: string) => {
+    const base = fixtureTitle(project, collection)
+    if (!base) return undefined
+    const titleField = collection.fields.find((item) => item.name === collection.recordTitleField)
+    return titleField && isUnique(titleField) ? `${base} Calendar` : `${base} ${role} Calendar`
 }
 
-const findRecord = async (project: StokerProject, collection: CollectionSchema, title: string) => {
-    const firestore = await emulatorFirestore(project)
-    const snapshot = await firestore.collection(collection.labels.collection).get()
-    return snapshot.docs.find((doc) => doc.get(collection.recordTitleField) === title)
+const addDays = (date: string, days: number) => {
+    const [year, month, day] = date.split("-").map(Number)
+    const next = new Date(Date.UTC(year, month - 1, day + days))
+    return next.toISOString().slice(0, 10)
 }
 
 const dateStamp = (value: unknown): string | undefined => {
@@ -219,24 +205,38 @@ const dateStamp = (value: unknown): string | undefined => {
     }).format(date)
 }
 
-const addDays = (date: string, days: number) => {
-    const [year, month, day] = date.split("-").map(Number)
-    const next = new Date(Date.UTC(year, month - 1, day + days))
-    return next.toISOString().slice(0, 10)
+const collectionDocs = async (collection: CollectionSchema) => {
+    const db = getStokerFirestore()
+    const tenantId = getTenant()
+    const snapshot = await db.collection("tenants").doc(tenantId).collection(collection.labels.collection).get()
+    return snapshot.docs
 }
 
-const expectRecordDate = async (
-    project: StokerProject,
-    collection: CollectionSchema,
-    title: string,
-    field: string,
-    date: string,
-) => {
+const findRecord = async (collection: CollectionSchema, title: string) =>
+    (await collectionDocs(collection)).find((doc) => doc.get(collection.recordTitleField) === title)
+
+const findTitleByDate = async (collection: CollectionSchema, field: string, date: string) => {
+    const doc = (await collectionDocs(collection)).find((doc) => dateStamp(doc.get(field)) === date)
+    const value = doc?.get(collection.recordTitleField)
+    return typeof value === "string" ? value : undefined
+}
+
+const eventWithTitle = (page: Page, title: string) =>
+    calendarRoot(page)
+        .locator(".fc-event")
+        .filter({ has: page.getByText(title, { exact: true }) })
+
+const expectRecordDate = async (collection: CollectionSchema, title: string, field: string, date: string) => {
     await expect
         .poll(
             async () => {
-                const firestore = await emulatorFirestore(project)
-                const snapshot = await firestore.collection(collection.labels.collection).get()
+                const db = getStokerFirestore()
+                const tenantId = getTenant()
+                const snapshot = await db
+                    .collection("tenants")
+                    .doc(tenantId)
+                    .collection(collection.labels.collection)
+                    .get()
                 return snapshot.docs.some(
                     (doc) => doc.get(collection.recordTitleField) === title && dateStamp(doc.get(field)) === date,
                 )
@@ -244,6 +244,27 @@ const expectRecordDate = async (
             { timeout: 30000 },
         )
         .toBe(true)
+}
+
+const overlapsDay = (
+    eventBox: { x: number; y: number; width: number; height: number },
+    dayBox: { x: number; y: number; width: number; height: number },
+) => {
+    const x = dayBox.x + dayBox.width / 2
+    const vertical = eventBox.y < dayBox.y + dayBox.height && eventBox.y + eventBox.height > dayBox.y
+    return vertical && x >= eventBox.x - 1 && x <= eventBox.x + eventBox.width + 1
+}
+
+const eventCovers = async (page: Page, title: string, date: string) => {
+    const dayBox = await dayCell(page, date).boundingBox()
+    if (!dayBox) return false
+    const events = eventWithTitle(page, title)
+    const count = await events.count()
+    for (let index = 0; index < count; index++) {
+        const eventBox = await events.nth(index).boundingBox()
+        if (eventBox && overlapsDay(eventBox, dayBox)) return true
+    }
+    return false
 }
 
 const addFromCalendar = async (
@@ -257,8 +278,8 @@ const addFromCalendar = async (
     const start = "2026-06-08"
     await showCalendar(page, ui, collection, calendar)
     await showCalendarMonth(page, start)
-    if (calendar.endField) await drag(page, dayCell(page, start), dayCell(page, "2026-06-11"))
-    else await dayCell(page, start).click()
+    if (calendar.endField) await drag(page, dayCell(page, start), dayCell(page, "2026-06-11"), "corner")
+    else await dayCell(page, start).click({ position: CORNER })
 
     const picker = page.locator("#collection-picker-modal")
     const startField = page.getByTestId(`field-${calendar.startField}`)
@@ -286,22 +307,24 @@ const addFromCalendar = async (
     }
     // eslint-disable-next-line security/detect-object-injection
     const fixture = project.records[collection.labels.collection]
-    const suffixed = createdTitle(project, collection)
+    const fixtureTitled = calendarTitle(project, collection, role)
+    let title = fixtureTitled ?? ""
     const rangeField = collection.preloadCache?.range?.fields?.[0]
     const pairedEnd = collection.preloadCache?.range?.ranges?.find((range) => range[0] === calendar.startField)?.[1]
-    let title = suffixed ? `${suffixed} Calendar` : ""
-    let titled = false
     for (const [name, field] of Object.entries(fixture)) {
-        if (!field.create || name === calendar.startField || name === calendar.endField) continue
+        if (name === calendar.startField || name === calendar.endField) continue
+        if (name === collection.recordTitleField ? !fixtureTitled : !field.create) continue
+        const schemaField = collection.fields.find((item) => item.name === name)
         const value =
-            name === collection.recordTitleField && suffixed
+            name === collection.recordTitleField
                 ? title
-                : name === pairedEnd && DATE.test(field.create) && field.create <= addDays(start, 7)
-                  ? addDays(start, 21)
-                  : rangeField && name === rangeField && DATE.test(field.create)
-                    ? start
-                    : field.create
-        if (name === collection.recordTitleField && suffixed) titled = true
+                : schemaField && isUnique(schemaField)
+                  ? distinctValue(schemaField, field.create ?? "", "Calendar", 3)
+                  : name === pairedEnd && field.create && DATE.test(field.create) && field.create <= addDays(start, 7)
+                    ? addDays(start, 21)
+                    : rangeField && name === rangeField && field.create && DATE.test(field.create)
+                      ? start
+                      : (field.create ?? "")
         const control = dialog.getByTestId(`field-${name}`)
         if ((await control.count()) === 0) continue
         const kind = await detectControl(control)
@@ -311,11 +334,11 @@ const addFromCalendar = async (
     await dialog.getByRole("button", { name: "Save", exact: true }).click()
     await expect(dialog).toBeHidden({ timeout: 120000 })
     await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
-    if (!titled) {
+    if (!fixtureTitled) {
         await expect
             .poll(
                 async () => {
-                    title = (await findTitleByDate(project, collection, calendar.startField, start)) ?? ""
+                    title = (await findTitleByDate(collection, calendar.startField, start)) ?? ""
                     return title
                 },
                 { timeout: 30000 },
@@ -324,11 +347,11 @@ const addFromCalendar = async (
     }
     await expect(eventWithTitle(page, title).first()).toBeVisible({ timeout: 30000 })
     await expect.poll(() => eventCovers(page, title, start)).toBe(true)
+    await expectRecordDate(collection, title, calendar.startField, start)
     if (end && calendar.endField) {
         await expect.poll(() => eventCovers(page, title, end)).toBe(true)
-        await expectRecordDate(project, collection, title, calendar.endField, end)
+        await expectRecordDate(collection, title, calendar.endField, end)
     }
-    await expectRecordDate(project, collection, title, calendar.startField, start)
 }
 
 const shownOnCalendar = (calendar: CalendarConfig, data: Record<string, unknown>) => {
@@ -354,9 +377,15 @@ const daysBetween = (from: string, to: string) => {
     return Math.round((Date.UTC(toYear, toMonth - 1, toDay) - Date.UTC(fromYear, fromMonth - 1, fromDay)) / 86400000)
 }
 
-const locateEvent = async (project: StokerProject, collection: CollectionSchema, calendar: CalendarConfig) => {
-    const firestore = await emulatorFirestore(project)
-    const snapshot = await firestore.collection(collection.labels.collection).get()
+const locateEvent = async (
+    project: StokerProject,
+    collection: CollectionSchema,
+    calendar: CalendarConfig,
+    role: string,
+) => {
+    const db = getStokerFirestore()
+    const tenantId = getTenant()
+    const snapshot = await db.collection("tenants").doc(tenantId).collection(collection.labels.collection).get()
     const rangeField = collection.preloadCache?.range?.fields?.[0]
     const shown = snapshot.docs.filter((doc) => {
         if (!shownOnCalendar(calendar, doc.data())) return false
@@ -369,9 +398,9 @@ const locateEvent = async (project: StokerProject, collection: CollectionSchema,
         const value = doc.get(collection.recordTitleField)
         return typeof value === "string" ? value : undefined
     }
-    const preferred = createdTitle(project, collection)
-    const created = preferred ? `${preferred} Calendar` : undefined
-    const names = [created, preferred].filter((name) => name !== undefined)
+    const names = [calendarTitle(project, collection, role), fixtureTitle(project, collection)].filter(
+        (name) => name !== undefined,
+    )
     for (const name of names) {
         const doc = shown.find((doc) => titleOf(doc) === name)
         if (doc) return { title: name, record: doc }
@@ -389,8 +418,9 @@ const dragEvent = async (
     project: StokerProject,
     collection: CollectionSchema,
     calendar: CalendarConfig,
+    role: string,
 ) => {
-    const { title, record } = await locateEvent(project, collection, calendar)
+    const { title, record } = await locateEvent(project, collection, calendar, role)
     const start = dateStamp(record.get(calendar.startField))
     if (!start) throw new Error(`${collection.labels.collection} has no event to drag`)
     const end = calendar.endField ? dateStamp(record.get(calendar.endField)) : undefined
@@ -404,9 +434,9 @@ const dragEvent = async (
     await expect.poll(() => ui.record.updated.count(), { timeout: 60000 }).toBeGreaterThan(before)
     await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 60000 })
     await expect.poll(() => eventCovers(page, title, drop)).toBe(true)
-    await expectRecordDate(project, collection, title, calendar.startField, drop)
+    await expectRecordDate(collection, title, calendar.startField, drop)
     if (calendar.endField && end) {
-        await expectRecordDate(project, collection, title, calendar.endField, addDays(end, daysBetween(start, drop)))
+        await expectRecordDate(collection, title, calendar.endField, addDays(end, daysBetween(start, drop)))
     }
 }
 
@@ -416,10 +446,11 @@ const resizeEvent = async (
     project: StokerProject,
     collection: CollectionSchema,
     calendar: CalendarConfig,
+    role: string,
 ) => {
     const endField = calendar.endField
     if (!endField) throw new Error(`${collection.labels.collection} has no event end to resize`)
-    const { title, record } = await locateEvent(project, collection, calendar)
+    const { title, record } = await locateEvent(project, collection, calendar, role)
     const start = dateStamp(record.get(calendar.startField))
     const end = dateStamp(record.get(endField))
     if (!start || !end) throw new Error(`${collection.labels.collection} has no event to resize`)
@@ -443,12 +474,12 @@ const resizeEvent = async (
     await expect
         .poll(
             async () => {
-                savedEnd = dateStamp((await findRecord(project, collection, title))?.get(endField)) ?? ""
+                savedEnd = dateStamp((await findRecord(collection, title))?.get(endField)) ?? ""
                 return accepted.has(savedEnd)
             },
             { timeout: 30000 },
         )
         .toBe(true)
     await expect.poll(() => eventCovers(page, title, savedEnd)).toBe(true)
-    await expectRecordDate(project, collection, title, calendar.startField, start)
+    await expectRecordDate(collection, title, calendar.startField, start)
 }

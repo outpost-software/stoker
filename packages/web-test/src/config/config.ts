@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url"
 import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test"
 import { authStatePath, publishProject, resolveProject, type StokerProjectOptions } from "./project.js"
-import { getRoles, loadSchema } from "./schema.js"
+import { loadSchema } from "./schema.js"
 import { snapshotPreexistingPorts } from "./teardown.js"
 
 export interface StokerWebTestOptions extends StokerProjectOptions {
@@ -22,9 +22,8 @@ export const defineStokerWebTest = (options: StokerWebTestOptions = {}) => {
     const schema = loadSchema(project)
     const manageServers = options.manageServers ?? true
     if (manageServers) snapshotPreexistingPorts(project.rootDir)
-    const schemaRoles = getRoles(schema)
     // eslint-disable-next-line security/detect-object-injection
-    const roles = schemaRoles.filter((role) => project.users[role])
+    const roles = schema.config.roles.filter((role) => project.users[role])
     if (roles.length === 0) {
         throw new Error("No test users match a role in the schema. Add them to stoker-test.json.")
     }
@@ -44,8 +43,8 @@ export const defineStokerWebTest = (options: StokerWebTestOptions = {}) => {
         projects: [
             {
                 name: "setup",
-                testDir: fileURLToPath(new URL("./setup/", import.meta.url)),
-                testMatch: /.*\.setup\.js/,
+                testDir: fileURLToPath(new URL("../tests/", import.meta.url)),
+                testMatch: "setup.js",
                 timeout: 300000,
             },
             ...roles.map((role) => ({
@@ -62,7 +61,7 @@ export const defineStokerWebTest = (options: StokerWebTestOptions = {}) => {
         webServer: manageServers
             ? [
                   {
-                      command: "npx stoker start",
+                      command: "npx stoker start --inspect-functions",
                       url: `http://127.0.0.1:${project.ports.auth}`,
                       cwd: project.rootDir,
                       reuseExistingServer: !process.env.CI,
