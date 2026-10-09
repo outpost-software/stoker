@@ -10,7 +10,7 @@ import { isRelationField, roleHasOperationAccess, tryPromise } from "@stoker-pla
 import { expect, test } from "../config/fixtures.js"
 import type { StokerLocators } from "../config/locators.js"
 import type { StokerProject, StokerTestRecords } from "../config/project.js"
-import { assignsFilePermissions, distinctValue, relationListTitle } from "../config/schema.js"
+import { assignsFilePermissions, distinctValue, relationListTitle, updatableFieldNames } from "../config/schema.js"
 import {
     detectControl,
     expectField,
@@ -22,7 +22,8 @@ import {
     type FormContext,
 } from "./utils/form.js"
 import { openCollectionList, openFixtureRecord, openRecordRow, showAllRecords } from "./utils/list.js"
-import { fixtureCollections, includedCollections, type ConformanceOptions } from "../config/options.js"
+import { fixtureCollections, includedCollections, skipCollection, type ConformanceOptions } from "../config/options.js"
+import { fixtureUpdatesDisabled, readableFixtures } from "../config/records.js"
 import { getCustomizationFile, getStokerFirestore } from "@stoker-platform/node-client"
 import { getTenant } from "../initializeStoker.js"
 
@@ -38,6 +39,7 @@ export const recordConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     await duplicateRecord(page, ui, project, schema, collection, role)
                 })
             }
@@ -53,6 +55,7 @@ export const recordConformance = (options: ConformanceOptions) => {
 
             for (const collection of visible) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     // eslint-disable-next-line security/detect-object-injection
                     if (project.records[collection.labels.collection]) {
                         await openFixtureRecord(page, ui, collection, project, role)
@@ -78,7 +81,7 @@ export const recordConformance = (options: ConformanceOptions) => {
 
         test("a record can be reverted", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
-            const collections = fixtureCollections(schema, role, project, options).filter((collection) =>
+            const collections = (await readableFixtures(schema, role, project, options)).filter((collection) =>
                 roleHasOperationAccess(collection, role, "update"),
             )
             test.skip(collections.length === 0, `${role} has no record that can be reverted`)
@@ -86,6 +89,14 @@ export const recordConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
+                    if (await fixtureUpdatesDisabled(schema, project, collection, role)) {
+                        test.info().annotations.push({
+                            type: "skipped",
+                            description: `${collection.labels.collection}: updates are disabled for this record`,
+                        })
+                        return
+                    }
                     await revertRecord(page, ui, project, collection, role)
                 })
             }
@@ -99,6 +110,7 @@ export const recordConformance = (options: ConformanceOptions) => {
 
             for (const { source, target } of conversions) {
                 await test.step(`${source.labels.collection} to ${target.labels.collection}`, async () => {
+                    if (skipCollection(options, role, source.labels.collection)) return
                     await convertRecord(page, ui, project, schema, source, target, role)
                 })
             }
@@ -142,6 +154,7 @@ const prepareCopy = async (
     dialog: Locator,
     collection: CollectionSchema,
     fixture: StokerTestRecords[string],
+    role: string,
     context: FormContext,
 ) => {
     for (const { name, value } of fieldValues(fixture)) {
@@ -154,10 +167,8 @@ const prepareCopy = async (
         const required = !!schemaField && "required" in schemaField && schemaField.required === true
         if (control === "text" && unique) {
             const input = field.getByRole("textbox").or(field.getByRole("spinbutton")).first()
-            const current = await input.inputValue()
-            if (current === "" || current === value) {
-                await setField(page, field, control, distinctValue(schemaField, value, "Copy", 1), context)
-            }
+            const current = (await input.inputValue()) || value
+            await setField(page, field, control, distinctValue(schemaField, current, `${role} Copy`, 1), context)
             continue
         }
         if (required && (await isBlank(field, control))) await setField(page, field, control, value, context)
@@ -190,7 +201,7 @@ const duplicateRecord = async (
     })
     await expect(dialog).toBeVisible()
     // eslint-disable-next-line security/detect-object-injection
-    await prepareCopy(page, dialog, collection, project.records[collection.labels.collection], {
+    await prepareCopy(page, dialog, collection, project.records[collection.labels.collection], role, {
         rootDir: project.rootDir,
         assignsFilePermissions: assignsFilePermissions(collection, role),
     })
@@ -241,12 +252,18 @@ interface RevertChange {
     update: string
 }
 
-const revertChanges = async (ui: StokerLocators, collection: CollectionSchema, fixture: StokerTestRecords[string]) => {
+const revertChanges = async (
+    ui: StokerLocators,
+    collection: CollectionSchema,
+    role: string,
+    fixture: StokerTestRecords[string],
+) => {
     const changes: RevertChange[] = []
+    const updatable = await updatableFieldNames(collection, role)
     for (const [name, values] of Object.entries(fixture)) {
         if (!values.create || !values.update) continue
         const schemaField = collection.fields.find((item) => item.name === name)
-        if (!schemaField) continue
+        if (!schemaField || !updatable.has(name)) continue
         const field = ui.record.field(name)
         if ((await field.count()) === 0) continue
         const control = await detectControl(field)
@@ -264,6 +281,30 @@ const stableValue = (value: unknown) => {
     return JSON.stringify(value)
 }
 
+const timestampParts = (value: unknown) => {
+    if (!value || typeof value !== "object" || !("toDate" in value) || typeof value.toDate !== "function") return
+    const date = value.toDate() as Date
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Australia/Melbourne",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+    }).formatToParts(date)
+    const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? ""
+    return { date: `${part("year")}-${part("month")}-${part("day")}`, time: `${part("hour")}:${part("minute")}` }
+}
+
+const restoredText = (value: unknown, control: FieldControl, fallback: string) => {
+    if (control !== "calendar" && control !== "dateTime") return typeof value === "string" ? value : fallback
+    const stamped = timestampParts(value)
+    if (!stamped) return fallback
+    return control === "calendar" ? stamped.date : `${stamped.date} ${stamped.time}`
+}
+
 const revertRecord = async (
     page: Page,
     ui: StokerLocators,
@@ -275,7 +316,7 @@ const revertRecord = async (
     const revert = page.getByRole("button", { name: "Revert", exact: true })
     await expect(revert).toBeDisabled()
     // eslint-disable-next-line security/detect-object-injection
-    const changes = await revertChanges(ui, collection, project.records[collection.labels.collection])
+    const changes = await revertChanges(ui, collection, role, project.records[collection.labels.collection])
     if (changes.length === 0) {
         test.info().annotations.push({
             type: "skipped",
@@ -302,7 +343,11 @@ const revertRecord = async (
     }
     await expect(revert).toBeEnabled()
     await revert.click()
-    for (const change of applied) await expectField(change.field, change.control, change.update)
+    for (const change of applied) {
+        // eslint-disable-next-line security/detect-object-injection
+        const stored = restoredText(before[change.name], change.control, change.update)
+        await expectField(change.field, change.control, stored)
+    }
     await expect(revert).toBeDisabled()
     await expect
         .poll(async () => {
@@ -360,7 +405,7 @@ const convertRecord = async (
     // eslint-disable-next-line security/detect-object-injection
     const fixture = project.records[target.labels.collection]
     if (fixture) {
-        await prepareCopy(page, dialog, target, fixture, {
+        await prepareCopy(page, dialog, target, fixture, role, {
             rootDir: project.rootDir,
             assignsFilePermissions: assignsFilePermissions(target, role),
         })

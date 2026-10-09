@@ -1,5 +1,5 @@
 export { test, expect, scopeRecords, type StokerFixtures } from "./config/fixtures.js"
-export { runWebConformance, type ConformanceOptions } from "./tests/index.js"
+export { runWebConformance, type ConformanceOptions, type SkippedTest } from "./tests/index.js"
 export { locators, type StokerLocators } from "./config/locators.js"
 export { saveAuthState, signIn } from "./config/session.js"
 export { fieldValues } from "./tests/utils/form.js"
@@ -12,7 +12,14 @@ export {
     getCurrentUser,
     getCurrentUserPermissions,
 } from "./initializeStoker.js"
-export { clearRecords, documentIds, rememberRecord, fixtureRecordId, fixtureRecord } from "./config/records.js"
+export {
+    clearRecords,
+    documentIds,
+    rememberRecord,
+    fixtureRecordId,
+    fixtureRecord,
+    fixtureUpdatesDisabled,
+} from "./config/records.js"
 export {
     authStatePath,
     resolveProject,
@@ -32,6 +39,9 @@ export {
     isUnique,
     distinctValue,
     relationListTitle,
+    updatableFieldNames,
+    updatesDisabled,
+    createHidden,
     assignsFilePermissions,
     collectionPath,
     recordPath,

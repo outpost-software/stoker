@@ -11,6 +11,8 @@ import type {
 import type { Locator, Page } from "@playwright/test"
 import {
     canUpdateField,
+    collectionAccess,
+    hasDependencyAccess,
     isRelationField,
     isSortingEnabled,
     roleHasOperationAccess,
@@ -30,7 +32,7 @@ import {
     showListMonth,
     waitForRecord,
 } from "./utils/list.js"
-import { fixtureCollections, includedCollections, type ConformanceOptions } from "../config/options.js"
+import { fixtureCollections, includedCollections, skipCollection, type ConformanceOptions } from "../config/options.js"
 import { getCurrentUser, getCurrentUserPermissions } from "../initializeStoker.js"
 import { getCustomizationFile } from "@stoker-platform/node-client"
 
@@ -43,8 +45,9 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     const title = await fixtureRecordTitle(project, collection, role)
-                    await openFromSearch(page, ui, collection, title)
+                    await openFromSearch(page, ui, project, collection, role, title)
                 })
             }
         })
@@ -56,9 +59,10 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     const title = await fixtureRecordTitle(project, collection, role)
                     const month = await fixtureRecordMonth(project, collection, role)
-                    await expectInListSearch(page, ui, collection, title, month)
+                    await expectInListSearch(page, ui, project, collection, role, title, month)
                 })
             }
         })
@@ -70,6 +74,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     await expectChatReply(page, ui, collection)
                 })
             }
@@ -81,6 +86,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const { collection, filters, status } of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     await expectFilters(page, ui, collection, filters, status)
                 })
             }
@@ -93,6 +99,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     await expectExport(page, ui, schema, collection, role)
                 })
             }
@@ -105,6 +112,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const { collection, views, labels } of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     await expectSortFields(page, ui, collection, views, labels)
                 })
             }
@@ -118,6 +126,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     await expectBoardMove(page, ui, schema, collection, project, role)
                 })
             }
@@ -160,32 +169,70 @@ const fixtureRecordMonth = async (
     return `${date.getFullYear()}-${month}-${day}`
 }
 
-const openFromSearch = async (page: Page, ui: StokerLocators, collection: CollectionSchema, title: string) => {
+const waitForViewTransition = (page: Page) =>
+    page.waitForFunction(() =>
+        document.getAnimations().every((animation) => {
+            const effect = animation.effect as { pseudoElement?: string | null } | null
+            return !effect?.pseudoElement?.includes("view-transition")
+        }),
+    )
+
+const openFromSearch = async (
+    page: Page,
+    ui: StokerLocators,
+    project: StokerProject,
+    collection: CollectionSchema,
+    role: string,
+    title: string,
+) => {
     await page.goto("/")
     await expect(ui.app.search).toBeVisible({ timeout: 30000 })
-    await ui.app.search.fill(title)
+    const query = await searchableValue(project, collection, role, title)
+    await ui.app.search.fill(query)
     const result = page.getByRole("dialog").getByRole("cell", { name: title, exact: true }).first()
-    await expect(result, `${collection.labels.record} "${title}" should appear in Search all`).toBeVisible({
+    await expect(result, `${collection.labels.record} for "${title}" should appear in Search all`).toBeVisible({
         timeout: 30000,
     })
     await result.click()
+    const segment = `/${collection.labels.record.toLowerCase()}/`
+    await page.waitForURL((url) => url.pathname.toLowerCase().includes(segment))
+    await waitForViewTransition(page)
+    if (!page.url().includes("/edit")) {
+        const details = page.getByRole("button", { name: "Details", exact: true }).filter({ visible: true })
+        await expect(details.first()).toBeVisible({ timeout: 30000 })
+        await details.first().click()
+        await page.waitForURL((url) => url.pathname.includes("/edit"))
+        await waitForViewTransition(page)
+    }
     await waitForRecord(page, ui, collection)
     await expect(ui.app.errorPage).toBeHidden()
+}
+
+const searchableValue = async (project: StokerProject, collection: CollectionSchema, role: string, title: string) => {
+    const record = await fixtureRecord(project, collection, role)
+    const field = collection.fullTextSearch?.find(
+        (name) => typeof record.get(name) === "string" && record.get(name) !== "",
+    )
+    // eslint-disable-next-line security/detect-object-injection
+    return field ? (record.get(field) as string) : title
 }
 
 const expectInListSearch = async (
     page: Page,
     ui: StokerLocators,
+    project: StokerProject,
     collection: CollectionSchema,
+    role: string,
     title: string,
     month?: string,
 ) => {
     await openCollectionList(page, ui, collection)
     await showAllRecords(page, ui)
     await showListMonth(page, ui, month)
-    await ui.collection.search.fill(title)
+    const query = await searchableValue(project, collection, role, title)
+    await ui.collection.search.fill(query)
     const row = ui.collection.rows.first()
-    await expect(row, `${collection.labels.record} "${title}" should appear in the list`).toBeVisible({
+    await expect(row, `${collection.labels.record} for query "${query}" should appear in the list`).toBeVisible({
         timeout: 30000,
     })
 }
@@ -251,6 +298,8 @@ const visibleFilters = async (
     collection: CollectionSchema,
     schema: CollectionsSchema,
     role: string,
+    permissions: StokerPermissions,
+    claims: Record<string, unknown>,
     statusField?: string,
 ): Promise<VisibleFilter[]> => {
     const visible: VisibleFilter[] = []
@@ -263,12 +312,18 @@ const visibleFilters = async (
         if (filter.roles && !filter.roles.includes(role)) continue
         const field = collection.fields.find((item) => item.name === filter.field)
         if (!field) continue
+        if (Array.isArray(field.access) && !field.access.includes(role)) continue
         if (filter.type === "select" && field.type !== "Boolean" && !("values" in field && field.values)) continue
         if (filter.type === "relation") {
             if (!isRelationField(field)) continue
             // eslint-disable-next-line security/detect-object-injection
             const target = schema.collections[field.collection]
-            if (!target?.fullTextSearch || !roleHasOperationAccess(target, role, "read")) continue
+            if (!target?.fullTextSearch) continue
+            // eslint-disable-next-line security/detect-object-injection
+            const collectionPermissions = permissions.collections?.[target.labels.collection]
+            const fullAccess = !!collectionPermissions && !!collectionAccess("Read", collectionPermissions)
+            const dependencyAccess = hasDependencyAccess(target, schema, permissions, claims)
+            if (!fullAccess && dependencyAccess.length === 0) continue
         }
         const title = filterTitle(filter, field, customization)
         const entry: VisibleFilter = { label: `${title}:` }
@@ -297,11 +352,21 @@ const collectionsWithFilters = async (
     options: ConformanceOptions,
 ): Promise<{ collection: CollectionSchema; filters: VisibleFilter[]; status: string[] }[]> => {
     const collections = includedCollections(schema, role, options)
+    const permissions = await getCurrentUserPermissions(role)
+    const claims = ((await getCurrentUser(role)).customClaims ?? {}) as Record<string, unknown>
     const visible: { collection: CollectionSchema; filters: VisibleFilter[]; status: string[] }[] = []
     for (const collection of collections) {
         const customization = await getCustomizationFile(collection.labels.collection, schema)
         const statusField = (await tryPromise(customization.admin?.statusField)) as StatusField | undefined
-        const filters = await visibleFilters(customization, collection, schema, role, statusField?.field)
+        const filters = await visibleFilters(
+            customization,
+            collection,
+            schema,
+            role,
+            permissions,
+            claims,
+            statusField?.field,
+        )
         const status = statusOptions(statusField, collection)
         if (filters.length > 0 || status.length > 0) visible.push({ collection, filters, status })
     }

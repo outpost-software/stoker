@@ -1,10 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import type { CollectionSchema } from "@stoker-platform/types"
+import type { CollectionSchema, CollectionsSchema, StokerRecord } from "@stoker-platform/types"
 import type { DocumentSnapshot } from "firebase-admin/firestore"
+import { documentAccess } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
 import { getStokerFirestore } from "@stoker-platform/node-client"
-import { getTenant } from "../initializeStoker.js"
+import { getCurrentUser, getCurrentUserPermissions, getTenant } from "../initializeStoker.js"
+import { loadSchema, updatesDisabled } from "./schema.js"
+import { fixtureCollections, type ConformanceOptions } from "./options.js"
 
 type CreatedRecords = Record<string, Record<string, string>>
 
@@ -21,10 +24,14 @@ const getRecords = (project: StokerProject): CreatedRecords => {
     return existsSync(path) ? (JSON.parse(readFileSync(path, "utf8")) as CreatedRecords) : {}
 }
 
-export const documentIds = async (collection: CollectionSchema): Promise<Set<string>> => {
+export const tenantCollection = (collection: CollectionSchema) => {
     const db = getStokerFirestore()
     const tenantId = getTenant()
-    const snapshot = await db.collection("tenants").doc(tenantId).collection(collection.labels.collection).get()
+    return db.collection("tenants").doc(tenantId).collection(collection.labels.collection)
+}
+
+export const documentIds = async (collection: CollectionSchema): Promise<Set<string>> => {
+    const snapshot = await tenantCollection(collection).get()
     return new Set(snapshot.docs.map((doc) => doc.id))
 }
 
@@ -48,13 +55,39 @@ export const rememberRecord = async (
     writeFileSync(path, `${JSON.stringify(records, null, 2)}\n`)
 }
 
-export const fixtureRecordId = (project: StokerProject, collection: CollectionSchema, role: string): string => {
-    const records = getRecords(project)
-    const ids = records[collection.labels.collection] ?? {}
+const readableFixture = async (
+    project: StokerProject,
+    collection: CollectionSchema,
+    role: string,
+): Promise<DocumentSnapshot | undefined> => {
+    const ids = getRecords(project)[collection.labels.collection] ?? {}
     // eslint-disable-next-line security/detect-object-injection
-    const id = ids[role] ?? Object.values(ids)[0]
-    if (!id) throw new Error(`${collection.labels.collection} has no record created.`)
-    return id
+    const candidates = [...new Set([ids[role], ...Object.values(ids)])].filter((id) => !!id)
+    if (candidates.length === 0) return
+    const schema = loadSchema(project)
+    const user = await getCurrentUser(role)
+    const permissions = await getCurrentUserPermissions(role)
+    for (const id of candidates) {
+        const snapshot = await tenantCollection(collection).doc(id).get()
+        const record = { ...(snapshot.data() as StokerRecord), id }
+        if (snapshot.exists && documentAccess("Read", collection, schema, user.uid, permissions, record)) {
+            return snapshot
+        }
+    }
+    return undefined
+}
+
+export const readableFixtures = async (
+    schema: CollectionsSchema,
+    role: string,
+    project: StokerProject,
+    options: ConformanceOptions,
+): Promise<CollectionSchema[]> => {
+    const collections: CollectionSchema[] = []
+    for (const collection of fixtureCollections(schema, role, project, options)) {
+        if (await readableFixture(project, collection, role)) collections.push(collection)
+    }
+    return collections
 }
 
 export const fixtureRecord = async (
@@ -62,10 +95,20 @@ export const fixtureRecord = async (
     collection: CollectionSchema,
     role: string,
 ): Promise<DocumentSnapshot> => {
-    const id = fixtureRecordId(project, collection, role)
-    const db = getStokerFirestore()
-    const tenantId = getTenant()
-    const snapshot = await db.collection("tenants").doc(tenantId).collection(collection.labels.collection).doc(id).get()
-    if (!snapshot.exists) throw new Error(`${collection.labels.collection} record ${id} was not found.`)
+    const snapshot = await readableFixture(project, collection, role)
+    if (!snapshot) throw new Error(`${collection.labels.collection} has no record ${role} can open.`)
     return snapshot
+}
+
+export const fixtureRecordId = async (project: StokerProject, collection: CollectionSchema, role: string) =>
+    (await fixtureRecord(project, collection, role)).id
+
+export const fixtureUpdatesDisabled = async (
+    schema: CollectionsSchema,
+    project: StokerProject,
+    collection: CollectionSchema,
+    role: string,
+): Promise<boolean> => {
+    const snapshot = await fixtureRecord(project, collection, role)
+    return updatesDisabled(schema, collection, snapshot.data() as StokerRecord)
 }

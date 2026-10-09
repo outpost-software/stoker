@@ -54,6 +54,7 @@ import {
     EventClickArg,
     EventDropArg,
     EventInput,
+    EventMountArg,
     ViewContentArg,
 } from "@fullcalendar/core"
 import FullCalendar from "@fullcalendar/react"
@@ -1436,6 +1437,9 @@ export function Calendar({
         resources: Array.from(resources),
         selectable,
         droppable: hasStartUpdateAccess,
+        eventDidMount(info: EventMountArg) {
+            info.el.dataset.recordId = info.event.id
+        },
         eventClick(info: EventClickArg) {
             const eventCollection = info.event.extendedProps.collection as string | undefined
             const recordId = (info.event.extendedProps.recordId as string | undefined) || info.event.id.split("-")[0]

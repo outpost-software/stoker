@@ -1,10 +1,10 @@
 import type { Page } from "@playwright/test"
-import type { CollectionSchema } from "@stoker-platform/types"
-import { documentIds, rememberRecord } from "../config/records.js"
+import type { CollectionSchema, CollectionsSchema } from "@stoker-platform/types"
+import { documentIds, fixtureUpdatesDisabled, rememberRecord } from "../config/records.js"
 import { expect, test } from "../config/fixtures.js"
 import type { StokerLocators } from "../config/locators.js"
-import type { StokerTestRecords } from "../config/project.js"
-import { assignsFilePermissions } from "../config/schema.js"
+import type { StokerProject, StokerTestRecords } from "../config/project.js"
+import { assignsFilePermissions, createHidden, relationListTitle } from "../config/schema.js"
 import {
     createRecord,
     escapeRegExp,
@@ -12,11 +12,13 @@ import {
     fieldValues,
     fillFields,
     openCreateForm,
+    openedRecord,
+    updatableFieldValues,
     type FieldValue,
     type FormContext,
 } from "./utils/form.js"
-import { openFixtureRecord } from "./utils/list.js"
-import { fixtureCollections, type ConformanceOptions } from "../config/options.js"
+import { openCollectionList, openFixtureRecord } from "./utils/list.js"
+import { fixtureCollections, skipCollection, type ConformanceOptions } from "../config/options.js"
 import { isRelationField, roleHasOperationAccess } from "@stoker-platform/utils"
 
 export const editingConformance = (options: ConformanceOptions) => {
@@ -30,6 +32,7 @@ export const editingConformance = (options: ConformanceOptions) => {
 
             for (const collection of collections) {
                 await test.step(collection.labels.collection, async () => {
+                    if (skipCollection(options, role, collection.labels.collection)) return
                     // eslint-disable-next-line security/detect-object-injection
                     const fixture = project.records[collection.labels.collection]
                     validateFixture(collection, fixture)
@@ -39,29 +42,106 @@ export const editingConformance = (options: ConformanceOptions) => {
                         assignsFilePermissions: assignsFilePermissions(collection, role),
                     }
                     const creates = fieldValues(fixture, "create")
-                    const opened = await openCreateForm(page, ui, collection)
+                    const parent = await parentRelationList(schema, collection)
+                    const opened =
+                        parent && !(await ownFormShows(page, ui, collection, parent.field))
+                            ? await openCreateFormFromParent(page, ui, schema, project, role, collection, parent)
+                            : await openCreateForm(page, ui, collection)
                     if (opened !== collection.labels.collection) {
                         test.info().annotations.push({
                             type: "skipped",
                             description: `${collection.labels.collection}: the add button opens the ${opened} form`,
                         })
-                        const dialog = page.getByRole("dialog")
-                        await dialog.getByRole("button", { name: "Close" }).click()
-                        await expect(dialog).toBeHidden()
+                        await closeDialog(page)
                         return
                     }
                     const before = await documentIds(collection)
                     await createRecord(page, ui, collection, creates, context)
                     await rememberRecord(project, collection, role, before)
 
-                    const updates = fieldValues(fixture, "update")
-                    if (updates.length === 0 || !roleHasOperationAccess(collection, role, "update")) return
+                    if (!roleHasOperationAccess(collection, role, "update")) return
+                    const updates = await updatableFieldValues(collection, role, fieldValues(fixture, "update"))
+                    if (updates.length === 0) return
+                    if (await fixtureUpdatesDisabled(schema, project, collection, role)) {
+                        test.info().annotations.push({
+                            type: "skipped",
+                            description: `${collection.labels.collection}: updates are disabled for this record`,
+                        })
+                        return
+                    }
                     await openFixtureRecord(page, ui, collection, project, role)
                     await updateRecord(page, ui, collection, fixture, updates, context)
                 })
             }
         })
     })
+}
+
+interface ParentRelationList {
+    field: string
+    parent: CollectionSchema
+}
+
+const parentRelationList = async (
+    schema: CollectionsSchema,
+    collection: CollectionSchema,
+): Promise<ParentRelationList | undefined> => {
+    for (const field of collection.fields) {
+        // eslint-disable-next-line security/detect-object-injection
+        if (!isRelationField(field)) continue
+        // eslint-disable-next-line security/detect-object-injection
+        const parentCollection = schema.collections[field.collection]
+        const listed = parentCollection?.relationLists?.some(
+            (relationList) =>
+                relationList.collection === collection.labels.collection && relationList.field === field.name,
+        )
+        if (!parentCollection || !listed) continue
+        if (await createHidden(schema, collection, parentCollection)) continue
+        return { field: field.name, parent: parentCollection }
+    }
+    return undefined
+}
+
+const closeDialog = async (page: Page) => {
+    const dialog = page.getByRole("dialog")
+    await dialog.getByRole("button", { name: "Close" }).click()
+    await expect(dialog).toBeHidden()
+}
+
+const ownFormShows = async (page: Page, ui: StokerLocators, collection: CollectionSchema, field: string) => {
+    await openCollectionList(page, ui, collection)
+    if (!(await ui.collection.addButton.isVisible())) return false
+    await ui.collection.addButton.click()
+    await expect(ui.record.save).toBeVisible()
+    const shown = (await page.getByRole("dialog").getByTestId(`field-${field}`).count()) > 0
+    await closeDialog(page)
+    return shown
+}
+
+const openCreateFormFromParent = async (
+    page: Page,
+    ui: StokerLocators,
+    schema: CollectionsSchema,
+    project: StokerProject,
+    role: string,
+    collection: CollectionSchema,
+    { parent }: ParentRelationList,
+): Promise<string> => {
+    await openFixtureRecord(page, ui, parent, project, role)
+    const record = await openedRecord(page, parent)
+    const title = await relationListTitle(schema, collection, parent, record, collection.labels.collection)
+    const sidebar = page.getByRole("list").filter({
+        has: page.getByRole("button", { name: "Details", exact: true }),
+    })
+    await sidebar.getByRole("button", { name: title, exact: true }).click()
+    await expect(ui.collection.table.or(ui.collection.empty).first()).toBeVisible()
+    await ui.collection.addButton.click()
+    const addNew = page.getByRole("menuitem", { name: "Add new", exact: true })
+    const dialog = page.getByRole("dialog")
+    await expect(addNew.or(dialog).first()).toBeVisible()
+    if (await addNew.isVisible()) await addNew.click()
+    await expect(dialog.getByRole("button", { name: "Save", exact: true })).toBeVisible()
+    return (await dialog.getByTestId("record-form").getAttribute("data-collection")) ?? ""
 }
 
 const validateFixture = (collection: CollectionSchema, fixture: StokerTestRecords[string]) => {

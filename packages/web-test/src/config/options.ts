@@ -1,6 +1,19 @@
 import type { CollectionSchema, CollectionsSchema } from "@stoker-platform/types"
+import { test } from "@playwright/test"
 import type { StokerProject } from "./project.js"
 import { listableCollections } from "./schema.js"
+
+/** Skip collection steps inside an individual test for given roles. */
+export interface SkippedTest {
+    /** `test.describe` title */
+    suite: string
+    /** `test` title */
+    test: string
+    /** Collection names whose step is skipped. */
+    collections: string[]
+    /** Roles the skip applies to. */
+    roles: string[]
+}
 
 export interface ConformanceOptions {
     /**
@@ -14,6 +27,25 @@ export interface ConformanceOptions {
         collections?: boolean
         records?: boolean
     }
+    /** Skip collection steps inside individual tests for given roles. */
+    skipTests?: SkippedTest[]
+}
+
+export const skipCollection = (options: ConformanceOptions, role: string, collection: string) => {
+    const titles = test.info().titlePath
+    const match = options.skipTests?.find(
+        (item) =>
+            titles.includes(item.suite) &&
+            titles.includes(item.test) &&
+            item.collections.includes(collection) &&
+            item.roles.includes(role),
+    )
+    if (!match) return false
+    test.info().annotations.push({
+        type: "skipped",
+        description: `${collection}: ${match.suite} / ${match.test} is skipped for ${role}`,
+    })
+    return true
 }
 
 export const included = (collections: CollectionSchema[], options: ConformanceOptions): CollectionSchema[] =>

@@ -8,8 +8,10 @@ import type { StokerTestRecords } from "../../config/project.js"
 import { openCollectionList } from "./list.js"
 import { getStokerFirestore } from "@stoker-platform/node-client"
 import { getTenant } from "../../initializeStoker.js"
+import { updatableFieldNames } from "../../config/schema.js"
 
 export const DATE = /^\d{4}-\d{2}-\d{2}$/
+const TIME = /^\d{2}:\d{2}$/
 
 export const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
@@ -29,16 +31,29 @@ const MONTHS = [
 ]
 
 export type FieldControl =
-    "text" | "toggle" | "radio" | "buttonGroup" | "richText" | "calendar" | "combobox" | "image" | "readOnly"
+    | "text"
+    | "toggle"
+    | "radio"
+    | "buttonGroup"
+    | "richText"
+    | "calendar"
+    | "dateTime"
+    | "combobox"
+    | "image"
+    | "slider"
+    | "readOnly"
 
 const text = (field: Locator) => field.getByRole("textbox").or(field.getByRole("spinbutton")).first()
 const toggle = (field: Locator) => field.getByRole("switch").or(field.getByRole("checkbox")).first()
 const editor = (field: Locator) => field.locator(".ql-editor")
 const fileInput = (field: Locator) => field.locator("input[type=file]")
+const timeInput = (field: Locator) => field.locator("input[type=time]")
+const dateTrigger = (field: Locator) => field.locator("button[aria-haspopup='dialog']").first()
 
 const EDITABLE = "input, [contenteditable], [role=combobox], [role=grid], [role=switch], [role=checkbox], [role=radio]"
 
 export const detectControl = async (field: Locator): Promise<FieldControl> => {
+    if (await timeInput(field).count()) return "dateTime"
     if (await text(field).count()) return "text"
     if (await toggle(field).count()) return "toggle"
     if (await field.getByRole("radio").count()) return "radio"
@@ -49,6 +64,7 @@ export const detectControl = async (field: Locator): Promise<FieldControl> => {
     if (await field.getByRole("combobox").count()) return "combobox"
     if (await fileInput(field).count()) return "image"
     if (await field.locator("button[aria-pressed]").count()) return "buttonGroup"
+    if (await field.getByRole("slider").count()) return "slider"
     if ((await field.locator(EDITABLE).count()) === 0) return "readOnly"
     throw new Error(`${await field.innerText()} uses a control this suite cannot edit.`)
 }
@@ -58,6 +74,29 @@ export interface FormContext {
     rootDir: string
     /** Whether uploading a file asks the role to assign file permissions */
     assignsFilePermissions: boolean
+}
+
+const sliderValue = async (slider: Locator) => Number(await slider.getAttribute("aria-valuenow"))
+
+const setSlider = async (field: Locator, value: string) => {
+    const target = Number(value)
+    if (!Number.isFinite(target)) {
+        throw new Error(`${await field.innerText()} needs a numeric slider value. "${value}" was given.`)
+    }
+    const slider = field.getByRole("slider")
+    await slider.focus()
+    await slider.press("Home")
+    const min = await sliderValue(slider)
+    if (target <= min) return
+    await slider.press("ArrowRight")
+    const step = (await sliderValue(slider)) - min
+    if (step <= 0) throw new Error(`${await field.innerText()} did not move when the slider stepped.`)
+    const presses = Math.round((target - min) / step) - 1
+    for (let index = 0; index < presses; index++) await slider.press("ArrowRight")
+    const reached = await sliderValue(slider)
+    if (Math.abs(reached - target) > step / 2) {
+        throw new Error(`${await field.innerText()} slider stopped at ${reached}, not ${target}.`)
+    }
 }
 
 export const setField = async (
@@ -86,10 +125,16 @@ export const setField = async (
         case "calendar":
             await pickDate(field, value)
             return
+        case "dateTime":
+            await pickDateTime(page, field, value)
+            return
         case "combobox":
             return pickOption(page, field, value)
         case "image":
             await uploadImage(page, field, value, context)
+            return
+        case "slider":
+            await setSlider(field, value)
             return
         case "readOnly":
             return
@@ -102,6 +147,7 @@ export const isBlank = async (field: Locator, control: FieldControl) => {
         return (await input.inputValue()) === ""
     }
     if (control === "calendar") return (await field.locator("[aria-selected='true']").count()) === 0
+    if (control === "dateTime") return (await dateTrigger(field).innerText()).trim() === "Select date"
     if (control === "combobox") {
         const text = (await field.getByRole("combobox").first().innerText()).trim()
         return text === "" || text === "----"
@@ -134,10 +180,26 @@ export const expectField = async (field: Locator, control: FieldControl, value: 
         case "richText":
             return expect(editor(field)).toContainText(value)
         case "calendar": {
-            const { month, day } = parseDate(value)
-            const selected = field.locator("[aria-selected='true']")
+            const { year, month, day } = parseDate(value)
+            const selected = field.locator("[role=grid] [aria-selected='true']")
             await expect(selected).toHaveCount(1)
-            expect([String(day), MONTHS[month - 1].slice(0, 3)]).toContain((await selected.innerText()).trim())
+            await expect(selected).toHaveText(String(day))
+            expect(await gridCaption(field)).toBe(`${MONTHS[month - 1]} ${year}`)
+            return
+        }
+        case "dateTime": {
+            const { date, time } = parseDateTime(value)
+            const { year, month, day } = parseDate(date)
+            await expect(dateTrigger(field)).not.toHaveText("Select date")
+            const shown = await dateTrigger(field).innerText()
+            const numbers = (shown.match(/\d+/g) ?? []).map(Number)
+            expect(numbers, `${shown} should show day ${day}`).toContain(day)
+            expect(numbers.includes(year) || numbers.includes(year % 100), `${shown} should show ${year}`).toBe(true)
+            expect(
+                numbers.includes(month) || shown.includes(MONTHS[month - 1].slice(0, 3)),
+                `${shown} should show month ${month}`,
+            ).toBe(true)
+            if (time) await expect(timeInput(field)).toHaveValue(time)
             return
         }
         case "combobox":
@@ -148,6 +210,9 @@ export const expectField = async (field: Locator, control: FieldControl, value: 
             // eslint-disable-next-line security/detect-non-literal-regexp
             return expect(image).toHaveAttribute("src", new RegExp(`(/|%2F)${escapeRegExp(basename(value))}(\\?|$)`))
         }
+        case "slider":
+            await expect.poll(async () => sliderValue(field.getByRole("slider"))).toBeCloseTo(Number(value), 5)
+            return
         case "readOnly":
             return
     }
@@ -172,6 +237,19 @@ export const fieldValues = (
         if (value === undefined || (operation === undefined && value === "")) return []
         return [{ name, value }]
     })
+
+export const updatableFieldValues = async (
+    collection: CollectionSchema,
+    role: string,
+    entries: FieldValue[],
+): Promise<FieldValue[]> => {
+    const updatable = await updatableFieldNames(collection, role)
+    return entries.filter(({ name }) => {
+        if (updatable.has(name)) return true
+        annotate(collection, name, `${role} cannot update this field`)
+        return false
+    })
+}
 
 export const openCreateForm = async (page: Page, ui: StokerLocators, collection: CollectionSchema): Promise<string> => {
     await openCollectionList(page, ui, collection)
@@ -222,7 +300,7 @@ export const createRecord = async (
 ) => {
     const dialog = page.getByRole("dialog")
     await fillFields(page, dialog, collection, entries, context)
-    await ui.record.save.click()
+    await dialog.getByRole("button", { name: "Save", exact: true }).click()
     await expect(dialog).toBeHidden({ timeout: 120000 })
     await expect(ui.app.root).toHaveAttribute("data-pending-writes", "0", { timeout: 120000 })
 }
@@ -251,12 +329,41 @@ const parseDate = (value: string) => ({
     day: Number(value.slice(8, 10)),
 })
 
+const parseDateTime = (value: string) => {
+    const [date, time] = value.split(/[T ]/)
+    if (!DATE.test(date) || (time !== undefined && !TIME.test(time))) {
+        throw new Error(`Date-time fields need a "YYYY-MM-DD HH:mm" value. "${value}" was given.`)
+    }
+    return { date, time }
+}
+
+export const shownDay = async (field: Locator, control: FieldControl): Promise<string[]> => {
+    if (control === "calendar") {
+        const selected = field.locator("[aria-selected='true']")
+        await expect(selected).toHaveCount(1)
+        return [(await selected.innerText()).trim()]
+    }
+    if (control === "dateTime") {
+        await expect(dateTrigger(field)).not.toHaveText("Select date")
+        return (await dateTrigger(field).innerText()).match(/\d+/g) ?? []
+    }
+    throw new Error(`${control} fields do not show a date.`)
+}
+
 const gridCaption = (field: Locator): Promise<string> =>
     field.getByRole("grid").evaluate((grid) => {
         const id = grid.getAttribute("aria-labelledby")
         const caption = id ? grid.ownerDocument.getElementById(id)?.textContent : grid.getAttribute("aria-label")
         return (caption ?? "").replace(/\s+/g, " ").trim()
     })
+
+const showCaption = async (field: Locator, button: string, caption: string) => {
+    const next = field.getByRole("button", { name: button })
+    await expect(async () => {
+        if ((await gridCaption(field)) !== caption) await next.click()
+        expect(await gridCaption(field)).toBe(caption)
+    }).toPass({ timeout: 8000 })
+}
 
 const pickDate = async (field: Locator, value: string): Promise<void> => {
     const { year, month, day } = parseDate(value)
@@ -266,8 +373,7 @@ const pickDate = async (field: Locator, value: string): Promise<void> => {
         const shown = Number(caption)
         const direction = year > shown ? 1 : -1
         for (let next = shown + direction; direction * (next - year) <= 0; next += direction) {
-            await field.getByRole("button", { name: direction > 0 ? "Go to next year" : "Go to previous year" }).click()
-            await expect(field.getByRole("grid", { name: String(next) })).toBeVisible()
+            await showCaption(field, direction > 0 ? "Go to next year" : "Go to previous year", String(next))
         }
         await field.getByRole("gridcell", { name: MONTHS[month - 1].slice(0, 3), exact: true }).click()
         return
@@ -278,10 +384,27 @@ const pickDate = async (field: Locator, value: string): Promise<void> => {
     const shown = Number(shownYear) * 12 + MONTHS.indexOf(shownMonth)
     const direction = target > shown ? 1 : -1
     for (let next = shown + direction; direction * (next - target) <= 0; next += direction) {
-        await field.getByRole("button", { name: direction > 0 ? "Go to next month" : "Go to previous month" }).click()
-        await expect(field.getByRole("grid", { name: `${MONTHS[next % 12]} ${Math.floor(next / 12)}` })).toBeVisible()
+        await showCaption(
+            field,
+            direction > 0 ? "Go to next month" : "Go to previous month",
+            `${MONTHS[next % 12]} ${Math.floor(next / 12)}`,
+        )
     }
     await field.locator("[role=grid] button:not(.day-outside)").getByText(String(day), { exact: true }).click()
+}
+
+const pickDateTime = async (page: Page, field: Locator, value: string): Promise<void> => {
+    const { date, time } = parseDateTime(value)
+    const trigger = dateTrigger(field)
+    await trigger.click()
+    const popoverId = await trigger.getAttribute("aria-controls")
+    if (!popoverId) throw new Error(`${await field.innerText()} did not open a date picker.`)
+    const popover = page.locator(`[id="${popoverId}"]`)
+    await expect(popover.getByRole("grid")).toBeVisible()
+    await pickDate(popover, date)
+    await page.keyboard.press("Escape")
+    await expect(popover).toBeHidden()
+    if (time) await timeInput(field).fill(time)
 }
 
 const pickOption = async (page: Page, field: Locator, value: string): Promise<string | undefined> => {

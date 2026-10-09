@@ -7,7 +7,7 @@ import type { ConformanceOptions } from "../config/options.js"
 import { fileConformance } from "./files.js"
 import { recordConformance } from "./records.js"
 
-export type { ConformanceOptions } from "../config/options.js"
+export type { ConformanceOptions, SkippedTest } from "../config/options.js"
 
 export const runWebConformance = (options: ConformanceOptions = {}) => {
     if (!options.skip?.access) accessConformance(options)

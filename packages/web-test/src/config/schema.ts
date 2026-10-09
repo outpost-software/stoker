@@ -6,9 +6,10 @@ import type {
     StokerRecord,
     StokerRole,
 } from "@stoker-platform/types"
-import { roleHasOperationAccess, tryPromise } from "@stoker-platform/utils"
+import { canUpdateField, roleHasOperationAccess, tryPromise } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
 import { getCustomizationFile } from "@stoker-platform/node-client"
+import { getCurrentUser, getCurrentUserPermissions } from "../initializeStoker.js"
 
 export type StokerOperation = "read" | "create" | "update" | "delete"
 
@@ -45,6 +46,35 @@ export const relationListTitle = async (
     const customization = await getCustomizationFile(related.labels.collection, schema)
     const configured = await tryPromise(customization.admin?.titles, ["relation-list", parent, record])
     return configured?.collection || fallback
+}
+
+export const updatableFieldNames = async (collection: CollectionSchema, role: string): Promise<Set<string>> => {
+    const user = await getCurrentUser(role)
+    const permissions = await getCurrentUserPermissions(role)
+    const claims = user.customClaims ?? {}
+    return new Set(
+        collection.fields
+            .filter((field) => canUpdateField(collection, field, permissions, claims))
+            .map((field) => field.name),
+    )
+}
+
+export const createHidden = async (
+    schema: CollectionsSchema,
+    collection: CollectionSchema,
+    parent: CollectionSchema,
+): Promise<boolean> => {
+    const customization = await getCustomizationFile(collection.labels.collection, schema)
+    return !!(await tryPromise(customization.admin?.hideCreate, [parent.labels.collection]))
+}
+
+export const updatesDisabled = async (
+    schema: CollectionsSchema,
+    collection: CollectionSchema,
+    record: StokerRecord,
+): Promise<boolean> => {
+    const customization = await getCustomizationFile(collection.labels.collection, schema)
+    return !!(await tryPromise(customization.admin?.disableUpdate, ["update", record]))
 }
 
 export const assignsFilePermissions = (collection: CollectionSchema, role: StokerRole): boolean => {

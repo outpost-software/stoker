@@ -67,7 +67,7 @@ export const showMonth = async (ui: StokerLocators, date: string) => {
 
 export const openCollection = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
     await page.goto(collectionPath(collection))
-    await expect(ui.collection.heading).toBeVisible()
+    await expect(ui.collection.heading).toBeVisible({ timeout: 30000 })
 }
 
 export const openCollectionList = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
@@ -82,14 +82,14 @@ export const showAllRecords = async (page: Page, ui: StokerLocators) => {
 
 export const showListMonth = async (page: Page, ui: StokerLocators, date?: string) => {
     if (!date || !(await ui.collection.range.label.isVisible())) return
-    if (!(await ui.collection.range.previous.isVisible())) await selectMonthRange(page, ui)
+    await selectMonthRange(page, ui)
     if (await ui.collection.range.previous.isVisible()) await showMonth(ui, date)
 }
 
 export const waitForRecord = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
     const segment = `/${collection.labels.record.toLowerCase()}/`
     await page.waitForURL((url) => url.pathname.toLowerCase().includes(segment))
-    await expect(ui.record.heading).toBeVisible()
+    await expect(ui.record.heading).toHaveText(/\S/, { timeout: 30000 })
 }
 
 export const openRecordRow = async (page: Page, ui: StokerLocators, collection: CollectionSchema, row: Locator) => {
@@ -104,6 +104,6 @@ export const openFixtureRecord = async (
     project: StokerProject,
     role: string,
 ) => {
-    await page.goto(recordPath(collection, fixtureRecordId(project, collection, role)))
+    await page.goto(recordPath(collection, await fixtureRecordId(project, collection, role)))
     await waitForRecord(page, ui, collection)
 }

@@ -7,7 +7,7 @@ import type { StokerProject } from "../config/project.js"
 import { assignsFilePermissions, distinctValue, isUnique, relationListTitle } from "../config/schema.js"
 import { createRecord, fieldValues, openCreateForm, openedRecord, type FormContext } from "./utils/form.js"
 import { openFixtureRecord } from "./utils/list.js"
-import { fixtureCollections, type ConformanceOptions } from "../config/options.js"
+import { fixtureCollections, skipCollection, type ConformanceOptions } from "../config/options.js"
 import { getCustomizationFile } from "@stoker-platform/node-client"
 import { getCurrentUser, getCurrentUserPermissions } from "../initializeStoker.js"
 
@@ -27,6 +27,7 @@ export const assignableConformance = (options: ConformanceOptions) => {
 
             for (const assignment of assignments) {
                 await test.step(`${assignment.parent.labels.collection} ${assignment.related.labels.collection}`, async () => {
+                    if (skipCollection(options, role, assignment.parent.labels.collection)) return
                     await assignRecord(page, ui, project, schema, assignment, role)
                 })
             }
