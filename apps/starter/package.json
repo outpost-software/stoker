@@ -26,7 +26,7 @@
         "@stoker-platform/node-client": "0.5.109",
         "@stoker-platform/types": "0.5.77",
         "@stoker-platform/utils": "0.5.94",
-        "@stoker-platform/web-app": "0.5.256",
+        "@stoker-platform/web-app": "0.5.257",
         "@stoker-platform/web-client": "0.5.112",
         "algoliasearch": "^5.57.0",
         "firebase-admin": "^14.3.0",

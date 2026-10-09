@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.2
+
+### Patch Changes
+
+- feat: improve tests
+
 ## 0.5.1
 
 ### Patch Changes

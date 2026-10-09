@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.131
+
+### Patch Changes
+
+- feat: copy includeFields to avoid schema mutation
+
 ## 0.5.130
 
 ### Patch Changes

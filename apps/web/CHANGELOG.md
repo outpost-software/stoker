@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.257
+
+### Patch Changes
+
+- feat: provide relation list argument to hideCreate
+
 ## 0.5.256
 
 ### Patch Changes
