@@ -3697,7 +3697,7 @@ function RecordForm({
                     "disableOfflineDelete",
                 ]),
                 getCachedConfigValue(customization, [...collectionAdminPath, "duplicate"]),
-                getCachedConfigValue(customization, [...collectionAdminPath, "hideCreate"], [], true),
+                getCachedConfigValue(customization, [...collectionAdminPath, "hideCreate"], [parentCollection], true),
                 getCachedConfigValue(customization, [...collectionAdminPath, "convert"]),
                 getCachedConfigValue(customization, [...collectionAdminPath, "customFields"]),
                 getCachedConfigValue(customization, [...collectionAdminPath, "formButtons"]),
