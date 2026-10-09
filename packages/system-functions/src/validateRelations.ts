@@ -385,10 +385,7 @@ export const validateRelations = (
             if (after && relationsChanged) {
                 if ("collection" in field && (!before || fieldRelationsChanged(field))) {
                     const relationCollection = schema.collections[field.collection];
-                    const includeFields = field.includeFields || [];
-                    includeFields.push("Collection_Path");
-                    includeFields.push("id");
-                    includeFields.push("deleted");
+                    const includeFields = [...(field.includeFields || []), "Collection_Path", "id", "deleted"];
                     if (after[field.name]) {
                         for (const relationRecord of Object.entries(after[field.name])) {
                             const [id, relation] = relationRecord;
