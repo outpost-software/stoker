@@ -42,7 +42,7 @@ export const editingConformance = (options: ConformanceOptions) => {
                         assignsFilePermissions: assignsFilePermissions(collection, role),
                     }
                     const creates = fieldValues(fixture, "create")
-                    const parent = await parentRelationList(schema, collection)
+                    const parent = await parentRelationList(schema, collection, role)
                     const opened =
                         parent && !(await ownFormShows(page, ui, collection, parent.field))
                             ? await openCreateFormFromParent(page, ui, schema, project, role, collection, parent)
@@ -85,6 +85,7 @@ interface ParentRelationList {
 const parentRelationList = async (
     schema: CollectionsSchema,
     collection: CollectionSchema,
+    role: string,
 ): Promise<ParentRelationList | undefined> => {
     for (const field of collection.fields) {
         // eslint-disable-next-line security/detect-object-injection
@@ -93,7 +94,9 @@ const parentRelationList = async (
         const parentCollection = schema.collections[field.collection]
         const listed = parentCollection?.relationLists?.some(
             (relationList) =>
-                relationList.collection === collection.labels.collection && relationList.field === field.name,
+                relationList.collection === collection.labels.collection &&
+                relationList.field === field.name &&
+                (!relationList.roles || (relationList.roles as string[]).includes(role)),
         )
         if (!parentCollection || !listed) continue
         if (await createHidden(schema, collection, parentCollection)) continue

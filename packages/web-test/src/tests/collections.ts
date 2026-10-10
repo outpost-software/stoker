@@ -26,20 +26,27 @@ import type { StokerProject } from "../config/project.js"
 import { detectControl, openedRecord, setField } from "./utils/form.js"
 import {
     openCollection,
+    openActions,
     openCollectionList,
     openRecordRow,
     showAllRecords,
     showListMonth,
     waitForRecord,
 } from "./utils/list.js"
-import { fixtureCollections, includedCollections, skipCollection, type ConformanceOptions } from "../config/options.js"
+import {
+    fixtureCollections,
+    includedCollections,
+    skipCollection,
+    skipsAllCollections,
+    type ConformanceOptions,
+} from "../config/options.js"
 import { getCurrentUser, getCurrentUserPermissions } from "../initializeStoker.js"
 import { getCustomizationFile } from "@stoker-platform/node-client"
 
 export const collectionConformance = (options: ConformanceOptions) => {
     test.describe("collection pages", () => {
         test("search all opens a record", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = searchableCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no searchable record from editing`)
 
@@ -53,7 +60,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
         })
 
         test("search opens a record", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = searchableCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no searchable record from editing`)
 
@@ -106,6 +113,10 @@ export const collectionConformance = (options: ConformanceOptions) => {
         })
 
         test("sort fields match on board and images", async ({ page, schema, role, ui }) => {
+            test.skip(
+                skipsAllCollections(options, role),
+                `sort fields match on board and images is skipped for ${role}`,
+            )
             const collections = await sortViews(schema, role, options)
             test.skip(collections.length === 0, `${role} has no board or images view`)
             test.setTimeout(Math.max(120000, collections.length * 30000))
@@ -119,7 +130,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
         })
 
         test("board card moves one column", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await boardCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no board with a created record`)
             test.setTimeout(Math.max(120000, collections.length * 60000))
@@ -440,7 +451,7 @@ const expectFilters = async (
     filters: VisibleFilter[],
     status: string[],
 ) => {
-    await openCollectionList(page, ui, collection)
+    await openActions(page, ui, collection)
     if (status.length > 0) await expectStatus(page, collection, status)
     if (filters.length === 0) return
     await page.getByRole("button", { name: "Filter", exact: true }).click()
@@ -471,7 +482,7 @@ const expectExport = async (
     const allowed = !restrictExport || restrictExport.includes(role)
     const filename = `${titles?.collection || collection.labels.collection}.csv`
 
-    await openCollectionList(page, ui, collection)
+    await openActions(page, ui, collection)
 
     const actions = page.getByRole("button", { name: "Actions", exact: true })
     const inMenu = await actions.isVisible()
@@ -560,6 +571,7 @@ const sortViews = async (
             views.push(images.title || "Pics")
         }
         if (views.length === 0) continue
+        if (skipCollection(options, role, collection.labels.collection)) continue
         visible.push({ collection, views, labels: sortLabels(collection, customization, role) })
     }
     return visible

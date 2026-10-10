@@ -30,7 +30,7 @@ import { getTenant } from "../initializeStoker.js"
 export const recordConformance = (options: ConformanceOptions) => {
     test.describe("record pages", () => {
         test("a record can be duplicated", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await withAdmin(schema, role, project, options, async (customization) => {
                 return !!(await tryPromise(customization.admin?.duplicate))
             })
@@ -80,7 +80,7 @@ export const recordConformance = (options: ConformanceOptions) => {
         })
 
         test("a record can be reverted", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = (await readableFixtures(schema, role, project, options)).filter((collection) =>
                 roleHasOperationAccess(collection, role, "update"),
             )
@@ -103,7 +103,7 @@ export const recordConformance = (options: ConformanceOptions) => {
         })
 
         test("a record can be converted", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const conversions = await conversionsFor(schema, role, project, options)
             test.skip(conversions.length === 0, `${role} has no collection that can convert a record`)
             test.setTimeout(Math.max(180000, conversions.length * 180000))

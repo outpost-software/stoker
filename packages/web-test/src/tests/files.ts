@@ -23,7 +23,7 @@ const named = (name: string, role: string) => {
 export const fileConformance = (options: ConformanceOptions) => {
     test.describe("files", () => {
         test("upload a file and assign permissions", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -39,7 +39,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("rename a file", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -60,7 +60,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("rename a file with Rename Files", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -80,7 +80,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("download a file", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -98,7 +98,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("update file permissions", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -114,7 +114,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("delete a file", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -130,7 +130,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("create a folder", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -146,7 +146,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("add a file to a folder", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 180000))
@@ -164,7 +164,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("update folder permissions", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 120000))
@@ -180,7 +180,7 @@ export const fileConformance = (options: ConformanceOptions) => {
         })
 
         test("delete a folder", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await readableFixtures(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no record with files`)
             test.setTimeout(Math.max(180000, collections.length * 180000))

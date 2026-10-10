@@ -20,7 +20,7 @@ interface Assignment {
 export const assignableConformance = (options: ConformanceOptions) => {
     test.describe("assignable", () => {
         test("a record can be assigned from a relation list", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const assignments = await assignmentsFor(schema, role, project, options)
             test.skip(assignments.length === 0, `${role} has no assignable relation list`)
             test.setTimeout(Math.max(300000, assignments.length * 300000))

@@ -10,13 +10,13 @@ import { recordConformance } from "./records.js"
 export type { ConformanceOptions, SkippedTest } from "../config/options.js"
 
 export const runWebConformance = (options: ConformanceOptions = {}) => {
-    if (!options.skip?.access) accessConformance(options)
-    if (!options.skip?.editing) editingConformance(options)
-    if (!options.skip?.collections) {
+    if (!options.skipSuites?.access) accessConformance(options)
+    if (!options.skipSuites?.editing) editingConformance(options)
+    if (!options.skipSuites?.collections) {
         collectionConformance(options)
         calendarConformance(options)
     }
-    if (!options.skip?.records) {
+    if (!options.skipSuites?.records) {
         recordConformance(options)
         assignableConformance(options)
         fileConformance(options)

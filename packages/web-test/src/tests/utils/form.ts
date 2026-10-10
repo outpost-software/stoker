@@ -38,6 +38,7 @@ export type FieldControl =
     | "richText"
     | "calendar"
     | "dateTime"
+    | "time"
     | "combobox"
     | "image"
     | "slider"
@@ -53,7 +54,8 @@ const dateTrigger = (field: Locator) => field.locator("button[aria-haspopup='dia
 const EDITABLE = "input, [contenteditable], [role=combobox], [role=grid], [role=switch], [role=checkbox], [role=radio]"
 
 export const detectControl = async (field: Locator): Promise<FieldControl> => {
-    if (await timeInput(field).count()) return "dateTime"
+    if ((await timeInput(field).count()) > 0 && (await dateTrigger(field).count()) > 0) return "dateTime"
+    if ((await timeInput(field).count()) > 0) return "time"
     if (await text(field).count()) return "text"
     if (await toggle(field).count()) return "toggle"
     if (await field.getByRole("radio").count()) return "radio"
@@ -128,6 +130,9 @@ export const setField = async (
         case "dateTime":
             await pickDateTime(page, field, value)
             return
+        case "time":
+            await timeInput(field).fill(parseTime(value))
+            return
         case "combobox":
             return pickOption(page, field, value)
         case "image":
@@ -148,6 +153,7 @@ export const isBlank = async (field: Locator, control: FieldControl) => {
     }
     if (control === "calendar") return (await field.locator("[aria-selected='true']").count()) === 0
     if (control === "dateTime") return (await dateTrigger(field).innerText()).trim() === "Select date"
+    if (control === "time") return (await timeInput(field).inputValue()) === ""
     if (control === "combobox") {
         const text = (await field.getByRole("combobox").first().innerText()).trim()
         return text === "" || text === "----"
@@ -202,6 +208,8 @@ export const expectField = async (field: Locator, control: FieldControl, value: 
             if (time) await expect(timeInput(field)).toHaveValue(time)
             return
         }
+        case "time":
+            return expect(timeInput(field)).toHaveValue(parseTime(value))
         case "combobox":
             return expect(field.locator("..")).toContainText(value)
         case "image": {
@@ -328,6 +336,11 @@ const parseDate = (value: string) => ({
     month: Number(value.slice(5, 7)),
     day: Number(value.slice(8, 10)),
 })
+
+const parseTime = (value: string) => {
+    if (!TIME.test(value)) throw new Error(`Time fields need a "HH:mm" value. "${value}" was given.`)
+    return value
+}
 
 const parseDateTime = (value: string) => {
     const [date, time] = value.split(/[T ]/)

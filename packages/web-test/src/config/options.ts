@@ -9,8 +9,8 @@ export interface SkippedTest {
     suite: string
     /** `test` title */
     test: string
-    /** Collection names whose step is skipped. */
-    collections: string[]
+    /** Collection names whose step is skipped, or `true` to skip every collection. */
+    collections: string[] | true
     /** Roles the skip applies to. */
     roles: string[]
 }
@@ -21,7 +21,7 @@ export interface ConformanceOptions {
      */
     excludeCollections?: string[]
     /** Skip individual suites */
-    skip?: {
+    skipSuites?: {
         access?: boolean
         editing?: boolean
         collections?: boolean
@@ -31,13 +31,24 @@ export interface ConformanceOptions {
     skipTests?: SkippedTest[]
 }
 
+export const skipsAllCollections = (options: ConformanceOptions, role: string) => {
+    const titles = test.info().titlePath
+    return !!options.skipTests?.some(
+        (item) =>
+            titles.includes(item.suite) &&
+            titles.includes(item.test) &&
+            item.collections === true &&
+            item.roles.includes(role),
+    )
+}
+
 export const skipCollection = (options: ConformanceOptions, role: string, collection: string) => {
     const titles = test.info().titlePath
     const match = options.skipTests?.find(
         (item) =>
             titles.includes(item.suite) &&
             titles.includes(item.test) &&
-            item.collections.includes(collection) &&
+            (item.collections === true || item.collections.includes(collection)) &&
             item.roles.includes(role),
     )
     if (!match) return false

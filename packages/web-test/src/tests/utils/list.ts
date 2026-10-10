@@ -13,6 +13,13 @@ export const openList = async (ui: StokerLocators): Promise<void> => {
     await expect(ui.collection.table).toBeVisible()
 }
 
+export const openActions = async (page: Page, ui: StokerLocators, collection: CollectionSchema) => {
+    await openCollection(page, ui, collection)
+    if (await ui.collection.listTab.isVisible()) {
+        await ui.collection.listTab.click()
+    }
+}
+
 export const setFiltersToAll = async (page: Page) => {
     const filterButton = page.getByRole("button", { name: "Filter", exact: true })
     if (!(await filterButton.isVisible())) return

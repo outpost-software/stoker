@@ -29,7 +29,7 @@ const createdFromCalendar: CreatedCalendarRecord[] = []
 export const calendarConformance = (options: ConformanceOptions) => {
     test.describe("calendar", () => {
         test("drag grid to add a record", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so related records were not created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so related records were not created")
             const collections = await createableCalendars(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no calendar that can add a record`)
             test.setTimeout(Math.max(180000, collections.length * 180000))
@@ -43,7 +43,7 @@ export const calendarConformance = (options: ConformanceOptions) => {
         })
 
         test("drag event to update record dates", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await updatableCalendars(schema, role, project, options, "startField")
             test.skip(collections.length === 0, `${role} has no calendar event to drag`)
             test.setTimeout(Math.max(120000, collections.length * 120000))
@@ -64,7 +64,7 @@ export const calendarConformance = (options: ConformanceOptions) => {
         })
 
         test("resize event to update record end date", async ({ page, schema, role, ui, project }) => {
-            test.skip(!!options.skip?.editing, "editing was skipped, so no record was created")
+            test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await updatableCalendars(schema, role, project, options, "endField")
             test.skip(collections.length === 0, `${role} has no calendar event to resize`)
             test.setTimeout(Math.max(120000, collections.length * 120000))
