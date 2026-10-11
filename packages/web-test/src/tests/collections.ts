@@ -26,7 +26,6 @@ import type { StokerProject } from "../config/project.js"
 import { detectControl, openedRecord, setField } from "./utils/form.js"
 import {
     openCollection,
-    openActions,
     openCollectionList,
     openRecordRow,
     showAllRecords,
@@ -451,7 +450,7 @@ const expectFilters = async (
     filters: VisibleFilter[],
     status: string[],
 ) => {
-    await openActions(page, ui, collection)
+    await openCollectionList(page, ui, collection)
     if (status.length > 0) await expectStatus(page, collection, status)
     if (filters.length === 0) return
     await page.getByRole("button", { name: "Filter", exact: true }).click()
@@ -482,7 +481,7 @@ const expectExport = async (
     const allowed = !restrictExport || restrictExport.includes(role)
     const filename = `${titles?.collection || collection.labels.collection}.csv`
 
-    await openActions(page, ui, collection)
+    await openCollectionList(page, ui, collection)
 
     const actions = page.getByRole("button", { name: "Actions", exact: true })
     const inMenu = await actions.isVisible()

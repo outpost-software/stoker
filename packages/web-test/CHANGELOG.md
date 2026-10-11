@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.4
+
+### Patch Changes
+
+- fix: revert export button test change
+
 ## 0.5.3
 
 ### Patch Changes
