@@ -24,7 +24,7 @@ export const locators = (page: Page) => ({
         },
     },
     record: {
-        heading: page.getByRole("heading", { level: 1 }),
+        heading: page.locator("h1.truncate"),
         form: page.getByTestId("record-form"),
         field: (name: string) => page.getByTestId(`field-${name}`),
         save: page.getByRole("button", { name: "Save", exact: true }),

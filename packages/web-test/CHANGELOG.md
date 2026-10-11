@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.5
+
+### Patch Changes
+
+- fix: remove transition wait
+
 ## 0.5.4
 
 ### Patch Changes

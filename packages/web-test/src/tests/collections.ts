@@ -179,14 +179,6 @@ const fixtureRecordMonth = async (
     return `${date.getFullYear()}-${month}-${day}`
 }
 
-const waitForViewTransition = (page: Page) =>
-    page.waitForFunction(() =>
-        document.getAnimations().every((animation) => {
-            const effect = animation.effect as { pseudoElement?: string | null } | null
-            return !effect?.pseudoElement?.includes("view-transition")
-        }),
-    )
-
 const openFromSearch = async (
     page: Page,
     ui: StokerLocators,
@@ -206,15 +198,14 @@ const openFromSearch = async (
     await result.click()
     const segment = `/${collection.labels.record.toLowerCase()}/`
     await page.waitForURL((url) => url.pathname.toLowerCase().includes(segment))
-    await waitForViewTransition(page)
     if (!page.url().includes("/edit")) {
         const details = page.getByRole("button", { name: "Details", exact: true }).filter({ visible: true })
         await expect(details.first()).toBeVisible({ timeout: 30000 })
         await details.first().click()
         await page.waitForURL((url) => url.pathname.includes("/edit"))
-        await waitForViewTransition(page)
     }
     await waitForRecord(page, ui, collection)
+    await expect(ui.record.form).toBeVisible({ timeout: 30000 })
     await expect(ui.app.errorPage).toBeHidden()
 }
 
