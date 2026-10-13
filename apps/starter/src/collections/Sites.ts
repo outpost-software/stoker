@@ -200,6 +200,7 @@ const Sites: GenerateSchema = (): CollectionSchema => {
             {
                 name: "Location",
                 type: "Array",
+                itemType: "Number",
                 nullable: true,
                 admin: {
                     location: {

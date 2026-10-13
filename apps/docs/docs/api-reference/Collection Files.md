@@ -1075,6 +1075,16 @@ Set the maximum milliseconds value for this field.
 
 `"Array"`
 
+#### itemType
+
+`"String" | "Number" | "Boolean" | "Object"`
+
+The type of each item in the array. Only used by the [AI chat](#ai-chat-config) tool schema. Gemini requires every array to declare an item type.
+
+Not needed when `values` is set.
+
+Array fields with neither `values` nor `itemType` are omitted from the chat tool schema.
+
 #### values
 
 `string[]`
@@ -1406,7 +1416,7 @@ Set to `true` on a Timestamp field to make it a month picker.
 
 `{ center: { lat: number, lng: number }, zoom: number }`
 
-Set on an Array field to make it a coordinates field.
+Set on an Array field to make it a coordinates field. Set [`itemType`](#itemtype) to `"Number"` when the collection has [AI chat](#ai-chat-config) enabled.
 
 Provide starting location coordinates and zoom.
 
@@ -1553,6 +1563,8 @@ You can enable an AI chat bot for the collection. The chat bot uses Retrieval Au
 :::danger
 Only assign AI chat access to roles that have access to ALL fields used to calculate embeddings!
 :::
+
+Array fields need a declared item type in the chat tool schema. Set [`values`](#array-field-properties) or [`itemType`](#itemtype). An array field with neither is omitted from the chat tools.
 
 ## Admin UI Config
 

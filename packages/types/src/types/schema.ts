@@ -1679,8 +1679,17 @@ export interface TimestampField extends StandardField {
     /** Set the minimum milliseconds value for this field */
     min?: number
 }
+/** The type of each item in an Array field */
+export type ArrayItemType = "String" | "Number" | "Boolean" | "Object"
+
 export interface ArrayField extends StandardField {
     type: "Array"
+    /**
+     * The type of each item in the array. Only used by the AI chat tool schema, which needs a
+     * declared item type for Gemini. Not needed when `values` is set (items are then strings).
+     * Array fields with neither `values` nor `itemType` are omitted from the chat tool schema.
+     */
+    itemType?: ArrayItemType
     /** A list of values. A dropdown selector will be shown in the Admin UI */
     values?: string[]
 

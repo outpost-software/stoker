@@ -1,4 +1,5 @@
 import {
+    ArrayField,
     CollectionCustomization,
     CollectionField,
     CollectionSchema,
@@ -67,6 +68,26 @@ const isTimestamp = () => {
             message: "Must be a valid date",
         },
     )
+}
+
+const getChatArrayItemSchema = (field: ArrayField) => {
+    if (field.values?.length) {
+        return z.enum(field.values as [string, ...string[]], {
+            message: `Must be one of the following values: ${field.values.join(", ")}`,
+        })
+    }
+    switch (field.itemType) {
+        case "String":
+            return z.string()
+        case "Number":
+            return z.number()
+        case "Boolean":
+            return z.boolean()
+        case "Object":
+            return z.object({}).catchall(z.any())
+        default:
+            return undefined
+    }
 }
 
 const getFieldSchema = (field: CollectionField, customization?: CollectionCustomization, chat?: boolean) => {
@@ -230,7 +251,7 @@ const getFieldSchema = (field: CollectionField, customization?: CollectionCustom
 
             break
         case "Array":
-            fieldSchema = z.array(z.any())
+            fieldSchema = z.array(chat ? getChatArrayItemSchema(field) || z.any() : z.any())
             if (field.length) {
                 fieldSchema = fieldSchema.length(field.length, `Must contain ${field.length} item(s)`)
             }
@@ -305,6 +326,9 @@ export const getInputSchema = (
     const fields: { [key: string]: any } = {}
     collection.fields.forEach((field: CollectionField) => {
         if (field.type === "Embedding" || (chat && field.type === "Computed")) {
+            return
+        }
+        if (chat && field.type === "Array" && getChatArrayItemSchema(field as ArrayField) === undefined) {
             return
         }
         if (chat && (field.name === softDelete?.archivedField || field.name === softDelete?.timestampField)) {

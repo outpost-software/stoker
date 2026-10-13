@@ -2015,6 +2015,22 @@ export const lintSchema = async (noLog = false) => {
             if (field.type === "Array" && isLocation && !field.nullable) {
                 errors.push(`Collection ${collectionName} has a location field ${name} that is not nullable`)
             }
+            if (field.type === "Array" && field.values && field.itemType && field.itemType !== "String") {
+                errors.push(
+                    `Collection ${collectionName} has an array field ${name} with values set, so itemType must be String or omitted`,
+                )
+            }
+            if (field.type === "Array" && collectionSchema.ai?.chat && !field.values && !field.itemType) {
+                if (field.required) {
+                    errors.push(
+                        `Collection ${collectionName} has chat enabled and an array field ${name} with no values or itemType.`,
+                    )
+                } else {
+                    warnings.push(
+                        `Collection ${collectionName} has chat enabled and an array field ${name} with no values or itemType. The field will be omitted from the chat tool schema.`,
+                    )
+                }
+            }
 
             if (type === "String" && fieldCustomization?.admin?.image) {
                 const image = await tryPromise(fieldCustomization.admin.image)

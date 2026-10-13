@@ -21,7 +21,7 @@
         "@google-cloud/storage": "^8.0.1",
         "@stoker-platform/types": "file:./local-packages/stoker-platform-types-0.5.77.tgz",
         "@stoker-platform/node-client": "file:./local-packages/stoker-platform-node-client-0.5.109.tgz",
-        "@stoker-platform/system-functions": "file:./local-packages/stoker-platform-system-functions-0.5.130.tgz",
+        "@stoker-platform/system-functions": "file:./local-packages/stoker-platform-system-functions-0.5.131.tgz",
         "@stoker-platform/utils": "file:./local-packages/stoker-platform-utils-0.5.94.tgz",
         "@types/luxon": "^3.7.4",
         "algoliasearch": "^5.57.0",

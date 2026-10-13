@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.178
+
+### Patch Changes
+
+- feat: add itemType property to Array fields
+- Updated dependencies
+    - @stoker-platform/types@0.5.78
+    - @stoker-platform/utils@0.5.95
+    - @stoker-platform/node-client@0.5.110
+
 ## 0.5.177
 
 ### Patch Changes

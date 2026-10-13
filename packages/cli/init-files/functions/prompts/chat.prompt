@@ -1,5 +1,5 @@
 ---
-model: vertexai/gemini-flash-latest
+model: vertexai/gemini-3.8-flash
 input:
   schema:
     collection: string
