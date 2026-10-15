@@ -16,10 +16,8 @@ export interface SkippedTest {
 }
 
 export interface ConformanceOptions {
-    /**
-     * Collections to leave out of the generated suite
-     */
-    excludeCollections?: string[]
+    /** Collections to leave out of the generated suite */
+    skipCollections?: string[]
     /** Skip individual suites */
     skipSuites?: {
         access?: boolean
@@ -60,7 +58,7 @@ export const skipCollection = (options: ConformanceOptions, role: string, collec
 }
 
 export const included = (collections: CollectionSchema[], options: ConformanceOptions): CollectionSchema[] =>
-    collections.filter((collection) => !options.excludeCollections?.includes(collection.labels.collection))
+    collections.filter((collection) => !options.skipCollections?.includes(collection.labels.collection))
 
 export const includedCollections = (schema: CollectionsSchema, role: string, options: ConformanceOptions) =>
     included(listableCollections(schema, role), options).sort(
