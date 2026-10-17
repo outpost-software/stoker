@@ -10,6 +10,7 @@ const Outbox: GenerateSchema = ({ sdk }): CollectionSchema => {
         },
         fullTextSearch: ["Subject", "Message"],
         access: {
+            serverWriteOnly: true,
             operations: {
                 read: ["Office", "Area Manager", "Subcontractor", "Cleaner", "Client"],
                 create: ["Office", "Area Manager", "Subcontractor", "Cleaner", "Client"],
@@ -54,41 +55,7 @@ const Outbox: GenerateSchema = ({ sdk }): CollectionSchema => {
             },
             postWrite: async ({ operation, data }) => {
                 if (operation === "create") {
-                    if (sdk === "web") {
-                        const { addRecord, updateRecord, getCurrentUser } = await import("@stoker-platform/web-client")
-                        const user = getCurrentUser()
-                        if (!user) throw new Error("User not found")
-                        const { claims } = user.token
-                        try {
-                            for (const [id, recipient] of Object.entries(data.Recipients as StokerRelationObject)) {
-                                await addRecord(["Inbox"], {
-                                    Subject: data.Subject,
-                                    Message: data.Message,
-                                    Recipient: {
-                                        [id]: {
-                                            Collection_Path: ["Users"],
-                                            Name: recipient.Name,
-                                        },
-                                    },
-                                    Recipients: data.Recipients,
-                                    Status: "Unread",
-                                    Sender: {
-                                        [claims.doc as string]: {
-                                            Collection_Path: ["Users"],
-                                            Name: user?.displayName,
-                                        },
-                                    },
-                                    Work_Order: data.Work_Order,
-                                    Outbox_Message: data.id,
-                                })
-                            }
-                        } catch (error) {
-                            await updateRecord(["Outbox"], data.id, {
-                                Status: "Failed",
-                            })
-                            console.error(error)
-                        }
-                    } else {
+                    if (sdk === "node") {
                         const { addRecord, updateRecord, getUser } = await import("@stoker-platform/node-client")
                         if (data.Created_By === "System") return
                         const user = await getUser(data.Created_By)

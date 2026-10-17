@@ -374,31 +374,19 @@ service cloud.firestore {
             
             
             
-            // Outbox
-
-            match /Outbox/{Outbox_MessageId} {
-                function OutboxValidation() { let r = request.resource.data; return r.id == request.resource.id && systemFieldsValidation() && r.Collection_Path == ["Outbox"] && r.keys().hasAll(["Recipients","Subject","Status","Message"]) && r.get("Recipients", {}) is map && r.get("Recipients", {}).keys().toSet().difference(r.get("Recipients_Array", []).toSet()).size() == 0 && r.get("Recipients", {"key": ""}).size() >= 1 && (r.get("Subject", "") is string) && (r.get("Archived", true) is bool) && (r.get("Archived_At", timestamp.date(1970, 1, 1)) is timestamp) && (r.get("Status", "") is string) && r.get("Status", "Sending") in ["Sending","Success","Failed"] && (r.get("Message", {}) is map) && r.get("Message", {"key": ""}).size() >= 1 && r.get("Work_Order", {}) is map && r.get("Work_Order", {}).keys().toSet().difference(r.get("Work_Order_Array", []).toSet()).size() == 0 && r.get("Work_Order", {}).size() <= 1 && r.Subject.lower() == r.Subject_Lowercase && denySchemalessFields(["Recipients","Subject","Archived","Archived_At","Status","Message","Work_Order","Subject_Lowercase","Recipients_Array","Work_Order_Array"]) }
-                
-                function OutboxCreate() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let t = request.auth.token.role; return createAllowed(c) && isValidId(Outbox_MessageId) && OutboxValidation() && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, r.Created_By, false)) && (r.Archived == false || (r.Archived_At == request.time && deleteAllowed(c))) }
-                function OutboxUpdate() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; return updateAllowed(c) && OutboxValidation() && !r.diff(d).affectedKeys().hasAny(["Recipients","Subject","Message"]) && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && (r.Archived == false || !("Archived_At" in getDocumentAffectedKeys()) || r.Archived_At == request.time) && (!("Archived" in getDocumentAffectedKeys()) || deleteAllowed(c)) }
-                function OutboxDelete() { let p = getUserPermissions(); let c = p.collections.Outbox; let d = resource.data; let t = request.auth.token.role; return deleteAllowed(c) && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) }
-                allow create: if OutboxCreate() allow update: if OutboxUpdate() allow delete: if OutboxDelete()
-                
-
             
-            }
         
             // Outbox Collection Denormalized Fields
 
             
             
             match /system_fields/Outbox/Outbox-1/{documentId} {
-                function Outbox1Validation() { let r = request.resource.data; return r.Collection_Path_String == r.Collection_Path.join("/") }
+                  
                 function Outbox1Read() { let p = getUserPermissions(); let c = p.collections.Outbox; let d = resource.data; let t = request.auth.token.role; return readAllowed(c) && (t == "Office" || t == "Area Manager" || t == "Subcontractor" || t == "Cleaner" || t == "Client") && (!(t in ["Office","Area Manager","Subcontractor","Cleaner","Client"]) || recordOwnerFilter(c, d.Created_By, false)) && !d.keys().hasAny(["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At"]) } 
-                function Outbox1Create() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At"]; return createAllowed(c) && Outbox1Validation() && validatePrivateFields(m, f) }
-                function Outbox1Update() { let p = getUserPermissions(); let c = p.collections.Outbox; let r = request.resource.data; let d = resource.data; let t = request.auth.token.role; let m = getAfterDocument(/$(r.Collection_Path[0])/$(documentId)); let f = ["Last_Write_At","Last_Save_At","Last_Write_By","Last_Write_App","Last_Write_Connection_Status","Last_Write_Version","Created_At"]; return updateAllowed(c) && Outbox1Validation() && validatePrivateFields(m, f) }
-                function Outbox1Delete() { let p = getUserPermissions(); let c = p.collections.Outbox; let d = resource.data; return deleteAllowed(c) && !existsAfterDocument(/$(d.Collection_Path.join("/"))/$(documentId)) }
-                allow read: if Outbox1Read() allow create: if Outbox1Create() allow update: if Outbox1Update() allow delete: if Outbox1Delete()
+                
+                
+                
+                allow read: if Outbox1Read() 
                 
             }
             
