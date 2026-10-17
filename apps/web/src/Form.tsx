@@ -50,6 +50,7 @@ import {
     deserializeTimestamps,
     getGlobalConfigModule,
     getSchema,
+    getLoadingState,
     getSome,
     keepTimezone,
     getTimezone,
@@ -1902,6 +1903,14 @@ function RelationField({
     const [collectionTitle, setCollectionTitle] = useState<string>("")
     const [liveUpdate, setLiveUpdate] = useState(false)
 
+    const getIsCacheLoading = () => {
+        if (!isCollectionPreloadCacheEnabled) return false
+        // eslint-disable-next-line security/detect-object-injection
+        const preloadState = getLoadingState()[labels.collection]
+        return !preloadState || preloadState === "Loading"
+    }
+    const [isCacheLoading, setIsCacheLoading] = useState(getIsCacheLoading)
+
     const pickerDebounceTimeout = useRef<NodeJS.Timeout>()
 
     const loadRelation = useCallback(async () => {
@@ -1970,6 +1979,18 @@ function RelationField({
             }
         }
         initialize()
+    }, [])
+
+    useEffect(() => {
+        if (!isCollectionPreloadCacheEnabled) return
+        const syncCacheLoading = () => setIsCacheLoading(getIsCacheLoading())
+        syncCacheLoading()
+        document.addEventListener(`stoker:loading:${labels.collection}`, syncCacheLoading)
+        document.addEventListener(`stoker:loaded:${labels.collection}`, syncCacheLoading)
+        return () => {
+            document.removeEventListener(`stoker:loading:${labels.collection}`, syncCacheLoading)
+            document.removeEventListener(`stoker:loaded:${labels.collection}`, syncCacheLoading)
+        }
     }, [])
 
     const isMobile = useIsMobile()
@@ -2166,6 +2187,11 @@ function RelationField({
         setPrevSearchValue(searchValue)
     }, [searchValue])
 
+    useLayoutEffect(() => {
+        if (!isOpen || isCacheLoading) return
+        getData(searchValue, (field as RelationFieldType).constraints)
+    }, [isCacheLoading])
+
     let popoverHeight = "h-auto"
     if (window.innerHeight < 600) {
         popoverHeight = "h-48"
@@ -2176,7 +2202,7 @@ function RelationField({
 
     const handlePickerOpenChange = (nextOpen: boolean) => {
         setIsOpen(nextOpen)
-        if (nextOpen) {
+        if (nextOpen && !isCacheLoading) {
             startTransition(() => {
                 getData(searchValue, (field as RelationFieldType).constraints)
             })
@@ -2214,13 +2240,13 @@ function RelationField({
             <CommandList className={isMobile ? "flex-1 max-h-none" : undefined}>
                 <CommandEmpty>
                     {isOpen &&
-                        (isLoading ? (
+                        (isLoading || isCacheLoading ? (
                             <LoadingSpinner size={7} className="m-auto" />
-                        ) : !isLoadingImmediate ? (
+                        ) : data && !isLoadingImmediate ? (
                             `No ${collectionTitle} found.`
                         ) : null)}
                 </CommandEmpty>
-                {(!isLoading || isCollectionPreloadCacheEnabled) && (
+                {(!isLoading || isCollectionPreloadCacheEnabled) && !isCacheLoading && (
                     <CommandGroup>
                         {data && ["OneToOne", "OneToMany"].includes(field.type) && (
                             <CommandItem
