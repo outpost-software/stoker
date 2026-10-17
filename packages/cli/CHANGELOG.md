@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.180
+
+### Patch Changes
+
+- fix: allow required preload range fields without nullable
+
 ## 0.5.179
 
 ### Patch Changes

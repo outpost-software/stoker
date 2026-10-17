@@ -631,11 +631,12 @@ export const lintSchema = async (noLog = false) => {
                 } else {
                     if (
                         index > 0 &&
+                        !rangeField.required &&
                         !rangeField.nullable &&
                         !systemFieldSchema.some((systemField) => systemField.name === field)
                     ) {
                         errors.push(
-                            `Collection ${collectionName} has a preload cache range field ${field} that must be nullable`,
+                            `Collection ${collectionName} has a preload cache range field ${field} that must be required or nullable`,
                         )
                     }
                     if (isFieldAccessGroupReference(rangeField.access)) {
