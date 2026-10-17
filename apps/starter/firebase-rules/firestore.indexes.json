@@ -5559,6 +5559,16 @@
             ]
         },
         {
+            "collectionGroup": "Inbox",
+            "fieldPath": "Outbox_Message",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "Inbox-1",
             "fieldPath": "*",
             "indexes": []

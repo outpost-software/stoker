@@ -1,5 +1,17 @@
 # @stoker-platform/web-app
 
+## 0.5.259
+
+### Patch Changes
+
+- feat: improve relation picker loading spinner
+- fix: improve header padding
+- fix: prevent Chart top clipping
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.111
+    - @stoker-platform/utils@0.5.96
+    - @stoker-platform/web-client@0.5.114
+
 ## 0.5.258
 
 ### Patch Changes

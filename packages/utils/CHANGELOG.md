@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.96
+
+### Patch Changes
+
+- feat: reduce write log collection document size limit
+
 ## 0.5.95
 
 ### Patch Changes

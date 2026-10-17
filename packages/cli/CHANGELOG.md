@@ -1,5 +1,14 @@
 # @stoker-platform/cli
 
+## 0.5.179
+
+### Patch Changes
+
+- feat: enforce Calendar start field preload
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.111
+    - @stoker-platform/utils@0.5.96
+
 ## 0.5.178
 
 ### Patch Changes

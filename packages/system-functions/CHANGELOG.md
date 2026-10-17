@@ -1,5 +1,14 @@
 # @stoker-platform/system-functions
 
+## 0.5.133
+
+### Patch Changes
+
+- feat: add exponential backoff to embedding function
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.111
+    - @stoker-platform/utils@0.5.96
+
 ## 0.5.132
 
 ### Patch Changes

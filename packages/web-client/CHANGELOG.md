@@ -1,5 +1,13 @@
 # @stoker-platform/web-client
 
+## 0.5.114
+
+### Patch Changes
+
+- feat: reduce write log collection document size limit
+- Updated dependencies
+    - @stoker-platform/utils@0.5.96
+
 ## 0.5.113
 
 ### Patch Changes

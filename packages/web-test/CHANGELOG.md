@@ -1,5 +1,14 @@
 # @stoker-platform/web-test
 
+## 0.5.7
+
+### Patch Changes
+
+- chore: rename excludeCollections to skipCollections
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.111
+    - @stoker-platform/utils@0.5.96
+
 ## 0.5.6
 
 ### Patch Changes
