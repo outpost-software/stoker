@@ -118,6 +118,10 @@ For example, a "Clients" collection might have lists of related "Sites", "Quotes
 
 Set to `true` to enable the write log for this collection. Every write to a record will be logged in Firestore, creating a history that can be used for data recovery and audit purposes.
 
+:::warning
+Each write log entry can store up to four copies of a record (the submitted data, the original record, and the final record and final original record verified by the server). To keep write log entries within Firestore's 1MB document size limit, records in collections with the write log enabled are limited to 256KB.
+:::
+
 ### preserveWriteLog
 
 `boolean`
@@ -1119,7 +1123,7 @@ Set the maximum length for this field.
 
 :::warning
 Stoker records are limited to Firestore's per-document limits:
-- 1MB max document size
+- 1MB max document size (256KB if [`enableWriteLog`](#enablewritelog) is set)
 - 40,000 max index entries
 
 This limits the maximum number of relations you can have per document.

@@ -297,7 +297,7 @@ export const addRecord = async (
             ),
     )
 
-    validateDocumentSize(record, ["tenants", tenantId, ...path, docId])
+    validateDocumentSize(record, ["tenants", tenantId, ...path, docId], enableWriteLog)
 
     batch.set(doc(db, "tenants", tenantId, path.join("/"), docId), record)
 

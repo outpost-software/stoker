@@ -313,7 +313,7 @@ export const updateRecord = async (
 
     const mergedRecord = { ...fullOriginalRecord, ...partial }
     removeDeleteSentinels(mergedRecord)
-    validateDocumentSize(mergedRecord, ["tenants", tenantId, ...path, recordId])
+    validateDocumentSize(mergedRecord, ["tenants", tenantId, ...path, recordId], enableWriteLog)
 
     let originalPermissions: StokerPermissions | undefined
     if (user) {

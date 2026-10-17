@@ -206,7 +206,7 @@ export const addRecord = async (
         throw new Error(`VALIDATION_ERROR: ${error.message}`)
     }
 
-    validateDocumentSize(record, ["tenants", tenantId, ...path, docId])
+    validateDocumentSize(record, ["tenants", tenantId, ...path, docId], enableWriteLog)
 
     if (userId) {
         if (!currentUser) throw new Error("USER_ERROR")

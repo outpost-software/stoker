@@ -360,7 +360,7 @@ export const updateRecord = async (
 
     const mergedRecord = { ...originalRecord, ...partial }
     removeDeleteSentinels(mergedRecord)
-    validateDocumentSize(mergedRecord, ["tenants", tenantId, ...path, recordId])
+    validateDocumentSize(mergedRecord, ["tenants", tenantId, ...path, recordId], enableWriteLog)
 
     batch.update(doc(db, "tenants", tenantId, path.join("/"), recordId), partial)
 

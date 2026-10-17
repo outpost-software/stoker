@@ -102,8 +102,11 @@ export const getDocumentSize = (record: StokerRecord, documentPath?: string[]) =
     return nameSize + getValueSize(record) + 32
 }
 
-export const validateDocumentSize = (record: StokerRecord, documentPath?: string[]) => {
+export const validateDocumentSize = (record: StokerRecord, documentPath?: string[], enableWriteLog?: boolean) => {
     const size = getDocumentSize(record, documentPath)
+    if (enableWriteLog && size > FIRESTORE_MAX_DOCUMENT_SIZE / 4) {
+        throw new Error(`VALIDATION_ERROR: This record exceeds the size limit of 256KB`)
+    }
     if (size > FIRESTORE_MAX_DOCUMENT_SIZE) {
         throw new Error(`VALIDATION_ERROR: This record exceeds the size limit of 1MB`)
     }
