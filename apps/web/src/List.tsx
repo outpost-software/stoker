@@ -1549,7 +1549,7 @@ export function List({
                         !relationList && !formList && "min-h-screen xl:min-h-full xl:h-[calc(100vh-252px)]",
                         !!relationList && hasBreadcrumbs && "xl:h-[calc(100vh-352px-73px)]",
                         !!relationList && !hasBreadcrumbs && "xl:h-[calc(100vh-352px)]",
-                        formList && "h-[264px] xl:h-[316px]",
+                        formList && "h-[278px] xl:h-[316px]",
                     )}
                 >
                     <CardContent>

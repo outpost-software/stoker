@@ -2080,7 +2080,7 @@ function Collection({
                             className={cn(
                                 "sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 py-1 print:border-none select-none",
                                 relationList
-                                    ? "xl:static xl:h-auto xl:border-0 xl:bg-transparent xl:px-6 xl:py-0 rounded-tr-lg"
+                                    ? "h-16 pb-4 xl:static xl:h-auto xl:border-0 xl:bg-transparent xl:px-6 xl:py-0 rounded-tr-lg"
                                     : "lg:static lg:h-auto lg:border-0 lg:bg-transparent lg:px-6 lg:py-0",
                             )}
                         >
@@ -2207,6 +2207,7 @@ function Collection({
                             className={cn(
                                 "grid flex-1 items-start gap-4 p-4",
                                 relationList ? "xl:px-6 xl:py-0 md:gap-8" : "lg:px-6 lg:py-0 md:gap-8",
+                                formList ? "pb-0" : "",
                             )}
                         >
                             <Tabs defaultValue="list" onValueChange={onTabChange} value={tab}>
@@ -2214,8 +2215,8 @@ function Collection({
                                     className={cn(
                                         "flex flex-col items-center justify-between print:hidden select-none",
                                         willHaveRangeRow ? "h-[116px]" : "h-[72px]",
-                                        "lg:h-auto",
                                         relationList ? "xl:flex-row" : "lg:flex-row",
+                                        formList ? "mb-4 xl:mb-0 xl:h-auto" : "lg:h-auto",
                                     )}
                                 >
                                     {!isInitialized && !relationList && (
