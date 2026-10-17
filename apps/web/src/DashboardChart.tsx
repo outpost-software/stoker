@@ -296,7 +296,10 @@ export const DashboardChart = ({ chart, title, collection }: DashboardChartProps
                                     <LoadingSpinner size={7} className="relative bottom-6" />
                                 </div>
                             ) : (
-                                <ChartContainer config={chartConfig} className="aspect-auto w-full h-[271px]">
+                                <ChartContainer
+                                    config={chartConfig}
+                                    className="aspect-auto w-full h-[271px] [&_.recharts-surface]:overflow-visible"
+                                >
                                     <AreaChart data={chartData}>
                                         <defs>
                                             <linearGradient id="fill1" x1="0" y1="0" x2="0" y2="1">
