@@ -927,6 +927,19 @@ export const lintSchema = async (noLog = false) => {
                 }
             }
 
+            const calendarRoles = calendar.roles
+                ? readRoles.filter((role) => calendar.roles?.includes(role))
+                : readRoles
+            if (
+                preloadCache?.range &&
+                calendarRoles.some((role) => preloadCache.roles.includes(role)) &&
+                !preloadCache.range.fields.includes(calendar.startField)
+            ) {
+                errors.push(
+                    `Collection ${collectionName} has a calendar start field ${calendar.startField} that is not a preload cache range field`,
+                )
+            }
+
             if (calendar.endField) {
                 const endFieldSchema = getField(fields.concat(systemFieldSchema), calendar.endField)
                 if (!endFieldSchema) {
@@ -985,14 +998,6 @@ export const lintSchema = async (noLog = false) => {
                                 )
                             }
                         }
-                    }
-                }
-                if (preloadCache?.range) {
-                    const calendarCache = preloadCache.range.fields.find((field) => field === calendar.startField)
-                    if (!calendarCache) {
-                        warnings.push(
-                            `Collection ${collectionName} has a calendar start field ${calendar.startField} that does not have a matching preload cache field.`,
-                        )
                     }
                 }
             }
