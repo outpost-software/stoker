@@ -1,4 +1,4 @@
-import type { CollectionSchema, GenerateSchema, StokerRecord, StokerRelationObject } from "@stoker-platform/types"
+import type { CollectionSchema, GenerateSchema, StokerRecord } from "@stoker-platform/types"
 import { MessageCircle, Send, SquarePen, Timer, TrendingUp, Users } from "lucide-react"
 import { blueField, greenField, redField } from "../utils.js"
 import { parseDate } from "@stoker-platform/utils"
@@ -10,7 +10,6 @@ const Outbox: GenerateSchema = ({ sdk }): CollectionSchema => {
             record: "Outbox_Message",
         },
         access: {
-            serverWriteOnly: true,
             operations: {
                 read: ["Admin", "User"],
                 create: ["Admin", "User"],
@@ -45,43 +44,6 @@ const Outbox: GenerateSchema = ({ sdk }): CollectionSchema => {
             async preWrite({ operation, data }) {
                 if (operation === "create") {
                     data.Status = "Sending"
-                }
-            },
-            async postWrite({ operation, data }) {
-                if (operation === "create") {
-                    if (sdk === "node") {
-                        const { addRecord, updateRecord, getUser } = await import("@stoker-platform/node-client")
-                        if (data.Created_By === "System") return
-                        const user = await getUser(data.Created_By)
-                        try {
-                            for (const [id, recipient] of Object.entries(data.Recipients as StokerRelationObject)) {
-                                await addRecord(["Inbox"], {
-                                    Subject: data.Subject,
-                                    Message: data.Message,
-                                    Recipient: {
-                                        [id]: {
-                                            Collection_Path: ["Users"],
-                                            Name: recipient.Name,
-                                        },
-                                    },
-                                    Recipients: data.Recipients,
-                                    Status: "Unread",
-                                    Sender: {
-                                        [user.customClaims?.doc as string]: {
-                                            Collection_Path: ["Users"],
-                                            Name: user.displayName,
-                                        },
-                                    },
-                                    Outbox_Message: data.id,
-                                })
-                            }
-                        } catch (error) {
-                            await updateRecord(["Outbox"], data.id, {
-                                Status: "Failed",
-                            })
-                            throw error
-                        }
-                    }
                 }
             },
         },

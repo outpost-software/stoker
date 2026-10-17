@@ -363,6 +363,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                     },
                 },
                 restrictUpdate: true,
+                singleFieldExemption: [{ queryScope: "COLLECTION", order: "ASCENDING" }],
             },
         ],
     }

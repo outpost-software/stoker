@@ -404,6 +404,7 @@ const Inbox: GenerateSchema = ({ sdk, utils, context }): CollectionSchema => {
                     noExport: true,
                 },
                 restrictUpdate: true,
+                singleFieldExemption: [{ queryScope: "COLLECTION", order: "ASCENDING" }],
             },
             {
                 name: "Notified",

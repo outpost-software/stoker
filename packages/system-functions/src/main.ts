@@ -23,5 +23,6 @@ export {getFiles} from "./getFiles.js";
 export {deleteFiles} from "./deleteFiles.js";
 export {deleteFolder} from "./deleteFolder.js";
 export {messageNotifications} from "./messageNotifications.js";
+export {inboxMessages} from "./inboxMessages.js";
 export {sendSMSMessage} from "./sendSMSMessage.js";
 export {getWriteLog} from "./getWriteLog.js";

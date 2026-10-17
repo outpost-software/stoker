@@ -33,6 +33,7 @@ import {
     getFiles,
     deleteFolder,
     messageNotifications,
+    inboxMessages,
     deleteFiles,
     sendSMSMessage,
     getWriteLog,
@@ -114,6 +115,14 @@ stoker["notifications"] = onDocumentCreated({
     return messageNotifications(
         event,
     );
+});
+
+stoker["inboxmessages"] = onDocumentCreated({
+    document: "tenants/{tenantId}/Outbox/{messageId}",
+    database: firestoreDatabase,
+    retry: true,
+}, (event) => {
+    return inboxMessages(event);
 });
 
 // END CUSTOM FUNCTIONS
