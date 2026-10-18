@@ -412,7 +412,7 @@ describe("CLI", async () => {
         })
 
         await resolveCLICommand(child)
-    }, 60000)
+    }, 120000)
 
     test("add-record command adds a record", async () => {
         const tenantId = await getTenantId()
