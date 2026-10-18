@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.8
+
+### Patch Changes
+
+- fix: improve access test
+
 ## 0.5.7
 
 ### Patch Changes

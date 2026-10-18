@@ -189,7 +189,6 @@ const Sites: GenerateSchema = (): CollectionSchema => {
                 name: "Start",
                 type: "Timestamp",
                 required: true,
-                nullable: true,
             },
             {
                 name: "User",

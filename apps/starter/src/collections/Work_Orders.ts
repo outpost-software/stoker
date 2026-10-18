@@ -444,7 +444,6 @@ const Work_Orders: GenerateSchema = (): CollectionSchema => {
             {
                 name: "Start",
                 type: "Timestamp",
-                nullable: true,
                 required: true,
                 description: "The start date of the work order.",
                 admin: {
