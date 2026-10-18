@@ -920,9 +920,12 @@ export const lintSchema = async (noLog = false) => {
                     )
                 }
                 if (calendar.unscheduled) {
-                    if (startFieldSchema.type !== "Timestamp" || !startFieldSchema.nullable) {
+                    if (
+                        startFieldSchema.type !== "Timestamp" ||
+                        !(startFieldSchema.required || startFieldSchema.nullable)
+                    ) {
                         errors.push(
-                            `Collection ${collectionName} has the calendar unscheduled feature enabled but has a calendar start field ${calendar.startField} that is not nullable`,
+                            `Collection ${collectionName} has the calendar unscheduled feature enabled but has a calendar start field ${calendar.startField} that is not required or nullable`,
                         )
                     }
                 }
@@ -2018,8 +2021,10 @@ export const lintSchema = async (noLog = false) => {
             }
 
             const isLocation = await tryPromise(fieldCustomization.admin?.location)
-            if (field.type === "Array" && isLocation && !field.nullable) {
-                errors.push(`Collection ${collectionName} has a location field ${name} that is not nullable`)
+            if (field.type === "Array" && isLocation && !field.nullable && !field.required) {
+                errors.push(
+                    `Collection ${collectionName} has a location field ${name} that is not required or nullable`,
+                )
             }
             if (field.type === "Array" && field.values && field.itemType && field.itemType !== "String") {
                 errors.push(

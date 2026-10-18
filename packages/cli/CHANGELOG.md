@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.181
+
+### Patch Changes
+
+- fix: allow required fields to substitute for nullable
+
 ## 0.5.180
 
 ### Patch Changes
