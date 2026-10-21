@@ -47,6 +47,7 @@ import { Input } from "@/components/ui/input"
 import { File, ListFilter, PlusCircle, Search, ChevronsUpDown, Check, Bot, X } from "lucide-react"
 import { List } from "./List"
 import { Button } from "./components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./components/ui/dialog"
 import { runViewTransition } from "./utils/runViewTransition"
 import { useGlobalLoading, useRouteLoading } from "./providers/LoadingProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
@@ -97,6 +98,7 @@ import { CSVLink } from "react-csv"
 import { prepareCSVData } from "./utils/prepareCSVData"
 import { sortList } from "./utils/sortList"
 import { useConnection } from "./providers/ConnectionProvider"
+import { createRecordClassName, ModalDepthContext, useModalDepth } from "./providers/CreateProvider"
 import { RecordForm } from "./Form"
 import { createPortal } from "react-dom"
 import { DateTime } from "luxon"
@@ -155,6 +157,7 @@ function Collection({
     const navigate = useNavigate()
     const location = useLocation()
     const [connectionStatus] = useConnection()
+    const modalDepth = useModalDepth()
     const { labels, fields, access, preloadCache, recordTitleField, softDelete, fullTextSearch, ai } = collection
     const { serverWriteOnly } = access
     const softDeleteField = softDelete?.archivedField
@@ -1875,17 +1878,6 @@ function Collection({
     const mainContentRef = useRef<HTMLDivElement>(null)
     const addButtonRef = useRef<HTMLButtonElement>(null)
 
-    useEffect(() => {
-        if (isCreateDialogOpen) {
-            const originalOverflow = document.body.style.overflow
-            document.body.style.overflow = "hidden"
-            return () => {
-                document.body.style.overflow = originalOverflow
-            }
-        }
-        return
-    }, [isCreateDialogOpen])
-
     const [showSelectExisting, setShowSelectExisting] = useState(false)
     const [selectableData, setSelectableData] = useState<StokerRecord[]>([])
     const [selectableSearch, setSelectableSearch] = useState("")
@@ -2756,60 +2748,56 @@ function Collection({
                                                                 </div>,
                                                                 document.body,
                                                             )}
-                                                        {isCreateDialogOpen &&
-                                                            createPortal(
-                                                                <div
-                                                                    id="create-record-modal"
-                                                                    className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                                                    aria-modal="true"
-                                                                    aria-live="polite"
-                                                                    role="dialog"
-                                                                >
-                                                                    <div className="fixed inset-0 bg-black/50" />
-                                                                    <div
-                                                                        className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
-                                                                        aria-labelledby="dialog-title"
-                                                                    >
-                                                                        <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                                                            <div className="space-y-2">
-                                                                                <div className="flex justify-between items-center mb-4">
-                                                                                    <h4
-                                                                                        id="dialog-title"
-                                                                                        className="font-medium leading-none"
-                                                                                    >
-                                                                                        Add{" "}
-                                                                                        {additionalRecordTitle ||
-                                                                                            recordTitle}
-                                                                                    </h4>
-                                                                                    <Button
-                                                                                        type="button"
-                                                                                        variant="ghost"
-                                                                                        size="icon"
-                                                                                        className="right-4 top-4"
-                                                                                        onClick={() => {
-                                                                                            setIsCreateDialogOpen(false)
-                                                                                            setSelectedDateRange(null)
-                                                                                            setSelectedCreateCollection(
-                                                                                                undefined,
-                                                                                            )
-                                                                                            setCreateCalendarConfig(
-                                                                                                undefined,
-                                                                                            )
-                                                                                            setTimeout(() => {
-                                                                                                addButtonRef.current?.focus()
-                                                                                            }, 0)
+                                                        <Dialog open={isCreateDialogOpen}>
+                                                            <DialogContent
+                                                                hideCloseButton
+                                                                disableDismiss
+                                                                overlayClassName={
+                                                                    modalDepth > 0 ? "bg-black/25" : undefined
+                                                                }
+                                                                className={createRecordClassName}
+                                                            >
+                                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                                    <div className="space-y-2">
+                                                                        <DialogHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+                                                                            <DialogTitle className="font-medium leading-none">
+                                                                                Add{" "}
+                                                                                {additionalRecordTitle || recordTitle}
+                                                                            </DialogTitle>
+                                                                            <DialogDescription className="hidden">
+                                                                                Add{" "}
+                                                                                {additionalRecordTitle || recordTitle}
+                                                                            </DialogDescription>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="right-4 top-4"
+                                                                                aria-label="Close"
+                                                                                onClick={() => {
+                                                                                    setIsCreateDialogOpen(false)
+                                                                                    setSelectedDateRange(null)
+                                                                                    setSelectedCreateCollection(
+                                                                                        undefined,
+                                                                                    )
+                                                                                    setCreateCalendarConfig(undefined)
+                                                                                    setTimeout(() => {
+                                                                                        addButtonRef.current?.focus()
+                                                                                    }, 0)
 
-                                                                                            localStorage.removeItem(
-                                                                                                `stoker-draft-${selectedCreateCollection || labels.collection}`,
-                                                                                            )
-                                                                                        }}
-                                                                                    >
-                                                                                        <X className="h-4 w-4" />
-                                                                                        <span className="sr-only">
-                                                                                            Close
-                                                                                        </span>
-                                                                                    </Button>
-                                                                                </div>
+                                                                                    localStorage.removeItem(
+                                                                                        `stoker-draft-${selectedCreateCollection || labels.collection}`,
+                                                                                    )
+                                                                                }}
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                                <span className="sr-only">Close</span>
+                                                                            </Button>
+                                                                        </DialogHeader>
+                                                                        {isCreateDialogOpen && (
+                                                                            <ModalDepthContext.Provider
+                                                                                value={modalDepth + 1}
+                                                                            >
                                                                                 <RecordForm
                                                                                     collection={createCollectionSchema}
                                                                                     operation="create"
@@ -2844,12 +2832,12 @@ function Collection({
                                                                                         }
                                                                                     }}
                                                                                 />
-                                                                            </div>
-                                                                        </div>
+                                                                            </ModalDepthContext.Provider>
+                                                                        )}
                                                                     </div>
-                                                                </div>,
-                                                                document.body,
-                                                            )}
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
                                                         {showSelectExisting &&
                                                             relationList &&
                                                             relationParent &&

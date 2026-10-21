@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.260
+
+### Patch Changes
+
+- feat: add create new related record feature
+
 ## 0.5.259
 
 ### Patch Changes

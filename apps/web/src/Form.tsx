@@ -37,6 +37,7 @@ import {
     restrictCreateAccess,
     restrictUpdateAccess,
     collectionAccess,
+    getEntityRestrictions,
     validateStorageName,
 } from "@stoker-platform/utils"
 import {
@@ -72,7 +73,6 @@ import {
     useState,
 } from "react"
 import { useNavigate, useParams } from "react-router"
-import { createPortal } from "react-dom"
 import isEqual from "lodash/isEqual.js"
 import cloneDeep from "lodash/cloneDeep.js"
 import { removeEmptyStrings } from "./utils/removeEmptyStrings"
@@ -130,6 +130,7 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
     Folder,
+    Plus,
 } from "lucide-react"
 import { LocationPicker } from "./LocationPicker"
 import { Textarea } from "./components/ui/textarea"
@@ -146,9 +147,9 @@ import { localFullTextSearch } from "./utils/localFullTextSearch"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./components/ui/command"
 import { cn } from "./lib/utils"
 import { getRelationFields } from "./utils/getRelationFields"
+import { getDraftStorageKeys, removeDraft } from "./utils/draftStorage"
 import { Label } from "./components/ui/label"
 import { PermissionPicker } from "./PermissionPicker"
-import { trapFocus } from "./utils/trapFocus"
 import { Switch } from "./components/ui/switch"
 import { Slider } from "./components/ui/slider"
 import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
@@ -156,6 +157,13 @@ import { getFormattedFieldValue } from "./utils/getFormattedFieldValue"
 import { getSafeUrl } from "./utils/isSafeUrl"
 import { CopyImageOverlay } from "./utils/copyImageOverlay"
 import { useConnection } from "./providers/ConnectionProvider"
+import {
+    createRecordClassName,
+    MAX_MODAL_DEPTH,
+    ModalDepthContext,
+    useCreate,
+    useModalDepth,
+} from "./providers/CreateProvider"
 import { getAuth } from "firebase/auth"
 import Quill, { Delta, type Op } from "quill"
 import QuillTableBetter from "quill-table-better"
@@ -249,6 +257,7 @@ interface FormProps {
     isLoading?: React.RefObject<boolean>
     record?: StokerRecord
     draft?: boolean
+    draftKey?: string
     onSuccess?: (record?: StokerRecord) => void
     onSaveRecord?: () => void
     rowSelection?: StokerRecord[]
@@ -1891,8 +1900,25 @@ function RelationField({
     const isCollectionPreloadCacheEnabled = preloadCacheEnabled(relationCollection)
     const isCollectionServerReadOnly = serverReadOnly(relationCollection)
     const goToRecord = useGoToRecord()
+    const [showCreateModal] = useCreate()
+    const modalDepth = useModalDepth()
+    const [connectionStatus] = useConnection()
+    const permissions = getCurrentUserPermissions()
+    const relationCollectionPermissions = permissions?.collections?.[labels.collection] as
+        CollectionPermissions | undefined
+    const hasCreateAccess =
+        !!relationCollectionPermissions &&
+        !!collectionAccess("Create", relationCollectionPermissions) &&
+        !!permissions &&
+        !getEntityRestrictions(relationCollection, permissions).some(
+            (entityRestriction) => entityRestriction.type === "Individual",
+        )
 
     const [isOpen, setIsOpen] = useState(false)
+    const [hideCreate, setHideCreate] = useState(true)
+    const [offlineCreateDisabled, setOfflineCreateDisabled] = useState(false)
+    const isOfflineCreateDisabled =
+        connectionStatus === "offline" && (offlineCreateDisabled || !!relationCollection.access.serverWriteOnly)
     const [isLoading, setIsLoading] = useState(false)
     const [isLoadingImmediate, setIsLoadingImmediate] = useState(false)
     const [data, setData] = useState<StokerRecord[] | undefined>(undefined)
@@ -1901,6 +1927,7 @@ function RelationField({
     const [inputValue, setValue] = useState<string>("")
     const [display, setDisplay] = useState<string>("")
     const [collectionTitle, setCollectionTitle] = useState<string>("")
+    const [recordTitle, setRecordTitle] = useState<string>(labels.record)
     const [liveUpdate, setLiveUpdate] = useState(false)
 
     const getIsCacheLoading = () => {
@@ -1972,6 +1999,21 @@ function RelationField({
 
             const titles = await getCachedConfigValue(customization, [...collectionAdminPath, "titles"])
             setCollectionTitle(titles?.collection || labels.collection)
+            setRecordTitle(titles?.record || labels.record)
+            const collectionHideCreate = await getCachedConfigValue(
+                customization,
+                [...collectionAdminPath, "hideCreate"],
+                undefined,
+                true,
+            )
+            setHideCreate(!!collectionHideCreate)
+            const collectionOfflineCreateDisabled = await getCachedConfigValue(customization, [
+                "collections",
+                labels.collection,
+                "custom",
+                "disableOfflineCreate",
+            ])
+            setOfflineCreateDisabled(!!collectionOfflineCreateDisabled)
             const admin = fieldCustomization.admin
             const fieldLiveUpdate = await tryPromise(admin?.live)
             if (liveUpdate || fieldLiveUpdate) {
@@ -2222,6 +2264,43 @@ function RelationField({
         </Button>
     )
 
+    const selectCreatedRecord = useCallback(
+        (createdRecord?: StokerRecord) => {
+            if (!createdRecord?.id || !isRelationField(field)) return
+            if (["OneToOne", "OneToMany"].includes(field.type)) {
+                setValue(createdRecord.id)
+                if (fieldCustomization.admin?.modifyResultTitle) {
+                    setDisplay(fieldCustomization.admin.modifyResultTitle(createdRecord, collection, record))
+                } else {
+                    setDisplay(createdRecord[field.titleField || recordTitleField || "id"] || createdRecord.id)
+                }
+                handleOneToChange(createdRecord)
+            } else {
+                form.setValue(field.name, { ...form.getValues(field.name), [createdRecord.id]: createdRecord })
+            }
+        },
+        [form, record, handleOneToChange],
+    )
+
+    const createButton = hasCreateAccess && !hideCreate && !isOfflineCreateDisabled && modalDepth < MAX_MODAL_DEPTH && (
+        <Button
+            type="button"
+            variant="outline"
+            className="gap-1"
+            disabled={isDisabled || readOnly}
+            onClick={(event) => {
+                showCreateModal(relationCollection, [labels.collection], undefined, {
+                    parentDepth: modalDepth,
+                    onSuccess: selectCreatedRecord,
+                    trigger: event.currentTarget,
+                })
+            }}
+            aria-label={`New ${recordTitle}`}
+        >
+            <Plus className="h-4 w-4" />
+        </Button>
+    )
+
     const commandBody = (
         <Command
             filter={() => {
@@ -2336,7 +2415,10 @@ function RelationField({
                         <FormControl>
                             {isMobile ? (
                                 <Sheet open={isOpen} onOpenChange={handlePickerOpenChange}>
-                                    <SheetTrigger asChild>{triggerButton}</SheetTrigger>
+                                    <div className="flex items-center gap-2">
+                                        <SheetTrigger asChild>{triggerButton}</SheetTrigger>
+                                        {createButton}
+                                    </div>
                                     <SheetContent
                                         side="bottom"
                                         className="p-0 pt-8 flex flex-col gap-0 rounded-t-lg"
@@ -2356,6 +2438,7 @@ function RelationField({
                                 <Popover modal={true} open={isOpen} onOpenChange={handlePickerOpenChange}>
                                     <div className="flex items-center gap-2">
                                         <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+                                        {createButton}
                                     </div>
                                     <PopoverContent
                                         className={cn(popoverHeight, "w-[200px]", "sm:w-[280px]", "p-0", "h-60")}
@@ -2477,6 +2560,7 @@ function RecordForm({
     isLoading,
     record,
     draft,
+    draftKey,
     onSuccess,
     onSaveRecord,
     rowSelection,
@@ -2486,6 +2570,8 @@ function RecordForm({
     parentRecord,
 }: FormProps) {
     const { labels, access, fields, auth, recordTitleField, softDelete, relationLists } = collection
+    const resolvedDraftKey = draftKey || labels.collection
+    const { draftStorageKey, draftOwnerStorageKey } = getDraftStorageKeys(resolvedDraftKey)
     const tenantId = getTenant()
     const schema = getSchema()
     const softDeleteField = softDelete?.archivedField
@@ -2586,6 +2672,7 @@ function RecordForm({
     const [isDisabled, setIsDisabled] = useState(operation === "update")
 
     const [isFormReady, setIsFormReady] = useState(0)
+    const modalDepth = useModalDepth()
     const { isGlobalLoading, setGlobalLoading } = useGlobalLoading()
     const [error, setError] = useState<string | null>(null)
     const [isOfflineCreateDisabled, setIsOfflineCreateDisabled] = useState<boolean | undefined>(undefined)
@@ -3269,20 +3356,6 @@ function RecordForm({
         }
     }, [formValues.Role])
 
-    useEffect(() => {
-        if (isFormReady >= fields.length) {
-            const modal = document.getElementById("create-record-modal")
-            let cleanup: (() => void) | undefined
-            if (modal) {
-                cleanup = trapFocus(modal)
-            }
-            return () => {
-                if (cleanup) cleanup()
-            }
-        }
-        return
-    }, [isFormReady])
-
     const getOriginalRecord = useCallback(
         async (initial = false) => {
             if (id) {
@@ -3799,7 +3872,7 @@ function RecordForm({
             })
 
             if (operation === "create" && offlinePersistenceType && ["ALL", "WRITE"].includes(offlinePersistenceType)) {
-                const draft = localStorage.getItem(`stoker-draft-${labels.collection}`)
+                const draft = localStorage.getItem(draftStorageKey)
                 if (draft) {
                     const parsedDraft = JSON.parse(draft)
                     if (parsedDraft && Object.keys(parsedDraft).length > 0) {
@@ -3880,8 +3953,8 @@ function RecordForm({
                 ["ALL", "WRITE"].includes(offlinePersistenceType)
             ) {
                 const currentTabId = getTabId()
-                const existingDraft = localStorage.getItem(`stoker-draft-${labels.collection}`)
-                const draftOwner = localStorage.getItem(`stoker-draft-owner-${labels.collection}`)
+                const existingDraft = localStorage.getItem(draftStorageKey)
+                const draftOwner = localStorage.getItem(draftOwnerStorageKey)
 
                 if (!existingDraft || draftOwner === currentTabId) {
                     const valuesClone = cloneDeep(formValues)
@@ -3891,8 +3964,8 @@ function RecordForm({
                         delete valuesClone.password
                         delete valuesClone.passwordConfirm
                     }
-                    localStorage.setItem(`stoker-draft-${labels.collection}`, JSON.stringify(valuesClone))
-                    localStorage.setItem(`stoker-draft-owner-${labels.collection}`, currentTabId)
+                    localStorage.setItem(draftStorageKey, JSON.stringify(valuesClone))
+                    localStorage.setItem(draftOwnerStorageKey, currentTabId)
                 }
             }
         }
@@ -4328,8 +4401,7 @@ function RecordForm({
                             description: `${recordTitle} ${values[recordTitleField] ? values[recordTitleField] : ""} created.`,
                         })
                         suppressDraftSaveRef.current = true
-                        localStorage.removeItem(`stoker-draft-${labels.collection}`)
-                        localStorage.removeItem(`stoker-draft-owner-${labels.collection}`)
+                        removeDraft(resolvedDraftKey)
                         if (onSuccess) onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                     }
                 }
@@ -4346,8 +4418,7 @@ function RecordForm({
                                 description: `${recordTitle} ${record[recordTitleField] ? record[recordTitleField] : ""} created successfully.`,
                             })
                             suppressDraftSaveRef.current = true
-                            localStorage.removeItem(`stoker-draft-${labels.collection}`)
-                            localStorage.removeItem(`stoker-draft-owner-${labels.collection}`)
+                            removeDraft(resolvedDraftKey)
                         }
                         if (userData) {
                             form.setValue("operation", undefined, { shouldDirty: false })
@@ -5608,8 +5679,7 @@ function RecordForm({
                                     <AlertDialogCancel
                                         onClick={() => {
                                             suppressDraftSaveRef.current = true
-                                            localStorage.removeItem(`stoker-draft-${labels.collection}`)
-                                            localStorage.removeItem(`stoker-draft-owner-${labels.collection}`)
+                                            removeDraft(resolvedDraftKey)
                                             setShowDraftDialog(false)
                                             setDraftData(null)
                                         }}
@@ -5715,39 +5785,33 @@ function RecordForm({
                         </div>
                     )}
 
-                    {showDuplicateModal &&
-                        duplicateRecordData &&
-                        createPortal(
-                            <div
-                                id="create-record-modal"
-                                className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                aria-modal="true"
-                                aria-live="polite"
-                                role="dialog"
-                            >
-                                <div className="fixed inset-0 bg-black/50" />
-                                <div
-                                    className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
-                                    aria-labelledby="modal-title"
-                                >
-                                    <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 id="modal-title" className="text-lg font-semibold">
-                                                Create {recordTitle}
-                                            </h2>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setShowDuplicateModal(false)
-                                                    setDuplicateRecordData(undefined)
-                                                    setIsDuplicate(false)
-                                                }}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                    <Dialog open={!!(showDuplicateModal && duplicateRecordData)}>
+                        <DialogContent
+                            hideCloseButton
+                            disableDismiss
+                            overlayClassName={modalDepth > 0 ? "bg-black/25" : undefined}
+                            className={createRecordClassName}
+                        >
+                            <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                <DialogHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+                                    <DialogTitle>Create {recordTitle}</DialogTitle>
+                                    <DialogDescription className="hidden">Create {recordTitle}</DialogDescription>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        aria-label="Close"
+                                        onClick={() => {
+                                            setShowDuplicateModal(false)
+                                            setDuplicateRecordData(undefined)
+                                            setIsDuplicate(false)
+                                        }}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </DialogHeader>
+                                {duplicateRecordData && (
+                                    <ModalDepthContext.Provider value={modalDepth + 1}>
                                         <RecordForm
                                             collection={collection}
                                             operation="create"
@@ -5760,46 +5824,49 @@ function RecordForm({
                                                 if (record?.id) setPendingGoToRecord({ collection, record })
                                             }}
                                         />
-                                    </div>
-                                </div>
-                            </div>,
-                            document.body,
-                        )}
+                                    </ModalDepthContext.Provider>
+                                )}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
 
-                    {showConvertModal &&
-                        convertRecordData &&
-                        convertTargetCollection &&
-                        createPortal(
-                            <div
-                                id="convert-record-modal"
-                                className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                aria-modal="true"
-                                aria-live="polite"
-                                role="dialog"
-                            >
-                                <div className="fixed inset-0 bg-black/50" />
-                                <div
-                                    className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
-                                    aria-labelledby="convert-modal-title"
-                                >
-                                    <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 id="convert-modal-title" className="text-lg font-semibold">
-                                                Convert to {allRecordTitles[convertTargetCollection.labels.collection]}
-                                            </h2>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setShowConvertModal(false)
-                                                    setConvertRecordData(undefined)
-                                                    setConvertTargetCollection(undefined)
-                                                }}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                    <Dialog open={!!(showConvertModal && convertRecordData && convertTargetCollection)}>
+                        <DialogContent
+                            hideCloseButton
+                            disableDismiss
+                            overlayClassName={modalDepth > 0 ? "bg-black/25" : undefined}
+                            className={createRecordClassName}
+                        >
+                            <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                <DialogHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+                                    <DialogTitle>
+                                        Convert to{" "}
+                                        {convertTargetCollection
+                                            ? allRecordTitles[convertTargetCollection.labels.collection]
+                                            : ""}
+                                    </DialogTitle>
+                                    <DialogDescription className="hidden">
+                                        Convert to{" "}
+                                        {convertTargetCollection
+                                            ? allRecordTitles[convertTargetCollection.labels.collection]
+                                            : ""}
+                                    </DialogDescription>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        aria-label="Close"
+                                        onClick={() => {
+                                            setShowConvertModal(false)
+                                            setConvertRecordData(undefined)
+                                            setConvertTargetCollection(undefined)
+                                        }}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </DialogHeader>
+                                {convertRecordData && convertTargetCollection && (
+                                    <ModalDepthContext.Provider value={modalDepth + 1}>
                                         <RecordForm
                                             collection={convertTargetCollection}
                                             operation="create"
@@ -5817,11 +5884,11 @@ function RecordForm({
                                                     })
                                             }}
                                         />
-                                    </div>
-                                </div>
-                            </div>,
-                            document.body,
-                        )}
+                                    </ModalDepthContext.Provider>
+                                )}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
 
                     {isFormReady >= fields.length && (
                         <div className="flex flex-col md:flex-row gap-2 justify-between">
