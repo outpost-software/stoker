@@ -94,6 +94,7 @@ const Companies: GenerateSchema = (): CollectionSchema => {
                 dataEnd: { months: 6 },
                 dataStartOffset: { months: 3 },
                 dataEndOffset: { months: 3 },
+                additionalCollections: ["Work_Orders"],
             },
             filters: [
                 {

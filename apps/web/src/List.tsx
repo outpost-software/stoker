@@ -97,7 +97,8 @@ import { DateTime } from "luxon"
 import { Helmet } from "react-helmet"
 import { useConnection } from "./providers/ConnectionProvider"
 import { useOptimistic } from "./providers/OptimisticProvider"
-import { createPortal } from "react-dom"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./components/ui/dialog"
+import { createRecordClassName, ModalDepthContext, useModalDepth } from "./providers/CreateProvider"
 import { RecordForm } from "./Form"
 import { getSortingValue } from "./utils/getSortingValue"
 
@@ -1508,6 +1509,7 @@ export function List({
     }, [])
 
     const updateButtonRef = useRef<HTMLButtonElement>(null)
+    const modalDepth = useModalDepth()
 
     const hasMetrics = useMemo(() => {
         return (
@@ -1739,46 +1741,38 @@ export function List({
                                         Update Selected
                                     </Button>
                                 )}
-                                {isUpdateDialogOpen &&
-                                    createPortal(
-                                        <div
-                                            id="update-records-modal"
-                                            className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                            aria-modal="true"
-                                            aria-live="polite"
-                                            role="dialog"
-                                        >
-                                            <div className="fixed inset-0 bg-black/50" />
-                                            <div
-                                                className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[90vh] overflow-hidden border border-border"
-                                                aria-labelledby="dialog-title"
-                                            >
-                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                                    <div className="space-y-2">
-                                                        <div className="flex justify-between items-center mb-4">
-                                                            <h4 id="dialog-title" className="font-medium leading-none">
-                                                                Update {collectionTitle}
-                                                            </h4>
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="right-4 top-4"
-                                                                onClick={() => {
-                                                                    setIsUpdateDialogOpen(false)
-                                                                    setTimeout(() => {
-                                                                        updateButtonRef.current?.focus()
-                                                                    }, 0)
-
-                                                                    localStorage.removeItem(
-                                                                        `stoker-draft-${labels.collection}`,
-                                                                    )
-                                                                }}
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                                <span className="sr-only">Close</span>
-                                                            </Button>
-                                                        </div>
+                                <Dialog open={isUpdateDialogOpen}>
+                                    <DialogContent
+                                        hideCloseButton
+                                        disableDismiss
+                                        overlayClassName={modalDepth > 0 ? "bg-black/25" : undefined}
+                                        className={createRecordClassName}
+                                        onCloseAutoFocus={(event) => {
+                                            event.preventDefault()
+                                            updateButtonRef.current?.focus()
+                                        }}
+                                    >
+                                        <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                            <div className="space-y-2">
+                                                <DialogHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+                                                    <DialogTitle className="font-medium leading-none">
+                                                        Update {collectionTitle}
+                                                    </DialogTitle>
+                                                    <DialogDescription className="hidden">
+                                                        Update {collectionTitle}
+                                                    </DialogDescription>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        aria-label="Close"
+                                                        onClick={() => setIsUpdateDialogOpen(false)}
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </DialogHeader>
+                                                {isUpdateDialogOpen && (
+                                                    <ModalDepthContext.Provider value={modalDepth + 1}>
                                                         <RecordForm
                                                             collection={collection}
                                                             operation="update-many"
@@ -1786,9 +1780,6 @@ export function List({
                                                             onSuccess={() => {
                                                                 setIsUpdateDialogOpen(false)
                                                                 setRowSelection({})
-                                                                setTimeout(() => {
-                                                                    updateButtonRef.current?.focus()
-                                                                }, 0)
                                                                 if (isServerReadOnly) {
                                                                     setBackToStartKey((prev) => prev + 1)
                                                                 }
@@ -1798,12 +1789,12 @@ export function List({
                                                             }}
                                                             rowSelection={selectedRecords}
                                                         />
-                                                    </div>
-                                                </div>
+                                                    </ModalDepthContext.Provider>
+                                                )}
                                             </div>
-                                        </div>,
-                                        document.body,
-                                    )}
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
                                 {collectionAccess("Delete", collectionPermissions) &&
                                     !(statusFilter?.value === "trash") && (
                                         <AlertDialog>

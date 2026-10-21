@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.261
+
+### Patch Changes
+
+- feat: migrate remaining modals to Radix UI
+
 ## 0.5.260
 
 ### Patch Changes

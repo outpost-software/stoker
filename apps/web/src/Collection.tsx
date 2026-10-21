@@ -47,7 +47,14 @@ import { Input } from "@/components/ui/input"
 import { File, ListFilter, PlusCircle, Search, ChevronsUpDown, Check, Bot, X } from "lucide-react"
 import { List } from "./List"
 import { Button } from "./components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./components/ui/dialog"
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "./components/ui/dialog"
 import { runViewTransition } from "./utils/runViewTransition"
 import { useGlobalLoading, useRouteLoading } from "./providers/LoadingProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
@@ -100,7 +107,6 @@ import { sortList } from "./utils/sortList"
 import { useConnection } from "./providers/ConnectionProvider"
 import { createRecordClassName, ModalDepthContext, useModalDepth } from "./providers/CreateProvider"
 import { RecordForm } from "./Form"
-import { createPortal } from "react-dom"
 import { DateTime } from "luxon"
 import { cn } from "./lib/utils"
 import { Badge } from "./components/ui/badge"
@@ -2691,63 +2697,60 @@ function Collection({
                                                                 </Button>
                                                             )
                                                         })()}
-                                                        {isCollectionPickerOpen &&
-                                                            createPortal(
-                                                                <div
-                                                                    id="collection-picker-modal"
-                                                                    className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                                                    aria-modal="true"
-                                                                    aria-live="polite"
-                                                                    role="dialog"
-                                                                >
-                                                                    <div className="fixed inset-0 bg-black/50" />
-                                                                    <div className="relative bg-background rounded-lg w-full max-w-md overflow-hidden border border-border p-6">
-                                                                        <div className="flex justify-end items-center mb-4">
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                onClick={() => {
-                                                                                    setIsCollectionPickerOpen(false)
-                                                                                    setSelectedDateRange(null)
-                                                                                }}
-                                                                            >
-                                                                                <X className="h-4 w-4" />
-                                                                                <span className="sr-only">Close</span>
-                                                                            </Button>
-                                                                        </div>
-                                                                        <div className="flex flex-col gap-2">
-                                                                            {creatableCalendarCollections.map(
-                                                                                (collectionName) => {
-                                                                                    return (
-                                                                                        <Button
-                                                                                            key={collectionName}
-                                                                                            type="button"
-                                                                                            variant="outline"
-                                                                                            className="justify-start"
-                                                                                            onClick={() => {
-                                                                                                setIsCollectionPickerOpen(
-                                                                                                    false,
-                                                                                                )
-                                                                                                openCreateDialogForCollection(
-                                                                                                    collectionName,
-                                                                                                )
-                                                                                            }}
-                                                                                        >
-                                                                                            Add{" "}
-                                                                                            {/* eslint-disable-next-line security/detect-object-injection */}
-                                                                                            {additionalTitles?.[
-                                                                                                collectionName
-                                                                                            ]?.record || recordTitle}
-                                                                                        </Button>
-                                                                                    )
-                                                                                },
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>,
-                                                                document.body,
-                                                            )}
+                                                        <Dialog
+                                                            open={isCollectionPickerOpen}
+                                                            onOpenChange={(open) => {
+                                                                if (open) return
+                                                                setIsCollectionPickerOpen(false)
+                                                                setSelectedDateRange(null)
+                                                            }}
+                                                        >
+                                                            <DialogContent hideCloseButton className="max-w-md">
+                                                                <DialogHeader className="flex flex-row items-center justify-end space-y-0">
+                                                                    <DialogTitle className="ml-0 mr-auto">
+                                                                        Add to Calendar
+                                                                    </DialogTitle>
+                                                                    <DialogDescription className="hidden">
+                                                                        Add to Calendar
+                                                                    </DialogDescription>
+                                                                    <DialogClose asChild>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            aria-label="Close"
+                                                                        >
+                                                                            <X className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DialogClose>
+                                                                </DialogHeader>
+                                                                <div className="flex flex-col gap-2">
+                                                                    {creatableCalendarCollections.map(
+                                                                        (collectionName) => {
+                                                                            return (
+                                                                                <Button
+                                                                                    key={collectionName}
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    className="justify-start"
+                                                                                    onClick={() => {
+                                                                                        setIsCollectionPickerOpen(false)
+                                                                                        openCreateDialogForCollection(
+                                                                                            collectionName,
+                                                                                        )
+                                                                                    }}
+                                                                                >
+                                                                                    Add{" "}
+                                                                                    {/* eslint-disable-next-line security/detect-object-injection */}
+                                                                                    {additionalTitles?.[collectionName]
+                                                                                        ?.record || recordTitle}
+                                                                                </Button>
+                                                                            )
+                                                                        },
+                                                                    )}
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
                                                         <Dialog open={isCreateDialogOpen}>
                                                             <DialogContent
                                                                 hideCloseButton
@@ -2838,101 +2841,93 @@ function Collection({
                                                                 </div>
                                                             </DialogContent>
                                                         </Dialog>
-                                                        {showSelectExisting &&
-                                                            relationList &&
-                                                            relationParent &&
-                                                            createPortal(
-                                                                <div
-                                                                    id="select-existing-modal"
-                                                                    className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-300"
-                                                                    aria-modal="true"
-                                                                    aria-live="polite"
-                                                                    role="dialog"
-                                                                >
-                                                                    <div className="fixed inset-0 bg-black/50" />
-                                                                    <div className="relative bg-background sm:rounded-lg w-full max-w-2xl h-full sm:h-[50vh] overflow-hidden border border-border">
-                                                                        <div className="h-full overflow-y-auto overscroll-contain p-6">
-                                                                            <div className="flex items-center justify-between mb-4">
-                                                                                <h4 className="font-medium leading-none">
-                                                                                    Select {recordTitle}
-                                                                                </h4>
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    variant="ghost"
-                                                                                    size="icon"
-                                                                                    onClick={() => {
-                                                                                        setShowSelectExisting(false)
-                                                                                        setSelectableSearch("")
-                                                                                        setSelectableData([])
-                                                                                    }}
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                    <span className="sr-only">
-                                                                                        Close
-                                                                                    </span>
-                                                                                </Button>
-                                                                            </div>
-                                                                            <div>
-                                                                                <Command filter={() => 1}>
-                                                                                    <CommandInput
-                                                                                        placeholder={`Search ${collectionTitle}...`}
-                                                                                        className="h-9"
-                                                                                        value={selectableSearch}
-                                                                                        onValueChange={(value) => {
-                                                                                            setSelectableSearch(value)
-                                                                                            fetchSelectableRecords(
-                                                                                                value,
-                                                                                            )
-                                                                                        }}
-                                                                                    />
-                                                                                    <CommandList className="max-h-full sm:max-h-[calc(50vh-138px)]">
-                                                                                        <CommandEmpty>
-                                                                                            {selectLoading ? (
-                                                                                                <LoadingSpinner
-                                                                                                    size={7}
-                                                                                                    className="m-auto"
-                                                                                                />
-                                                                                            ) : !selectLoadingImmediate ? (
-                                                                                                `No ${collectionTitle} found.`
-                                                                                            ) : null}
-                                                                                        </CommandEmpty>
-                                                                                        {(!selectLoading ||
-                                                                                            isPreloadCacheEnabled) && (
-                                                                                            <CommandGroup>
-                                                                                                {selectableData.map(
-                                                                                                    (record) => (
-                                                                                                        <CommandItem
-                                                                                                            key={
-                                                                                                                record.id
-                                                                                                            }
-                                                                                                            value={
-                                                                                                                record.id
-                                                                                                            }
-                                                                                                            onSelect={() => {
-                                                                                                                linkExistingRecord(
-                                                                                                                    record,
-                                                                                                                )
-                                                                                                            }}
-                                                                                                        >
-                                                                                                            {
-                                                                                                                record[
-                                                                                                                    recordTitleField ||
-                                                                                                                        "id"
-                                                                                                                ]
-                                                                                                            }
-                                                                                                        </CommandItem>
-                                                                                                    ),
-                                                                                                )}
-                                                                                            </CommandGroup>
+                                                        <Dialog
+                                                            open={
+                                                                !!(showSelectExisting && relationList && relationParent)
+                                                            }
+                                                            onOpenChange={(open) => {
+                                                                if (open) return
+                                                                setShowSelectExisting(false)
+                                                                setSelectableSearch("")
+                                                                setSelectableData([])
+                                                            }}
+                                                        >
+                                                            <DialogContent
+                                                                hideCloseButton
+                                                                className="max-w-2xl w-full h-full sm:h-[50vh] overflow-hidden p-0 gap-0 flex flex-col"
+                                                            >
+                                                                <div className="h-full overflow-y-auto overscroll-contain p-6">
+                                                                    <DialogHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+                                                                        <DialogTitle className="font-medium leading-none">
+                                                                            Select {recordTitle}
+                                                                        </DialogTitle>
+                                                                        <DialogDescription className="hidden">
+                                                                            Select {recordTitle}
+                                                                        </DialogDescription>
+                                                                        <DialogClose asChild>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                aria-label="Close"
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </DialogClose>
+                                                                    </DialogHeader>
+                                                                    <div>
+                                                                        <Command filter={() => 1}>
+                                                                            <CommandInput
+                                                                                placeholder={`Search ${collectionTitle}...`}
+                                                                                className="h-9"
+                                                                                value={selectableSearch}
+                                                                                onValueChange={(value) => {
+                                                                                    setSelectableSearch(value)
+                                                                                    fetchSelectableRecords(value)
+                                                                                }}
+                                                                            />
+                                                                            <CommandList className="max-h-full sm:max-h-[calc(50vh-138px)]">
+                                                                                <CommandEmpty>
+                                                                                    {selectLoading ? (
+                                                                                        <LoadingSpinner
+                                                                                            size={7}
+                                                                                            className="m-auto"
+                                                                                        />
+                                                                                    ) : !selectLoadingImmediate ? (
+                                                                                        `No ${collectionTitle} found.`
+                                                                                    ) : null}
+                                                                                </CommandEmpty>
+                                                                                {(!selectLoading ||
+                                                                                    isPreloadCacheEnabled) && (
+                                                                                    <CommandGroup>
+                                                                                        {selectableData.map(
+                                                                                            (record) => (
+                                                                                                <CommandItem
+                                                                                                    key={record.id}
+                                                                                                    value={record.id}
+                                                                                                    onSelect={() => {
+                                                                                                        linkExistingRecord(
+                                                                                                            record,
+                                                                                                        )
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {
+                                                                                                        record[
+                                                                                                            recordTitleField ||
+                                                                                                                "id"
+                                                                                                        ]
+                                                                                                    }
+                                                                                                </CommandItem>
+                                                                                            ),
                                                                                         )}
-                                                                                    </CommandList>
-                                                                                </Command>
-                                                                            </div>
-                                                                        </div>
+                                                                                    </CommandGroup>
+                                                                                )}
+                                                                            </CommandList>
+                                                                        </Command>
                                                                     </div>
-                                                                </div>,
-                                                                document.body,
-                                                            )}
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
                                                     </>
                                                 )}
                                             </div>
