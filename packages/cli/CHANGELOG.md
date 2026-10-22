@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.182
+
+### Patch Changes
+
+- feat: ignore AI config changes when comparing schemas for deployment
+
 ## 0.5.181
 
 ### Patch Changes

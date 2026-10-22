@@ -43,6 +43,12 @@ export const deployProject = async (options: any) => {
             }
             delete lastSchemaCopy.published_time
             delete lastSchemaCopy.version
+            for (const collection of Object.values(currentSchemaCopy.collections)) {
+                delete collection.ai
+            }
+            for (const collection of Object.values(lastSchemaCopy.collections)) {
+                delete collection.ai
+            }
 
             if (!options.maintenanceOn && !isEqual(currentSchemaCopy, lastSchemaCopy)) {
                 throw new Error("The schema for this project has changed. Maintenance mode cannot be disabled.")
