@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.10
+
+### Patch Changes
+
+- fix: prevent checking of sorting labels for inaccessible fields
+
 ## 0.5.9
 
 ### Patch Changes

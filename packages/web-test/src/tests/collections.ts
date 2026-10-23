@@ -15,6 +15,7 @@ import {
     hasDependencyAccess,
     isRelationField,
     isSortingEnabled,
+    privateFieldAccess,
     roleHasOperationAccess,
     tryFunction,
     tryPromise,
@@ -501,12 +502,19 @@ const expectExport = async (
     expect(Buffer.concat(chunks).toString("utf8").trim().length).toBeGreaterThan(0)
 }
 
-const sortLabels = (collection: CollectionSchema, customization: CollectionCustomization, role: string): string[] => {
+const sortLabels = (
+    collection: CollectionSchema,
+    customization: CollectionCustomization,
+    role: string,
+    permissions: StokerPermissions,
+    claims: Record<string, unknown>,
+): string[] => {
     const preloaded = !!collection.preloadCache?.roles?.includes(role)
     const readOnly = !!collection.access.serverReadOnly?.includes(role)
     const labels: string[] = []
     for (const field of collection.fields) {
         if (field.type === "ManyToOne" || field.type === "ManyToMany") continue
+        if (field.access && !privateFieldAccess(field, permissions, collection, claims)) continue
         const sorting = isSortingEnabled(field, { Role: role } as StokerPermissions)
         if (!(
             preloaded ||
@@ -530,6 +538,9 @@ const sortViews = async (
     options: ConformanceOptions,
 ): Promise<{ collection: CollectionSchema; views: string[]; labels: string[] }[]> => {
     const collections = includedCollections(schema, role, options)
+    const permissions = await getCurrentUserPermissions(role)
+    const user = await getCurrentUser(role)
+    const claims = user.customClaims ?? {}
     const visible: { collection: CollectionSchema; views: string[]; labels: string[] }[] = []
     for (const collection of collections) {
         const customization = await getCustomizationFile(collection.labels.collection, schema)
@@ -555,7 +566,7 @@ const sortViews = async (
         }
         if (views.length === 0) continue
         if (skipCollection(options, role, collection.labels.collection)) continue
-        visible.push({ collection, views, labels: sortLabels(collection, customization, role) })
+        visible.push({ collection, views, labels: sortLabels(collection, customization, role, permissions, claims) })
     }
     return visible
 }
