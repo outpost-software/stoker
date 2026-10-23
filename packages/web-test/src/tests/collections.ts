@@ -19,7 +19,7 @@ import {
     tryFunction,
     tryPromise,
 } from "@stoker-platform/utils"
-import { fixtureRecord } from "../config/records.js"
+import { fixtureRecord, searchableValue } from "../config/records.js"
 import { expect, test } from "../config/fixtures.js"
 import type { StokerLocators } from "../config/locators.js"
 import type { StokerProject } from "../config/project.js"
@@ -189,7 +189,8 @@ const openFromSearch = async (
 ) => {
     await page.goto("/")
     await expect(ui.app.search).toBeVisible({ timeout: 30000 })
-    const query = await searchableValue(project, collection, role, title)
+    const record = await fixtureRecord(project, collection, role)
+    const query = searchableValue(collection, record) ?? title
     await ui.app.search.fill(query)
     const result = page.getByRole("dialog").getByRole("cell", { name: title, exact: true }).first()
     await expect(result, `${collection.labels.record} for "${title}" should appear in Search all`).toBeVisible({
@@ -209,15 +210,6 @@ const openFromSearch = async (
     await expect(ui.app.errorPage).toBeHidden()
 }
 
-const searchableValue = async (project: StokerProject, collection: CollectionSchema, role: string, title: string) => {
-    const record = await fixtureRecord(project, collection, role)
-    const field = collection.fullTextSearch?.find(
-        (name) => typeof record.get(name) === "string" && record.get(name) !== "",
-    )
-    // eslint-disable-next-line security/detect-object-injection
-    return field ? (record.get(field) as string) : title
-}
-
 const expectInListSearch = async (
     page: Page,
     ui: StokerLocators,
@@ -230,7 +222,8 @@ const expectInListSearch = async (
     await openCollectionList(page, ui, collection)
     await showAllRecords(page, ui)
     await showListMonth(page, ui, month)
-    const query = await searchableValue(project, collection, role, title)
+    const record = await fixtureRecord(project, collection, role)
+    const query = searchableValue(collection, record) ?? title
     await ui.collection.search.fill(query)
     const row = ui.collection.rows.first()
     await expect(row, `${collection.labels.record} for query "${query}" should appear in the list`).toBeVisible({

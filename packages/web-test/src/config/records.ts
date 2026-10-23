@@ -112,3 +112,10 @@ export const fixtureUpdatesDisabled = async (
     const snapshot = await fixtureRecord(project, collection, role)
     return updatesDisabled(schema, collection, snapshot.data() as StokerRecord)
 }
+
+export const searchableValue = (collection: CollectionSchema, record: DocumentSnapshot): string | undefined => {
+    const field = collection.fullTextSearch?.find(
+        (name) => typeof record.get(name) === "string" && record.get(name) !== "",
+    )
+    return field ? (record.get(field) as string) : undefined
+}

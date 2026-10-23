@@ -6,7 +6,15 @@ import { expect, test } from "../config/fixtures.js"
 import type { StokerLocators } from "../config/locators.js"
 import type { StokerProject } from "../config/project.js"
 import { assignsFilePermissions, distinctValue, isUnique } from "../config/schema.js"
-import { DATE, detectControl, expectField, setField, shownDay, type FormContext } from "./utils/form.js"
+import {
+    DATE,
+    detectControl,
+    expectField,
+    relationSearchValue,
+    setField,
+    shownDay,
+    type FormContext,
+} from "./utils/form.js"
 import { openCollection, showAllRecords } from "./utils/list.js"
 import { includedCollections, skipCollection, type ConformanceOptions } from "../config/options.js"
 import { getCurrentUser, getCurrentUserPermissions } from "../initializeStoker.js"
@@ -440,7 +448,8 @@ const addFromCalendar = async (
         if ((await control.count()) === 0) continue
         const kind = await detectControl(control)
         if (kind === "readOnly") continue
-        await setField(page, control, kind, value, context)
+        const query = kind === "combobox" ? await relationSearchValue(collection, name, value) : undefined
+        await setField(page, control, kind, value, context, query)
     }
     const existing = new Set((await collectionDocs(collection)).map((doc) => doc.id))
     await dialog.getByRole("button", { name: "Save", exact: true }).click()

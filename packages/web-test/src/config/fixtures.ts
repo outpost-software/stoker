@@ -61,7 +61,29 @@ export const scopeRecords = (schema: CollectionsSchema, project: StokerProject, 
     )
 }
 
+const schemaResponses = new Map<string, string>()
+
 export const test = base.extend<Pick<StokerFixtures, "role" | "ui">, Pick<StokerFixtures, "project" | "schema">>({
+    page: async ({ page }, use, testInfo) => {
+        const role = testInfo.project.name
+        await page.route("**/stoker-schema", async (route) => {
+            const cached = schemaResponses.get(role)
+            if (cached) {
+                await route.fulfill({
+                    status: 200,
+                    contentType: "application/json",
+                    headers: { "access-control-allow-origin": "*" },
+                    body: cached,
+                })
+                return
+            }
+            const response = await route.fetch()
+            const body = await response.text()
+            if (response.ok()) schemaResponses.set(role, body)
+            await route.fulfill({ response, body })
+        })
+        await use(page)
+    },
     schema: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
@@ -71,9 +93,9 @@ export const test = base.extend<Pick<StokerFixtures, "role" | "ui">, Pick<Stoker
         { scope: "worker" },
     ],
     project: [
-        async ({ schema }, use, workerInfo) => {
+        async ({ schema }, use, testInfo) => {
             const project = resolveProject()
-            await use({ ...project, records: scopeRecords(schema, project, workerInfo.project.name) })
+            await use({ ...project, records: scopeRecords(schema, project, testInfo.project.name) })
         },
         { scope: "worker" },
     ],

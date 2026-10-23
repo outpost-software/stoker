@@ -8,10 +8,14 @@ import type {
 } from "@stoker-platform/types"
 import { canUpdateField, roleHasOperationAccess, tryPromise } from "@stoker-platform/utils"
 import type { StokerProject } from "./project.js"
-import { getCustomizationFile } from "@stoker-platform/node-client"
+import { fetchCurrentSchema, getCustomizationFile } from "@stoker-platform/node-client"
 import { getCurrentUser, getCurrentUserPermissions } from "../initializeStoker.js"
 
 export type StokerOperation = "read" | "create" | "update" | "delete"
+
+let publishedSchema: Promise<CollectionsSchema> | undefined
+
+export const getPublishedSchema = (): Promise<CollectionsSchema> => (publishedSchema ??= fetchCurrentSchema())
 
 export const loadSchema = (project: StokerProject): CollectionsSchema => {
     // eslint-disable-next-line security/detect-non-literal-fs-filename

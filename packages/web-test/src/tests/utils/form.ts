@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs"
 import { basename, extname, resolve } from "node:path"
 import type { CollectionSchema, StokerRecord } from "@stoker-platform/types"
+import { isRelationField } from "@stoker-platform/utils"
 import type { Locator, Page } from "@playwright/test"
 import { expect, test } from "../../config/fixtures.js"
 import type { StokerLocators } from "../../config/locators.js"
@@ -8,7 +9,8 @@ import type { StokerTestRecords } from "../../config/project.js"
 import { openCollectionList } from "./list.js"
 import { getStokerFirestore } from "@stoker-platform/node-client"
 import { getTenant } from "../../initializeStoker.js"
-import { updatableFieldNames } from "../../config/schema.js"
+import { getPublishedSchema, updatableFieldNames } from "../../config/schema.js"
+import { searchableValue, tenantCollection } from "../../config/records.js"
 
 export const DATE = /^\d{4}-\d{2}-\d{2}$/
 const TIME = /^\d{2}:\d{2}$/
@@ -107,6 +109,7 @@ export const setField = async (
     control: FieldControl,
     value: string,
     context: FormContext,
+    query?: string,
 ): Promise<string | undefined> => {
     switch (control) {
         case "text":
@@ -134,7 +137,7 @@ export const setField = async (
             await timeInput(field).fill(parseTime(value))
             return
         case "combobox":
-            return pickOption(page, field, value)
+            return pickOption(page, field, value, query)
         case "image":
             await uploadImage(page, field, value, context)
             return
@@ -289,7 +292,8 @@ export const fillFields = async (
             annotate(collection, name, "read-only")
             continue
         }
-        const skipped = await setField(page, field, control, value, context)
+        const query = control === "combobox" ? await relationSearchValue(collection, name, value) : undefined
+        const skipped = await setField(page, field, control, value, context, query)
         if (skipped) {
             annotate(collection, name, skipped)
             continue
@@ -297,6 +301,22 @@ export const fillFields = async (
         applied.push({ name, value, control })
     }
     return applied
+}
+
+export const relationSearchValue = async (
+    collection: CollectionSchema,
+    name: string,
+    title: string,
+): Promise<string | undefined> => {
+    const field = collection.fields.find((item) => item.name === name)
+    if (!field || !isRelationField(field)) return
+    const schema = await getPublishedSchema()
+    const target = schema.collections[field.collection]
+    if (!target?.fullTextSearch?.length) return
+    const titleField = field.titleField || target.recordTitleField
+    const snapshot = await tenantCollection(target).get()
+    const record = snapshot.docs.find((doc) => doc.get(titleField) === title)
+    return record && searchableValue(target, record)
 }
 
 export const createRecord = async (
@@ -420,20 +440,26 @@ const pickDateTime = async (page: Page, field: Locator, value: string): Promise<
     if (time) await timeInput(field).fill(time)
 }
 
-const pickOption = async (page: Page, field: Locator, value: string): Promise<string | undefined> => {
+const pickOption = async (page: Page, field: Locator, value: string, query?: string): Promise<string | undefined> => {
     const combobox = field.getByRole("combobox").first()
     if ((await combobox.innerText()).trim() === value) return
 
     await combobox.click()
     const search = page.locator("[cmdk-input]")
-    if (await search.count()) await search.fill(value)
+    if (await search.count()) await search.fill(query ?? value)
     const options = page.getByRole("option")
     await expect(options.or(page.getByText(/^No .+ found\.$/)).first()).toBeVisible()
     const exact = options.filter({ has: page.getByText(value, { exact: true }) })
+    if (query !== undefined)
+        await exact
+            .first()
+            .waitFor({ timeout: 5000 })
+            .catch(() => undefined)
     const option = (await exact.count()) > 0 ? exact.first() : options.filter({ hasText: value }).first()
     if ((await option.count()) === 0) {
         await page.keyboard.press("Escape")
         await expect(options).toHaveCount(0)
+        await expect(combobox).toBeVisible()
         return `no "${value}" option exists yet`
     }
     await option.click()
@@ -442,6 +468,7 @@ const pickOption = async (page: Page, field: Locator, value: string): Promise<st
 
     const add = field.getByRole("button", { name: "Add", exact: true })
     if (await add.count()) await add.click()
+    await expect(combobox).toBeVisible()
     return
 }
 
