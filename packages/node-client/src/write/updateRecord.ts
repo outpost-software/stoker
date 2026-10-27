@@ -254,6 +254,7 @@ export const updateRecord = async (
         recordId,
         context,
         originalRecord: cloneDeep(originalRecord),
+        permissions: cloneDeep(user?.permissions),
     }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 

@@ -1281,7 +1281,7 @@ Admin UI config is specified using the `admin` property.
 
 #### label
 
-`string | (() => string)`
+`string | ((record?: StokerRecord) => string)`
 
 A human-readable name for the field. Only necessary if `name` is not human-readable.
 
@@ -1332,7 +1332,7 @@ The returned value will be used for sorting in the list view.
 
 #### column
 
-`boolean | number | (() => boolean | number)`
+`boolean | number | ((record?: StokerRecord) => boolean | number)`
 
 Set the position of the field in the list and the form. Defaults to the position of the field in the fields array, so this option may not be necessary.
 
@@ -2435,6 +2435,7 @@ When [serverWriteOnly](#serverwriteonly) is set to true, this hook will fire in 
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
+    permissions?: StokerPermissions
 }) => boolean | void | Promise<boolean | void>
 ```
 

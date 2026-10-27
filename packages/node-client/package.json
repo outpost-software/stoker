@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/node-client",
-    "version": "0.5.111",
+    "version": "0.5.112",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -24,8 +24,8 @@
     },
     "dependencies": {
         "@google-cloud/storage": "^8.0.1",
-        "@stoker-platform/types": "0.5.78",
-        "@stoker-platform/utils": "0.5.96",
+        "@stoker-platform/types": "0.5.79",
+        "@stoker-platform/utils": "0.5.97",
         "@types/luxon": "^3.7.4",
         "cross-spawn": "^7.0.6",
         "lodash": "^4.18.1",

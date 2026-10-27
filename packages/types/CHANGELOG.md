@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.79
+
+### Patch Changes
+
+- feat: add record and permissions parameters
+
 ## 0.5.78
 
 ### Patch Changes

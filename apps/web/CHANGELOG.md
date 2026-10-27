@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.262
+
+### Patch Changes
+
+- feat: add record and permissions parameters
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.112
+    - @stoker-platform/utils@0.5.97
+    - @stoker-platform/web-client@0.5.115
+
 ## 0.5.261
 
 ### Patch Changes

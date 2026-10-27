@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/web-client",
-    "version": "0.5.114",
+    "version": "0.5.115",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "files": [
@@ -24,8 +24,8 @@
         "test": "echo \"Error: no test specified\""
     },
     "dependencies": {
-        "@stoker-platform/types": "0.5.78",
-        "@stoker-platform/utils": "0.5.96",
+        "@stoker-platform/types": "0.5.79",
+        "@stoker-platform/utils": "0.5.97",
         "@types/lodash": "^4.17.25",
         "@types/luxon": "^3.7.4",
         "lodash": "^4.18.1",

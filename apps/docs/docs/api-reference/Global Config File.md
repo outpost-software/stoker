@@ -590,6 +590,7 @@ When `serverWriteOnly` is set to true, this hook will fire in the Web SDK before
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
+    permissions?: StokerPermissions
 }) => boolean | void | Promise<boolean | void>
 ```
 

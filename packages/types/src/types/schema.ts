@@ -403,6 +403,7 @@ export type PreWriteHookArgs = {
     context: any
     batch?: WriteBatch
     originalRecord?: StokerRecord
+    permissions?: StokerPermissions
 }
 /** Arguments for the postWrite hook, which fires after a write operation */
 export type PostWriteHookArgs = {
@@ -1379,8 +1380,11 @@ export interface FormFieldIcon {
 
 /** Admin UI config for the field */
 export interface FieldAdmin {
-    /** A human-readable name for the field. Only necessary if `name` is not human-readable */
-    label?: string | (() => string)
+    /**
+     * A human-readable name for the field. Only necessary if `name` is not human-readable.
+     * In the form, the function receives the current form values. Elsewhere, it is called without a record
+     */
+    label?: string | ((record?: StokerRecord) => string)
     /** Override the field name shown in the list view */
     listLabel?: string | (() => string)
     /** An icon that will be shown for the field on the form page */
@@ -1422,8 +1426,11 @@ export interface FieldAdmin {
     tags?: string[] | (() => string[])
     /** Set to `true` to have the field live-update on the form page when the record is updated remotely */
     live?: boolean | (() => boolean | Promise<boolean>)
-    /** Set the position of the field in the list and the form. Defaults to the position of the field in the fields array */
-    column?: boolean | number | (() => boolean | number)
+    /**
+     * Set the position of the field in the list and the form. Defaults to the position of the field in the fields array.
+     * In the form, the function receives the current form values. In the list, it is called without a record
+     */
+    column?: boolean | number | ((record?: StokerRecord) => boolean | number)
     /** Set on a String field to make it a badge. Return a Tailwind class specifying the color for the badge */
     badge?: boolean | string | ((record?: StokerRecord) => boolean | string)
     /** The screen size at which the field should be hidden from the list view. This is useful for responsiveness */

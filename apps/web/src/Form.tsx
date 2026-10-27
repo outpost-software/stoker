@@ -361,7 +361,7 @@ const RecordFormField = (props: FieldProps) => {
                 isButtonGroup,
                 icon,
             ] = await Promise.all([
-                tryFunction(admin?.label),
+                tryFunction(admin?.label, [{ ...form.getValues(), id: record?.id }]),
                 tryFunction(admin?.description?.message, [record]),
                 tryPromise(admin?.description?.condition, [record]),
                 tryPromise(admin?.textarea),
@@ -403,7 +403,11 @@ const RecordFormField = (props: FieldProps) => {
     }, [])
 
     useEffect(() => {
-        const condition = tryFunction(admin?.condition?.form, [operation, { ...form.getValues(), id: record?.id }])
+        const values = { ...(form.getValues() as StokerRecord), id: record?.id }
+        if (typeof admin?.label === "function") {
+            setLabel(admin.label(values) || field.name)
+        }
+        const condition = tryFunction(admin?.condition?.form, [operation, values])
         if (condition === false) {
             setCondition(false)
             return
@@ -3237,23 +3241,18 @@ function RecordForm({
 
         const combinedItems: Array<{ type: "field" | "custom"; item: CollectionField | CustomField; index: number }> =
             []
+        const currentValues = { ...(form.getValues() as StokerRecord), id: record?.id }
         fields.forEach((field, index) => {
             const fieldCustomization = getFieldCustomization(field, customization)
-            const fieldPosition = tryFunction(fieldCustomization.admin?.column) ?? index
+            const fieldPosition = tryFunction(fieldCustomization.admin?.column, [currentValues]) ?? index
             combinedItems.push({ type: "field", item: field, index: fieldPosition })
         })
 
         customFields.forEach((customField, customIndex) => {
-            if (
-                customField.condition &&
-                !customField.condition(operation, { ...(form.getValues() as StokerRecord), id: record?.id })
-            )
-                return
+            if (customField.condition && !customField.condition(operation, currentValues)) return
             let position = 0
             if (typeof customField.position === "function") {
-                position =
-                    customField.position({ ...(form.getValues() as StokerRecord), id: record?.id }) ??
-                    fields.length + customIndex
+                position = customField.position(currentValues) ?? fields.length + customIndex
             } else {
                 position = customField.position ?? fields.length + customIndex
             }
@@ -4115,7 +4114,7 @@ function RecordForm({
         async (values: z.infer<typeof formSchema>) => {
             for (const field of fields) {
                 const fieldCustomization = getFieldCustomization(field, customization)
-                const label = tryFunction(fieldCustomization.admin?.label) || field.name
+                const label = tryFunction(fieldCustomization.admin?.label, [values]) || field.name
                 const overrideFormRequiredValidation = tryFunction(
                     fieldCustomization.admin?.overrideFormRequiredValidation,
                     [operation, values, prevState],

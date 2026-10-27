@@ -145,7 +145,13 @@ export const addRecord = async (
 
     const preOperationArgs: PreOperationHookArgs = { operation: "create", data: record, recordId: docId, context }
     await runHooks("preOperation", globalConfig, customization, preOperationArgs)
-    const preWriteArgs: PreWriteHookArgs = { operation: "create", data: record, recordId: docId, context }
+    const preWriteArgs: PreWriteHookArgs = {
+        operation: "create",
+        data: record,
+        recordId: docId,
+        context,
+        permissions: cloneDeep(user?.permissions),
+    }
     await runHooks("preWrite", globalConfig, customization, preWriteArgs)
 
     addRelationArrays(collectionSchema, record, schema)
