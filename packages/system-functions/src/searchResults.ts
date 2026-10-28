@@ -21,11 +21,13 @@ import {join} from "path";
 import {
     collectionAccess,
     getAttributeRestrictions,
+    getDependencyIndexFields,
     getEntityParentFilters,
     getEntityRestrictions,
     getField,
     hasDependencyAccess,
     isRelationField,
+    privateFieldAccess,
 } from "@stoker-platform/utils";
 
 /* eslint-disable max-len */
@@ -47,8 +49,7 @@ const sanitizeAlgoliaFilterValue = (value: unknown): string => {
     }
 
     if (typeof value === "string") {
-        const escaped = value.replace(/"/g, "\"\"");
-        return escaped;
+        return value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
     }
 
     throw new HttpsError("invalid-argument", "Filter value must be a string, number, or boolean");
@@ -59,7 +60,7 @@ const sanitizeAlgoliaFieldName = (fieldName: string): string => {
         throw new HttpsError("invalid-argument", "Field name must be a string");
     }
 
-    if (/[:()"']/.test(fieldName)) {
+    if (/[:()"'\\]/.test(fieldName)) {
         throw new HttpsError("invalid-argument", "Field name contains invalid characters");
     }
 
@@ -114,7 +115,10 @@ export const searchResults = async (
 
     // eslint-disable-next-line security/detect-object-injection
     const collectionSchema = schema.collections[collection];
-    const {fields} = collectionSchema;
+    const {fields, fullTextSearch} = collectionSchema;
+    if (!fullTextSearch?.length) {
+        throw new HttpsError("invalid-argument", "Collection does not have full text search enabled");
+    }
     const db = getStokerFirestore();
     const permissionsSnapshot = await db.collection("tenants").doc(tenantId).collection("system_user_permissions").doc(user).get();
     const permissions = permissionsSnapshot.data() as StokerPermissions;
@@ -130,10 +134,35 @@ export const searchResults = async (
         throw new HttpsError("permission-denied", "User does not have permission to access search for this collection");
     }
 
+    let searchableAttributes: string[] = fullTextSearch;
+    let allowedConstraintFields: Set<string> | undefined;
+    if (!fullCollectionAccess) {
+        const dependencyFieldNames = dependencyAccess.map((dependencyField) => dependencyField.field);
+        searchableAttributes = fullTextSearch.filter((fieldName) => dependencyFieldNames.includes(fieldName));
+        if (searchableAttributes.length === 0) {
+            throw new HttpsError(
+                "permission-denied",
+                "User does not have permission to search any full text search fields for this collection",
+            );
+        }
+        allowedConstraintFields = new Set<string>(dependencyFieldNames);
+        for (const dependencyFieldName of dependencyFieldNames) {
+            const dependencyField = getField(fields, dependencyFieldName);
+            if (!dependencyField) continue;
+            for (const indexField of getDependencyIndexFields(dependencyField, collectionSchema, schema)) {
+                allowedConstraintFields.add(indexField.name);
+            }
+        }
+    }
+
     const hasAttributeRestrictions: AttributeRestriction[] = getAttributeRestrictions(collectionSchema, permissions);
     const hasEntityRestrictions: EntityRestriction[] = getEntityRestrictions(collectionSchema, permissions);
     const hasEntityParentFilters: {parentFilter: EntityParentFilter; parentRestriction: EntityRestriction}[] =
         getEntityParentFilters(collectionSchema, schema, permissions);
+
+    if (hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0) {
+        throw new HttpsError("permission-denied", "User does not have permission to access search for this collection");
+    }
 
     let assignable: Assignable | undefined;
     let assignedArrayFilter: string | undefined;
@@ -195,6 +224,15 @@ export const searchResults = async (
             const field = getField(fields, sanitizedFieldName);
             if (!field) {
                 throw new HttpsError("invalid-argument", `Field ${sanitizedFieldName} not found`);
+            }
+            if (
+                (field.access && !privateFieldAccess(field, permissions, collectionSchema, token)) ||
+                (allowedConstraintFields && !allowedConstraintFields.has(sanitizedFieldName))
+            ) {
+                throw new HttpsError(
+                    "permission-denied",
+                    `User does not have permission to filter on field ${sanitizedFieldName}`,
+                );
             }
             if (isSingleIdField) {
                 if (!isRelationField(field) || !["OneToOne", "OneToMany"].includes(field.type)) {
@@ -271,10 +309,6 @@ export const searchResults = async (
         });
     }
 
-    if (hasEntityRestrictions.length > 0 || hasEntityParentFilters.length > 0) {
-        throw new HttpsError("permission-denied", "User does not have permission to access search for this collection");
-    }
-
     hasAttributeRestrictions
         .filter((restriction) => restriction.type === "Record_Owner")
         .forEach(() => filters.push(`Created_By:${user}`));
@@ -314,7 +348,14 @@ export const searchResults = async (
     const client = algoliasearch(process.env.STOKER_ALGOLIA_ID, algoliaAdminKey.value());
     const searchResults = await client.searchSingleIndex({
         indexName: collection,
-        searchParams: {query, hitsPerPage: clampedHitsPerPage, filters: filters.join(" AND ")},
+        searchParams: {
+            query,
+            hitsPerPage: clampedHitsPerPage,
+            filters: filters.join(" AND "),
+            restrictSearchableAttributes: searchableAttributes,
+            attributesToRetrieve: ["objectID"],
+            attributesToHighlight: [],
+        },
     });
 
     return searchResults.hits.map((hit) => hit.objectID);

@@ -717,8 +717,20 @@ export const lintSchema = async (noLog = false) => {
                 }
             }
             if (access.entityRestrictions) {
+                const { restrictions, parentFilters } = access.entityRestrictions
                 for (const role of readRoles) {
-                    if (!preloadCache?.roles.includes(role) && !access.serverReadOnly?.includes(role)) {
+                    const hasEntityRestrictions =
+                        restrictions?.some((restriction) =>
+                            restriction.roles.some((accessRole) => accessRole.role === role),
+                        ) ||
+                        parentFilters?.some((parentFilter) =>
+                            parentFilter.roles.some((accessRole) => accessRole.role === role),
+                        )
+                    if (
+                        hasEntityRestrictions &&
+                        !preloadCache?.roles.includes(role) &&
+                        !access.serverReadOnly?.includes(role)
+                    ) {
                         warnings.push(
                             `Full text search will not work for role ${role} for collection ${collectionName} because the role has entity restrictions set. This can be resolved by enabling the preload cache or server read only options for the role.`,
                         )
