@@ -335,7 +335,7 @@ const enforceRoleRestrictions = (schema: CollectionsSchema, permissions: StokerP
                             return
                         }
                         const parentPropertyEntities =
-                            permissions.collections?.[labels.collection]?.parentPropertyEntities?.[field.collection]
+                            permissions.collections?.[labels.collection]?.parentPropertyEntities
                         if (!parentPropertyEntities) {
                             errorDetails = `Collection ${labels.collection} is missing parent property entities`
                             granted = false

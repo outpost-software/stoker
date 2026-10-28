@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.98
+
+### Patch Changes
+
+- fix: fix parent property entity validation
+
 ## 0.5.97
 
 ### Patch Changes
