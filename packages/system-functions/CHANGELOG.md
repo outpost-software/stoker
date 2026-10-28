@@ -1,5 +1,11 @@
 # @stoker-platform/system-functions
 
+## 0.5.135
+
+### Patch Changes
+
+- cbc25d3: fix: improve Algolia search Cloud Function
+
 ## 0.5.134
 
 ### Patch Changes

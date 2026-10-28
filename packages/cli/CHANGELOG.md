@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.184
+
+### Patch Changes
+
+- cbc25d3: fix: improve Algolia search Cloud Function
+
 ## 0.5.183
 
 ### Patch Changes
