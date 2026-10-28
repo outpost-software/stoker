@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.186
+
+### Patch Changes
+
+- feat: hand off to project CLI when available
+
 ## 0.5.185
 
 ### Patch Changes

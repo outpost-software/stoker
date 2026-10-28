@@ -1,6 +1,6 @@
 {
     "name": "@stoker-platform/cli",
-    "version": "0.5.185",
+    "version": "0.5.186",
     "type": "module",
     "license": "SEE LICENSE IN LICENSE.md",
     "main": "./lib/src/main.js",
@@ -16,7 +16,7 @@
         "test": "echo \"Error: no test specified\""
     },
     "bin": {
-        "stoker": "./lib/src/main.js"
+        "stoker": "./lib/src/bin.js"
     },
     "dependencies": {
         "@faker-js/faker": "^10.6.0",
