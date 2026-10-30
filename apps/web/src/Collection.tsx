@@ -1089,7 +1089,13 @@ function Collection({
                 true,
             )
             setDisableCreate(!!disableCreate)
-            const filters = (await getCachedConfigValue(customization, [...collectionAdminPath, "filters"])) || []
+            const configFilters = (await getCachedConfigValue(customization, [...collectionAdminPath, "filters"])) || []
+            const filters = configFilters.filter(
+                (filter: Filter) =>
+                    !!permissions.Role &&
+                    (!("roles" in filter) || !filter.roles || filter.roles.includes(permissions.Role)) &&
+                    (filter.type === "status" || !!getField(fields, filter.field)),
+            )
             const customListActions =
                 (await getCachedConfigValue(customization, [...collectionAdminPath, "customListActions"])) || []
             setCustomListActions(customListActions)
