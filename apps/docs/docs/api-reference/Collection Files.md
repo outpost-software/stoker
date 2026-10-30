@@ -1382,6 +1382,12 @@ Set to `true` on a Map field to make it a rich text field
 
 Set to `true` on a String field to make it italic
 
+#### className
+
+`string | ((record?: StokerRecord) => string)`
+
+Tailwind classes applied to the read-only value of a String or Number field
+
 #### currency
 
 `string | ((record?: StokerRecord) => string)`

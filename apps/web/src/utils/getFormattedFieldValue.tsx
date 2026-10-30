@@ -73,6 +73,7 @@ export const getFormattedFieldValue = (
             lineClamp = "line-clamp-5"
             break
     }
+    if (form) lineClamp = ""
 
     const schema = getSchema()
     const fieldCustomization = getFieldCustomization(field, customization)
@@ -80,6 +81,7 @@ export const getFormattedFieldValue = (
     if (!permissions) return ""
     let badge: boolean | string,
         italic: boolean,
+        className: string | undefined,
         tags: string[] | undefined,
         image: boolean | undefined,
         time: boolean | undefined,
@@ -87,6 +89,9 @@ export const getFormattedFieldValue = (
     if (fieldCustomization) {
         badge = tryFunction(fieldCustomization.admin?.badge, [record])
         italic = tryFunction(fieldCustomization.admin?.italic, [record])
+        if (field.type === "String" || field.type === "Number") {
+            className = tryFunction(fieldCustomization.admin?.className, [record])
+        }
         tags = tryFunction(fieldCustomization.admin?.tags)
         image = tryFunction(fieldCustomization.admin?.image)
         time = tryFunction(fieldCustomization.admin?.time)
@@ -108,7 +113,7 @@ export const getFormattedFieldValue = (
         if (badge) {
             if (badge === true) {
                 return (
-                    <Badge variant="outline" className="text-xs text-center">
+                    <Badge variant="outline" className={cn("text-xs text-center", className)}>
                         {value}
                     </Badge>
                 )
@@ -124,6 +129,7 @@ export const getFormattedFieldValue = (
                         className={cn(
                             "text-xs text-center",
                             !["outline", "destructive", "primary", "secondary", true, false].includes(badge) && badge,
+                            className,
                         )}
                     >
                         {value}
@@ -133,15 +139,15 @@ export const getFormattedFieldValue = (
         } else if (currency) {
             return (
                 <span
-                    className={cn(lineClamp, "break-words", form && "text-sm")}
+                    className={cn(lineClamp, "break-words", form && "text-sm", className)}
                 >{`${currency}${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>
             )
         } else if (italic) {
-            return <em className={cn(lineClamp, "break-words", form && "text-sm")}>{value}</em>
+            return <em className={cn(lineClamp, "break-words", form && "text-sm", className)}>{value}</em>
         } else {
             return (
                 <div className="max-w-[calc(100vw-64px)]">
-                    <span className={cn(lineClamp, "break-words", form && "text-sm")}>{value}</span>
+                    <span className={cn(lineClamp, "break-words", form && "text-sm", className)}>{value}</span>
                 </div>
             )
         }
