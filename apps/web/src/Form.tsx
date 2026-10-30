@@ -352,6 +352,13 @@ const RecordFormField = (props: FieldProps) => {
     const [isButtonGroup, setIsButtonGroup] = useState(false)
     const [icon, setIcon] = useState<FormFieldIcon | undefined>(undefined)
 
+    const getFormRecord = () =>
+        ({
+            ...(form.getValues() as StokerRecord),
+            id: record?.id,
+            ...(collection.auth && record?.User_ID ? { User_ID: record.User_ID } : {}),
+        }) as StokerRecord
+
     useEffect(() => {
         const initialize = async () => {
             const condition = tryFunction(admin?.condition?.form, [operation, record])
@@ -373,7 +380,7 @@ const RecordFormField = (props: FieldProps) => {
                 isButtonGroup,
                 icon,
             ] = await Promise.all([
-                tryFunction(admin?.label, [{ ...form.getValues(), id: record?.id }]),
+                tryFunction(admin?.label, [getFormRecord()]),
                 tryFunction(admin?.description?.message, [record]),
                 tryPromise(admin?.description?.condition, [record]),
                 tryPromise(admin?.textarea),
@@ -415,7 +422,7 @@ const RecordFormField = (props: FieldProps) => {
     }, [])
 
     useEffect(() => {
-        const values = { ...(form.getValues() as StokerRecord), id: record?.id }
+        const values = getFormRecord()
         if (typeof admin?.label === "function") {
             setLabel(admin.label(values) || field.name)
         }
@@ -426,7 +433,7 @@ const RecordFormField = (props: FieldProps) => {
         }
         setCondition(true)
         setTimeout(() => {
-            const readOnly = tryFunction(admin?.readOnly, [operation, form.getValues()])
+            const readOnly = tryFunction(admin?.readOnly, [operation, getFormRecord()])
             setReadOnly(!!readOnly)
         }, 0)
     }, [form.watch()])
@@ -4154,7 +4161,10 @@ function RecordForm({
 
     const handleSubmit = useCallback(
         async (values: z.infer<typeof formSchema>) => {
-            const submittedValues = { ...values }
+            const submittedValues: typeof values = {
+                ...values,
+                ...(auth && originalRecord?.User_ID ? { User_ID: originalRecord.User_ID } : {}),
+            }
             for (const field of fields) {
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const label = tryFunction(fieldCustomization.admin?.label, [submittedValues]) || field.name
