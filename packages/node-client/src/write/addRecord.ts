@@ -296,8 +296,9 @@ export const addRecord = async (
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const allowField =
                         userId &&
-                        currentUserPermissions &&
+                        currentUserPermissions?.Role &&
                         latestUser &&
+                        collectionSchema.access.serverReadOnly?.includes(currentUserPermissions.Role) &&
                         fieldCustomization?.custom?.serverAccess?.read !== undefined
                             ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
                                   currentUserPermissions,

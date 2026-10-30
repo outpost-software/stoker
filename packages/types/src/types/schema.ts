@@ -661,7 +661,8 @@ export interface PreloadCacheInitial {
 /** Custom code config for the collection, including hooks and server access control */
 export interface CollectionCustom extends Hooks {
     /**
-     * Define additional access control using code on the server. Only relevant if
+     * Define additional access control using code on the server. `read` only runs for roles in
+     * `access.serverReadOnly`. `create`, `update` and `delete` are only relevant if
      * `access.serverWriteOnly` is set to `true`. Return a boolean indicating whether or not
      * the access check passed. This code is not sent to the client
      */
@@ -1335,7 +1336,8 @@ export interface FieldCustom extends Hooks {
     /** Calculate an initial value for this field when creating the record */
     initialValue?: unknown | ((record?: StokerRecord) => unknown | Promise<unknown>)
     /**
-     * Define additional access control using code on the server. Only relevant if
+     * Define additional access control using code on the server. `read` only runs for roles in the
+     * collection's `access.serverReadOnly`. `create` and `update` are only relevant if
      * `access.serverWriteOnly` is set to `true`. Return a boolean indicating whether or not
      * the access check passed. This code is not sent to the client
      */

@@ -340,8 +340,9 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
 
         if (options?.userId && permissions?.Role) {
             if (!latestUser) throw new Error("USER_ERROR")
+            const isServerReadOnly = !!collectionSchema.access.serverReadOnly?.includes(permissions.Role)
             const allowedCollection =
-                customization.custom?.serverAccess?.read !== undefined
+                isServerReadOnly && customization.custom?.serverAccess?.read !== undefined
                     ? await tryPromise(customization.custom?.serverAccess?.read, [permissions, latestUser, docData])
                     : true
             if (!allowedCollection) throw new Error("PERMISSION_DENIED")
@@ -351,7 +352,7 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
                     privateFieldAccess(field, permissions, collectionSchema, latestUser?.customClaims ?? {})
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const allowField =
-                    fieldCustomization?.custom?.serverAccess?.read !== undefined
+                    isServerReadOnly && fieldCustomization?.custom?.serverAccess?.read !== undefined
                         ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
                               permissions,
                               latestUser,

@@ -490,8 +490,9 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
 
             if (options?.userId && permissions?.Role) {
                 if (!latestUser) throw new Error("USER_ERROR")
+                const isServerReadOnly = !!collectionSchema.access.serverReadOnly?.includes(permissions.Role)
                 const allowedCollection =
-                    customization.custom?.serverAccess?.read !== undefined
+                    isServerReadOnly && customization.custom?.serverAccess?.read !== undefined
                         ? await tryPromise(customization.custom.serverAccess.read, [permissions, latestUser, doc])
                         : true
                 if (!allowedCollection) {
@@ -504,7 +505,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
                         privateFieldAccess(field, permissions, collectionSchema, latestUser?.customClaims ?? {})
                     const fieldCustomization = getFieldCustomization(field, customization)
                     const allowField =
-                        fieldCustomization?.custom?.serverAccess?.read !== undefined
+                        isServerReadOnly && fieldCustomization?.custom?.serverAccess?.read !== undefined
                             ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
                                   permissions,
                                   latestUser,

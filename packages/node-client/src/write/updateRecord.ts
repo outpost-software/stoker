@@ -454,8 +454,9 @@ export const updateRecord = async (
                     const finalRecord = { ...originalRecord, ...partial }
                     const allowField =
                         userId &&
-                        currentUserPermissions &&
+                        currentUserPermissions?.Role &&
                         latestUser &&
+                        collectionSchema.access.serverReadOnly?.includes(currentUserPermissions.Role) &&
                         fieldCustomization?.custom?.serverAccess?.read !== undefined
                             ? await tryPromise(fieldCustomization.custom.serverAccess.read, [
                                   currentUserPermissions,

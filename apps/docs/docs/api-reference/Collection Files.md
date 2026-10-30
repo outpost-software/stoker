@@ -689,7 +689,9 @@ For example:
 
 Define additional access control using code on the server.
 
-Only relevant if [`access.serverWriteOnly`](#serverwriteonly) is set to `true`.
+`read` only runs for roles in [`access.serverReadOnly`](#serverreadonly).
+
+`create`, `update` and `delete` are only relevant if [`access.serverWriteOnly`](#serverwriteonly) is set to `true`.
 
 Return a boolean indicating whether or not the access check passed.
 
@@ -895,7 +897,9 @@ Calculate an initial value for this field when creating the record.
 
 Define additional access control using code on the server.
 
-Only relevant if `access.serverWriteOnly` is set to `true`.
+`read` only runs for roles in the collection's [`access.serverReadOnly`](#serverreadonly).
+
+`create` and `update` are only relevant if `access.serverWriteOnly` is set to `true`.
 
 Return a boolean indicating whether or not the access check passed.
 
