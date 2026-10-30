@@ -420,6 +420,8 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
             retrieverData = await tryPromise(customization.admin?.retriever)
         }
 
+        const accessControlRecords = new Map<string, StokerRecord>()
+
         for (const doc of docs.values()) {
             const operations = []
             const documentPath = [...doc.Collection_Path, doc.id]
@@ -488,6 +490,8 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
             }
             await Promise.all(computedFieldPromises)
 
+            accessControlRecords.set(doc.id, { ...doc })
+
             if (options?.userId && permissions?.Role) {
                 if (!latestUser) throw new Error("USER_ERROR")
                 const isServerReadOnly = !!collectionSchema.access.serverReadOnly?.includes(permissions.Role)
@@ -497,6 +501,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
                         : true
                 if (!allowedCollection) {
                     docs.delete(doc.id)
+                    accessControlRecords.delete(doc.id)
                     continue
                 }
                 for (const field of collectionSchema.fields) {
@@ -541,7 +546,7 @@ export const getSome = async (path: string[], options?: GetSomeOptions) => {
 
         if (options?.userId) {
             await getSomeAccessControl(
-                Array.from(docs.values()),
+                Array.from(accessControlRecords.values()),
                 collectionSchema,
                 schema,
                 options.userId,

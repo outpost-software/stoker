@@ -338,6 +338,8 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
             }
         }
 
+        const accessControlRecord = { ...docData }
+
         if (options?.userId && permissions?.Role) {
             if (!latestUser) throw new Error("USER_ERROR")
             const isServerReadOnly = !!collectionSchema.access.serverReadOnly?.includes(permissions.Role)
@@ -378,7 +380,7 @@ export const getOne = async (path: string[], recordId: string, options?: GetOneO
 
         if (options?.userId) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            await getOneAccessControl(docData, collectionSchema, schema, options.userId, permissions!)
+            await getOneAccessControl(accessControlRecord, collectionSchema, schema, options.userId, permissions!)
         }
     }
 
