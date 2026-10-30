@@ -201,6 +201,7 @@ interface FormLabelWithIconProps {
     className?: string
     form: UseFormReturn
     prevState?: Partial<StokerRecord>
+    readOnly?: boolean
 }
 
 const FormLabelWithIcon = ({
@@ -212,14 +213,20 @@ const FormLabelWithIcon = ({
     className,
     form,
     prevState,
+    readOnly,
 }: FormLabelWithIconProps) => {
     const customization = useCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
 
     const displayLabel = label || field.name
 
-    let isRequired = field.required && operation !== "update-many"
-    if (!isRequired && fieldCustomization.admin?.overrideFormRequiredValidation && operation !== "update-many") {
+    let isRequired = field.required && operation !== "update-many" && !readOnly
+    if (
+        !isRequired &&
+        !readOnly &&
+        fieldCustomization.admin?.overrideFormRequiredValidation &&
+        operation !== "update-many"
+    ) {
         isRequired = !!tryFunction(fieldCustomization.admin.overrideFormRequiredValidation, [
             operation,
             form.getValues(),
@@ -1870,6 +1877,7 @@ function MapField({
                             icon={icon}
                             form={form}
                             prevState={prevState}
+                            readOnly={readOnly}
                         />
                         <FormControl>
                             <RichTextEditor
@@ -2424,6 +2432,7 @@ function RelationField({
                             icon={icon}
                             form={form}
                             prevState={prevState}
+                            readOnly={readOnly}
                         />
                         <FormControl>
                             {isMobile ? (
@@ -2547,6 +2556,7 @@ function ComputedField({ form, collection, label, description, field, record, ic
                 icon={icon}
                 form={form}
                 prevState={prevState}
+                readOnly
             />
             <FormControl>
                 <div className="whitespace-pre-line">
