@@ -187,6 +187,11 @@ import { Separator } from "./components/ui/separator"
 import { sortList } from "./utils/sortList"
 import MonthPicker from "./components/ui/month-picker"
 
+const useSchema = (includeComputedFields?: boolean) =>
+    useMemo(() => getSchema(includeComputedFields), [includeComputedFields])
+const useCollectionConfigModule = (collection: StokerCollection) =>
+    useMemo(() => getCollectionConfigModule(collection), [collection])
+
 interface FormLabelWithIconProps {
     collection: CollectionSchema
     label?: string
@@ -208,7 +213,7 @@ const FormLabelWithIcon = ({
     form,
     prevState,
 }: FormLabelWithIconProps) => {
-    const customization = getCollectionConfigModule(collection.labels.collection)
+    const customization = useCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
 
     const displayLabel = label || field.name
@@ -315,9 +320,9 @@ const RecordFormField = (props: FieldProps) => {
         enqueueImageForCreate,
         uploadImageForUpdate,
     } = props
-    const schema = getSchema()
+    const schema = useSchema()
     const [connectionStatus] = useConnection()
-    const customizationFile = getCollectionConfigModule(collection.labels.collection)
+    const customizationFile = useCollectionConfigModule(collection.labels.collection)
     const customization = getFieldCustomization(field, customizationFile)
     const admin = customization.admin
     const permissions = getCurrentUserPermissions()
@@ -614,7 +619,7 @@ function StringField({
     icon,
     prevState,
 }: FieldProps & { isTextarea?: boolean; isRadio?: boolean; isButtonGroup?: boolean; isTime?: boolean }) {
-    const customization = getCollectionConfigModule(collection.labels.collection)
+    const customization = useCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
     if ((field as StringFieldType).values) {
         if (isRadio) {
@@ -645,7 +650,7 @@ function StringField({
                             <FormControl>
                                 <RadioGroup
                                     onValueChange={formField.onChange}
-                                    value={formField.value}
+                                    value={formField.value ?? ""}
                                     disabled={isDisabled}
                                     className="pt-2"
                                 >
@@ -765,7 +770,11 @@ function StringField({
                             prevState={prevState}
                         />
                         <FormControl>
-                            <Select onValueChange={formField.onChange} value={formField.value} disabled={isDisabled}>
+                            <Select
+                                onValueChange={formField.onChange}
+                                value={formField.value ?? ""}
+                                disabled={isDisabled}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder={`Select ${label?.toLowerCase()}...`} />
                                 </SelectTrigger>
@@ -1093,10 +1102,10 @@ function NumberField({
     icon,
     prevState,
 }: FieldProps & { isSlider?: boolean }) {
+    const customization = useCollectionConfigModule(collection.labels.collection)
     if ("autoIncrement" in field && field.autoIncrement) {
         return null
     }
-    const customization = getCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, customization)
     if ((field as NumberFieldType).values) {
         return (
@@ -1126,7 +1135,7 @@ function NumberField({
                         <FormControl>
                             <Select
                                 onValueChange={(value) => formField.onChange(Number(value))}
-                                value={formField.value?.toString()}
+                                value={formField.value?.toString() ?? ""}
                                 disabled={isDisabled}
                             >
                                 <SelectTrigger>
@@ -1895,11 +1904,11 @@ function RelationField({
     icon,
     prevState,
 }: FieldProps) {
-    const schema = getSchema(true)
+    const schema = useSchema(true)
     const relationCollection = schema.collections[(field as RelationFieldType).collection]
     const { labels, recordTitleField, fullTextSearch, softDelete } = relationCollection
-    const customization = getCollectionConfigModule(labels.collection)
-    const formCustomization = getCollectionConfigModule(collection.labels.collection)
+    const customization = useCollectionConfigModule(labels.collection)
+    const formCustomization = useCollectionConfigModule(collection.labels.collection)
     const fieldCustomization = getFieldCustomization(field, formCustomization)
     const isCollectionPreloadCacheEnabled = preloadCacheEnabled(relationCollection)
     const isCollectionServerReadOnly = serverReadOnly(relationCollection)
@@ -2524,7 +2533,7 @@ function RelationField({
 }
 
 function ComputedField({ form, collection, label, description, field, record, icon, prevState }: FieldProps) {
-    const customization = getCollectionConfigModule(collection.labels.collection)
+    const customization = useCollectionConfigModule(collection.labels.collection)
     const [connectionStatus] = useConnection()
     const goToRecord = useGoToRecord()
     const values = { ...record, ...form.getValues() } as StokerRecord
@@ -2540,7 +2549,7 @@ function ComputedField({ form, collection, label, description, field, record, ic
                 prevState={prevState}
             />
             <FormControl>
-                <div>
+                <div className="whitespace-pre-line">
                     {getFormattedFieldValue(
                         customization,
                         field,
@@ -2577,7 +2586,18 @@ function RecordForm({
     const resolvedDraftKey = draftKey || labels.collection
     const { draftStorageKey, draftOwnerStorageKey } = getDraftStorageKeys(resolvedDraftKey)
     const tenantId = getTenant()
-    const schema = getSchema()
+    const schema = useSchema()
+    const schemaWithComputedFields = useSchema(true)
+    const fieldIndexes = useMemo(
+        () =>
+            new Map(
+                (schemaWithComputedFields.collections[labels.collection]?.fields ?? fields).map((field, index) => [
+                    field.name,
+                    index,
+                ]),
+            ),
+        [schemaWithComputedFields, labels.collection, fields],
+    )
     const softDeleteField = softDelete?.archivedField
     const softDeleteTimestampField = softDelete?.timestampField
     const { serverWriteOnly } = access
@@ -2598,7 +2618,7 @@ function RecordForm({
     if (!collectionPermissions) {
         throw new Error("PERMISSION_DENIED")
     }
-    const customization = getCollectionConfigModule(collection.labels.collection)
+    const customization = useCollectionConfigModule(collection.labels.collection)
     const isServerReadOnly = serverReadOnly(collection)
     const { toast } = useToast()
 
@@ -2621,9 +2641,16 @@ function RecordForm({
         return defaultValues
     }, [fields, record])
 
-    const formSchema = getInputSchema(collection, schema, customization, undefined, operation === "update-many")
+    const formSchema = useMemo(
+        () => getInputSchema(collection, schema, customization, undefined, operation === "update-many"),
+        [collection, schema, customization, operation],
+    )
     const autoIncrementFieldNames = useMemo(
         () => fields.filter((field) => field.type === "Number" && field.autoIncrement).map((field) => field.name),
+        [fields],
+    )
+    const optionalFieldNames = useMemo(
+        () => fields.filter((field) => !field.required).map((field) => field.name),
         [fields],
     )
     const schemaResolver = zodResolver(formSchema)
@@ -2633,6 +2660,10 @@ function RecordForm({
             for (const name of autoIncrementFieldNames) {
                 // eslint-disable-next-line security/detect-object-injection
                 delete submitted[name]
+            }
+            for (const name of optionalFieldNames) {
+                // eslint-disable-next-line security/detect-object-injection
+                if (submitted[name] === null) submitted[name] = undefined
             }
             return schemaResolver(submitted, context, options)
         },
@@ -3213,7 +3244,7 @@ function RecordForm({
     }
 
     const renderFieldsWithCustomFields = () => {
-        if (!customFields || customFields.length === 0) {
+        if (isFormReady < fields.length || !customFields || customFields.length === 0) {
             return fields.map((field) => {
                 const value = formValues[field.name]
                 return (
@@ -3244,7 +3275,8 @@ function RecordForm({
         const currentValues = { ...(form.getValues() as StokerRecord), id: record?.id }
         fields.forEach((field, index) => {
             const fieldCustomization = getFieldCustomization(field, customization)
-            const fieldPosition = tryFunction(fieldCustomization.admin?.column, [currentValues]) ?? index
+            const fieldPosition =
+                tryFunction(fieldCustomization.admin?.column, [currentValues]) ?? fieldIndexes.get(field.name) ?? index
             combinedItems.push({ type: "field", item: field, index: fieldPosition })
         })
 
@@ -4112,25 +4144,28 @@ function RecordForm({
 
     const handleSubmit = useCallback(
         async (values: z.infer<typeof formSchema>) => {
+            const submittedValues = { ...values }
             for (const field of fields) {
                 const fieldCustomization = getFieldCustomization(field, customization)
-                const label = tryFunction(fieldCustomization.admin?.label, [values]) || field.name
+                const label = tryFunction(fieldCustomization.admin?.label, [submittedValues]) || field.name
                 const overrideFormRequiredValidation = tryFunction(
                     fieldCustomization.admin?.overrideFormRequiredValidation,
-                    [operation, values, prevState],
+                    [operation, submittedValues, prevState],
                 )
+                const value = submittedValues[field.name]
                 let hasValue = false
                 switch (field.type) {
                     case "Map":
                         hasValue =
-                            values[field.name] &&
-                            !(values[field.name].ops.length === 1 && values[field.name].ops[0].insert === "\n")
+                            value instanceof Delta
+                                ? !(value.ops.length === 1 && value.ops[0].insert === "\n")
+                                : !!value && Object.keys(value).length > 0
                         break
                     case "Boolean":
-                        hasValue = typeof values[field.name] === "boolean"
+                        hasValue = typeof value === "boolean"
                         break
                     default:
-                        hasValue = !!values[field.name]
+                        hasValue = !!value
                 }
                 if (overrideFormRequiredValidation && !hasValue) {
                     setError(`"${label}" is required`)
@@ -4164,7 +4199,7 @@ function RecordForm({
                     delete values[field.name]
                 }
 
-                if (values[field.name] === null) {
+                if (field.name in values && (values[field.name] === null || values[field.name] === undefined)) {
                     if (originalRecord?.[field.name]) {
                         values[field.name] = deleteField()
                     } else {
@@ -4519,6 +4554,14 @@ function RecordForm({
                         setPrevState((prev) => {
                             const newPrevState = { ...prev }
                             for (const [key, value] of Object.entries(recordToSave)) {
+                                if (
+                                    systemFields.includes(key as SystemField) ||
+                                    key.endsWith("_Lowercase") ||
+                                    key.endsWith("_Array") ||
+                                    key.endsWith("_Single")
+                                ) {
+                                    continue
+                                }
                                 if (value instanceof FieldValue) {
                                     // eslint-disable-next-line security/detect-object-injection
                                     delete newPrevState[key]
