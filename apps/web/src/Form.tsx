@@ -4168,10 +4168,13 @@ function RecordForm({
             for (const field of fields) {
                 const fieldCustomization = getFieldCustomization(field, customization)
                 const label = tryFunction(fieldCustomization.admin?.label, [submittedValues]) || field.name
-                const overrideFormRequiredValidation = tryFunction(
-                    fieldCustomization.admin?.overrideFormRequiredValidation,
-                    [operation, submittedValues, prevState],
-                )
+                const overrideFormRequiredValidation =
+                    operation !== "update-many" &&
+                    tryFunction(fieldCustomization.admin?.overrideFormRequiredValidation, [
+                        operation,
+                        submittedValues,
+                        prevState,
+                    ])
                 const value = submittedValues[field.name]
                 let hasValue = false
                 switch (field.type) {

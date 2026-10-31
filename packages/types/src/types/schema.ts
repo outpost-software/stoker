@@ -1398,7 +1398,9 @@ export interface FieldAdmin {
      */
     condition?: {
         list?: boolean | ((parentCollection?: CollectionSchema, parentRecord?: StokerRecord) => boolean)
-        form?: boolean | ((operation?: "create" | "update", record?: StokerRecord, isExport?: boolean) => boolean)
+        form?:
+            | boolean
+            | ((operation?: "create" | "update" | "update-many", record?: StokerRecord, isExport?: boolean) => boolean)
     }
     /** Return `true` to set this as a read-only field in the Admin UI */
     readOnly?: boolean | ((operation?: "create" | "update", record?: StokerRecord) => boolean)
