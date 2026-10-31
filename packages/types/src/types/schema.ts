@@ -1388,7 +1388,7 @@ export interface FieldAdmin {
      */
     label?: string | ((record?: StokerRecord) => string)
     /** Override the field name shown in the list view */
-    listLabel?: string | (() => string)
+    listLabel?: string | ((isExport?: boolean) => string)
     /** An icon that will be shown for the field on the form page */
     icon?: FormFieldIcon | (() => FormFieldIcon | Promise<FormFieldIcon>)
     /**

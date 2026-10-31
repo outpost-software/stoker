@@ -39,7 +39,7 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
         if (collection.auth && field.name === "User_ID") continue
         const fieldCustomization = getFieldCustomization(field, customization)
         const label =
-            tryFunction(fieldCustomization.admin?.listLabel) ||
+            tryFunction(fieldCustomization.admin?.listLabel, [true]) ||
             tryFunction(fieldCustomization.admin?.label) ||
             field.name
         const noExport = tryFunction(fieldCustomization.admin?.noExport) || false
