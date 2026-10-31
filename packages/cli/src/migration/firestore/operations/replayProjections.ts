@@ -216,6 +216,27 @@ const replayCollectionForTenant = async (
     await bulkWriter.close()
 }
 
+export const replayCollectionProjections = async (schema: CollectionsSchema, collection: string) => {
+    // eslint-disable-next-line security/detect-object-injection
+    const collectionSchema = schema.collections[collection]
+    if (!collectionSchema) {
+        throw new Error(`Collection ${collection} not found in schema`)
+    }
+    const plan: CollectionReplayPlan = {
+        collection,
+        collectionSchema,
+        projectionKeys: getProjectionKeys(collectionSchema, schema),
+        uniqueFieldNames: new Set(getUniqueFieldNames(collectionSchema)),
+    }
+
+    const db = getStokerFirestore()
+    const roleGroups = getAllRoleGroups(schema)
+    const tenants = await db.collection("tenants").listDocuments()
+    for (const tenant of tenants) {
+        await replayCollectionForTenant(tenant, plan, schema, roleGroups)
+    }
+}
+
 export const replayProjections = async (currentSchema: CollectionsSchema, lastSchema: CollectionsSchema) => {
     const plans: CollectionReplayPlan[] = []
     for (const collection of Object.keys(currentSchema.collections)) {

@@ -89,6 +89,7 @@ import { customDomain } from "./project/customDomain.js"
 import { applySchema } from "./deploy/schema/applySchema.js"
 import { addTenant } from "./project/addTenant.js"
 import { deleteTenant } from "./project/deleteTenant.js"
+import { replayProjections } from "./project/replayProjections.js"
 import { updateLiveSchema } from "./deploy/schema/updateLiveSchema.js"
 import { generateTypes } from "./types/generateTypes.js"
 
@@ -268,6 +269,14 @@ program
     .description("migrate the database")
     .action(() => {
         migrateAll()
+    })
+
+program
+    .command("replay-projections")
+    .description("force replay all projections for a collection")
+    .requiredOption("-c, --collection <collection>", "the collection to replay projections for")
+    .action((options) => {
+        replayProjections(options)
     })
 
 program
