@@ -1,5 +1,15 @@
 # @stoker-platform/types
 
+## 0.5.80
+
+### Patch Changes
+
+- feat: only enforce server read rules when serverReadOnly enabled
+- feat: add className option to String and Number fields
+- feat: improve update-many form conditions
+- feat: add isExport option to listLabel method
+- fix: assess form condition and custom fields synchronously
+
 ## 0.5.79
 
 ### Patch Changes

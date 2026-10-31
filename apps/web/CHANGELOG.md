@@ -1,5 +1,24 @@
 # @stoker-platform/web-app
 
+## 0.5.264
+
+### Patch Changes
+
+- feat: add className option to String and Number fields
+- feat: improve Form component
+- feat: add User_ID to Form callbacks
+- feat: improve update-many form conditions
+- feat: add isExport option to listLabel method
+- feat: add location picker disabled state
+- fix: prevent application of default values to inaccessible filters
+- fix: hide required field asterix when read-only
+- fix: fix Form UI flicker issues
+- fix: assess form condition and custom fields synchronously
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.114
+    - @stoker-platform/utils@0.5.99
+    - @stoker-platform/web-client@0.5.117
+
 ## 0.5.263
 
 ### Patch Changes

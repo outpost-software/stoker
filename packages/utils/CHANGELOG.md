@@ -1,5 +1,13 @@
 # @stoker-platform/utils
 
+## 0.5.99
+
+### Patch Changes
+
+- fix: include sorting fields in field access group projections
+- Updated dependencies
+    - @stoker-platform/types@0.5.80
+
 ## 0.5.98
 
 ### Patch Changes

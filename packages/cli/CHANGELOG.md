@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.187
+
+### Patch Changes
+
+- fix: include sorting fields in field access group projections
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.114
+    - @stoker-platform/types@0.5.80
+    - @stoker-platform/utils@0.5.99
+
 ## 0.5.186
 
 ### Patch Changes

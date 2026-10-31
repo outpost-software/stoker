@@ -1,5 +1,15 @@
 # @stoker-platform/node-client
 
+## 0.5.114
+
+### Patch Changes
+
+- feat: only enforce server read rules when serverReadOnly enabled
+- fix: pass non-stripped record to access check
+- Updated dependencies
+    - @stoker-platform/types@0.5.80
+    - @stoker-platform/utils@0.5.99
+
 ## 0.5.113
 
 ### Patch Changes
