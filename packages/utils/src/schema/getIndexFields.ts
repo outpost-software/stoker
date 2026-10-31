@@ -192,7 +192,7 @@ export const getFieldAccessGroupIndexFields = (
     const overlayRoles = getFieldAccessGroupRoles(groupKey, collection, roleGroup)
     if (overlayRoles.length === 0) return []
     const indexFields: CollectionField[] = []
-    const { fields, softDelete, preloadCache, roleSystemFields, queries } = collection
+    const { fields, softDelete, preloadCache, roleSystemFields, queries, recordTitleField } = collection
     const systemFieldsSchema = getSystemFieldsSchema()
 
     indexFields.push({
@@ -210,6 +210,23 @@ export const getFieldAccessGroupIndexFields = (
     // eslint-disable-next-line security/detect-object-injection
     const groupFields = getFieldAccessGroupFields(collection)[groupKey] || []
     indexFields.push(...groupFields)
+
+    const directQueryRoles = overlayRoles.filter(
+        (role) => !preloadCache?.roles.includes(role) && !collection.access.serverReadOnly?.includes(role),
+    )
+    if (directQueryRoles.length > 0) {
+        fields.forEach((field) => {
+            const { sorting } = field
+            const sortable =
+                field.name === recordTitleField ||
+                sorting === true ||
+                (typeof sorting === "object" &&
+                    (!sorting.roles || directQueryRoles.some((role) => sorting.roles?.includes(role))))
+            if (sortable && directQueryRoles.some((role) => fieldRoleProjectionAccess(field, role))) {
+                indexFields.push(field)
+            }
+        })
+    }
 
     if (softDelete) {
         const softDeleteField = getField(fields, softDelete.archivedField)

@@ -48,11 +48,17 @@ const getRoleGroupShape = (collectionSchema: CollectionSchema, schema: Collectio
         }))
         .sort((a, b) => a.key.localeCompare(b.key))
 
-const getFieldAccessGroupFieldShape = (collectionSchema: CollectionSchema) => {
+const getFieldAccessGroupFieldShape = (collectionSchema: CollectionSchema, schema: CollectionsSchema) => {
     const shape: Record<string, string[]> = {}
+    const roleGroups = getRoleGroups(collectionSchema, schema)
     for (const [groupKey, groupFields] of Object.entries(getFieldAccessGroupFields(collectionSchema))) {
-        // eslint-disable-next-line security/detect-object-injection
-        shape[groupKey] = groupFields.map((field) => field.name).sort()
+        if (groupFields.length === 0) continue
+        for (const group of roleGroups) {
+            const indexFields = getFieldAccessGroupIndexFields(groupKey, collectionSchema, group)
+            if (indexFields.length === 0) continue
+            const fieldAccessGroupKey = getFieldAccessGroupKey(groupKey, group.key)
+            shape[fieldAccessGroupKey] = indexFields.map((field) => field.name).sort()
+        }
     }
     return shape
 }
@@ -226,8 +232,8 @@ export const replayProjections = async (currentSchema: CollectionsSchema, lastSc
         const fieldAccessGroupsChanged =
             !isEqual(lastCollectionSchema.fieldAccessGroups, currentCollectionSchema.fieldAccessGroups) ||
             !isEqual(
-                getFieldAccessGroupFieldShape(lastCollectionSchema),
-                getFieldAccessGroupFieldShape(currentCollectionSchema),
+                getFieldAccessGroupFieldShape(lastCollectionSchema, lastSchema),
+                getFieldAccessGroupFieldShape(currentCollectionSchema, currentSchema),
             )
         const uniqueFieldsChanged = !isEqual(
             getUniqueFieldNames(lastCollectionSchema),
