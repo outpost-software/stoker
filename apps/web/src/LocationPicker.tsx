@@ -47,16 +47,20 @@ export function LocationPicker({ value, onChange, disabled, defaultCenter, defau
         }
     }, [isMapLoaded])
 
-    const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
-        if (event.latLng) {
-            const newLocation = { lat: event.latLng.lat(), lng: event.latLng.lng() }
-            if (newLocation) {
-                onChange([newLocation.lat, newLocation.lng])
-            } else {
-                onChange(null)
+    const handleMapClick = useCallback(
+        (event: google.maps.MapMouseEvent) => {
+            if (disabled) return
+            if (event.latLng) {
+                const newLocation = { lat: event.latLng.lat(), lng: event.latLng.lng() }
+                if (newLocation) {
+                    onChange([newLocation.lat, newLocation.lng])
+                } else {
+                    onChange(null)
+                }
             }
-        }
-    }, [])
+        },
+        [disabled, onChange],
+    )
 
     const handleClear = useCallback(() => {
         onChange(null)
@@ -80,14 +84,17 @@ export function LocationPicker({ value, onChange, disabled, defaultCenter, defau
                             onClick={handleMapClick}
                             options={{
                                 gestureHandling: "cooperative",
+                                draggableCursor: disabled ? "default" : undefined,
+                                clickableIcons: !disabled,
                             }}
                         >
                             {value && (
                                 <MarkerF
                                     position={{ lat: value[0], lng: value[1] }}
-                                    draggable={true}
+                                    draggable={!disabled}
+                                    clickable={!disabled}
                                     onDragEnd={(event) => {
-                                        if (event.latLng) {
+                                        if (!disabled && event.latLng) {
                                             onChange([event.latLng.lat(), event.latLng.lng()])
                                         }
                                     }}
@@ -100,15 +107,8 @@ export function LocationPicker({ value, onChange, disabled, defaultCenter, defau
                         </div>
                     )}
                 </div>
-                {value && (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleClear}
-                        disabled={disabled}
-                        className="p-1"
-                    >
+                {value && !disabled && (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleClear} className="p-1">
                         <X className="w-4 h-4" />
                     </Button>
                 )}

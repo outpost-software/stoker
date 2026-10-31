@@ -488,7 +488,7 @@ const RecordFormField = (props: FieldProps) => {
                 !hasUpdateAccess ||
                 isUpdateDisabled))
 
-    if (isReadOnly && !isRichText) {
+    if (isReadOnly && !isRichText && !isLocation) {
         if (field.type === "Computed" && tryFunction(customization.admin?.asRichText)) {
             return (
                 <MapField
@@ -575,6 +575,7 @@ const RecordFormField = (props: FieldProps) => {
                     description={description}
                     isDisabled={isDisabled}
                     isLocation={isLocation}
+                    readOnly={isReadOnly}
                     icon={icon}
                 />
             )
@@ -1611,6 +1612,7 @@ function ArrayField({
     isLocation,
     icon,
     prevState,
+    readOnly,
 }: FieldProps & { isLocation?: LocationFieldAdmin }) {
     const [selectedValue, setSelectedValue] = useState<string | undefined>(undefined)
 
@@ -1634,7 +1636,7 @@ function ArrayField({
                             <LocationPicker
                                 value={formField.value as [number, number] | null}
                                 onChange={(value) => formField.onChange(value)}
-                                disabled={isDisabled}
+                                disabled={isDisabled || readOnly}
                                 label={label}
                                 defaultCenter={isLocation.center}
                                 defaultZoom={isLocation.zoom}
