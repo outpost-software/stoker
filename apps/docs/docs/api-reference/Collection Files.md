@@ -1937,7 +1937,7 @@ type CustomField = {
 }
 ```
 
-`CustomField[] | (() => CustomField[] | Promise<CustomField[]>)`
+`CustomField[] | (() => CustomField[])`
 
 Create custom form field components.
 

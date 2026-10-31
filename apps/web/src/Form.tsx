@@ -338,8 +338,17 @@ const RecordFormField = (props: FieldProps) => {
     const userClaims = getCurrentUser()?.token.claims ?? {}
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
 
+    const getFormRecord = () =>
+        ({
+            ...(form.getValues() as StokerRecord),
+            id: record?.id,
+            ...(collection.auth && record?.User_ID ? { User_ID: record.User_ID } : {}),
+        }) as StokerRecord
+
     const [label, setLabel] = useState("")
-    const [condition, setCondition] = useState(false)
+    const [condition, setCondition] = useState(
+        () => tryFunction(admin?.condition?.form, [operation, getFormRecord()]) !== false,
+    )
     const [readOnly, setReadOnly] = useState(false)
     const [description, setDescription] = useState("")
     const [isTextarea, setIsTextarea] = useState(false)
@@ -354,18 +363,8 @@ const RecordFormField = (props: FieldProps) => {
     const [isButtonGroup, setIsButtonGroup] = useState(false)
     const [icon, setIcon] = useState<FormFieldIcon | undefined>(undefined)
 
-    const getFormRecord = () =>
-        ({
-            ...(form.getValues() as StokerRecord),
-            id: record?.id,
-            ...(collection.auth && record?.User_ID ? { User_ID: record.User_ID } : {}),
-        }) as StokerRecord
-
     useEffect(() => {
         const initialize = async () => {
-            const condition = tryFunction(admin?.condition?.form, [operation, record])
-            setCondition(!!condition)
-
             const [
                 label,
                 description,
@@ -2768,7 +2767,10 @@ function RecordForm({
     const [showConvertModal, setShowConvertModal] = useState(false)
     const [convertRecordData, setConvertRecordData] = useState<Partial<StokerRecord> | undefined>(undefined)
     const [convertTargetCollection, setConvertTargetCollection] = useState<CollectionSchema | undefined>(undefined)
-    const [customFields, setCustomFields] = useState<CustomField[] | undefined>(undefined)
+    const customFields = useMemo<CustomField[]>(
+        () => tryFunction(customization.admin?.customFields) ?? [],
+        [customization],
+    )
     const [formButtons, setFormButtons] = useState<FormButton[] | undefined>(undefined)
     const [formLists, setFormLists] = useState<FormList[] | undefined>(undefined)
 
@@ -3286,7 +3288,7 @@ function RecordForm({
     }
 
     const renderFieldsWithCustomFields = () => {
-        if (fieldsInitialized < fields.length || !customFields || customFields.length === 0) {
+        if (fieldsInitialized < fields.length || customFields.length === 0) {
             return fields.map((field) => {
                 const value = formValues[field.name]
                 return (
@@ -3837,7 +3839,6 @@ function RecordForm({
                 enableDuplicate,
                 disableCreate,
                 convert,
-                customFields,
                 formButtons,
                 formLists,
             ] = await Promise.all([
@@ -3873,7 +3874,6 @@ function RecordForm({
                 getCachedConfigValue(customization, [...collectionAdminPath, "duplicate"]),
                 getCachedConfigValue(customization, [...collectionAdminPath, "hideCreate"], [parentCollection], true),
                 getCachedConfigValue(customization, [...collectionAdminPath, "convert"]),
-                getCachedConfigValue(customization, [...collectionAdminPath, "customFields"]),
                 getCachedConfigValue(customization, [...collectionAdminPath, "formButtons"]),
                 getCachedConfigValue(customization, [...collectionAdminPath, "formLists"]),
             ])
@@ -3892,7 +3892,6 @@ function RecordForm({
             setEnableDuplicate(enableDuplicate)
             setDisableCreate(!!disableCreate)
             setConvert(convert)
-            setCustomFields(customFields)
 
             const formButtonsTyped = formButtons as FormButton[] | undefined
             if (formButtonsTyped && formButtonsTyped.length > 0) {

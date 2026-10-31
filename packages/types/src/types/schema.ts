@@ -1229,7 +1229,7 @@ export interface CollectionAdmin {
     /** An array of relational field names that will be used to show breadcrumbs at the top of the record page */
     breadcrumbs?: string[] | (() => string[] | Promise<string[]>)
     /** Create custom form field components */
-    customFields?: CustomField[] | (() => CustomField[] | Promise<CustomField[]>)
+    customFields?: CustomField[] | (() => CustomField[])
     /** Create custom pages for the collection */
     customRecordPages?: CustomRecordPage[] | (() => CustomRecordPage[] | Promise<CustomRecordPage[]>)
     /** Show custom buttons at the bottom of the edit record form */
