@@ -285,6 +285,7 @@ interface FieldProps {
     collection: CollectionSchema
     field: CollectionField
     setIsFormReady: React.Dispatch<React.SetStateAction<number>>
+    setFieldsInitialized: React.Dispatch<React.SetStateAction<number>>
     formResetKey?: number
     record?: StokerRecord
     path?: string[]
@@ -323,6 +324,7 @@ const RecordFormField = (props: FieldProps) => {
         isDisabled,
         isUpdateDisabled,
         setIsFormReady,
+        setFieldsInitialized,
         formResetKey,
         enqueueImageForCreate,
         uploadImageForUpdate,
@@ -414,6 +416,7 @@ const RecordFormField = (props: FieldProps) => {
             // Prevent button and rich text editor from flickering
             const initialReadOnly = tryFunction(admin?.readOnly, [operation, record])
             setReadOnly(!!initialReadOnly)
+            setFieldsInitialized((prevState) => prevState + 1)
             setTimeout(() => {
                 setIsFormReady((prevState) => prevState + 1)
             }, 100)
@@ -424,13 +427,16 @@ const RecordFormField = (props: FieldProps) => {
     useEffect(() => {
         const values = getFormRecord()
         if (typeof admin?.label === "function") {
-            setLabel(admin.label(values) || field.name)
+            const label = admin.label(values) || field.name
+            setLabel((prevLabel) => (prevLabel ? label : prevLabel))
         }
         const condition = tryFunction(admin?.condition?.form, [operation, values])
         if (condition === false) {
             setCondition(false)
             return
         }
+        const readOnly = tryFunction(admin?.readOnly, [operation, values])
+        setReadOnly(!!readOnly)
         setCondition(true)
         setTimeout(() => {
             const readOnly = tryFunction(admin?.readOnly, [operation, getFormRecord()])
@@ -2650,6 +2656,24 @@ function RecordForm({
             if (record?.[field.name] !== undefined) {
                 defaultValues[field.name] = record?.[field.name]
             }
+            const fieldCustomization = getFieldCustomization(field, customization)
+            const firstValue = "values" in field ? field.values?.[0] : undefined
+            if (
+                operation === "create" &&
+                field.required &&
+                firstValue !== undefined &&
+                [undefined, null, ""].includes(defaultValues[field.name]) &&
+                tryFunction(fieldCustomization.admin?.condition?.form, [operation, { ...defaultValues }]) !== false &&
+                fieldCustomization.custom?.initialValue === undefined &&
+                restrictCreateAccess(
+                    field,
+                    permissions,
+                    collection.labels.collection,
+                    getCurrentUser()?.token.claims ?? {},
+                )
+            ) {
+                defaultValues[field.name] = firstValue
+            }
             if (auth && collectionPermissions.auth) {
                 defaultValues.password = ""
                 defaultValues.passwordConfirm = ""
@@ -2724,6 +2748,7 @@ function RecordForm({
     const [isDisabled, setIsDisabled] = useState(operation === "update")
 
     const [isFormReady, setIsFormReady] = useState(0)
+    const [fieldsInitialized, setFieldsInitialized] = useState(0)
     const modalDepth = useModalDepth()
     const { isGlobalLoading, setGlobalLoading } = useGlobalLoading()
     const [error, setError] = useState<string | null>(null)
@@ -3261,13 +3286,14 @@ function RecordForm({
     }
 
     const renderFieldsWithCustomFields = () => {
-        if (isFormReady < fields.length || !customFields || customFields.length === 0) {
+        if (fieldsInitialized < fields.length || !customFields || customFields.length === 0) {
             return fields.map((field) => {
                 const value = formValues[field.name]
                 return (
                     <RecordFormField
                         key={field.name}
                         setIsFormReady={setIsFormReady}
+                        setFieldsInitialized={setFieldsInitialized}
                         operation={operation}
                         form={form}
                         collection={collection}
@@ -3318,6 +3344,7 @@ function RecordForm({
                     <RecordFormField
                         key={field.name}
                         setIsFormReady={setIsFormReady}
+                        setFieldsInitialized={setFieldsInitialized}
                         operation={operation}
                         form={form}
                         collection={collection}

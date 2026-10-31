@@ -57,6 +57,7 @@ const getFieldAccessGroupFieldShape = (collectionSchema: CollectionSchema, schem
             const indexFields = getFieldAccessGroupIndexFields(groupKey, collectionSchema, group)
             if (indexFields.length === 0) continue
             const fieldAccessGroupKey = getFieldAccessGroupKey(groupKey, group.key)
+            // eslint-disable-next-line security/detect-object-injection
             shape[fieldAccessGroupKey] = indexFields.map((field) => field.name).sort()
         }
     }
