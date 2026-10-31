@@ -107,7 +107,10 @@ export const getFormattedFieldValue = (
             card ? "card" : form ? "form" : "list",
         ])
     }
-    if (value === undefined || value === null) return ""
+    if (value === undefined || value === null) {
+        if (form) return "-"
+        else return ""
+    }
 
     const getStandardDisplay = () => {
         if (badge) {

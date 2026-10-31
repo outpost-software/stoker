@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.265
+
+### Patch Changes
+
+- feat: add hyphen to empty read-only form fields
+
 ## 0.5.264
 
 ### Patch Changes
