@@ -6,18 +6,27 @@ import { CollectionSchema } from "@stoker-platform/types"
 
 const getAdapter = (collection: CollectionSchema) => {
     const MyModelAdapter: ChatModelAdapter = {
-        async *run({ messages }) {
+        async *run({ messages, abortSignal }) {
             const firebaseFunctions = getFunctions(getApp(), import.meta.env.STOKER_FB_FUNCTIONS_REGION)
             const chatApi = httpsCallable(firebaseFunctions, `stoker-chat${collection.labels.collection.toLowerCase()}`)
             let text = ""
-            const { stream } = await chatApi.stream({
-                messages,
-            })
-            for await (const chunk of stream) {
-                text += chunk
-                yield {
-                    content: [{ type: "text", text }],
+            const { stream, data } = await chatApi.stream(
+                {
+                    messages,
+                },
+                { signal: abortSignal },
+            )
+            data.catch(() => {})
+            try {
+                for await (const chunk of stream) {
+                    text += chunk
+                    yield {
+                        content: [{ type: "text", text }],
+                    }
                 }
+            } catch (error) {
+                if (abortSignal.aborted) throw abortSignal.reason
+                throw error
             }
         },
     }
