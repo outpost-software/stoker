@@ -1,5 +1,13 @@
 # @stoker-platform/web-client
 
+## 0.5.118
+
+### Patch Changes
+
+- feat: retry callable Cloud Functions on unauthenticated failure
+- Updated dependencies
+    - @stoker-platform/utils@0.5.100
+
 ## 0.5.117
 
 ### Patch Changes

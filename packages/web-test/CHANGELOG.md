@@ -1,5 +1,14 @@
 # @stoker-platform/web-test
 
+## 0.5.14
+
+### Patch Changes
+
+- chore: exclude tsconfig.tsbuildinfo from published packages
+- Updated dependencies
+    - @stoker-platform/utils@0.5.100
+    - @stoker-platform/node-client@0.5.115
+
 ## 0.5.13
 
 ### Patch Changes

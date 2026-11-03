@@ -1,5 +1,15 @@
 # @stoker-platform/cli
 
+## 0.5.189
+
+### Patch Changes
+
+- fix: prevent emulator data export hang on Windows
+- chore: exclude tsconfig.tsbuildinfo from published packages
+- Updated dependencies
+    - @stoker-platform/utils@0.5.100
+    - @stoker-platform/node-client@0.5.115
+
 ## 0.5.188
 
 ### Patch Changes

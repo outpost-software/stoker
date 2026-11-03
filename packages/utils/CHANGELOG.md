@@ -1,5 +1,11 @@
 # @stoker-platform/utils
 
+## 0.5.100
+
+### Patch Changes
+
+- chore: exclude tsconfig.tsbuildinfo from published packages
+
 ## 0.5.99
 
 ### Patch Changes

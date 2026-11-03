@@ -1,5 +1,16 @@
 # @stoker-platform/web-app
 
+## 0.5.266
+
+### Patch Changes
+
+- feat: retry callable Cloud Functions on unauthenticated failure
+- fix: prevent AI chat stop button from throwing error
+- Updated dependencies
+    - @stoker-platform/utils@0.5.100
+    - @stoker-platform/web-client@0.5.118
+    - @stoker-platform/node-client@0.5.115
+
 ## 0.5.265
 
 ### Patch Changes

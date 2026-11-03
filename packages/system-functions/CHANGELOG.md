@@ -1,5 +1,14 @@
 # @stoker-platform/system-functions
 
+## 0.5.138
+
+### Patch Changes
+
+- chore: exclude tsconfig.tsbuildinfo from published packages
+- Updated dependencies
+    - @stoker-platform/utils@0.5.100
+    - @stoker-platform/node-client@0.5.115
+
 ## 0.5.137
 
 ### Patch Changes
