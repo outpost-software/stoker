@@ -7,6 +7,7 @@
     "types": "lib/src/main.d.ts",
     "files": [
         "lib",
+        "!lib/tsconfig.tsbuildinfo",
         "LICENSE.md"
     ],
     "scripts": {

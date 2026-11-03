@@ -6,6 +6,7 @@
     "main": "./lib/src/main.js",
     "files": [
         "lib",
+        "!lib/tsconfig.tsbuildinfo",
         "init-files",
         "LICENSE.md"
     ],
