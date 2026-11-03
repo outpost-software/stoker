@@ -1,4 +1,5 @@
-import { httpsCallable, getFunctions } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
+import { httpsCallable } from "../utils/httpsCallable"
 import { getApp } from "firebase/app"
 import { getEnv } from "../initializeStoker"
 import { StokerRecord } from "@stoker-platform/types"

@@ -1,4 +1,5 @@
-import { httpsCallable, getFunctions } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
+import { httpsCallable } from "./httpsCallable"
 import { getApp } from "firebase/app"
 import { getEnv } from "../main"
 

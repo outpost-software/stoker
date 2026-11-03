@@ -9,7 +9,8 @@ import {
 import { getEnv, getFirestoreWriteAuth, getGlobalConfigModule } from "./initializeStoker"
 import { tryPromise } from "@stoker-platform/utils"
 import { getApp } from "firebase/app"
-import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
+import { httpsCallable } from "./utils/httpsCallable"
 
 export const authenticateStoker = async (
     email: string,

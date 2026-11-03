@@ -4,6 +4,7 @@ import {
     getCurrentUserPermissions,
     getGlobalConfigModule,
     getSchema,
+    httpsCallable,
     multiFactorEnroll,
     onStokerSignOut,
     signOut,
@@ -56,7 +57,7 @@ import { useDialog } from "./providers/DialogProvider"
 import { useConnection } from "./providers/ConnectionProvider"
 import { getAuth, multiFactor } from "firebase/auth"
 import { QRCodeSVG } from "qrcode.react"
-import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
 import { getApp } from "firebase/app"
 import { useTheme } from "./components/theme-provider"
 

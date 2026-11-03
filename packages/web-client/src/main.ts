@@ -41,6 +41,7 @@ export {
     displayDate,
 } from "./utils/convertToTimezone.js"
 export { callFunction } from "./utils/callFunction.js"
+export { httpsCallable } from "./utils/httpsCallable.js"
 
 export { tryPromise, getCachedConfigValue, getSchema as getZodSchema, isDeleteSentinel } from "@stoker-platform/utils"
 

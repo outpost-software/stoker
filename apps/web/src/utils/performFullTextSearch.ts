@@ -1,6 +1,7 @@
 import { CollectionSchema } from "@stoker-platform/types"
 import { getApp } from "firebase/app"
-import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
+import { httpsCallable } from "@stoker-platform/web-client"
 
 export const performFullTextSearch = async (
     collection: CollectionSchema,

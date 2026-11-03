@@ -1,6 +1,7 @@
 import { getEnv } from "../main"
 import { getApp } from "firebase/app"
-import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
+import { httpsCallable } from "./httpsCallable"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const callFunction = async (functionName: string, payload: Record<string, any>) => {

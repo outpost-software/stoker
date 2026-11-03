@@ -1,4 +1,5 @@
-import { getFunctions, httpsCallable } from "firebase/functions"
+import { getFunctions } from "firebase/functions"
+import { httpsCallable } from "../utils/httpsCallable"
 import { StokerPermissions, StokerRecord } from "@stoker-platform/types"
 import { serializeTimestamps } from "../utils/serializeTimestamps"
 import { getApp } from "firebase/app"

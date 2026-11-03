@@ -39,7 +39,8 @@ import {
     clearIndexedDbPersistence,
 } from "firebase/firestore"
 import { connectStorageEmulator, getStorage } from "firebase/storage"
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from "firebase/functions"
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions"
+import { httpsCallable } from "./utils/httpsCallable"
 import {
     AppCheck,
     AppCheckOptions,

@@ -91,9 +91,9 @@ const Invoices: GenerateSchema = ({ context }): CollectionSchema => {
                     async action(_operation, _formValues, record) {
                         if (!this.setIsLoading || !record) return
                         this.setIsLoading(true)
-                        const { getEnv } = await import("@stoker-platform/web-client")
+                        const { getEnv, httpsCallable } = await import("@stoker-platform/web-client")
                         const { getApp } = await import("firebase/app")
-                        const { getFunctions, httpsCallable } = await import("firebase/functions")
+                        const { getFunctions } = await import("firebase/functions")
                         const app = getApp()
                         const env = getEnv()
                         const firebaseFunctions = getFunctions(app, env.STOKER_FB_FUNCTIONS_REGION)
@@ -149,9 +149,9 @@ const Invoices: GenerateSchema = ({ context }): CollectionSchema => {
                                     onClick: async () => {
                                         setDialogContent(null)
                                         setIsLoading(true)
-                                        const { getEnv } = await import("@stoker-platform/web-client")
+                                        const { getEnv, httpsCallable } = await import("@stoker-platform/web-client")
                                         const { getApp } = await import("firebase/app")
-                                        const { getFunctions, httpsCallable } = await import("firebase/functions")
+                                        const { getFunctions } = await import("firebase/functions")
                                         const app = getApp()
                                         const env = getEnv()
                                         const firebaseFunctions = getFunctions(app, env.STOKER_FB_FUNCTIONS_REGION)
