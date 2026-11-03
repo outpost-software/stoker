@@ -119,14 +119,19 @@ export const prepareEmulatorData = async () => {
         "--project",
         process.env.GCP_PROJECT,
     ])
-    await runChildProcess("gcloud", [
-        "storage",
-        "cp",
-        "-r",
-        `gs://${process.env.GCP_PROJECT}/firestore_export`,
-        firestorePath,
-    ])
-    await runChildProcess("gcloud", ["storage", "rm", "-r", `gs://${process.env.GCP_PROJECT}/firestore_export`])
+    const gcloudStorageEnv = process.platform === "win32" ? { CLOUDSDK_STORAGE_PROCESS_COUNT: "1" } : undefined
+    await runChildProcess(
+        "gcloud",
+        ["storage", "cp", "-r", `gs://${process.env.GCP_PROJECT}/firestore_export`, firestorePath],
+        undefined,
+        gcloudStorageEnv,
+    )
+    await runChildProcess(
+        "gcloud",
+        ["storage", "rm", "-r", `gs://${process.env.GCP_PROJECT}/firestore_export`],
+        undefined,
+        gcloudStorageEnv,
+    )
 
     const firebaseExportMetadata = {
         firestore: {

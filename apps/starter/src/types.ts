@@ -149,7 +149,7 @@ export type InvoicesRecord = SystemFields & {
     Site: StokerRelationObject
     Site_Array: StokerRelationArray
     Status: "Draft" | "Sent" | "Paid" | "Archived"
-    Issued_Date: FirestoreTimestamp | null
+    Issued_Date: FirestoreTimestamp
     Due_Date: FirestoreTimestamp
     Message?: string
     To?: StokerRelationObject
@@ -174,7 +174,7 @@ export type InvoicesCreateInput = {
     Company: StokerRelationObject
     Site: StokerRelationObject
     Status: "Draft" | "Sent" | "Paid" | "Archived"
-    Issued_Date: FirestoreTimestamp | null
+    Issued_Date: FirestoreTimestamp
     Due_Date: FirestoreTimestamp
     Message?: string
     To?: StokerRelationObject
@@ -261,7 +261,7 @@ export type SitesRecord = SystemFields & {
     Expire_At: FirestoreTimestamp
     Work_Orders?: StokerRelationObject
     Work_Orders_Array?: StokerRelationArray
-    Start: FirestoreTimestamp | null
+    Start: FirestoreTimestamp
     User?: StokerRelationObject
     User_Array?: StokerRelationArray
     Location?: unknown[] | null
@@ -277,7 +277,7 @@ export type SitesCreateInput = {
     Active?: boolean
     Expire_At: FirestoreTimestamp
     Work_Orders?: StokerRelationObject
-    Start: FirestoreTimestamp | null
+    Start: FirestoreTimestamp
     User?: StokerRelationObject
     Location?: unknown[] | null
 }
@@ -372,7 +372,7 @@ export type Work_OrdersRecord = SystemFields & {
     Contact_Array?: StokerRelationArray
     State: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
     Status: "Not Started" | "In Progress" | "Completed"
-    Start: FirestoreTimestamp | null
+    Start: FirestoreTimestamp
     End?: FirestoreTimestamp | null
     Price?: number
     Area?: 1 | 3 | 5
@@ -409,7 +409,7 @@ export type Work_OrdersCreateInput = {
     Contact?: StokerRelationObject
     State: "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
     Status: "Not Started" | "In Progress" | "Completed"
-    Start: FirestoreTimestamp | null
+    Start: FirestoreTimestamp
     End?: FirestoreTimestamp | null
     Price?: number
     Area?: 1 | 3 | 5
