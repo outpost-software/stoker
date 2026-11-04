@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.15
+
+### Patch Changes
+
+- fix: change modal lookup method
+
 ## 0.5.14
 
 ### Patch Changes

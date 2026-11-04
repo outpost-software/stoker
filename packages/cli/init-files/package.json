@@ -22,9 +22,9 @@
         "build": "node bin/install.js && tsc && node bin/build.js && node bin/shim.js && npm --prefix functions run build",
         "postinstall": "playwright install chromium",
         "test": "vitest --run",
-        "pretest:web": "npm run web:prepare",
+        "pretest:web": "npm run web:prepare && stoker apply",
         "test:web": "playwright test",
-        "pretest:web:ui": "npm run web:prepare",
+        "pretest:web:ui": "npm run web:prepare && stoker apply",
         "test:web:ui": "playwright test --ui",
         "exit-emulators": "stoker-exit-emulators",
         "admin-emulators": "export FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099' && export FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000' && export FIRESTORE_EMULATOR_HOST='127.0.0.1:8080' && export FIREBASE_STORAGE_EMULATOR_HOST='127.0.0.1:9199'"

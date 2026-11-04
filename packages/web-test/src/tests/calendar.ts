@@ -394,7 +394,7 @@ const addFromCalendar = async (
         await dayCell(page, start).click()
     }
 
-    const picker = page.locator("#collection-picker-modal")
+    const picker = page.getByRole("dialog", { name: "Add to Calendar" })
     const startField = page.getByTestId(`field-${calendar.startField}`)
     await expect(picker.or(startField).first()).toBeVisible()
     if (await picker.isVisible()) {

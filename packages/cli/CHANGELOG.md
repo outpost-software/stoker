@@ -1,5 +1,12 @@
 # @stoker-platform/cli
 
+## 0.5.190
+
+### Patch Changes
+
+- feat: run stoker apply before web tests
+- feat: improve two way field access lint warning
+
 ## 0.5.189
 
 ### Patch Changes

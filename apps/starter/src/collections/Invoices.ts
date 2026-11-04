@@ -355,6 +355,7 @@ const Invoices: GenerateSchema = ({ context }): CollectionSchema => {
             {
                 name: "Billing_Sections",
                 type: "Array",
+                itemType: "Object",
                 admin: {
                     condition: {
                         form: false,
@@ -365,6 +366,7 @@ const Invoices: GenerateSchema = ({ context }): CollectionSchema => {
             {
                 name: "Billing_Line_Items",
                 type: "Array",
+                itemType: "Object",
                 admin: {
                     condition: {
                         form: false,
