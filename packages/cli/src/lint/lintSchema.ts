@@ -37,6 +37,7 @@ import {
     ParentEntityRestriction,
     ParentPropertyEntityRestriction,
     RelationField,
+    StokerRole,
     StringField,
     SystemField,
     FieldAccessCondition,
@@ -2237,6 +2238,23 @@ export const lintSchema = async (noLog = false) => {
                                 }
                             }
                         }
+                        const canUpdateTwoWayField = (role: StokerRole) => {
+                            if (!relationCollection.access.operations.update?.includes(role)) return false
+                            if (twoWayField.access) {
+                                if (isFieldAccessGroupReference(twoWayField.access)) {
+                                    const fieldAccessGroup =
+                                        relationCollection.fieldAccessGroups?.[twoWayField.access.group]
+                                    if (!fieldAccessGroup?.applicableRoles?.includes(role)) return false
+                                } else if (!twoWayField.access.includes(role)) return false
+                            }
+                            const twoWayRestrictUpdate = twoWayField.restrictUpdate
+                            if (twoWayRestrictUpdate === true) return false
+                            if (Array.isArray(twoWayRestrictUpdate)) return twoWayRestrictUpdate.includes(role)
+                            if (typeof twoWayRestrictUpdate === "object") {
+                                return !!twoWayRestrictUpdate.applicableRoles?.includes(role)
+                            }
+                            return true
+                        }
                         if (field.restrictUpdate) {
                             if (
                                 field.restrictUpdate === true ||
@@ -2246,33 +2264,15 @@ export const lintSchema = async (noLog = false) => {
                                     `Collection ${collectionName} has a relation field ${name} with a two way field ${field.twoWay} that has restrictUpdate set`,
                                 )
                             } else {
-                                const twoWayRestrictUpdate = twoWayField.restrictUpdate
                                 for (const role of schema.config.roles) {
-                                    if (field.restrictUpdate.includes(role)) continue
-                                    if (!relationCollection.access.operations.update?.includes(role)) continue
-                                    if (twoWayField.access) {
-                                        if (isFieldAccessGroupReference(twoWayField.access)) {
-                                            const fieldAccessGroup =
-                                                relationCollection.fieldAccessGroups?.[twoWayField.access.group]
-                                            if (!fieldAccessGroup?.applicableRoles?.includes(role)) continue
-                                        } else if (!twoWayField.access.includes(role)) continue
-                                    }
-                                    if (twoWayRestrictUpdate === true) continue
-                                    if (Array.isArray(twoWayRestrictUpdate) && !twoWayRestrictUpdate.includes(role))
-                                        continue
-                                    if (
-                                        typeof twoWayRestrictUpdate === "object" &&
-                                        !Array.isArray(twoWayRestrictUpdate) &&
-                                        !twoWayRestrictUpdate.applicableRoles?.includes(role)
-                                    )
-                                        continue
+                                    if (field.restrictUpdate.includes(role) || !canUpdateTwoWayField(role)) continue
                                     warnings.push(
                                         `Collection ${collectionName} has a relation field ${name} with a two way field ${field.twoWay} that has restrictUpdate set, but role ${role} can update the two way field`,
                                     )
                                 }
                             }
                         }
-                        if (field.required && !field.preserve) {
+                        if (["OneToOne", "OneToMany"].includes(type) && field.required && !field.preserve) {
                             warnings.push(
                                 `Collection ${collectionName} has a relation field ${name} that is required but does not have the preserve option set. This means that relations will be removed when the ${field.collection} record is deleted, potentially leaving required fields empty.`,
                             )
@@ -2284,17 +2284,29 @@ export const lintSchema = async (noLog = false) => {
                                 `Collection ${collectionName} has a two way relation field ${name} with collection ${field.collection} that has assignable operations set`,
                             )
                         }
-                        if (
-                            twoWayAccess.entityRestrictions?.restrictions?.length ||
-                            twoWayAccess.entityRestrictions?.parentFilters?.length
-                        ) {
+                        const entityRestrictedRoles = new Set(
+                            [
+                                ...(twoWayAccess.entityRestrictions?.restrictions || []),
+                                ...(twoWayAccess.entityRestrictions?.parentFilters || []),
+                            ].flatMap((restriction) =>
+                                restriction.roles.map((restrictionRole) => restrictionRole.role),
+                            ),
+                        )
+                        for (const role of entityRestrictedRoles) {
+                            if (!canUpdateTwoWayField(role)) continue
                             warnings.push(
-                                `Collection ${collectionName} has a two way relation field ${name} with collection ${field.collection} that has entity restrictions set`,
+                                `Collection ${collectionName} has a two way relation field ${name} with collection ${field.collection} that has entity restrictions set, and role ${role} can update the two way field ${field.twoWay}`,
                             )
                         }
-                        if (twoWayAccess.attributeRestrictions?.length) {
+                        const attributeRestrictedRoles = new Set(
+                            (twoWayAccess.attributeRestrictions || []).flatMap((restriction) =>
+                                restriction.roles.map((restrictionRole) => restrictionRole.role),
+                            ),
+                        )
+                        for (const role of attributeRestrictedRoles) {
+                            if (!canUpdateTwoWayField(role)) continue
                             warnings.push(
-                                `Collection ${collectionName} has a two way relation field ${name} with collection ${field.collection} that has attribute restrictions set`,
+                                `Collection ${collectionName} has a two way relation field ${name} with collection ${field.collection} that has attribute restrictions set, and role ${role} can update the two way field ${field.twoWay}`,
                             )
                         }
                     }

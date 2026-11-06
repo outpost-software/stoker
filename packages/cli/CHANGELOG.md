@@ -1,5 +1,11 @@
 # @stoker-platform/cli
 
+## 0.5.191
+
+### Patch Changes
+
+- feat: remove redundant linter warnings
+
 ## 0.5.190
 
 ### Patch Changes
