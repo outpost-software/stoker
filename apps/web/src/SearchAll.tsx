@@ -2,8 +2,9 @@ import { getCollectionConfigModule, getCurrentUserPermissions, getSchema } from 
 import { SearchAllResults } from "./SearchAllResults"
 import { PopoverContent } from "./components/ui/popover"
 import { collectionAccess, tryFunction } from "@stoker-platform/utils"
+import { StokerCollection } from "@stoker-platform/types"
 
-export const SearchAll = ({ query }: { query: string }) => {
+export const SearchAll = ({ query, hiddenCollections }: { query: string; hiddenCollections: StokerCollection[] }) => {
     const schema = getSchema()
     const permissions = getCurrentUserPermissions()
     const orderedCollections = Object.values(schema.collections).sort((a, b) => {
@@ -23,6 +24,7 @@ export const SearchAll = ({ query }: { query: string }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pr-4 max-h-[calc(80vh-100px)]">
                 {orderedCollections.map((collection) => {
                     const { fullTextSearch } = collection
+                    if (hiddenCollections.includes(collection.labels.collection)) return null
                     if (!permissions?.collections) return null
                     // eslint-disable-next-line security/detect-object-injection
                     const collectionPermissions = permissions.collections[collection.labels.collection]

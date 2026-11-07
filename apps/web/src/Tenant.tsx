@@ -101,6 +101,7 @@ function Tenant() {
     const [iconNames, setIconNames] = useState<{ [collection: StokerCollection]: any }>({})
     const [navbarMenu, setNavbarMenu] = useState<MenuGroup[]>([])
     const [sidebarMenu, setSidebarMenu] = useState<MenuGroup[]>([])
+    const [hiddenCollections, setHiddenCollections] = useState<StokerCollection[] | undefined>(undefined)
     const [logo, setLogo] = useState<string | undefined>(undefined)
     const [search, setSearch] = useState<string>("")
     const [searchFocused, setSearchFocused] = useState(false)
@@ -158,6 +159,7 @@ function Tenant() {
 
             const navbarMenu = []
             const sidebarMenu = []
+            const hiddenCollections: StokerCollection[] = []
 
             let groups = await getCachedConfigValue(globalConfig, ["global", "admin", "menu", "groups"])
             if (groups) {
@@ -189,7 +191,10 @@ function Tenant() {
                     "admin",
                     "hidden",
                 ])
-                if (hidden) continue
+                if (hidden) {
+                    hiddenCollections.push(collectionName)
+                    continue
+                }
                 if (collection.parentCollection) continue
                 if (!hasCollectionAccess(collection)) continue
 
@@ -225,6 +230,7 @@ function Tenant() {
             const sortedSidebarMenu = sidebarMenu.sort((a: MenuGroup, b: MenuGroup) => a.position - b.position)
             setNavbarMenu(sortedNavbarMenu)
             setSidebarMenu(sortedSidebarMenu)
+            setHiddenCollections(hiddenCollections)
 
             const logo = await getCachedConfigValue(globalConfig, ["global", "admin", "logo", "navbar"])
             setLogo(logo)
@@ -482,9 +488,11 @@ function Tenant() {
     const isLoading = isGlobalLoading.size > 0 || isRouteLoading.has(location.pathname)
 
     const showSearchAll = useMemo(() => {
+        if (!hiddenCollections) return false
         return (
             Object.values(schema.collections).filter((collection) => {
                 const { fullTextSearch } = collection
+                if (hiddenCollections.includes(collection.labels.collection)) return null
                 if (!permissions?.collections) return null
                 // eslint-disable-next-line security/detect-object-injection
                 const collectionPermissions = permissions.collections[collection.labels.collection]
@@ -493,7 +501,7 @@ function Tenant() {
                 return true
             }).length > 0
         )
-    }, [permissions])
+    }, [permissions, hiddenCollections])
 
     return (
         appName &&
@@ -631,7 +639,9 @@ function Tenant() {
                                                 />
                                             </search>
                                         </PopoverTrigger>
-                                        {search && showSearchAll && <SearchAll query={search} />}
+                                        {search && showSearchAll && (
+                                            <SearchAll query={search} hiddenCollections={hiddenCollections || []} />
+                                        )}
                                     </Popover>
                                 </div>
                             )}
