@@ -1444,7 +1444,7 @@ export interface FieldAdmin {
     /** Set to `true` on a String field to make it italic */
     italic?: boolean | ((record?: StokerRecord) => boolean)
     /** Tailwind classes applied to the read-only value of a String or Number field */
-    className?: string | ((record?: StokerRecord) => string)
+    className?: string | ((record?: StokerRecord, context?: "form" | "card" | "list") => string)
     /** Set to a currency symbol to make the field a currency */
     currency?: string | ((record?: StokerRecord) => string)
     /** The returned value will be used for sorting in the list view */

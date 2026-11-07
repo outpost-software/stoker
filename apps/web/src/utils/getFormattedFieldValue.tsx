@@ -90,7 +90,10 @@ export const getFormattedFieldValue = (
         badge = tryFunction(fieldCustomization.admin?.badge, [record])
         italic = tryFunction(fieldCustomization.admin?.italic, [record])
         if (field.type === "String" || field.type === "Number") {
-            className = tryFunction(fieldCustomization.admin?.className, [record])
+            className = tryFunction(fieldCustomization.admin?.className, [
+                record,
+                form ? "form" : card ? "card" : "list",
+            ])
         }
         tags = tryFunction(fieldCustomization.admin?.tags)
         image = tryFunction(fieldCustomization.admin?.image)
