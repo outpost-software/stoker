@@ -1301,6 +1301,12 @@ Override the field name shown in the list view.
 
 An icon that will be shown for the field on the form page. Provide additional Tailwind classes using `className`.
 
+#### minListWidth
+
+`number | (() => number)`
+
+Set the minimum width of the field in the list view, in pixels.
+
 #### condition
 
 ```ts

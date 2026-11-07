@@ -1391,6 +1391,8 @@ export interface FieldAdmin {
     listLabel?: string | ((isExport?: boolean) => string)
     /** An icon that will be shown for the field on the form page */
     icon?: FormFieldIcon | (() => FormFieldIcon | Promise<FormFieldIcon>)
+    /** Set the minimum width of the field in the list view, in pixels */
+    minListWidth?: number | (() => number)
     /**
      * Show or hide the field in the list view and on the form page. The list method receives
      * the parent collection and parent record when shown on a relation list page. The form

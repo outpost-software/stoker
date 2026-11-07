@@ -1835,6 +1835,7 @@ export function List({
                                         <TableRow key={headerGroup.id} className="hover:bg-transparent">
                                             {headerGroup.headers.map((header) => {
                                                 let className = ""
+                                                let minWidth: number | undefined
                                                 if (header.id !== "select") {
                                                     if (
                                                         !systemFields.some(
@@ -1846,6 +1847,7 @@ export function List({
                                                             field,
                                                             customization,
                                                         )
+                                                        minWidth = tryFunction(fieldCustomization.admin?.minListWidth)
                                                         const hidden = tryFunction(fieldCustomization.admin?.hidden)
                                                         if (hidden) {
                                                             switch (hidden) {
@@ -1875,7 +1877,11 @@ export function List({
                                                     className = "w-8"
                                                 }
                                                 return (
-                                                    <TableHead key={header.id} className={className}>
+                                                    <TableHead
+                                                        key={header.id}
+                                                        className={className}
+                                                        style={minWidth ? { minWidth } : undefined}
+                                                    >
                                                         {header.isPlaceholder
                                                             ? null
                                                             : flexRender(
@@ -1924,6 +1930,7 @@ export function List({
                                                 >
                                                     {row.getVisibleCells().map((cell: Cell<unknown, unknown>) => {
                                                         let className = "p-0"
+                                                        let minWidth: number | undefined
                                                         const id = cell.column.columnDef.id
                                                         const field = getField(fields.concat(systemFields), id)
                                                         if (id !== "select") {
@@ -1935,6 +1942,9 @@ export function List({
                                                                 const fieldCustomization = getFieldCustomization(
                                                                     field,
                                                                     customization,
+                                                                )
+                                                                minWidth = tryFunction(
+                                                                    fieldCustomization.admin?.minListWidth,
                                                                 )
                                                                 const hidden = tryFunction(
                                                                     fieldCustomization.admin?.hidden,
@@ -1997,6 +2007,7 @@ export function List({
                                                                     className,
                                                                     "max-w-[150px] md:max-w-[300px] overflow-hidden break-words",
                                                                 )}
+                                                                style={minWidth ? { minWidth } : undefined}
                                                                 onClick={() => {
                                                                     const field = getField(fields, id)
                                                                     if (
