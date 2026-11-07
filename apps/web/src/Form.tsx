@@ -4093,13 +4093,18 @@ function RecordForm({
                 const fieldLiveUpdate = await tryPromise(admin?.live)
                 const changedOnServer =
                     !recordLoaded.current || !isEqual(lastAppliedRecord.current?.[field.name], record[field.name])
+                const removedOnServer =
+                    recordLoaded.current &&
+                    (liveUpdate || fieldLiveUpdate) &&
+                    record[field.name] === undefined &&
+                    lastAppliedRecord.current?.[field.name] !== undefined
                 if (
                     ((liveUpdate || fieldLiveUpdate) && changedOnServer) ||
                     (!recordLoaded.current && !(auth && field.name === "User_ID")) ||
                     (softDelete && field.name === softDelete?.archivedField) ||
                     (field.type === "Number" && field.autoIncrement)
                 ) {
-                    if (record[field.name] === undefined) continue
+                    if (record[field.name] === undefined && !removedOnServer) continue
                     form.setValue(field.name, record[field.name])
                     if (recordLoaded.current) {
                         setPrevState((prev) => ({
