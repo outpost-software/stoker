@@ -32,7 +32,8 @@ export const recordConformance = (options: ConformanceOptions) => {
         test("a record can be duplicated", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
             const collections = await withAdmin(schema, role, project, options, async (customization) => {
-                return !!(await tryPromise(customization.admin?.duplicate))
+                const duplicate = (await tryPromise(customization.admin?.duplicate)) as boolean | string[] | undefined
+                return Array.isArray(duplicate) ? duplicate.includes(role) : !!duplicate
             })
             test.skip(collections.length === 0, `${role} has no collection that can duplicate a record`)
             test.setTimeout(Math.max(180000, collections.length * 180000))

@@ -1122,8 +1122,8 @@ export interface CollectionAdmin {
           ) => { collection: string; record: string } | Promise<{ collection: string; record: string }>)
     /** An icon component for the collection. We recommend using Lucide icons, which are bundled with Stoker */
     icon?: React.FC | (() => React.FC | Promise<React.FC>)
-    /** Return `true` to show the "Duplicate" button on the form page */
-    duplicate?: boolean | (() => boolean | Promise<boolean>)
+    /** Return `true` to show the "Duplicate" button on the form page, or an array of roles to show it for */
+    duplicate?: boolean | StokerRole[] | (() => boolean | StokerRole[] | Promise<boolean | StokerRole[]>)
     /** Define which collections records can be converted to. A "Convert" button will be shown on the form page */
     convert?: Convert[] | (() => Convert[] | Promise<Convert[]>)
     /**
@@ -1284,7 +1284,7 @@ export interface CollectionAdminCache {
         record: string
     }
     icon?: React.FC
-    duplicate?: boolean
+    duplicate?: boolean | StokerRole[]
     convert?: Convert[]
     live?: boolean
     statusField?: {

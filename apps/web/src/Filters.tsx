@@ -231,13 +231,21 @@ export function Filters({
         (filter: Filter, value: string, type: CollectionField["type"]) => {
             if (preventChange) return
             if (filter.type === "range" || filter.type === "status") return
-            const index = filters
-                .filter((filterItem) => filterItem.type !== "status" && filterItem.type !== "range")
-                .findIndex((filterItem) => filter.field === filterItem.field)
             let newFilters: Filter[] = []
-            if (value !== "no_selection") {
-                setFilters((filters) => {
-                    newFilters = [...filters]
+            setFilters((currentFilters) => {
+                const index = currentFilters.findIndex(
+                    (filterItem) =>
+                        filterItem.type !== "status" &&
+                        filterItem.type !== "range" &&
+                        filterItem.type === filter.type &&
+                        filterItem.field === filter.field,
+                )
+                if (index === -1) {
+                    newFilters = currentFilters
+                    return currentFilters
+                }
+                newFilters = [...currentFilters]
+                if (value !== "no_selection") {
                     if (type === "Number") {
                         // eslint-disable-next-line security/detect-object-injection
                         newFilters[index].value = Number(value)
@@ -245,16 +253,12 @@ export function Filters({
                         // eslint-disable-next-line security/detect-object-injection
                         newFilters[index].value = value
                     }
-                    return newFilters
-                })
-            } else {
-                setFilters((filters) => {
-                    newFilters = [...filters]
+                } else {
                     // eslint-disable-next-line security/detect-object-injection
                     delete newFilters[index].value
-                    return newFilters
-                })
-            }
+                }
+                return newFilters
+            })
             const filterParam = newFilters
                 .filter(
                     (filter: Filter) =>

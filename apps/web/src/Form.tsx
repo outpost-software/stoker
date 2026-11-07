@@ -271,6 +271,7 @@ interface FormProps {
     draft?: boolean
     draftKey?: string
     onSuccess?: (record?: StokerRecord) => void
+    onCommit?: (record: StokerRecord) => void
     onSaveRecord?: () => void
     rowSelection?: StokerRecord[]
     fromRelationList?: string
@@ -2599,6 +2600,7 @@ function RecordForm({
     draft,
     draftKey,
     onSuccess,
+    onCommit,
     onSaveRecord,
     rowSelection,
     fromRelationList,
@@ -3891,7 +3893,11 @@ function RecordForm({
             setIsOfflineCreateDisabled(offlineCreateDisabled)
             setIsOfflineUpdateDisabled(offlineUpdateDisabled)
             setIsOfflineDeleteDisabled(offlineDeleteDisabled)
-            setEnableDuplicate(enableDuplicate)
+            setEnableDuplicate(
+                Array.isArray(enableDuplicate)
+                    ? !!permissions?.Role && enableDuplicate.includes(permissions.Role)
+                    : !!enableDuplicate,
+            )
             setDisableCreate(!!disableCreate)
             setConvert(convert)
 
@@ -4515,6 +4521,7 @@ function RecordForm({
                             if (onSuccess)
                                 onSuccess({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                         }
+                        if (onCommit) onCommit({ ...recordToSave, id: docId, Collection_Path: path } as StokerRecord)
                     })
                     .then(async () => {
                         if (queuedUploads.length > 0) {
@@ -5910,11 +5917,13 @@ function RecordForm({
                                             operation="create"
                                             path={collectionPath || [labels.collection]}
                                             record={duplicateRecordData as StokerRecord}
-                                            onSuccess={(record?: StokerRecord) => {
+                                            onSuccess={() => {
                                                 setShowDuplicateModal(false)
                                                 setDuplicateRecordData(undefined)
                                                 setIsDuplicate(false)
-                                                if (record?.id) setPendingGoToRecord({ collection, record })
+                                            }}
+                                            onCommit={(record: StokerRecord) => {
+                                                setPendingGoToRecord({ collection, record })
                                             }}
                                         />
                                     </ModalDepthContext.Provider>
@@ -5965,16 +5974,16 @@ function RecordForm({
                                             operation="create"
                                             path={[convertTargetCollection.labels.collection]}
                                             record={convertRecordData as StokerRecord}
-                                            onSuccess={(record?: StokerRecord) => {
-                                                const targetCollection = convertTargetCollection
+                                            onSuccess={() => {
                                                 setShowConvertModal(false)
                                                 setConvertRecordData(undefined)
                                                 setConvertTargetCollection(undefined)
-                                                if (record?.id)
-                                                    setPendingGoToRecord({
-                                                        collection: targetCollection,
-                                                        record,
-                                                    })
+                                            }}
+                                            onCommit={(record: StokerRecord) => {
+                                                setPendingGoToRecord({
+                                                    collection: convertTargetCollection,
+                                                    record,
+                                                })
                                             }}
                                         />
                                     </ModalDepthContext.Provider>

@@ -1067,6 +1067,15 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
+        const duplicate = (await tryPromise(customization?.admin?.duplicate)) as boolean | string[] | undefined
+        if (Array.isArray(duplicate)) {
+            for (const role of duplicate) {
+                if (!roles.includes(role)) {
+                    errors.push(`Collection ${collectionName} has a duplicate role ${role} that does not exist`)
+                }
+            }
+        }
+
         const metrics = (await tryPromise(customization?.admin?.metrics)) as (Metric | Chart)[] | undefined
         if (metrics) {
             for (const metric of metrics) {

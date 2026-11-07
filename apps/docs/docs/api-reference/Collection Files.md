@@ -1645,9 +1645,9 @@ Return an array of relational field names that will be used to show breadcrumbs 
 
 ### duplicate
 
-`boolean | (() => boolean | Promise<boolean>)`
+`boolean | string[] | (() => boolean | string[] | Promise<boolean | string[]>)`
 
-Return `true` to show the `Duplicate` button on the form page.
+Return `true` to show the `Duplicate` button on the form page for all roles, or an array of roles to only show it for those roles.
 
 ### convert
 
