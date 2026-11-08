@@ -3513,7 +3513,16 @@ function RecordForm({
                 if (disableUpdate) setIsDisabled(true)
                 else setIsDisabled(false)
                 if (!onFormOpenCalledRef.current && customization.admin?.onFormOpen) {
+                    const recordClone = cloneDeep(record)
                     await customization.admin?.onFormOpen("update", record)
+                    const recordKeys = Object.keys(record) as Array<keyof typeof record>
+                    for (const key of recordKeys) {
+                        // eslint-disable-next-line security/detect-object-injection
+                        if (!recordClone[key]) {
+                            // eslint-disable-next-line security/detect-object-injection
+                            form.setValue(key as string, record[key], { shouldDirty: false })
+                        }
+                    }
                     onFormOpenCalledRef.current = true
                 }
             } else if (operation === "update" && id && record) {
