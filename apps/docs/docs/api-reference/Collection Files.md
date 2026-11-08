@@ -1324,7 +1324,7 @@ The form method receives isExport as true during CSV export operations.
 
 #### hidden
 
-`"sm" | "md" | "lg" | "xl" | "2xl" | ((record?: StokerRecord) => "sm" | "md" | "lg" | "xl" | "2xl")`
+`"sm" | "md" | "lg" | "xl" | "2xl" | ((record?: StokerRecord) => "sm" | "md" | "lg" | "xl" | "2xl" | undefined)`
 
 The screen size at which the field should be hidden from the list view. This is useful for responsiveness.
 

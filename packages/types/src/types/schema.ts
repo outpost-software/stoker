@@ -1440,7 +1440,8 @@ export interface FieldAdmin {
     /** Set on a String field to make it a badge. Return a Tailwind class specifying the color for the badge */
     badge?: boolean | string | ((record?: StokerRecord) => boolean | string)
     /** The screen size at which the field should be hidden from the list view. This is useful for responsiveness */
-    hidden?: "sm" | "md" | "lg" | "xl" | "2xl" | ((record?: StokerRecord) => "sm" | "md" | "lg" | "xl" | "2xl")
+    hidden?:
+        "sm" | "md" | "lg" | "xl" | "2xl" | ((record?: StokerRecord) => "sm" | "md" | "lg" | "xl" | "2xl" | undefined)
     /** Set to `true` on a String field to make it italic */
     italic?: boolean | ((record?: StokerRecord) => boolean)
     /** Tailwind classes applied to the read-only value of a String or Number field */
