@@ -1,5 +1,6 @@
 import { PreloadCacheRange } from "@stoker-platform/types"
 import { DateTime } from "luxon"
+import { tryFunction } from "../getConfigValue.js"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getDateRange = (range: PreloadCacheRange, _timezone: string | undefined) => {
@@ -33,8 +34,9 @@ export const getDateRange = (range: PreloadCacheRange, _timezone: string | undef
             startDateTime = startDateTime.plus({ days: range.start })
         }
 
-        if (range.startOffsetDays) {
-            startDateTime = startDateTime.plus({ days: range.startOffsetDays })
+        const startOffsetDays = tryFunction(range.startOffsetDays)
+        if (startOffsetDays) {
+            startDateTime = startDateTime.plus({ days: startOffsetDays })
         }
         if (range.startOffsetHours) {
             startDateTime = startDateTime.plus({ hours: range.startOffsetHours })

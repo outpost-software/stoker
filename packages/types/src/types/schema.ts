@@ -617,7 +617,7 @@ export interface PreloadCacheRange {
     /** The default start date for the preloaded range */
     start: "Today" | "Week" | "Month" | "Year" | Date | number
     /** Offset the default start date by this many days */
-    startOffsetDays?: number
+    startOffsetDays?: number | (() => number)
     /** Offset the default start date by this many hours */
     startOffsetHours?: number
     /** The default end date for the preloaded range */
@@ -871,7 +871,7 @@ export type RangeFilter = {
         | (() => "range" | "week" | "month" | ("range" | "week" | "month")[])
     value?: string
     /** Offset the default start date by this many days */
-    startOffsetDays?: number
+    startOffsetDays?: number | (() => number)
     /** Offset the default start date by this many hours */
     startOffsetHours?: number
     /** Offset the default end date by this many days */

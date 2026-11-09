@@ -1324,11 +1324,12 @@ function Collection({
                         })
                     } else if (!rangeValue) {
                         const now = convertDateToTimezone(new Date())
+                        const startOffsetDays = tryFunction(preloadCache.range.startOffsetDays) || 0
                         if (rangeSelectorState === "month") {
                             rangeValue = JSON.stringify({
                                 from: now
                                     .startOf("month")
-                                    .plus({ days: preloadCache.range.startOffsetDays || 0 })
+                                    .plus({ days: startOffsetDays })
                                     .plus({ hours: preloadCache.range.startOffsetHours })
                                     .toJSDate()
                                     .toISOString(),
@@ -1343,7 +1344,7 @@ function Collection({
                             rangeValue = JSON.stringify({
                                 from: now
                                     .startOf("week")
-                                    .plus({ days: preloadCache.range.startOffsetDays || 0 })
+                                    .plus({ days: startOffsetDays })
                                     .plus({ hours: preloadCache.range.startOffsetHours })
                                     .toJSDate()
                                     .toISOString(),
@@ -1378,6 +1379,7 @@ function Collection({
                     })
                 } else if (!rangeValue) {
                     const now = convertDateToTimezone(new Date())
+                    const startOffsetDays = tryFunction(rangeFilter.startOffsetDays) || 0
                     const rangeFilterRange = getRange(
                         {
                             fields: [rangeFilter.field],
@@ -1385,13 +1387,13 @@ function Collection({
                                 rangeSelectorState === "month"
                                     ? now
                                           .startOf("month")
-                                          .plus({ days: rangeFilter.startOffsetDays || 0 })
+                                          .plus({ days: startOffsetDays })
                                           .plus({ hours: rangeFilter.startOffsetHours })
                                           .toJSDate()
                                     : rangeSelectorState === "week"
                                       ? now
                                             .startOf("week")
-                                            .plus({ days: rangeFilter.startOffsetDays || 0 })
+                                            .plus({ days: startOffsetDays })
                                             .plus({ hours: rangeFilter.startOffsetHours })
                                             .toJSDate()
                                       : "Today",

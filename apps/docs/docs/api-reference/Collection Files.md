@@ -737,7 +737,7 @@ type PreloadCacheRange = {
     ranges?: [string, string][]
     labels?: string[]
     start: "Today" | "Week" | "Month" | "Year" | Date | number
-    startOffsetDays?: number
+    startOffsetDays?: number | (() => number)
     startOffsetHours?: number
     end?: Date | number
     endOffsetDays?: number
@@ -752,7 +752,7 @@ type PreloadCacheRange = {
 | `ranges` | `[string, string][]` | Ranges of fields to preload, for example `["Start", "End"]`. Fields must also be listed in `fields`. |
 | `labels` | `string[]` | Human-readable labels for the fields listed above. |
 | `start` | `"Today" \| "Week" \| "Month" \| "Year" \| Date \| number` | The default start date for the preloaded range. |
-| `startOffsetDays` | `number` | Offset the default start date by this many days. |
+| `startOffsetDays` | `number \| (() => number)` | Offset the default start date by this many days. |
 | `startOffsetHours` | `number` | Offset the default start date by this many hours. |
 | `end` | `Date \| number` | The default end date for the preloaded range. |
 | `endOffsetDays` | `number` | Offset the default end date by this many days. |
@@ -2260,7 +2260,7 @@ type RangeFilter = {
         | "month"
         | ("range" | "week" | "month")[]
         | (() => "range" | "week" | "month" | ("range" | "week" | "month")[])
-    startOffsetDays?: number
+    startOffsetDays?: number | (() => number)
     startOffsetHours?: number
     endOffsetDays?: number
     endOffsetHours?: number

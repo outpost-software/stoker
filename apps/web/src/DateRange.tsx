@@ -64,7 +64,12 @@ export function DateRangeSelector({
             const rangeState = JSON.parse(rangeFilter.value)
             if (rangeState.from) {
                 const startWithoutOffsets = DateTime.fromISO(rangeState.from)
-                    .minus({ days: rangeFilter.startOffsetDays || preloadCache?.range?.startOffsetDays || 0 })
+                    .minus({
+                        days:
+                            tryFunction(rangeFilter.startOffsetDays) ||
+                            tryFunction(preloadCache?.range?.startOffsetDays) ||
+                            0,
+                    })
                     .minus({ hours: rangeFilter.startOffsetHours || preloadCache?.range?.startOffsetHours || 0 })
                     .toJSDate()
 
@@ -108,7 +113,12 @@ export function DateRangeSelector({
             value = {
                 from: value.from
                     ? DateTime.fromJSDate(value.from)
-                          .plus({ days: rangeFilter.startOffsetDays || preloadCache?.range?.startOffsetDays || 0 })
+                          .plus({
+                              days:
+                                  tryFunction(rangeFilter.startOffsetDays) ||
+                                  tryFunction(preloadCache?.range?.startOffsetDays) ||
+                                  0,
+                          })
                           .plus({ hours: rangeFilter.startOffsetHours || preloadCache?.range?.startOffsetHours || 0 })
                           .toJSDate()
                     : undefined,
