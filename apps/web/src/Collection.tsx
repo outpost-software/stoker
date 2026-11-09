@@ -115,6 +115,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { LoadingSpinner } from "./components/ui/loading-spinner"
 import { useToast } from "./hooks/use-toast"
 import { isServerUpdate } from "./utils/isServerWrite"
+import { useIsMobile } from "./hooks/use-mobile"
 
 interface CollectionProps {
     collection: CollectionSchema
@@ -175,6 +176,7 @@ function Collection({
     if (!permissions?.Role) throw new Error("PERMISSION_DENIED")
     const claims = getCurrentUser()?.token.claims ?? {}
     const { toast } = useToast()
+    const isMobile = useIsMobile(1024)
 
     const isServerReadOnly = serverReadOnly(collection)
     const isPreloadCacheEnabled = preloadCacheEnabled(collection)
@@ -2058,6 +2060,9 @@ function Collection({
         [recordTitle],
     )
 
+    const shownViewCount = [showList, showCards, showImages, showMap, showCalendar].filter(Boolean).length
+    const showViewSwitcher = shownViewCount > 0 && (!isMobile || shownViewCount > 1)
+
     const willHaveRangeRow = useMemo(() => {
         return (
             !formList &&
@@ -2239,40 +2244,35 @@ function Collection({
                                                 </Badge>
                                             )}
                                             <div className="lg:h-9">
-                                                {!formList &&
-                                                    (showList ||
-                                                        showCards ||
-                                                        showImages ||
-                                                        showMap ||
-                                                        showCalendar) && (
-                                                        <TabsList>
-                                                            {showList && (
-                                                                <TabsTrigger value="list">
-                                                                    {listConfig?.title || "List"}
-                                                                </TabsTrigger>
-                                                            )}
-                                                            {showCards && cardsStatusField.current && (
-                                                                <TabsTrigger value="cards">
-                                                                    {cardsConfig?.title || "Board"}
-                                                                </TabsTrigger>
-                                                            )}
-                                                            {showImages && (
-                                                                <TabsTrigger value="images">
-                                                                    {imagesConfig?.title || "Pics"}
-                                                                </TabsTrigger>
-                                                            )}
-                                                            {showMap && (
-                                                                <TabsTrigger value="map">
-                                                                    {mapConfig?.title || "Map"}
-                                                                </TabsTrigger>
-                                                            )}
-                                                            {showCalendar && (
-                                                                <TabsTrigger value="calendar">
-                                                                    {calendarConfig?.title || "Calendar"}
-                                                                </TabsTrigger>
-                                                            )}
-                                                        </TabsList>
-                                                    )}
+                                                {!formList && showViewSwitcher && (
+                                                    <TabsList>
+                                                        {showList && (
+                                                            <TabsTrigger value="list">
+                                                                {listConfig?.title || "List"}
+                                                            </TabsTrigger>
+                                                        )}
+                                                        {showCards && cardsStatusField.current && (
+                                                            <TabsTrigger value="cards">
+                                                                {cardsConfig?.title || "Board"}
+                                                            </TabsTrigger>
+                                                        )}
+                                                        {showImages && (
+                                                            <TabsTrigger value="images">
+                                                                {imagesConfig?.title || "Pics"}
+                                                            </TabsTrigger>
+                                                        )}
+                                                        {showMap && (
+                                                            <TabsTrigger value="map">
+                                                                {mapConfig?.title || "Map"}
+                                                            </TabsTrigger>
+                                                        )}
+                                                        {showCalendar && (
+                                                            <TabsTrigger value="calendar">
+                                                                {calendarConfig?.title || "Calendar"}
+                                                            </TabsTrigger>
+                                                        )}
+                                                    </TabsList>
+                                                )}
                                             </div>
                                             {!formList &&
                                                 !relationList?.loadAll &&
