@@ -1,7 +1,7 @@
 import { CollectionSchema, RelationField, StokerRecord, StokerRelation } from "@stoker-platform/types"
 import { useGoToRecord } from "./utils/goToRecord"
-import { getCollectionConfigModule, getSchema } from "@stoker-platform/web-client"
-import { getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
+import { getCollectionConfigModule, getCurrentUserPermissions, getSchema } from "@stoker-platform/web-client"
+import { collectionAccess, getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
 import { Fragment, useMemo } from "react"
 import {
     Breadcrumb,
@@ -11,6 +11,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "./components/ui/breadcrumb"
+import { useHidden } from "./providers/HiddenProvider"
 
 export const Breadcrumbs = ({
     breadcrumbs,
@@ -25,6 +26,8 @@ export const Breadcrumbs = ({
     const schema = getSchema()
     const customization = getCollectionConfigModule(collection.labels.collection)
     const goToRecord = useGoToRecord()
+    const [hidden] = useHidden()
+    const permissions = getCurrentUserPermissions()
 
     const filteredBreadcrumbs = breadcrumbs
         ?.filter((breadcrumb) => {
@@ -35,10 +38,17 @@ export const Breadcrumbs = ({
             const field = getField(collection.fields, breadcrumb) as RelationField
             const fieldCustomization = getFieldCustomization(field, customization)
             const label = tryFunction(fieldCustomization.admin?.label) || field.name
+            const collectionPermissions = permissions?.collections?.[field.collection]
+            const disabled =
+                !hidden ||
+                hidden.includes(field.collection) ||
+                !collectionPermissions ||
+                !collectionAccess("Read", collectionPermissions)
             return {
                 key: breadcrumb,
                 label,
                 field,
+                disabled,
             }
         })
 
@@ -96,9 +106,10 @@ export const Breadcrumbs = ({
                     <Fragment key={breadcrumb.key}>
                         <BreadcrumbItem>
                             <BreadcrumbLink className="break-all whitespace-pre-wrap overflow-x-auto" asChild>
-                                <div
-                                    role="button"
-                                    tabIndex={0}
+                                <button
+                                    type="button"
+                                    disabled={breadcrumb.disabled}
+                                    className="bg-transparent p-0 border-0 font-inherit text-inherit text-left disabled:pointer-events-none disabled:text-muted-foreground disabled:opacity-100"
                                     onClick={() =>
                                         goToRecord(
                                             records[breadcrumb.key].collection,
@@ -106,21 +117,12 @@ export const Breadcrumbs = ({
                                             breadcrumb.field,
                                         )
                                     }
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            goToRecord(
-                                                records[breadcrumb.key].collection,
-                                                records[breadcrumb.key].record as StokerRecord,
-                                                breadcrumb.field,
-                                            )
-                                        }
-                                    }}
                                 >
                                     {`${breadcrumb.label}:`}{" "}
                                     <span className="text-blue-500 hover:underline">
                                         {records[breadcrumb.key].title}
                                     </span>
-                                </div>
+                                </button>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />

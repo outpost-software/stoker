@@ -60,6 +60,7 @@ import { QRCodeSVG } from "qrcode.react"
 import { getFunctions } from "firebase/functions"
 import { getApp } from "firebase/app"
 import { useTheme } from "./components/theme-provider"
+import { useHidden } from "./providers/HiddenProvider"
 
 const MOBILE_SHEET_CLOSE_MS = 320
 
@@ -90,6 +91,7 @@ function Tenant() {
     }, [user])
 
     const [, setMode] = useMode()
+    const [, setHidden] = useHidden()
     const { theme } = useTheme()
     const { isGlobalLoading, isGlobalCachePending } = useGlobalLoading()
     const { isRouteLoading, setIsRouteLoading } = useRouteLoading()
@@ -231,6 +233,7 @@ function Tenant() {
             setNavbarMenu(sortedNavbarMenu)
             setSidebarMenu(sortedSidebarMenu)
             setHiddenCollections(hiddenCollections)
+            setHidden(hiddenCollections)
 
             const logo = await getCachedConfigValue(globalConfig, ["global", "admin", "logo", "navbar"])
             setLogo(logo)

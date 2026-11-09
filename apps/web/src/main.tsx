@@ -16,6 +16,7 @@ import { loadRoutes } from "./loadRoutes"
 import { Login } from "./Login"
 import { onStokerReady } from "@stoker-platform/web-client"
 import { ModeProvider, useMode } from "./providers/ModeProvider"
+import { HiddenProvider } from "./providers/HiddenProvider"
 import { runViewTransition } from "./utils/runViewTransition"
 import { LoadingSpinner } from "./components/ui/loading-spinner"
 import Maintenance from "./Maintenance"
@@ -160,13 +161,15 @@ function Main() {
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <StrictMode>
         <ModeProvider>
-            <DialogProvider>
-                <ConnectionProvider>
-                    <GlobalLoadingProvider>
-                        <Main />
-                    </GlobalLoadingProvider>
-                </ConnectionProvider>
-            </DialogProvider>
+            <HiddenProvider>
+                <DialogProvider>
+                    <ConnectionProvider>
+                        <GlobalLoadingProvider>
+                            <Main />
+                        </GlobalLoadingProvider>
+                    </ConnectionProvider>
+                </DialogProvider>
+            </HiddenProvider>
         </ModeProvider>
     </StrictMode>,
 )

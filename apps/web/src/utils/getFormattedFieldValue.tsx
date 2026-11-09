@@ -17,6 +17,7 @@ import { preloadCacheEnabled } from "./preloadCacheEnabled"
 import { useLayoutEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { getSafeUrl } from "./isSafeUrl"
+import { useHidden } from "@/providers/HiddenProvider"
 
 const FormattedFieldImage = ({ src, alt, form }: { src: string; alt?: string; form?: boolean }) => {
     const imgRef = useRef<HTMLImageElement | null>(null)
@@ -45,13 +46,113 @@ const FormattedFieldImage = ({ src, alt, form }: { src: string; alt?: string; fo
     )
 }
 
+const RelationFieldDisplay = ({
+    field,
+    record,
+    connectionStatus,
+    maxLines,
+    goToRecord,
+    form,
+    card,
+    value,
+    lineClamp,
+}: {
+    field: RelationField
+    record: StokerRecord
+    connectionStatus: "online" | "offline"
+    maxLines?: 1 | 2 | 3 | 4 | 5 | 6
+    goToRecord?: (collection: CollectionSchema, record: StokerRecord, field?: RelationField) => void
+    form?: boolean
+    card?: boolean | "header"
+    value: Record<string, StokerRecord>
+    lineClamp: string
+}) => {
+    const [hidden] = useHidden()
+    const schema = getSchema()
+    const permissions = getCurrentUserPermissions()
+    if (!permissions) return ""
+    const titleField = field.titleField
+    const relationCollection = schema.collections[field.collection]
+    const relationBlocked =
+        !hidden ||
+        hidden.includes(field.collection) ||
+        !(
+            permissions.collections?.[field.collection] &&
+            collectionAccess("Read", permissions.collections[field.collection])
+        )
+    if (["OneToOne", "OneToMany"].includes(field.type)) {
+        return (
+            Object.keys(value).length === 1 && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                        !card &&
+                            "w-fit min-w-[100px] md:min-w-[200px] max-w-full whitespace-normal break-words h-auto p-3 bg-background dark:bg-blue-500/50 text-blue-500 dark:text-primary dark:hover:bg-blue-500 dark:border-input",
+                        card &&
+                            "w-full max-w-[200px] whitespace-normal break-words h-auto p-3 bg-background dark:bg-blue-500/50 text-blue-500 dark:text-primary dark:hover:bg-blue-500 dark:border-input",
+                        relationBlocked && form && "disabled:opacity-100",
+                    )}
+                    disabled={
+                        (relationBlocked && form) ||
+                        !relationCollection ||
+                        (connectionStatus === "offline" && !preloadCacheEnabled(relationCollection))
+                    }
+                    onClick={() => {
+                        if (!goToRecord) return
+                        if (relationBlocked) {
+                            if (form) return
+                            const collectionName = record.Collection_Path?.[0]
+                            if (!collectionName) return
+                            // eslint-disable-next-line security/detect-object-injection
+                            const collectionSchema = schema.collections[collectionName]
+                            if (!collectionSchema) return
+                            goToRecord(collectionSchema, record)
+                            return
+                        }
+                        const relationRecord = Object.values(value)[0] as StokerRecord
+                        relationRecord.id = Object.keys(value)[0]
+                        goToRecord(relationCollection, relationRecord, field)
+                    }}
+                >
+                    <span
+                        className={cn(
+                            card === "header" && "line-clamp-2",
+                            card && card !== "header" && maxLines && `line-clamp-${maxLines - 1}`,
+                        )}
+                    >
+                        {/* eslint-disable-next-line security/detect-object-injection */}
+                        {titleField ? (Object.values(value)[0] as StokerRecord)[titleField] : Object.keys(value)[0]}
+                    </span>
+                </Button>
+            )
+        )
+    } else {
+        if (titleField) {
+            return (
+                <span className={cn(lineClamp, "text-sm")}>
+                    {Object.values(value)
+                        .map((relation) => {
+                            // eslint-disable-next-line security/detect-object-injection
+                            return (relation as Record<string, unknown>)[titleField]
+                        })
+                        .join(", ")}
+                </span>
+            )
+        } else {
+            return <span className={lineClamp}>{Object.keys(value).join(", ")}</span>
+        }
+    }
+}
+
 export const getFormattedFieldValue = (
     customization: CollectionCustomization,
     field: CollectionField,
     record: StokerRecord,
     connectionStatus: "online" | "offline",
     maxLines?: 1 | 2 | 3 | 4 | 5 | 6,
-    goToRecord?: (collection: CollectionSchema, record: StokerRecord, field: RelationField) => void,
+    goToRecord?: (collection: CollectionSchema, record: StokerRecord, field?: RelationField) => void,
     form?: boolean,
     card?: boolean | "header",
 ) => {
@@ -75,7 +176,6 @@ export const getFormattedFieldValue = (
     }
     if (form) lineClamp = ""
 
-    const schema = getSchema()
     const fieldCustomization = getFieldCustomization(field, customization)
     const permissions = getCurrentUserPermissions()
     if (!permissions) return ""
@@ -176,65 +276,19 @@ export const getFormattedFieldValue = (
             return getStandardDisplay()
         }
     } else if (isRelationField(field)) {
-        const titleField = field.titleField
-        const relationCollection = schema.collections[field.collection]
-        if (["OneToOne", "OneToMany"].includes(field.type)) {
-            return (
-                Object.keys(value).length === 1 && (
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                            !card &&
-                                "w-fit min-w-[100px] md:min-w-[200px] max-w-full whitespace-normal break-words h-auto p-3 bg-background dark:bg-blue-500/50 text-blue-500 dark:text-primary dark:hover:bg-blue-500 dark:border-input",
-                            card &&
-                                "w-full max-w-[200px] whitespace-normal break-words h-auto p-3 bg-background dark:bg-blue-500/50 text-blue-500 dark:text-primary dark:hover:bg-blue-500 dark:border-input",
-                        )}
-                        disabled={
-                            !relationCollection ||
-                            (connectionStatus === "offline" && !preloadCacheEnabled(relationCollection))
-                        }
-                        onClick={() => {
-                            const record = Object.values(value)[0] as StokerRecord
-                            record.id = Object.keys(value)[0]
-                            if (
-                                goToRecord &&
-                                permissions.collections?.[field.collection] &&
-                                collectionAccess("Read", permissions.collections[field.collection])
-                            ) {
-                                goToRecord(relationCollection, record, field)
-                            }
-                        }}
-                    >
-                        <span
-                            className={cn(
-                                card === "header" && "line-clamp-2",
-                                card && card !== "header" && maxLines && `line-clamp-${maxLines - 1}`,
-                            )}
-                        >
-                            {/* eslint-disable-next-line security/detect-object-injection */}
-                            {titleField ? (Object.values(value)[0] as StokerRecord)[titleField] : Object.keys(value)[0]}
-                        </span>
-                    </Button>
-                )
-            )
-        } else {
-            if (titleField) {
-                return (
-                    <span className={cn(lineClamp, "text-sm")}>
-                        {Object.values(value)
-                            .map((relation) => {
-                                // eslint-disable-next-line security/detect-object-injection
-                                return (relation as Record<string, unknown>)[titleField]
-                            })
-                            .join(", ")}
-                    </span>
-                )
-            } else {
-                return <span className={lineClamp}>{Object.keys(value).join(", ")}</span>
-            }
-        }
+        return (
+            <RelationFieldDisplay
+                field={field}
+                record={record}
+                connectionStatus={connectionStatus}
+                maxLines={maxLines}
+                goToRecord={goToRecord}
+                form={form}
+                card={card}
+                value={value}
+                lineClamp={lineClamp}
+            />
+        )
     } else {
         switch (field.type) {
             case "Computed":
