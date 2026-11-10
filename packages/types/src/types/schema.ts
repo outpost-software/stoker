@@ -1247,6 +1247,8 @@ export interface CollectionAdmin {
      * Use `restrictUpdate` or `access.operations` to securely block record updates
      */
     disableUpdate?: boolean | ((operation: "create" | "update", record: StokerRecord) => boolean | Promise<boolean>)
+    /** Override the heading on the add record form */
+    modifyFormHeading?: string | ((operation: "create") => string | undefined)
     /**
      * A hook that fires when the record form is opened. When the "create" form is opened from
      * within another record's relation list, the parent collection and parent record are provided
@@ -1257,14 +1259,15 @@ export interface CollectionAdmin {
         parentCollection?: StokerCollection,
         parentRecord?: StokerRecord,
     ) => void | Promise<void>
-    /** Override the heading on the add record form */
-    modifyFormHeading?: string | ((operation: "create") => string | undefined)
     /** A hook that fires whenever the form is updated. Optionally return an object with field updates */
     onChange?: (
         operation: "create" | "update",
         record: StokerRecord,
         originalRecord: StokerRecord,
     ) => Partial<StokerRecord> | void | Promise<Partial<StokerRecord> | void>
+    /** Override the save button text */
+    modifySaveButton?:
+        string | ((operation: "create" | "update" | "update-many", record: StokerRecord) => string | undefined)
     /** Override the default behaviour of opening the add record form */
     addRecordButtonOverride?: (record?: StokerRecord) => void | Promise<void>
     /** Disable the date range selector for the user */
@@ -1317,6 +1320,7 @@ export interface CollectionAdminCache {
     rangeSelectorValues?: "range" | "week" | "month" | ("range" | "week" | "month")[]
     defaultRangeSelector?: "range" | "week" | "month"
     restrictExport?: StokerRole[]
+    titleCount?: boolean
     metrics?: (Metric | Chart)[]
     meta?: CollectionMeta
     rowHighlight?: RowHighlight[]
@@ -1332,6 +1336,7 @@ export interface CollectionAdminCache {
     disableRangeSelector?: boolean
     assignable?: Assignable[]
     customListActions?: CustomListAction[]
+    hideCheckboxColumn?: boolean
     fileOptions?: FileOptions
 }
 

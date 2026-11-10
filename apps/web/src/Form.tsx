@@ -4954,6 +4954,10 @@ function RecordForm({
         })?.length
     }, [breadcrumbs, record])
 
+    const saveButtonLabel = useMemo(() => {
+        return tryFunction(customization.admin?.modifySaveButton, [operation, { ...formValues, id }]) || "Save"
+    }, [customization, operation, formValues, id])
+
     if (!formValues) return null
 
     return (
@@ -6153,7 +6157,7 @@ function RecordForm({
                                             isAddingServer
                                         }
                                     >
-                                        Save
+                                        {saveButtonLabel}
                                     </Button>
                                     {((operation === "update" && isPending) || isAddingServer) && (
                                         <LoadingSpinner size={7} className="inline ml-2" />
