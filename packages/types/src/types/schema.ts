@@ -1257,6 +1257,8 @@ export interface CollectionAdmin {
         parentCollection?: StokerCollection,
         parentRecord?: StokerRecord,
     ) => void | Promise<void>
+    /** Override the heading on the add record form */
+    modifyFormHeading?: string | ((operation: "create") => string | undefined)
     /** A hook that fires whenever the form is updated. Optionally return an object with field updates */
     onChange?: (
         operation: "create" | "update",

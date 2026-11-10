@@ -2076,6 +2076,13 @@ function Collection({
         )
     }, [formList, relationList, tab, hasRangeFilter, isPreloadCacheEnabled, filters, collection])
 
+    const formHeading = useMemo(() => {
+        return (
+            tryFunction(customization?.admin?.modifyFormHeading, ["create"]) ||
+            `Add ${additionalRecordTitle || recordTitle}`
+        )
+    }, [additionalRecordTitle, recordTitle])
+
     if (!permissions.collections?.[labels.collection]) return null
 
     return (
@@ -2772,12 +2779,10 @@ function Collection({
                                                                     <div className="space-y-2">
                                                                         <DialogHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
                                                                             <DialogTitle className="font-medium leading-none">
-                                                                                Add{" "}
-                                                                                {additionalRecordTitle || recordTitle}
+                                                                                {formHeading}
                                                                             </DialogTitle>
                                                                             <DialogDescription className="hidden">
-                                                                                Add{" "}
-                                                                                {additionalRecordTitle || recordTitle}
+                                                                                {formHeading}
                                                                             </DialogDescription>
                                                                             <Button
                                                                                 type="button"

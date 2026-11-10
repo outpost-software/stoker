@@ -1799,6 +1799,12 @@ A hook that fires when the record form is opened.
 
 When the "create" form is opened from within another record's relation list, the parent collection and parent record are provided.
 
+### modifyFormHeading
+
+`string | ((operation: "create") => string | undefined)`
+
+Override the heading on the add record form.
+
 ### onChange
 
 ```ts
