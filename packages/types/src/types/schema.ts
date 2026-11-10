@@ -1275,6 +1275,8 @@ export interface CollectionAdmin {
     assignable?: Assignable[] | (() => Assignable[] | Promise<Assignable[]>)
     /** Custom actions that will be shown in a dropdown menu on the list page */
     customListActions?: CustomListAction[] | (() => CustomListAction[] | Promise<CustomListAction[]>)
+    /** Hide the checkbox column on the list page */
+    hideCheckboxColumn?: boolean | (() => boolean | Promise<boolean>)
     /** Options for file uploads */
     fileOptions?: FileOptions | (() => FileOptions | Promise<FileOptions>)
 }

@@ -486,6 +486,8 @@ export function List({
         return unsubscribePermissions
     }, [])
 
+    const hideCheckboxColumn = useMemo(() => tryFunction(customization?.admin?.hideCheckboxColumn), [customization])
+
     const columns: ColumnDef<StokerRecord>[] = useMemo(() => {
         const fieldsClone = cloneDeep(fields.filter((field) => !formList || formList.fields.includes(field.name)))
         const sortedFields = fieldsClone.sort((a, b) => {
@@ -652,7 +654,7 @@ export function List({
             })
             .filter(Boolean) as ColumnDef<StokerRecord>[]
 
-        const allColumns = [selectColumnDef, ...fieldColumns]
+        const allColumns = [...(hideCheckboxColumn ? [] : [selectColumnDef]), ...fieldColumns]
 
         if (secondarySort && !allColumns.some((column) => column.id === secondarySort.field)) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
