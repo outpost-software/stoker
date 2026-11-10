@@ -5,6 +5,7 @@ import {
     CollectionField,
     CollectionSchema,
     CustomListAction,
+    FloatingButton as FloatingButtonConfig,
     Filter,
     FormList,
     ImagesConfig,
@@ -116,6 +117,7 @@ import { LoadingSpinner } from "./components/ui/loading-spinner"
 import { useToast } from "./hooks/use-toast"
 import { isServerUpdate } from "./utils/isServerWrite"
 import { useIsMobile } from "./hooks/use-mobile"
+import { FloatingButton } from "./FloatingButton"
 
 interface CollectionProps {
     collection: CollectionSchema
@@ -236,6 +238,7 @@ function Collection({
     const [restrictExport, setRestrictExport] = useState<StokerRole[] | undefined>(undefined)
     const [disableCreate, setDisableCreate] = useState<boolean>(false)
     const [customListActions, setCustomListActions] = useState<CustomListAction[] | undefined>(undefined)
+    const [floatingButton, setFloatingButton] = useState<FloatingButtonConfig | undefined>(undefined)
 
     const [table, setTable] = useState<Table<StokerRecord> | undefined>(undefined)
     const [listConfig, setListConfig] = useState<ListConfig | undefined>(undefined)
@@ -1101,6 +1104,11 @@ function Collection({
             const customListActions =
                 (await getCachedConfigValue(customization, [...collectionAdminPath, "customListActions"])) || []
             setCustomListActions(customListActions)
+            const floatingButtonConfig = (await getCachedConfigValue(customization, [
+                ...collectionAdminPath,
+                "floatingButton",
+            ])) as FloatingButtonConfig | undefined
+            setFloatingButton(floatingButtonConfig)
             const titleCount = await getCachedConfigValue(customization, [...collectionAdminPath, "titleCount"])
             setTitleCount(!!titleCount)
 
@@ -3099,6 +3107,7 @@ function Collection({
                         </main>
                     )}
                 </div>
+                {floatingButton && !relationList && <FloatingButton config={floatingButton} />}
             </>
         )
     )

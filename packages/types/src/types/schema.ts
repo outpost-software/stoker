@@ -1026,6 +1026,20 @@ export interface FormList {
     label?: string
 }
 
+/** A fixed button shown at the bottom-left of the list view */
+export interface FloatingButton {
+    /** The label shown on the button */
+    text: string
+    /** Tailwind classes for the button */
+    className: string
+    /** Limit which user roles can see the button */
+    roles?: StokerRole[]
+    /** Show or hide the button */
+    condition?: () => boolean
+    /** The function that fires when the button is clicked */
+    action: () => void | Promise<void>
+}
+
 /** A custom button shown at the bottom of the edit record form */
 export interface FormButton {
     /** The title text for the custom button */
@@ -1234,6 +1248,8 @@ export interface CollectionAdmin {
     customRecordPages?: CustomRecordPage[] | (() => CustomRecordPage[] | Promise<CustomRecordPage[]>)
     /** Show custom buttons at the bottom of the edit record form */
     formButtons?: FormButton[] | (() => FormButton[] | Promise<FormButton[]>)
+    /** A fixed button shown at the bottom-left of the list view */
+    floatingButton?: FloatingButton | (() => FloatingButton | Promise<FloatingButton>)
     /** Show a file upload button on the add record form */
     formUpload?: boolean | (() => boolean | Promise<boolean>)
     /** Show an image carousel at the top of the edit record form. All image files uploaded to the record will be displayed */
@@ -1328,6 +1344,7 @@ export interface CollectionAdminCache {
     customFields?: CustomField[]
     customRecordPages?: CustomRecordPage[]
     formButtons?: FormButton[]
+    floatingButton?: FloatingButton
     formUpload?: boolean
     formImages?: boolean
     formLists?: FormList[]

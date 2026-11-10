@@ -82,7 +82,7 @@ export default defineConfig(async ({ mode }) => {
         build: {
             target: "esnext",
             rolldownOptions: {
-                devtools: {},
+                devtools: { mode: "report" },
             },
         },
         envPrefix: "STOKER_",
