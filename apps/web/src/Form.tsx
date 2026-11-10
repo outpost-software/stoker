@@ -6007,8 +6007,8 @@ function RecordForm({
                     </Dialog>
 
                     {isFormReady >= fields.length && (
-                        <div className="flex flex-col md:flex-row gap-2 justify-between">
-                            <div className="flex flex-col md:flex-row gap-2">
+                        <div className="flex flex-col-reverse md:flex-row gap-2 justify-between">
+                            <div className="flex flex-col-reverse md:flex-row gap-2">
                                 {operation === "update" && hasDeleteAccess && (
                                     <>
                                         {/* eslint-disable-next-line security/detect-object-injection */}
