@@ -271,6 +271,7 @@ export function DateRangeSelector({
                                 relationList ? "w-[220px]" : "w-[300px]",
                                 "justify-center text-left font-normal text-sm",
                                 !range && "text-muted-foreground",
+                                tryFunction(customization.admin?.disableRangeSelector) && "disabled:opacity-100",
                             )}
                         >
                             {range && (
