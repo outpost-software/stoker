@@ -58,7 +58,12 @@ export const addRecordAccessControl = (
                 granted = false
             }
         }
-        if (value !== undefined && !restrictCreateAccess(field, currentUserPermissions, labels.collection, claims))
+        const nullable = value === null && "nullable" in field && field.nullable
+        if (
+            value !== undefined &&
+            !nullable &&
+            !restrictCreateAccess(field, currentUserPermissions, labels.collection, claims)
+        )
             granted = false
     }
 

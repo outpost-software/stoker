@@ -1,5 +1,5 @@
 import { CollectionSchema, CollectionCustomization, StokerPermissions, StokerRecord } from "@stoker-platform/types"
-import { privateFieldAccess } from "../access/collection.js"
+import { privateFieldAccess, restrictCreateAccess } from "../access/collection.js"
 import { tryPromise } from "../getConfigValue.js"
 import { getField } from "../schema/getField.js"
 import { isRelationField } from "../schema/isRelationField.js"
@@ -12,7 +12,7 @@ export const addInitialValues = async (
     permissions?: StokerPermissions,
     claims?: Record<string, unknown>,
 ) => {
-    const { fields } = collectionSchema
+    const { fields, labels } = collectionSchema
     for (const field of customization.fields) {
         const fieldSchema = getField(fields, field.name)
         if (
@@ -27,11 +27,14 @@ export const addInitialValues = async (
         }
     }
     for (const field of fields) {
-        if (!field.access || privateFieldAccess(field, permissions, collectionSchema, claims || {})) {
-            if ("autoIncrement" in field && field.autoIncrement && !data[field.name]) {
-                data[field.name] = "Pending"
-            }
-            if (!isRelationField(field) && field.nullable && data[field.name] === undefined) {
+        if (field.access && !privateFieldAccess(field, permissions, collectionSchema, claims || {})) continue
+        if ("autoIncrement" in field && field.autoIncrement && !data[field.name]) {
+            data[field.name] = "Pending"
+        }
+        if (!isRelationField(field) && field.nullable) {
+            const cannotProvide =
+                !!field.restrictCreate && !restrictCreateAccess(field, permissions, labels.collection, claims || {})
+            if (cannotProvide || data[field.name] === undefined) {
                 data[field.name] = null
             }
         }
