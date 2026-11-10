@@ -1762,6 +1762,12 @@ type CustomListAction = {
 
 Provide custom actions that will be shown in a dropdown menu on the list page.
 
+### hideCheckboxColumn
+
+`boolean | (() => boolean)`
+
+Hide the checkbox column on the list page.
+
 ### addRecordButtonOverride
 
 `(record?: StokerRecord) => void | Promise<void>`

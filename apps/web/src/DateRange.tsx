@@ -243,24 +243,26 @@ export function DateRangeSelector({
     return (
         <div className={cn("grid gap-2", className)}>
             <div className="flex items-center gap-1">
-                {!relationList && (rangeSelector === "month" || rangeSelector === "week") && (
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            if (preventChange) return
-                            if (!range?.from) return
-                            if (rangeSelector === "week")
-                                handleSelect(DateTime.fromJSDate(range.from).minus({ weeks: 1 }).toJSDate())
-                            if (rangeSelector === "month")
-                                handleSelect(DateTime.fromJSDate(range.from).minus({ months: 1 }).toJSDate())
-                        }}
-                        disabled={disabled}
-                        className="date-range-arrow hidden sm:block lg:hidden xl:block"
-                        data-testid="range-previous"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                )}
+                {!relationList &&
+                    (rangeSelector === "month" || rangeSelector === "week") &&
+                    !tryFunction(customization.admin?.disableRangeSelector) && (
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                if (preventChange) return
+                                if (!range?.from) return
+                                if (rangeSelector === "week")
+                                    handleSelect(DateTime.fromJSDate(range.from).minus({ weeks: 1 }).toJSDate())
+                                if (rangeSelector === "month")
+                                    handleSelect(DateTime.fromJSDate(range.from).minus({ months: 1 }).toJSDate())
+                            }}
+                            disabled={disabled}
+                            className="date-range-arrow hidden sm:block lg:hidden xl:block"
+                            data-testid="range-previous"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                    )}
                 <Popover>
                     <PopoverTrigger asChild disabled={disabled}>
                         <Button
@@ -407,24 +409,26 @@ export function DateRangeSelector({
                         )}
                     </PopoverContent>
                 </Popover>
-                {!relationList && (rangeSelector === "month" || rangeSelector === "week") && (
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            if (preventChange) return
-                            if (!range?.from) return
-                            if (rangeSelector === "week")
-                                handleSelect(DateTime.fromJSDate(range.from).plus({ weeks: 1 }).toJSDate())
-                            if (rangeSelector === "month")
-                                handleSelect(DateTime.fromJSDate(range.from).plus({ months: 1 }).toJSDate())
-                        }}
-                        disabled={disabled}
-                        className="date-range-arrow hidden sm:block lg:hidden xl:block"
-                        data-testid="range-next"
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </Button>
-                )}
+                {!relationList &&
+                    (rangeSelector === "month" || rangeSelector === "week") &&
+                    !tryFunction(customization.admin?.disableRangeSelector) && (
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                if (preventChange) return
+                                if (!range?.from) return
+                                if (rangeSelector === "week")
+                                    handleSelect(DateTime.fromJSDate(range.from).plus({ weeks: 1 }).toJSDate())
+                                if (rangeSelector === "month")
+                                    handleSelect(DateTime.fromJSDate(range.from).plus({ months: 1 }).toJSDate())
+                            }}
+                            disabled={disabled}
+                            className="date-range-arrow hidden sm:block lg:hidden xl:block"
+                            data-testid="range-next"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    )}
             </div>
         </div>
     )

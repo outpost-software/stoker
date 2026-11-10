@@ -748,7 +748,7 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        const statusField = await tryPromise(customization?.admin?.statusField)
+        const statusField = await tryPromise(customization?.admin?.statusField).catch(() => undefined)
         if (statusField) {
             const statusFieldSchema = getField(fields, statusField.field)
             if (!statusFieldSchema) {
@@ -788,7 +788,7 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        const defaultSort = (await tryPromise(customization?.admin?.defaultSort)) as
+        const defaultSort = (await tryPromise(customization?.admin?.defaultSort).catch(() => undefined)) as
             { field: string; direction: "asc" | "desc" } | undefined
         if (defaultSort) {
             const fieldSchema = getField(fields, defaultSort.field)
@@ -1058,7 +1058,8 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        const restrictExport = (await tryPromise(customization?.admin?.restrictExport)) as string[] | undefined
+        const restrictExport = (await tryPromise(customization?.admin?.restrictExport).catch(() => undefined)) as
+            string[] | undefined
         if (restrictExport) {
             for (const role of restrictExport) {
                 if (!roles.includes(role)) {
@@ -1067,7 +1068,8 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        const duplicate = (await tryPromise(customization?.admin?.duplicate)) as boolean | string[] | undefined
+        const duplicate = (await tryPromise(customization?.admin?.duplicate).catch(() => undefined)) as
+            boolean | string[] | undefined
         if (Array.isArray(duplicate)) {
             for (const role of duplicate) {
                 if (!roles.includes(role)) {
@@ -1076,7 +1078,8 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        const metrics = (await tryPromise(customization?.admin?.metrics)) as (Metric | Chart)[] | undefined
+        const metrics = (await tryPromise(customization?.admin?.metrics).catch(() => undefined)) as
+            (Metric | Chart)[] | undefined
         if (metrics) {
             for (const metric of metrics) {
                 if (metric.type === "sum" || metric.type === "average") {
@@ -1112,7 +1115,7 @@ export const lintSchema = async (noLog = false) => {
             }
         }
 
-        const filters = (await tryPromise(customization?.admin?.filters)) as Filter[] | undefined
+        const filters = (await tryPromise(customization?.admin?.filters).catch(() => undefined)) as Filter[] | undefined
         if (filters) {
             for (const filter of filters) {
                 if (filter.type === "status") continue
@@ -1183,7 +1186,8 @@ export const lintSchema = async (noLog = false) => {
             errors.push(`Collection ${collectionName} has more than one range filter`)
         }
 
-        const assignable = (await tryPromise(customization?.admin?.assignable)) as Assignable[] | undefined
+        const assignable = (await tryPromise(customization?.admin?.assignable).catch(() => undefined)) as
+            Assignable[] | undefined
         if (assignable) {
             for (const assignableItem of assignable) {
                 if (!collectionNames.includes(assignableItem.collection)) {
