@@ -488,7 +488,7 @@ export function List({
 
     const hideCheckboxColumn = useMemo(() => tryFunction(customization?.admin?.hideCheckboxColumn), [customization])
 
-    const columns: ColumnDef<StokerRecord>[] = useMemo(() => {
+    const { columns, hiddenSortColumnIds } = useMemo(() => {
         const fieldsClone = cloneDeep(fields.filter((field) => !formList || formList.fields.includes(field.name)))
         const sortedFields = fieldsClone.sort((a, b) => {
             const aCustomization = getFieldCustomization(a, customization)
@@ -655,17 +655,21 @@ export function List({
             .filter(Boolean) as ColumnDef<StokerRecord>[]
 
         const allColumns = [...(hideCheckboxColumn ? [] : [selectColumnDef]), ...fieldColumns]
-
-        if (secondarySort && !allColumns.some((column) => column.id === secondarySort.field)) {
+        const hiddenSortColumnIds: string[] = []
+        const hiddenSortFields = [secondarySort?.field, defaultSort?.field].filter(
+            (fieldName): fieldName is string => !!fieldName,
+        )
+        hiddenSortFields.forEach((fieldName) => {
+            if (allColumns.some((column) => column.id === fieldName)) return
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const hiddenColumn: any = {
-                id: secondarySort.field,
-                accessorKey: secondarySort.field,
+                id: fieldName,
+                accessorKey: fieldName,
                 header: () => null,
                 cell: () => null,
                 enableHiding: true,
             }
-            const field = getField(fields.concat(systemFields), secondarySort.field)
+            const field = getField(fields.concat(systemFields), fieldName)
             if (field?.type === "String") {
                 hiddenColumn.sortingFn = "stringSortingFn"
             } else if (field && isRelationField(field)) {
@@ -676,17 +680,28 @@ export function List({
                 hiddenColumn.sortingFn = "rawSortingFn"
             }
             allColumns.push(hiddenColumn as ColumnDef<StokerRecord>)
-        }
+            hiddenSortColumnIds.push(fieldName)
+        })
 
-        return allColumns
-    }, [fields, isPreloadCacheEnabled, isServerReadOnly, recordTitleField, connectionStatus, secondarySort])
+        return { columns: allColumns, hiddenSortColumnIds }
+    }, [
+        fields,
+        isPreloadCacheEnabled,
+        isServerReadOnly,
+        recordTitleField,
+        connectionStatus,
+        secondarySort,
+        defaultSort,
+        hideCheckboxColumn,
+    ])
 
     const columnVisibility = useMemo(() => {
-        if (!secondarySort) return {}
-        const isListField = fields.some((field) => field.name === secondarySort.field)
-        if (isListField) return {}
-        return { [secondarySort.field]: false }
-    }, [secondarySort, fields])
+        return hiddenSortColumnIds.reduce<Record<string, boolean>>((visibility, fieldName) => {
+            // eslint-disable-next-line security/detect-object-injection
+            visibility[fieldName] = false
+            return visibility
+        }, {})
+    }, [hiddenSortColumnIds])
 
     const isServerFullTextSearchActive = isServerFullTextSearch(
         search,
@@ -2049,7 +2064,7 @@ export function List({
                                     ) : (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={columns.length}
+                                                colSpan={table.getVisibleLeafColumns().length}
                                                 className="h-24 text-center"
                                                 data-testid="list-empty"
                                             >
