@@ -1762,6 +1762,32 @@ type CustomListAction = {
 
 Provide custom actions that will be shown in a dropdown menu on the list page.
 
+### floatingButton
+
+```ts
+type FloatingButton = {
+    text: string
+    className: string
+    roles?: string[]
+    condition?: () => boolean
+    action: () => void | Promise<void>
+}
+```
+
+`FloatingButton | (() => FloatingButton | Promise<FloatingButton>)`
+
+Show a fixed button at the bottom-left of the list page.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `text` | `string` | The label shown on the button. |
+| `className` | `string` | The Tailwind classes to apply to the button. |
+| `roles` | `string[]` | Limit which user roles can see the button. |
+| `condition` | `() => boolean` | Show or hide the button. |
+| `action` | `() => void \| Promise<void>` | The function that fires when the button is clicked. |
+
+The button has white text and no background by default, so include a background color in `className`, e.g. `"bg-blue-600 hover:bg-blue-700"`.
+
 ### hideCheckboxColumn
 
 `boolean | (() => boolean)`
