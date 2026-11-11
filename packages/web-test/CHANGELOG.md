@@ -1,5 +1,15 @@
 # @stoker-platform/web-test
 
+## 0.5.16
+
+### Patch Changes
+
+- feat: add role restriction option to duplicate
+- Updated dependencies
+    - @stoker-platform/types@0.5.81
+    - @stoker-platform/utils@0.5.101
+    - @stoker-platform/node-client@0.5.116
+
 ## 0.5.15
 
 ### Patch Changes

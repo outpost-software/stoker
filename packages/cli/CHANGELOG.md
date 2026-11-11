@@ -1,5 +1,16 @@
 # @stoker-platform/cli
 
+## 0.5.192
+
+### Patch Changes
+
+- feat: add role restriction option to duplicate
+- fix: no-op on failed linter config function calls
+- Updated dependencies
+    - @stoker-platform/types@0.5.81
+    - @stoker-platform/utils@0.5.101
+    - @stoker-platform/node-client@0.5.116
+
 ## 0.5.191
 
 ### Patch Changes

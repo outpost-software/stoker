@@ -1,5 +1,14 @@
 # @stoker-platform/web-client
 
+## 0.5.119
+
+### Patch Changes
+
+- feat: show spinner for async preWrite hook
+- Updated dependencies
+    - @stoker-platform/types@0.5.81
+    - @stoker-platform/utils@0.5.101
+
 ## 0.5.118
 
 ### Patch Changes

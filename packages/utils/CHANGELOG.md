@@ -1,5 +1,15 @@
 # @stoker-platform/utils
 
+## 0.5.101
+
+### Patch Changes
+
+- feat: accept a function for startOffsetDays
+- feat: show spinner for async preWrite hook
+- fix: always allow null value for nullable fields on create
+- Updated dependencies
+    - @stoker-platform/types@0.5.81
+
 ## 0.5.100
 
 ### Patch Changes

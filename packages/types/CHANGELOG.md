@@ -1,5 +1,20 @@
 # @stoker-platform/types
 
+## 0.5.81
+
+### Patch Changes
+
+- feat: add role restriction option to duplicate
+- feat: add minimum list width option to fields
+- feat: add context parameter to field className method
+- feat: accept a function for startOffsetDays
+- feat: add modify form heading option
+- feat: add ability to hide the checkbox column
+- feat: add modify save button option
+- feat: add floating button feature
+- fix: allow undefined field hidden values
+- fix: no-op on failed linter config function calls
+
 ## 0.5.80
 
 ### Patch Changes

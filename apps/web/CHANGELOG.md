@@ -1,5 +1,32 @@
 # @stoker-platform/web-app
 
+## 0.5.267
+
+### Patch Changes
+
+- feat: add role restriction option to duplicate
+- feat: add minimum list width option to fields
+- feat: add context parameter to field className method
+- feat: hide collections with hidden enabled from search all
+- feat: disable inaccessible relation cards and breadcrumbs
+- feat: accept a function for startOffsetDays
+- feat: hide single view tab on mobile
+- feat: add modify form heading option
+- feat: keep date range at full opacity when explicitly disabled
+- feat: add ability to hide the checkbox column
+- feat: reverse form buttons order on mobile
+- feat: add modify save button option
+- feat: add floating button feature
+- feat: show spinner for async preWrite hook
+- fix: clear server-removed fields in live mode
+- fix: apply onFormOpen record updates to update form
+- fix: no-op on failed linter config function calls
+- fix: allow list to be sorted by hidden fields
+- Updated dependencies
+    - @stoker-platform/utils@0.5.101
+    - @stoker-platform/web-client@0.5.119
+    - @stoker-platform/node-client@0.5.116
+
 ## 0.5.266
 
 ### Patch Changes
