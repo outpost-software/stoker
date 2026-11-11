@@ -20,14 +20,21 @@ import {
     SetEmbeddingHookArgs,
     PreValidateHookArgs,
 } from "@stoker-platform/types"
-import { tryPromise } from "../getConfigValue.js"
 
-const hook = async (name: string, callback?: hookType, args?: HookArgs) => {
-    if (callback) {
-        const value = await tryPromise(callback, [args])
-        if (value === false) throw new Error(`CANCELLED: Operation cancelled by ${name}`)
-        return value
+const isThenable = (value: unknown): value is Promise<unknown> =>
+    !!value &&
+    (typeof value === "object" || typeof value === "function") &&
+    typeof (value as { then?: unknown }).then === "function"
+
+const hook = async (name: string, callback?: hookType, args?: HookArgs, onAsync?: () => void): Promise<unknown> => {
+    if (!callback) return
+    let value = (callback as (hookArgs?: HookArgs) => unknown)(args)
+    if (isThenable(value)) {
+        onAsync?.()
+        value = await value
     }
+    if (value === false) throw new Error(`CANCELLED: Operation cancelled by ${name}`)
+    return value
 }
 
 export function runHooks(
@@ -71,6 +78,7 @@ export function runHooks(
     globalConfig: GlobalConfig,
     customization: CollectionCustomization,
     args?: PreWriteHookArgs,
+    options?: { onAsync?: (pending: boolean) => void },
 ): Promise<void>
 export function runHooks(
     hookName: "postWrite",
@@ -132,13 +140,24 @@ export async function runHooks(
     globalConfig: GlobalConfig,
     customization: CollectionCustomization,
     args?: HookArgs,
+    options?: { onAsync?: (pending: boolean) => void },
 ): Promise<void | string | { resolved: boolean; retry?: boolean }> {
-    const value = await hook(hookName, customization.custom?.[hookName as keyof Hooks], args)
-    for (const field of customization.fields) {
-        await hook(hookName, field.custom?.[hookName as keyof Hooks], args)
+    let isAsync = false
+    const onAsync = () => {
+        if (isAsync) return
+        isAsync = true
+        options?.onAsync?.(true)
     }
-    if (hookName !== "setEmbedding") {
-        await hook(hookName, globalConfig?.[hookName as keyof Omit<Hooks, "setEmbedding">], args)
-        if (hookName === "postWriteError") return value
+    try {
+        const value = await hook(hookName, customization.custom?.[hookName as keyof Hooks], args, onAsync)
+        for (const field of customization.fields) {
+            await hook(hookName, field.custom?.[hookName as keyof Hooks], args, onAsync)
+        }
+        if (hookName !== "setEmbedding") {
+            await hook(hookName, globalConfig?.[hookName as keyof Omit<Hooks, "setEmbedding">], args, onAsync)
+            if (hookName === "postWriteError") return value as { resolved: boolean; retry?: boolean } | void
+        }
+    } finally {
+        if (isAsync) options?.onAsync?.(false)
     }
 }

@@ -65,6 +65,7 @@ export const addRecord = async (
         retry?: { type: string; docId: string }
         id?: string
         onValid?: () => void
+        onAsyncPreWrite?: (pending: boolean) => void
     },
 ) => {
     const user = options?.user
@@ -204,7 +205,9 @@ export const addRecord = async (
             context,
             batch,
         }
-        await runHooks("preWrite", globalConfig, customization, preWriteArgs)
+        await runHooks("preWrite", globalConfig, customization, preWriteArgs, {
+            onAsync: options?.onAsyncPreWrite,
+        })
     }
 
     addRelationArrays(collectionSchema, record, schema)

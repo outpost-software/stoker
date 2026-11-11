@@ -2816,6 +2816,21 @@ function RecordForm({
     const [isAddingServer, setIsAddingServer] = useState(false)
     const [isUploading, setIsUploading] = useState<Record<string, boolean>>({})
     const [isSaving, setIsSaving] = useState(false)
+    const [preWriteCount, setPreWriteCount] = useState(0)
+    const [showPreWriteSpinner, setShowPreWriteSpinner] = useState(false)
+    const isPreWritePending = preWriteCount > 0
+    const onAsyncPreWrite = useCallback((pending: boolean) => {
+        setPreWriteCount((count) => count + (pending ? 1 : -1))
+    }, [])
+
+    useEffect(() => {
+        if (!isPreWritePending) {
+            setShowPreWriteSpinner(false)
+            return
+        }
+        const timer = setTimeout(() => setShowPreWriteSpinner(true), 100)
+        return () => clearTimeout(timer)
+    }, [isPreWritePending])
 
     const [formUploadEnabled, setFormUploadEnabled] = useState(false)
     const [formImagesEnabled, setFormImagesEnabled] = useState(false)
@@ -4515,6 +4530,7 @@ function RecordForm({
                     user: userData as UserData & { password: string; passwordConfirm: string },
                     id: docId,
                     onValid,
+                    onAsyncPreWrite,
                 })
                     .then((record: Partial<StokerRecord>) => {
                         if (serverWrite || isServerReadOnly) {
@@ -4557,7 +4573,7 @@ function RecordForm({
                             const filePath = `${basePath}/${filename}`
                             const storageRef = ref(storage, filePath)
                             const url = await getDownloadURL(storageRef)
-                            await updateRecord(path, docId, { [fieldName]: url }, { originalRecord })
+                            await updateRecord(path, docId, { [fieldName]: url }, { originalRecord, onAsyncPreWrite })
                         }
                         setQueuedImageUploads({})
                     })
@@ -4614,6 +4630,7 @@ function RecordForm({
                 updateRecord(path, id, recordToSave, {
                     user: userData as UserData & { operation: "create" | "update" | "delete" },
                     originalRecord,
+                    onAsyncPreWrite,
                 })
                     .then(async () => {
                         if (serverWrite || isServerReadOnly) {
@@ -4696,6 +4713,7 @@ function RecordForm({
 
                             return updateRecord(path, selectedRecord.id, cloneDeep(recordToSave), {
                                 originalRecord: selectedRecord,
+                                onAsyncPreWrite,
                             })
                                 .catch((error) => {
                                     console.error(`Failed to update record ${selectedRecord.id}:`, error)
@@ -4759,6 +4777,7 @@ function RecordForm({
             queuedImageUploads,
             uploadFilesToRecord,
             computeBasePath,
+            onAsyncPreWrite,
         ],
     )
 
@@ -6154,14 +6173,15 @@ function RecordForm({
                                             (operation === "update" && (isUpdateDisabled || isPendingServer)) ||
                                             isGlobalLoading.has(id) ||
                                             isSaving ||
-                                            isAddingServer
+                                            isAddingServer ||
+                                            isPreWritePending
                                         }
                                     >
                                         {saveButtonLabel}
                                     </Button>
-                                    {((operation === "update" && isPending) || isAddingServer) && (
-                                        <LoadingSpinner size={7} className="inline ml-2" />
-                                    )}
+                                    {((operation === "update" && isPending) ||
+                                        isAddingServer ||
+                                        showPreWriteSpinner) && <LoadingSpinner size={7} className="inline ml-2" />}
                                 </div>
                             )}
                         </div>

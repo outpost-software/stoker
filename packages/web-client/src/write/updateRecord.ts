@@ -62,6 +62,7 @@ export const updateRecord = async (
         }
         retry?: { type: string; originalRecord: StokerRecord }
         originalRecord?: StokerRecord
+        onAsyncPreWrite?: (pending: boolean) => void
     },
 ) => {
     const user = options?.user
@@ -255,7 +256,9 @@ export const updateRecord = async (
             batch,
             originalRecord: cloneDeep(originalRecord),
         }
-        await runHooks("preWrite", globalConfig, customization, preWriteArgs)
+        await runHooks("preWrite", globalConfig, customization, preWriteArgs, {
+            onAsync: options?.onAsyncPreWrite,
+        })
     }
 
     addRelationArrays(collectionSchema, partial, schema)
