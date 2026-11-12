@@ -1197,10 +1197,14 @@ export interface CollectionAdmin {
                     field: string
                     direction?: "asc" | "desc"
                 }
-              | Promise<{
-                    field: string
-                    direction?: "asc" | "desc"
-                }>)
+              | undefined
+              | Promise<
+                    | {
+                          field: string
+                          direction?: "asc" | "desc"
+                      }
+                    | undefined
+                >)
     /** The number of items to show per page */
     itemsPerPage?: number | (() => number | Promise<number>)
     /**

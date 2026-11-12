@@ -5809,7 +5809,7 @@ function RecordForm({
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Draft Found</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        A draft {labels.record} was found. Would you like to restore it or start fresh?
+                                        A draft {recordTitle} was found. Would you like to restore it or start fresh?
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

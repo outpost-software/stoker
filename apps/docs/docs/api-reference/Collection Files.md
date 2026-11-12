@@ -1708,8 +1708,8 @@ The default field to sort the list by.
 ```ts
 { field: string, direction?: "asc" | "desc" } | 
 (
-    () => { field: string, direction?: "asc" | "desc" } |
-    Promise<{ field: string, direction?: "asc" | "desc" }>
+    () => { field: string, direction?: "asc" | "desc" } | undefined |
+    Promise<{ field: string, direction?: "asc" | "desc" } | undefined>
 )
 ```
 
