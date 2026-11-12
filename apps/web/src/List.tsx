@@ -496,6 +496,7 @@ export function List({
             const aPosition = tryFunction(aCustomization.admin?.column)
             const bPosition = tryFunction(bCustomization.admin?.column)
 
+            if (aPosition === undefined && bPosition === undefined) return 0
             if (aPosition === undefined) return 1
             if (bPosition === undefined) return -1
 

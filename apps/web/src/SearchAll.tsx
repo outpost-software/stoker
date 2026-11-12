@@ -12,6 +12,7 @@ export const SearchAll = ({ query, hiddenCollections }: { query: string; hiddenC
         const customizationB = getCollectionConfigModule(b.labels.collection)
         const posA = customizationA.admin?.navbarPosition ? tryFunction(customizationA.admin.navbarPosition) : Infinity
         const posB = customizationB.admin?.navbarPosition ? tryFunction(customizationB.admin.navbarPosition) : Infinity
+        if (posA === posB) return 0
         return posA - posB
     })
 
