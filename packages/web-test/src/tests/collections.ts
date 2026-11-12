@@ -331,13 +331,21 @@ const visibleFilters = async (
     return visible
 }
 
-const statusOptions = (statusField: StatusField | undefined, collection: CollectionSchema): string[] => {
-    if (!statusField && !collection.softDelete) return []
+const statusOptions = async (
+    statusField: StatusField | undefined,
+    collection: CollectionSchema,
+    customization: CollectionCustomization,
+    role: string,
+): Promise<string[]> => {
+    const hideTrashConfig = (await tryPromise(customization.admin?.hideTrash).catch(() => false)) as
+        boolean | string[] | undefined
+    const hideTrash = hideTrashConfig === true || (Array.isArray(hideTrashConfig) && hideTrashConfig.includes(role))
+    if (!statusField && (!collection.softDelete || hideTrash)) return []
     const options: string[] = []
     if (statusField?.active) options.push("Active")
     if (statusField?.archived) options.push("Archived")
     options.push("All")
-    if (collection.softDelete) options.push("Trash")
+    if (collection.softDelete && !hideTrash) options.push("Trash")
     return options
 }
 
@@ -362,7 +370,7 @@ const collectionsWithFilters = async (
             claims,
             statusField?.field,
         )
-        const status = statusOptions(statusField, collection)
+        const status = await statusOptions(statusField, collection, customization, role)
         if (filters.length > 0 || status.length > 0) visible.push({ collection, filters, status })
     }
     return visible

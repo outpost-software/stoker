@@ -1296,6 +1296,11 @@ export interface CollectionAdmin {
     customListActions?: CustomListAction[] | (() => CustomListAction[] | Promise<CustomListAction[]>)
     /** Hide the checkbox column on the list page */
     hideCheckboxColumn?: boolean | (() => boolean)
+    /**
+     * Hide the Trash tab. Only relevant when `softDelete` is enabled. Set to `true` to hide it
+     * for every role, or provide the roles to hide it for
+     */
+    hideTrash?: boolean | StokerRole[] | (() => boolean | StokerRole[] | Promise<boolean | StokerRole[]>)
     /** Options for file uploads */
     fileOptions?: FileOptions | (() => FileOptions | Promise<FileOptions>)
 }
@@ -1354,6 +1359,7 @@ export interface CollectionAdminCache {
     assignable?: Assignable[]
     customListActions?: CustomListAction[]
     hideCheckboxColumn?: boolean
+    hideTrash?: boolean | StokerRole[]
     fileOptions?: FileOptions
 }
 

@@ -236,6 +236,7 @@ function Collection({
     const [cacheLoadingCompleted, setCacheLoadingCompleted] = useState(false)
     const [isOfflineDisabled, setIsOfflineDisabled] = useState<boolean | undefined>(undefined)
     const [restrictExport, setRestrictExport] = useState<StokerRole[] | undefined>(undefined)
+    const [hideTrash, setHideTrash] = useState<boolean | StokerRole[] | undefined>(undefined)
     const [disableCreate, setDisableCreate] = useState<boolean>(false)
     const [customListActions, setCustomListActions] = useState<CustomListAction[] | undefined>(undefined)
     const [floatingButton, setFloatingButton] = useState<FloatingButtonConfig | undefined>(undefined)
@@ -1114,6 +1115,8 @@ function Collection({
 
             const statusField = await getCachedConfigValue(customization, [...collectionAdminPath, "statusField"])
             setStatusField(statusField)
+            const hideTrash = await getCachedConfigValue(customization, [...collectionAdminPath, "hideTrash"])
+            setHideTrash(hideTrash)
             if (!statusFilterState) {
                 if (!relationList && statusField?.active) {
                     setStatusFilter("active")
@@ -2095,6 +2098,9 @@ function Collection({
         )
     }, [additionalRecordTitle, recordTitle])
 
+    const applyHideTrash =
+        hideTrash === true || (Array.isArray(hideTrash) && !!permissions.Role && hideTrash.includes(permissions.Role))
+
     if (!permissions.collections?.[labels.collection]) return null
 
     return (
@@ -2330,7 +2336,7 @@ function Collection({
                                                         : "lg:justify-end lg:mt-0 mt-2",
                                                 )}
                                             >
-                                                {(statusField || softDeleteField) && (
+                                                {(statusField || (softDeleteField && !applyHideTrash)) && (
                                                     <ToggleGroup
                                                         onValueChange={onStatusFilterChange}
                                                         value={statusFilter}
@@ -2383,7 +2389,7 @@ function Collection({
                                                                     <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 block h-3 w-3 rounded-full bg-destructive"></span>
                                                                 )}
                                                         </ToggleGroupItem>
-                                                        {softDeleteField && (
+                                                        {softDeleteField && !applyHideTrash && (
                                                             <ToggleGroupItem
                                                                 className="h-7 bg-muted data-[state=on]:bg-background relative"
                                                                 value="trash"

@@ -68,6 +68,8 @@ Enable soft-delete for this collection.
 
 `retentionPeriod`: The number of days after which soft-deleted records will be permananently deleted.
 
+You can hide the Trash tab for selected roles with [`admin.hideTrash`](#hidetrash).
+
 ### fullTextSearch
 
 `string[]`
@@ -1793,6 +1795,14 @@ The button has white text and no background by default, so include a background 
 `boolean | (() => boolean)`
 
 Hide the checkbox column on the list page.
+
+### hideTrash
+
+`boolean | string[] | (() => boolean | string[] | Promise<boolean | string[]>)`
+
+Hide the Trash tab. Only relevant when [`softDelete`](#softdelete) is enabled.
+
+Return `true` to hide the tab for every role, or an array of roles to hide it for those roles only. When the collection has no [`statusField`](#statusfield), hiding Trash also hides the status tabs, because All would be the only tab left.
 
 ### addRecordButtonOverride
 
