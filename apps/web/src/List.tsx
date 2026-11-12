@@ -635,9 +635,7 @@ export function List({
                                 </div>
                             )
                         },
-                        (prevProps, nextProps) =>
-                            prevProps.row.original.id === nextProps.row.original.id &&
-                            prevProps.row.original[field.name] === nextProps.row.original[field.name],
+                        (prevProps, nextProps) => prevProps.row.original === nextProps.row.original,
                     ),
                 }
                 column.cell.displayName = `Cell-${field.name}`
