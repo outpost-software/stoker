@@ -339,6 +339,8 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
         return !hasOptional
     }, [getUserRoleAssignment])
 
+    const canUpdatePermissions = !shouldSkipPermissionsDialog()
+
     const getDefaultPermissions = useCallback((): FilePermissions => {
         const assignment = getUserRoleAssignment()
         const required = assignment?.required || {}
@@ -1433,20 +1435,25 @@ export const RecordFiles = ({ collection, record }: FilesProps) => {
                                                                     >
                                                                         <Edit className="h-4 w-4" />
                                                                     </Button>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        data-testid="file-permissions"
-                                                                        onClick={() => handleFilePermissionsClick(item)}
-                                                                        disabled={isDisabled}
-                                                                    >
-                                                                        <Lock className="h-4 w-4" />
-                                                                    </Button>
+                                                                    {canUpdatePermissions && (
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            data-testid="file-permissions"
+                                                                            onClick={() =>
+                                                                                handleFilePermissionsClick(item)
+                                                                            }
+                                                                            disabled={isDisabled}
+                                                                        >
+                                                                            <Lock className="h-4 w-4" />
+                                                                        </Button>
+                                                                    )}
                                                                 </>
                                                             ) : null}
                                                         </>
                                                     )}
                                                     {item.isFolder &&
+                                                        canUpdatePermissions &&
                                                         ((permissions?.Role &&
                                                             item.metadata?.update?.includes(permissions.Role)) ||
                                                             (currentUser &&
