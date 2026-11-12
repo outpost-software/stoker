@@ -1373,6 +1373,10 @@ function Collection({
                             })
                         }
                     }
+                    const existingRangeIndex = filtersClone.findIndex((filter: Filter) => filter.type === "range")
+                    if (existingRangeIndex !== -1) {
+                        filtersClone.splice(existingRangeIndex, 1)
+                    }
                     filtersClone.push({
                         type: "range",
                         field: currentField,
