@@ -1,5 +1,5 @@
 import "./App.css"
-import { StrictMode, useEffect, useState } from "react"
+import { StrictMode, useEffect, useMemo, useState } from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
 import {
@@ -89,6 +89,7 @@ function Main() {
     const [, setConnectionStatus] = useConnection()
     const [, setDialogContent] = useDialog()
     const { toast } = useToast()
+    const router = useMemo(() => (routes.length > 0 ? sentryCreateBrowserRouter(routes) : null), [routes])
 
     useEffect(() => {
         const root = document.documentElement
@@ -146,8 +147,7 @@ function Main() {
     } else if (mode === "login") {
         return <Login />
     } else if (mode === "app") {
-        if (routes.length === 0) return null
-        const router = sentryCreateBrowserRouter(routes)
+        if (!router) return null
         return <RouterProvider router={router} />
     } else {
         return (

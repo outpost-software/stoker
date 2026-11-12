@@ -58,7 +58,13 @@ export const Record = ({ collection }: { collection: CollectionSchema }) => {
             return recordClone
         }
     }, [location?.state?.record, fields])
-    window.history.replaceState(null, "", location.pathname)
+
+    useEffect(() => {
+        if (window.location.pathname !== location.pathname) return
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { usr, ...routerState } = window.history.state ?? {}
+        window.history.replaceState(routerState, "", location.pathname)
+    }, [location.key])
 
     const fromRelationList = useRef(location.state?.relationList)
     const fromCalendar = useRef(location.state?.fromCalendar)
