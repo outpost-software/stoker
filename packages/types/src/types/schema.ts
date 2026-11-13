@@ -1255,7 +1255,7 @@ export interface CollectionAdmin {
     /** A fixed button shown at the bottom-left of the list view */
     floatingButton?: FloatingButton | (() => FloatingButton | Promise<FloatingButton>)
     /** Show a file upload button on the add record form */
-    formUpload?: boolean | (() => boolean | Promise<boolean>)
+    formUpload?: boolean | StokerRole[] | (() => boolean | StokerRole[] | Promise<boolean | StokerRole[]>)
     /** Show an image carousel at the top of the edit record form. All image files uploaded to the record will be displayed */
     formImages?: boolean | (() => boolean | Promise<boolean>)
     /** Show relation lists directly on the edit record form page */
@@ -1354,7 +1354,7 @@ export interface CollectionAdminCache {
     customRecordPages?: CustomRecordPage[]
     formButtons?: FormButton[]
     floatingButton?: FloatingButton
-    formUpload?: boolean
+    formUpload?: boolean | StokerRole[]
     formImages?: boolean
     formLists?: FormList[]
     hideCreate?: boolean

@@ -1930,7 +1930,7 @@ Show custom buttons at the bottom of the edit record form.
 
 ### formUpload
 
-`boolean | (() => boolean | Promise<boolean>)`
+`boolean | string[] | (() => boolean | string[] | Promise<boolean | string[]>)`
 
 Show a file upload button on the add record form.
 

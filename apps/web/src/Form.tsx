@@ -3912,7 +3912,11 @@ function RecordForm({
             setRecordTitle(titles?.record || labels.record)
             setMeta(meta)
             setBreadcrumbs(breadcrumbs)
-            setFormUploadEnabled(!!formUpload)
+            setFormUploadEnabled(
+                Array.isArray(formUpload)
+                    ? !!permissions?.Role && formUpload.includes(permissions.Role)
+                    : !!formUpload,
+            )
             setFormImagesEnabled(!!formImages)
             setIsOfflineCreateDisabled(offlineCreateDisabled)
             setIsOfflineUpdateDisabled(offlineUpdateDisabled)
