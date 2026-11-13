@@ -1,5 +1,22 @@
 # @stoker-platform/web-app
 
+## 0.5.268
+
+### Patch Changes
+
+- feat: re-render List cell on any field change
+- feat: add hide trash option
+- feat: hide file permissions update button when no permissions editable
+- feat: accept an array of roles for formUpload
+- fix: fix navigation issues
+- fix: fix column and search all sorting
+- fix: fix range filter and preload cache clash
+- fix: allow undefined return value for secondarySort
+- Updated dependencies
+    - @stoker-platform/node-client@0.5.117
+    - @stoker-platform/utils@0.5.102
+    - @stoker-platform/web-client@0.5.120
+
 ## 0.5.267
 
 ### Patch Changes

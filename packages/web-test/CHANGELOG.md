@@ -1,5 +1,15 @@
 # @stoker-platform/web-test
 
+## 0.5.17
+
+### Patch Changes
+
+- feat: add hide trash option
+- Updated dependencies
+    - @stoker-platform/types@0.5.82
+    - @stoker-platform/node-client@0.5.117
+    - @stoker-platform/utils@0.5.102
+
 ## 0.5.16
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @stoker-platform/types
 
+## 0.5.82
+
+### Patch Changes
+
+- feat: add hide trash option
+- feat: accept an array of roles for formUpload
+- fix: allow undefined return value for secondarySort
+
 ## 0.5.81
 
 ### Patch Changes
