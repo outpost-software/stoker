@@ -148,7 +148,7 @@ function CardItem({ index, style, data }: CardItemProps) {
             }),
             canDrag: () => !isPendingServer && !isDisabled && hasUpdateAccess,
         }),
-        [statusValue, statusValues, statusField, isPendingServer, isDisabled, hasUpdateAccess],
+        [record, statusValue, statusValues, statusField, isPendingServer, isDisabled, hasUpdateAccess],
     )
 
     useEffect(() => {
@@ -799,7 +799,7 @@ function DropZone({
                             (!search || localFullTextSearch(collection, search, [optimisticUpdate]).length > 0)
                         ))
                 ) {
-                    setRemovedList((prev) => prev.filter((record) => record.id !== record.id))
+                    setRemovedList((prev) => prev.filter((removed) => removed.id !== record.id))
                 }
             })
         }

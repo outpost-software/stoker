@@ -12,8 +12,14 @@ import {
 } from "@stoker-platform/types"
 import { getCachedConfigValue, getField, getFieldCustomization, tryFunction } from "@stoker-platform/utils"
 import { getCollectionConfigModule } from "@stoker-platform/web-client"
-import { or, QueryConstraint, where, WhereFilterOp } from "firebase/firestore"
+import { or, QueryConstraint, Timestamp, where, WhereFilterOp } from "firebase/firestore"
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
+
+const getMillis = (value: unknown) => {
+    if (value instanceof Date) return value.getTime()
+    const timestamp = value as Timestamp | undefined
+    return typeof timestamp?.toMillis === "function" ? timestamp.toMillis() : NaN
+}
 
 const includesAssigned = (
     relationList: RelationList | undefined,
@@ -321,18 +327,13 @@ export const FiltersProvider: React.FC<FiltersProviderProps> = ({
                     }
                 }
                 if (filter.type === "range") {
+                    const value = getMillis(record[filter.field])
                     if (filter.selector === "week" || filter.selector === "month") {
                         const range = JSON.parse(filter.value) as { from: string; to: string }
-                        show =
-                            show &&
-                            record[filter.field] >= new Date(range.from) &&
-                            record[filter.field] <= new Date(range.to)
+                        show = show && value >= new Date(range.from).getTime() && value <= new Date(range.to).getTime()
                     } else {
                         const range = JSON.parse(filter.value) as { from: string; to: string }
-                        show =
-                            show &&
-                            record[filter.field] >= new Date(range.from) &&
-                            record[filter.field] < new Date(range.to)
+                        show = show && value >= new Date(range.from).getTime() && value < new Date(range.to).getTime()
                     }
                 }
                 if (filter.type === "select") {

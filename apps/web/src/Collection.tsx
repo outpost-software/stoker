@@ -398,14 +398,14 @@ function Collection({
                     }
                     isInList = statusValue.toString() === key
                     if (!isInList) {
-                        const index = updatedList.findIndex((record) => record.id === optimisticRecord.id)
+                        const index = updatedList.findIndex((record) => record?.id === optimisticRecord.id)
                         if (index !== -1) {
                             updatedList.splice(index, 1)
                         }
                     }
                 }
                 if (tabRef.current !== "cards" || isInList) {
-                    const index = updatedList.findIndex((record) => record.id === optimisticRecord.id)
+                    const index = updatedList.findIndex((record) => record?.id === optimisticRecord.id)
                     if (index !== -1) {
                         // eslint-disable-next-line security/detect-object-injection
                         updatedList[index] = optimisticRecord
@@ -416,7 +416,7 @@ function Collection({
             })
 
             collectionOptimisticDeletesRef.current.forEach((deletedId) => {
-                const index = updatedList.findIndex((record) => record.id === deletedId)
+                const index = updatedList.findIndex((record) => record?.id === deletedId)
                 if (index !== -1) {
                     updatedList.splice(index, 1)
                 }
@@ -569,8 +569,9 @@ function Collection({
                 // eslint-disable-next-line security/detect-object-injection
                 dataGenerationRef.current[key] = 0
             }
+            const isNextPage = query.infinite && query.queries.length > 1
             // eslint-disable-next-line security/detect-object-injection
-            const dataGeneration = ++dataGenerationRef.current[key]
+            const dataGeneration = isNextPage ? dataGenerationRef.current[key] : ++dataGenerationRef.current[key]
             // eslint-disable-next-line security/detect-object-injection
             const isCurrentData = () => dataGenerationRef.current[key] === dataGeneration
             const releaseRouteLoading = () => {
@@ -715,7 +716,7 @@ function Collection({
                                             const doc = loadedDocs[i]
                                             updatedList[startIndex + i] = doc
                                         } else {
-                                            updatedList.splice(startIndex + i, 1)
+                                            delete updatedList[startIndex + i]
                                         }
                                     }
                                     setOptimisticList(updatedList, key)
