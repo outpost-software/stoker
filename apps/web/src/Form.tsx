@@ -3913,9 +3913,7 @@ function RecordForm({
             setMeta(meta)
             setBreadcrumbs(breadcrumbs)
             setFormUploadEnabled(
-                Array.isArray(formUpload)
-                    ? !!permissions?.Role && formUpload.includes(permissions.Role)
-                    : !!formUpload,
+                Array.isArray(formUpload) ? !!permissions?.Role && formUpload.includes(permissions.Role) : !!formUpload,
             )
             setFormImagesEnabled(!!formImages)
             setIsOfflineCreateDisabled(offlineCreateDisabled)

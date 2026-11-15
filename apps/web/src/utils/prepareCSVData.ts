@@ -29,9 +29,22 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
     const schema = getSchema()
     const dateFormat = tryFunction(globalConfig.admin?.dateFormat) || "dd/MM/yyyy"
 
+    const sortedFields = [...fields].sort((a, b) => {
+        const aCustomization = getFieldCustomization(a, customization)
+        const bCustomization = getFieldCustomization(b, customization)
+        const aPosition = tryFunction(aCustomization.admin?.column, [undefined, true])
+        const bPosition = tryFunction(bCustomization.admin?.column, [undefined, true])
+
+        if (aPosition === undefined && bPosition === undefined) return 0
+        if (aPosition === undefined) return 1
+        if (bPosition === undefined) return -1
+
+        return aPosition - bPosition
+    })
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CSVData: { data: any[]; headers: any[] } = { data: [], headers: [] }
-    for (const field of fields) {
+    for (const field of sortedFields) {
         if (field.type === "Map") continue
         if (field.type === "Embedding") continue
         if (field.name === softDelete?.archivedField) continue
@@ -49,7 +62,7 @@ export const prepareCSVData = (collection: CollectionSchema, data: any[]) => {
     for (const doc of data) {
         if (softDelete && doc[softDelete.archivedField]) continue
         const docData = {} as StokerRecord
-        for (const field of fields) {
+        for (const field of sortedFields) {
             if (field.type === "Map") continue
             if (field.type === "Embedding") continue
             if (field.name === softDelete?.archivedField) continue

@@ -1472,7 +1472,7 @@ export interface FieldAdmin {
      * Set the position of the field in the list and the form. Defaults to the position of the field in the fields array.
      * In the form, the function receives the current form values. In the list, it is called without a record
      */
-    column?: boolean | number | ((record?: StokerRecord) => boolean | number)
+    column?: boolean | number | ((record?: StokerRecord, isExport?: boolean) => boolean | number | undefined)
     /** Set on a String field to make it a badge. Return a Tailwind class specifying the color for the badge */
     badge?: boolean | string | ((record?: StokerRecord) => boolean | string)
     /** The screen size at which the field should be hidden from the list view. This is useful for responsiveness */
