@@ -1,5 +1,11 @@
 # @stoker-platform/types
 
+## 0.5.83
+
+### Patch Changes
+
+- feat: improve CSV export column ordering
+
 ## 0.5.82
 
 ### Patch Changes

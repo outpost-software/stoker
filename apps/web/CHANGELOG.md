@@ -1,5 +1,15 @@
 # @stoker-platform/web-app
 
+## 0.5.269
+
+### Patch Changes
+
+- feat: improve CSV export column ordering
+- fix: fix stale Board cards issue
+- @stoker-platform/node-client@0.5.118
+    - @stoker-platform/utils@0.5.103
+    - @stoker-platform/web-client@0.5.121
+
 ## 0.5.268
 
 ### Patch Changes
