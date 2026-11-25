@@ -1,5 +1,11 @@
 # @stoker-platform/web-app
 
+## 0.5.270
+
+### Patch Changes
+
+- fix: skip setting initial value for required Array fields
+
 ## 0.5.269
 
 ### Patch Changes

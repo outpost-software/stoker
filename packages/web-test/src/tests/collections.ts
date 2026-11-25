@@ -47,7 +47,7 @@ export const collectionConformance = (options: ConformanceOptions) => {
     test.describe("collection pages", () => {
         test("search all opens a record", async ({ page, schema, role, ui, project }) => {
             test.skip(!!options.skipSuites?.editing, "editing was skipped, so no record was created")
-            const collections = searchableCollections(schema, role, project, options)
+            const collections = await searchAllCollections(schema, role, project, options)
             test.skip(collections.length === 0, `${role} has no searchable record from editing`)
 
             for (const collection of collections) {
@@ -154,6 +154,20 @@ const searchableCollections = (
     fixtureCollections(schema, role, project, options).filter(
         (collection) => !!collection.fullTextSearch?.length && roleHasOperationAccess(collection, role, "create"),
     )
+
+const searchAllCollections = async (
+    schema: CollectionsSchema,
+    role: string,
+    project: StokerProject,
+    options: ConformanceOptions,
+): Promise<CollectionSchema[]> => {
+    const visible: CollectionSchema[] = []
+    for (const collection of searchableCollections(schema, role, project, options)) {
+        const customization = await getCustomizationFile(collection.labels.collection, schema)
+        if (!(await tryPromise(customization.admin?.hidden))) visible.push(collection)
+    }
+    return visible
+}
 
 const fixtureRecordTitle = async (
     project: StokerProject,

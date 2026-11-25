@@ -1,5 +1,11 @@
 # @stoker-platform/web-test
 
+## 0.5.19
+
+### Patch Changes
+
+- feat: update search all test
+
 ## 0.5.18
 
 ### Patch Changes

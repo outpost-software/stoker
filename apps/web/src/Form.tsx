@@ -2660,7 +2660,7 @@ function RecordForm({
                 defaultValues[field.name] = record?.[field.name]
             }
             const fieldCustomization = getFieldCustomization(field, customization)
-            const firstValue = "values" in field ? field.values?.[0] : undefined
+            const firstValue = "values" in field && field.type !== "Array" ? field.values?.[0] : undefined
             if (
                 operation === "create" &&
                 field.required &&
